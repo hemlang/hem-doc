@@ -41,7 +41,15 @@ jobs:
       - name: Build documentation
         run: |
           cd hemlock
+          if [ ! -f build_docs.py ]; then
+            echo "Error: build_docs.py not found in hemlock submodule"
+            exit 1
+          fi
           python build_docs.py
+          if [ ! -f docs.html ]; then
+            echo "Error: docs.html was not generated"
+            exit 1
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -50,6 +58,7 @@ jobs:
         run: |
           mkdir -p _site
           cp hemlock/docs.html _site/index.html
+          echo "Successfully prepared documentation for deployment"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
