@@ -40,11 +40,6 @@ jobs:
 
       - name: Build documentation
         run: |
-          cd hemlock
-          if [ ! -f build_docs.py ]; then
-            echo "Error: build_docs.py not found in hemlock submodule"
-            exit 1
-          fi
           python build_docs.py
           if [ ! -f docs.html ]; then
             echo "Error: docs.html was not generated"
@@ -57,7 +52,7 @@ jobs:
       - name: Prepare output
         run: |
           mkdir -p _site
-          cp hemlock/docs.html _site/index.html
+          cp docs.html _site/index.html
           echo "Successfully prepared documentation for deployment"
 
       - name: Upload artifact
