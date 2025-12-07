@@ -1,5 +1,10 @@
-# Build artifacts
-_site/
+# Hemlock build artifacts
+*.hmlc
+*.hmlb
+*.hmlp
 
-# Generated documentation (built dynamically in CI)
-hemlock/docs.html
+# Packaged executables
+hem-doc-server
+
+# Stdlib symlink
+stdlib

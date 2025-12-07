@@ -1,0 +1,33 @@
+// Hemlock Documentation Server
+// Serves the docs.html file using Sprout
+
+import { App } from "./sprout.hml";
+import { read_file } from "@stdlib/fs";
+
+// Read the docs HTML at startup
+let docs_html = read_file("docs.html");
+if (docs_html == null) {
+    print("Error: docs.html not found");
+    print("Run this from the hem-doc directory");
+    exit(1);
+}
+
+let app = App(null);
+
+// Serve the documentation
+app.get("/", fn(req, res, next) {
+    res.type("html").send(docs_html);
+});
+
+// Health check endpoint
+app.get("/health", fn(req, res, next) {
+    res.json({ status: "ok", docs_size: docs_html.length });
+});
+
+// Serve on port 3000
+let port = 3000;
+
+app.listen(port, fn() {
+    print("Hemlock Documentation Server");
+    print("Serving docs at http://localhost:" + port);
+});
