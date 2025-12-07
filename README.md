@@ -8,12 +8,18 @@ This repo builds a single-file HTML documentation viewer from the markdown files
 
 It also includes a standalone documentation server built with [Sprout](https://github.com/nbeerbower/sprout), allowing you to serve the docs locally or deploy them anywhere.
 
+## Prerequisites
+
+- [Hemlock](https://github.com/hemlang/hemlock) - The Hemlock interpreter
+- [hpm](https://github.com/hemlang/hpm) - Hemlock Package Manager
+
 ## Quick Start
 
 ### Using Make
 
 ```bash
-# Generate docs.html
+# Install dependencies and generate docs
+make deps
 make docs
 
 # Build the documentation server
@@ -30,7 +36,7 @@ make dist
 
 1. Clone the repository with submodules:
    ```bash
-   git clone --recursive https://github.com/nbeerbower/hem-doc.git
+   git clone --recursive https://github.com/hemlang/hem-doc.git
    cd hem-doc
    ```
 
@@ -39,12 +45,20 @@ make dist
    git submodule update --init --recursive
    ```
 
-2. Build the documentation:
+2. Install dependencies:
+   ```bash
+   hpm install
+   ```
+
+3. Build the documentation:
    ```bash
    python3 build_docs.py
    ```
 
-3. Open `docs.html` in your browser.
+4. Open `docs.html` in your browser, or run the server:
+   ```bash
+   hemlock serve.hml
+   ```
 
 ## Documentation Server
 
@@ -94,6 +108,7 @@ hem-doc/
 
 | Target | Description |
 |--------|-------------|
+| `make deps` | Install dependencies via hpm |
 | `make docs` | Generate docs.html from hemlock source |
 | `make server` | Package the documentation server executable |
 | `make dist` | Create distribution zip (server + docs.html) |

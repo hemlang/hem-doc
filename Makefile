@@ -1,13 +1,20 @@
 # Hemlock Documentation
-# https://github.com/nbeerbower/hem-doc
+# https://github.com/hemlang/hem-doc
 
 HEMLOCK ?= hemlock
+HPM ?= hpm
 PYTHON ?= python3
-VERSION := 1.0.0
+VERSION := 1.0.4
 
-.PHONY: all docs server package dist clean help
+.PHONY: all deps docs server package dist clean help
 
 all: docs
+
+# Install dependencies via hpm
+deps:
+	@echo "Installing dependencies..."
+	@$(HPM) install
+	@echo "Done"
 
 # Generate documentation HTML from hemlock source
 docs:
@@ -44,6 +51,7 @@ help:
 	@echo "Hemlock Documentation $(VERSION)"
 	@echo ""
 	@echo "Usage:"
+	@echo "  make deps    - Install dependencies via hpm"
 	@echo "  make docs    - Generate docs.html from hemlock source"
 	@echo "  make server  - Package the documentation server executable"
 	@echo "  make dist    - Create distribution zip (server + docs.html)"
@@ -53,4 +61,5 @@ help:
 	@echo ""
 	@echo "Environment variables:"
 	@echo "  HEMLOCK      - Path to hemlock interpreter (default: hemlock)"
+	@echo "  HPM          - Path to hpm package manager (default: hpm)"
 	@echo "  PYTHON       - Path to python3 (default: python3)"
