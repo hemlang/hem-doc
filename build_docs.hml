@@ -61,9 +61,7 @@ fn collect_docs() {
 
     // Add CLAUDE.md as the main documentation
     let claude_path = HEMLOCK_DIR + "/CLAUDE.md";
-    print("  Checking: " + claude_path);
     if (exists(claude_path)) {
-        print("  Found CLAUDE.md");
         docs["Language Reference"] = {
             id: "language-reference",
             content: safe_read_file(claude_path),
@@ -72,30 +70,21 @@ fn collect_docs() {
         };
     }
 
-    // Define section order - use simple approach
+    // Define section order
     let section_dirs = ["getting-started", "language-guide", "advanced", "reference", "design", "contributing"];
     let section_names = ["Getting Started", "Language Guide", "Advanced Topics", "API Reference", "Design & Philosophy", "Contributing"];
 
     // Collect docs from hemlock/docs/ directory
     let docs_dir = HEMLOCK_DIR + "/docs";
-    print("  Checking docs dir: " + docs_dir);
     if (exists(docs_dir)) {
-        print("  Found docs dir");
         let i = 0;
         while (i < section_dirs.length) {
             let subdir = section_dirs[i];
             let section_name = section_names[i];
             let subdir_path = docs_dir + "/" + subdir;
-            print("  Checking section: " + subdir_path);
 
             if (exists(subdir_path) && is_dir(subdir_path)) {
-                print("    Listing dir: " + subdir_path);
                 let entries = list_dir(subdir_path);
-                print("    Got " + typeof(entries.length) + " entries");
-
-                // Sort entries alphabetically
-                entries = sort_strings(entries);
-                print("    Sorted entries");
 
                 let j = 0;
                 while (j < entries.length) {
@@ -130,38 +119,6 @@ fn collect_docs() {
     return docs;
 }
 
-// Sort array of strings alphabetically using selection sort with insert/remove
-fn sort_strings(arr) {
-    print("    sort_strings called");
-    let result = [];
-    let i = 0;
-    while (i < arr.length) {
-        result.push(arr[i]);
-        i = i + 1;
-    }
-    print("    copied " + typeof(result.length) + " items");
-
-    // Simple insertion sort using array methods
-    let sorted = [];
-    while (result.length > 0) {
-        // Find minimum
-        let min_idx = 0;
-        let j = 1;
-        while (j < result.length) {
-            if (result[j] < result[min_idx]) {
-                min_idx = j;
-            }
-            j = j + 1;
-        }
-        // Add minimum to sorted and remove from result
-        sorted.push(result[min_idx]);
-        result.remove(min_idx);
-    }
-    print("    sorted done");
-
-    return sorted;
-}
-
 // Convert filename to title (e.g., "getting-started" -> "Getting Started")
 fn filename_to_title(name: string): string {
     let parts = name.replace_all("-", " ").replace_all("_", " ").split(" ");
@@ -186,44 +143,8 @@ fn filename_to_title(name: string): string {
     return result;
 }
 
-// Sort docs by order then by name
-fn sort_docs(docs: object): array {
-    // Get all keys and their order values
-    let entries = [];
-
-    // We need to iterate over docs keys - using serialize/deserialize trick
-    let json_str = docs.serialize();
-    let doc_copy = json_str.deserialize();
-
-    // Collect entries with known keys from the original docs
-    if (docs["Language Reference"] != null) {
-        entries.push({ key: "Language Reference", order: docs["Language Reference"].order });
-    }
-
-    // For other entries, we need to check the sections we know about
-    let sections = ["Getting Started", "Language Guide", "Advanced Topics", "API Reference", "Design & Philosophy", "Contributing"];
-
-    let si = 0;
-    while (si < sections.length) {
-        let section = sections[si];
-        // Check for entries starting with this section
-        // Since we can't iterate object keys directly, we'll rely on the structure we created
-        si = si + 1;
-    }
-
-    // Return keys in order (simplified - just return what we have)
-    let sorted_keys = [];
-
-    // First add Language Reference if it exists
-    if (docs["Language Reference"] != null) {
-        sorted_keys.push("Language Reference");
-    }
-
-    return sorted_keys;
-}
-
 // Get all doc keys in sorted order
-fn get_sorted_doc_keys(docs: object): array {
+fn get_sorted_doc_keys(docs) {
     let keys = [];
 
     // Add Language Reference first if it exists
@@ -233,23 +154,18 @@ fn get_sorted_doc_keys(docs: object): array {
 
     // Then add other sections in order
     let docs_dir = HEMLOCK_DIR + "/docs";
-    let sections = [
-        { dir: "getting-started", name: "Getting Started" },
-        { dir: "language-guide", name: "Language Guide" },
-        { dir: "advanced", name: "Advanced Topics" },
-        { dir: "reference", name: "API Reference" },
-        { dir: "design", name: "Design & Philosophy" },
-        { dir: "contributing", name: "Contributing" }
-    ];
+    let section_dirs = ["getting-started", "language-guide", "advanced", "reference", "design", "contributing"];
+    let section_names = ["Getting Started", "Language Guide", "Advanced Topics", "API Reference", "Design & Philosophy", "Contributing"];
 
     let i = 0;
-    while (i < sections.length) {
-        let section = sections[i];
-        let subdir_path = docs_dir + "/" + section.dir;
+    while (i < section_dirs.length) {
+        let subdir = section_dirs[i];
+        let section_name = section_names[i];
+        let subdir_path = docs_dir + "/" + subdir;
 
         if (exists(subdir_path) && is_dir(subdir_path)) {
             let entries = list_dir(subdir_path);
-            entries = sort_strings(entries);
+            // Note: not sorting - string comparison not supported
 
             let j = 0;
             while (j < entries.length) {
@@ -257,7 +173,7 @@ fn get_sorted_doc_keys(docs: object): array {
                 if (entry.ends_with(".md") && !entry.contains("development")) {
                     let file_name = entry.slice(0, entry.length - 3);
                     let title = filename_to_title(file_name);
-                    let key = section.name + " -> " + title;
+                    let key = section_name + " -> " + title;
 
                     // Check if this key exists in docs
                     if (docs[key] != null) {
@@ -992,7 +908,7 @@ fn main() {
         print("Error: No documentation pages found");
         exit(1);
     }
-    print("Found " + typeof(sorted_keys.length) + " documentation pages");
+    print("Found " + sorted_keys.length + " documentation pages");
 
     // Encode logo
     print("Encoding logo...");
@@ -1013,7 +929,7 @@ fn main() {
     write_file(OUTPUT_FILE, html);
 
     print("Documentation built: " + OUTPUT_FILE);
-    print("  - " + typeof(sorted_keys.length) + " pages");
+    print("  - " + sorted_keys.length + " pages");
     print("  - Open docs.html in your browser to view");
 
     return null;
