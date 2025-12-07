@@ -1,19 +1,32 @@
 # hem-doc
 
-Documentation site for the [Hemlock](https://github.com/hemlang/hemlock) programming language.
+Documentation site for the [Hemlock](https://github.com/nbeerbower/hemlock) programming language.
 
 ## How It Works
 
 This repo builds a single-file HTML documentation viewer from the markdown files in the hemlock submodule. The generated `docs.html` is deployed to GitHub Pages automatically.
 
-## Local Development
+It also includes a standalone documentation server built with [Sprout](https://github.com/nbeerbower/sprout), allowing you to serve the docs locally or deploy them anywhere.
 
-### Prerequisites
+## Quick Start
 
-- Python 3.6+
-- Git
+### Using Make
 
-### Setup
+```bash
+# Generate docs.html
+make docs
+
+# Build the documentation server
+make server
+
+# Run the server locally (http://localhost:3000)
+make run
+
+# Create a distribution package (zip with server + docs)
+make dist
+```
+
+### Manual Setup
 
 1. Clone the repository with submodules:
    ```bash
@@ -28,34 +41,65 @@ This repo builds a single-file HTML documentation viewer from the markdown files
 
 2. Build the documentation:
    ```bash
-   python build_docs.py
+   python3 build_docs.py
    ```
 
 3. Open `docs.html` in your browser.
 
-### Updating Documentation
+## Documentation Server
+
+The documentation server is a self-contained executable built with Hemlock and Sprout:
+
+```bash
+# Build the server (requires hemlock in PATH or set HEMLOCK env var)
+make server
+
+# Run it
+./hem-doc-server
+# Serving docs at http://localhost:3000
+```
+
+The server provides:
+- `/` - The documentation HTML
+- `/health` - Health check endpoint (JSON)
+
+## Updating Documentation
 
 To pull the latest changes from the hemlock repo:
 
 ```bash
 git submodule update --remote --merge
-python build_docs.py
+make docs
 ```
 
 ## Project Structure
 
 ```
 hem-doc/
+├── Makefile               # Build automation
 ├── build_docs.py          # Documentation generator script
+├── serve.hml              # Documentation server (Hemlock/Sprout)
+├── sprout.hml             # Sprout web framework
 ├── hemlock/               # Git submodule (hemlock source)
 │   ├── CLAUDE.md          # Main language reference
 │   ├── docs/              # Additional documentation
 │   └── logo.png           # Logo embedded in docs
-├── docs.html              # Generated output (gitignored)
+├── docs.html              # Generated output
 └── .github/workflows/
     ├── build-docs.yml     # Builds and deploys to GitHub Pages
     └── sync-submodule.yml # Daily sync of hemlock submodule
 ```
+
+## Make Targets
+
+| Target | Description |
+|--------|-------------|
+| `make docs` | Generate docs.html from hemlock source |
+| `make server` | Package the documentation server executable |
+| `make dist` | Create distribution zip (server + docs.html) |
+| `make run` | Run the documentation server locally |
+| `make clean` | Remove build artifacts |
+| `make help` | Show help message |
 
 ## CI/CD
 
