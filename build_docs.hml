@@ -127,7 +127,7 @@ fn collect_docs(): object {
     return docs;
 }
 
-// Sort array of strings alphabetically (simple bubble sort)
+// Sort array of strings alphabetically using selection sort with insert/remove
 fn sort_strings(arr: array): array {
     let result = [];
     let i = 0;
@@ -136,29 +136,29 @@ fn sort_strings(arr: array): array {
         i = i + 1;
     }
 
-    let n = result.length;
-    let swapped = true;
-    while (swapped) {
-        swapped = false;
-        i = 0;
-        while (i < n - 1) {
-            if (result[i] > result[i + 1]) {
-                let temp = result[i];
-                result[i] = result[i + 1];
-                result[i + 1] = temp;
-                swapped = true;
+    // Simple insertion sort using array methods
+    let sorted = [];
+    while (result.length > 0) {
+        // Find minimum
+        let min_idx = 0;
+        let j = 1;
+        while (j < result.length) {
+            if (result[j] < result[min_idx]) {
+                min_idx = j;
             }
-            i = i + 1;
+            j = j + 1;
         }
-        n = n - 1;
+        // Add minimum to sorted and remove from result
+        sorted.push(result[min_idx]);
+        result.remove(min_idx);
     }
 
-    return result;
+    return sorted;
 }
 
 // Convert filename to title (e.g., "getting-started" -> "Getting Started")
 fn filename_to_title(name: string): string {
-    let parts = name.replace("-", " ").replace("_", " ").split(" ");
+    let parts = name.replace_all("-", " ").replace_all("_", " ").split(" ");
     let result = "";
 
     let i = 0;
