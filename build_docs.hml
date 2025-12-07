@@ -1,4 +1,3 @@
-#!/usr/bin/env hemlock
 // Build the Hemlock documentation viewer.
 //
 // This script generates a standalone HTML file (docs.html) that includes:
@@ -958,7 +957,7 @@ fn generate_html(docs: object, logo_data: string): string {
 }
 
 // Main build function
-fn main(): null {
+fn main() {
     print("Building Hemlock documentation viewer...");
 
     // Check that hemlock submodule exists
