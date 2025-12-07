@@ -56,12 +56,14 @@ fn encode_image(path: string): string {
 }
 
 // Collect all documentation files from hemlock submodule
-fn collect_docs(): object {
+fn collect_docs() {
     let docs = {};
 
     // Add CLAUDE.md as the main documentation
     let claude_path = HEMLOCK_DIR + "/CLAUDE.md";
+    print("  Checking: " + claude_path);
     if (exists(claude_path)) {
+        print("  Found CLAUDE.md");
         docs["Language Reference"] = {
             id: "language-reference",
             content: safe_read_file(claude_path),
@@ -70,29 +72,30 @@ fn collect_docs(): object {
         };
     }
 
-    // Define section order
-    let sections = [
-        { dir: "getting-started", name: "Getting Started", order: 1 },
-        { dir: "language-guide", name: "Language Guide", order: 2 },
-        { dir: "advanced", name: "Advanced Topics", order: 3 },
-        { dir: "reference", name: "API Reference", order: 4 },
-        { dir: "design", name: "Design & Philosophy", order: 5 },
-        { dir: "contributing", name: "Contributing", order: 6 }
-    ];
+    // Define section order - use simple approach
+    let section_dirs = ["getting-started", "language-guide", "advanced", "reference", "design", "contributing"];
+    let section_names = ["Getting Started", "Language Guide", "Advanced Topics", "API Reference", "Design & Philosophy", "Contributing"];
 
     // Collect docs from hemlock/docs/ directory
     let docs_dir = HEMLOCK_DIR + "/docs";
+    print("  Checking docs dir: " + docs_dir);
     if (exists(docs_dir)) {
+        print("  Found docs dir");
         let i = 0;
-        while (i < sections.length) {
-            let section = sections[i];
-            let subdir_path = docs_dir + "/" + section.dir;
+        while (i < section_dirs.length) {
+            let subdir = section_dirs[i];
+            let section_name = section_names[i];
+            let subdir_path = docs_dir + "/" + subdir;
+            print("  Checking section: " + subdir_path);
 
             if (exists(subdir_path) && is_dir(subdir_path)) {
+                print("    Listing dir: " + subdir_path);
                 let entries = list_dir(subdir_path);
+                print("    Got " + typeof(entries.length) + " entries");
 
                 // Sort entries alphabetically
                 entries = sort_strings(entries);
+                print("    Sorted entries");
 
                 let j = 0;
                 while (j < entries.length) {
@@ -106,14 +109,14 @@ fn collect_docs(): object {
                             // Convert filename to title
                             let file_name = entry.slice(0, entry.length - 3);  // Remove .md
                             let title = filename_to_title(file_name);
-                            let doc_id = section.dir + "-" + file_name;
+                            let doc_id = subdir + "-" + file_name;
 
-                            let key = section.name + " -> " + title;
+                            let key = section_name + " -> " + title;
                             docs[key] = {
                                 id: doc_id,
                                 content: safe_read_file(md_path),
-                                order: section.order,
-                                section: section.name
+                                order: i + 1,
+                                section: section_name
                             };
                         }
                     }
@@ -128,13 +131,15 @@ fn collect_docs(): object {
 }
 
 // Sort array of strings alphabetically using selection sort with insert/remove
-fn sort_strings(arr: array): array {
+fn sort_strings(arr) {
+    print("    sort_strings called");
     let result = [];
     let i = 0;
     while (i < arr.length) {
         result.push(arr[i]);
         i = i + 1;
     }
+    print("    copied " + typeof(result.length) + " items");
 
     // Simple insertion sort using array methods
     let sorted = [];
@@ -152,6 +157,7 @@ fn sort_strings(arr: array): array {
         sorted.push(result[min_idx]);
         result.remove(min_idx);
     }
+    print("    sorted done");
 
     return sorted;
 }
