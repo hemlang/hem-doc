@@ -11,3 +11,6 @@ hem-doc-server
 
 # Stdlib symlink
 stdlib
+
+# HPM modules
+hem_modules

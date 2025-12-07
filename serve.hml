@@ -1,7 +1,7 @@
 // Hemlock Documentation Server
 // Serves the docs.html file using Sprout
 
-import { App } from "./sprout.hml";
+import { App } from "hemlang/sprout";
 import { read_file } from "@stdlib/fs";
 
 // Read the docs HTML at startup

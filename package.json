@@ -1,0 +1,12 @@
+{
+  "name": "hemlang/hem-doc",
+  "version": "1.0.3",
+  "description": "Hemlock Documentation Server",
+  "author": "Hemlock Team",
+  "license": "MIT",
+  "main": "serve.hml",
+  "dependencies": {
+    "hemlang/sprout": "^1.0.1"
+  },
+  "devDependencies": {}
+}
