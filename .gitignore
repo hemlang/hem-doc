@@ -6,5 +6,8 @@
 # Packaged executables
 hem-doc-server
 
+# Distribution packages
+*.zip
+
 # Stdlib symlink
 stdlib
