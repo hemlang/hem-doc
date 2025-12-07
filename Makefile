@@ -6,7 +6,7 @@ HPM ?= hpm
 PYTHON ?= python3
 VERSION := 1.0.4
 
-.PHONY: all deps docs server package dist clean help
+.PHONY: all deps docs docs-py server package dist clean help
 
 all: docs
 
@@ -16,9 +16,15 @@ deps:
 	@$(HPM) install
 	@echo "Done"
 
-# Generate documentation HTML from hemlock source
+# Generate documentation HTML using Hemlock (preferred)
 docs:
 	@echo "Generating docs.html..."
+	@$(HEMLOCK) build_docs.hml
+	@echo "Done: docs.html ($(shell wc -c < docs.html | tr -d ' ') bytes)"
+
+# Generate documentation HTML using Python (fallback)
+docs-py:
+	@echo "Generating docs.html (Python fallback)..."
 	@$(PYTHON) build_docs.py
 	@echo "Done: docs.html ($(shell wc -c < docs.html | tr -d ' ') bytes)"
 
@@ -52,7 +58,8 @@ help:
 	@echo ""
 	@echo "Usage:"
 	@echo "  make deps    - Install dependencies via hpm"
-	@echo "  make docs    - Generate docs.html from hemlock source"
+	@echo "  make docs    - Generate docs.html using Hemlock (preferred)"
+	@echo "  make docs-py - Generate docs.html using Python (fallback)"
 	@echo "  make server  - Package the documentation server executable"
 	@echo "  make dist    - Create distribution zip (server + docs.html)"
 	@echo "  make run     - Run the documentation server locally"
