@@ -6,7 +6,7 @@
   "license": "MIT",
   "main": "serve.hml",
   "dependencies": {
-    "hemlang/sprout": "^1.0.1"
+    "hemlang/sprout": "^1.0.2"
   },
   "devDependencies": {}
 }
