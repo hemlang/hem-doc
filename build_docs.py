@@ -19,6 +19,7 @@ import os
 import sys
 import json
 import base64
+import re
 from pathlib import Path
 
 # Path to the hemlock submodule
@@ -49,6 +50,61 @@ def encode_image(path):
         return ""
 
 
+def convert_md_links(content, current_section):
+    """Convert markdown file links to hash-based page IDs.
+
+    Examples:
+        [Tutorial](tutorial.md) -> [Tutorial](#getting-started-tutorial)
+        [Syntax](../language-guide/syntax.md) -> [Syntax](#language-guide-syntax)
+    """
+    def replace_link(match):
+        text = match.group(1)
+        path = match.group(2)
+
+        # Skip external URLs and anchor-only links
+        if path.startswith(('http://', 'https://', '#', 'mailto:')):
+            return match.group(0)
+
+        # Skip non-markdown links
+        if not path.endswith('.md'):
+            return match.group(0)
+
+        # Parse the path to get section and filename
+        path = path.replace('\\', '/')
+
+        # Handle relative paths
+        if path.startswith('../'):
+            # Going up to parent, then into another section
+            # e.g., ../language-guide/syntax.md
+            parts = path.split('/')
+            # Find the section (first non-.. part)
+            section_idx = 0
+            for i, part in enumerate(parts):
+                if part != '..':
+                    section_idx = i
+                    break
+            if section_idx < len(parts) - 1:
+                section = parts[section_idx]
+                filename = parts[-1].replace('.md', '')
+                return f'[{text}](#{section}-{filename})'
+        elif '/' in path:
+            # Direct path like language-guide/syntax.md
+            parts = path.split('/')
+            section = parts[-2] if len(parts) >= 2 else current_section
+            filename = parts[-1].replace('.md', '')
+            return f'[{text}](#{section}-{filename})'
+        else:
+            # Same directory link like tutorial.md
+            filename = path.replace('.md', '')
+            return f'[{text}](#{current_section}-{filename})'
+
+        return match.group(0)
+
+    # Match markdown links: [text](path)
+    pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+    return re.sub(pattern, replace_link, content)
+
+
 def collect_docs():
     """Collect all documentation files from hemlock submodule."""
     docs = {}
@@ -56,9 +112,11 @@ def collect_docs():
     # Add CLAUDE.md as the main documentation
     claude_path = HEMLOCK_DIR / 'CLAUDE.md'
     if claude_path.exists():
+        content = read_file(claude_path)
+        content = convert_md_links(content, 'language-reference')
         docs['Language Reference'] = {
             'id': 'language-reference',
-            'content': read_file(claude_path),
+            'content': content,
             'order': 0
         }
 
@@ -89,9 +147,12 @@ def collect_docs():
                 title = file_name.replace('-', ' ').replace('_', ' ').title()
                 doc_id = f"{subdir}-{file_name}"
 
+                content = read_file(md_file)
+                content = convert_md_links(content, subdir)
+
                 docs[f"{section_name} -> {title}"] = {
                     'id': doc_id,
-                    'content': read_file(md_file),
+                    'content': content,
                     'order': order,
                     'section': section_name
                 }
