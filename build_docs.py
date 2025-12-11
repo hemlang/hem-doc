@@ -228,6 +228,41 @@ def generate_html(docs, logo_data):
             --accent: #6B8E6B;
         }}
 
+        /* Dark mode colors */
+        [data-theme="dark"] {{
+            --sage: #6B8E6B;
+            --pine: #9CAF88;
+            --dark-pine: #0d1a1a;
+            --light-sage: #1a2f2f;
+            --cream: #0f1f1f;
+            --text: #E8F4E1;
+            --text-light: #9CAF88;
+            --border: #2F4F4F;
+            --code-bg: #1a2f2f;
+            --accent: #9CAF88;
+        }}
+
+        [data-theme="dark"] .header {{
+            background: #1a2f2f;
+        }}
+
+        [data-theme="dark"] .search-input {{
+            background: #0f1f1f;
+            color: var(--text);
+        }}
+
+        [data-theme="dark"] .search-results {{
+            background: #1a2f2f;
+        }}
+
+        [data-theme="dark"] .toc {{
+            background: #1a2f2f;
+        }}
+
+        [data-theme="dark"] .code-header {{
+            background: #0d1a1a;
+        }}
+
         /* Skip to content link for accessibility */
         .skip-link {{
             position: absolute;
@@ -860,6 +895,110 @@ def generate_html(docs, logo_data):
             display: block;
         }}
 
+        /* Theme Toggle */
+        .theme-toggle {{
+            background: transparent;
+            border: 1px solid var(--sage);
+            color: var(--light-sage);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            margin-left: 1rem;
+        }}
+
+        .theme-toggle:hover {{
+            background: var(--sage);
+            color: var(--pine);
+        }}
+
+        .theme-toggle svg {{
+            width: 16px;
+            height: 16px;
+        }}
+
+        @media (max-width: 768px) {{
+            .theme-toggle span {{
+                display: none;
+            }}
+        }}
+
+        /* Previous/Next Navigation */
+        .page-nav {{
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+            gap: 1rem;
+        }}
+
+        .page-nav-link {{
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.2s;
+            max-width: 45%;
+        }}
+
+        .page-nav-link:hover {{
+            border-color: var(--sage);
+            background: var(--light-sage);
+        }}
+
+        .page-nav-link.prev {{
+            align-items: flex-start;
+        }}
+
+        .page-nav-link.next {{
+            align-items: flex-end;
+            margin-left: auto;
+        }}
+
+        .page-nav-label {{
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.3rem;
+        }}
+
+        .page-nav-title {{
+            font-weight: 600;
+            color: var(--pine);
+            font-size: 0.95rem;
+        }}
+
+        /* Edit on GitHub link */
+        .edit-link {{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-decoration: none;
+            margin-top: 2rem;
+            padding: 0.5rem 0;
+            transition: color 0.2s;
+        }}
+
+        .edit-link:hover {{
+            color: var(--pine);
+        }}
+
+        .edit-link svg {{
+            width: 16px;
+            height: 16px;
+        }}
+
         /* Print stylesheet */
         @media print {{
             .header {{
@@ -916,6 +1055,15 @@ def generate_html(docs, logo_data):
         <img src="{logo_data}" alt="Hemlock Logo" class="header-logo">
         <h1>Hemlock Language Manual</h1>
         <span class="tagline">"A small, unsafe language for writing unsafe things safely."</span>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="sun-icon" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="moon-icon" style="display:none" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            <span>Dark</span>
+        </button>
     </header>
 
     <!-- Mobile Menu Toggle -->
@@ -979,6 +1127,111 @@ def generate_html(docs, logo_data):
                 menuToggle.focus();
             }}
         }});
+
+        // Dark mode toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = themeToggle.querySelector('.sun-icon');
+        const moonIcon = themeToggle.querySelector('.moon-icon');
+        const themeText = themeToggle.querySelector('span');
+
+        function setTheme(theme) {{
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            if (theme === 'dark') {{
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+                themeText.textContent = 'Light';
+            }} else {{
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+                themeText.textContent = 'Dark';
+            }}
+        }}
+
+        // Initialize theme from localStorage or system preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {{
+            setTheme(savedTheme);
+        }} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {{
+            setTheme('dark');
+        }}
+
+        themeToggle.addEventListener('click', () => {{
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        }});
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {{
+            if (!localStorage.getItem('theme')) {{
+                setTheme(e.matches ? 'dark' : 'light');
+            }}
+        }});
+
+        // Build page order for prev/next navigation
+        const pageOrder = Object.values(PAGES).map(p => p.id);
+        const pageInfo = {{}};
+        Object.entries(PAGES).forEach(([title, data]) => {{
+            pageInfo[data.id] = {{
+                title: title.split(' -> ').pop(),
+                fullTitle: title
+            }};
+        }});
+
+        function getPageNav(currentPageId) {{
+            const currentIndex = pageOrder.indexOf(currentPageId);
+            const prevId = currentIndex > 0 ? pageOrder[currentIndex - 1] : null;
+            const nextId = currentIndex < pageOrder.length - 1 ? pageOrder[currentIndex + 1] : null;
+
+            let navHtml = '<nav class="page-nav" aria-label="Page navigation">';
+
+            if (prevId) {{
+                navHtml += `
+                    <a href="#${{prevId}}" class="page-nav-link prev" data-page="${{prevId}}">
+                        <span class="page-nav-label">\\u2190 Previous</span>
+                        <span class="page-nav-title">${{escapeHtml(pageInfo[prevId].title)}}</span>
+                    </a>
+                `;
+            }}
+
+            if (nextId) {{
+                navHtml += `
+                    <a href="#${{nextId}}" class="page-nav-link next" data-page="${{nextId}}">
+                        <span class="page-nav-label">Next \\u2192</span>
+                        <span class="page-nav-title">${{escapeHtml(pageInfo[nextId].title)}}</span>
+                    </a>
+                `;
+            }}
+
+            navHtml += '</nav>';
+            return navHtml;
+        }}
+
+        // Generate edit on GitHub link
+        function getEditLink(pageId) {{
+            // Map page ID to approximate file path in hemlock repo
+            const parts = pageId.split('-');
+            let path = '';
+
+            if (pageId === 'language-reference') {{
+                path = 'CLAUDE.md';
+            }} else if (parts.length >= 2) {{
+                const section = parts[0];
+                const filename = parts.slice(1).join('-') + '.md';
+                path = `docs/${{section}}/${{filename}}`;
+            }} else {{
+                return '';
+            }}
+
+            const githubIcon = '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>';
+
+            return `
+                <a href="https://github.com/hemlang/hemlock/edit/main/${{path}}" class="edit-link" target="_blank" rel="noopener noreferrer">
+                    ${{githubIcon}}
+                    Edit this page on GitHub
+                </a>
+            `;
+        }}
 
         // Markdown parser
         function parseMarkdown(md) {{
@@ -1502,6 +1755,10 @@ def generate_html(docs, logo_data):
             let content = parseMarkdown(pageData.content);
             // Generate table of contents
             content = generateTOC(content);
+            // Add edit on GitHub link
+            content += getEditLink(pageId);
+            // Add prev/next navigation
+            content += getPageNav(pageId);
             // Sanitize content before inserting to prevent XSS
             document.getElementById('content').innerHTML = sanitizeHtml(content);
             // Apply syntax highlighting to code blocks
@@ -1524,6 +1781,17 @@ def generate_html(docs, logo_data):
                     if (target) {{
                         target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
                         history.pushState(null, '', '#' + pageId);
+                    }}
+                }});
+            }});
+
+            // Setup prev/next navigation
+            document.querySelectorAll('.page-nav-link').forEach(link => {{
+                link.addEventListener('click', (e) => {{
+                    e.preventDefault();
+                    const targetPage = link.dataset.page;
+                    if (targetPage) {{
+                        loadPage(targetPage);
                     }}
                 }});
             }});
