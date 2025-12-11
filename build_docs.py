@@ -999,6 +999,66 @@ def generate_html(docs, logo_data):
             height: 16px;
         }}
 
+        /* Loading indicator */
+        .loading-overlay {{
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+        }}
+
+        .loading-overlay.active {{
+            opacity: 1;
+            pointer-events: auto;
+        }}
+
+        @media (min-width: 1024px) {{
+            .loading-overlay {{
+                left: 280px;
+            }}
+        }}
+
+        .loading-spinner {{
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--sage);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }}
+
+        @keyframes spin {{
+            to {{ transform: rotate(360deg); }}
+        }}
+
+        /* Offline indicator */
+        .offline-banner {{
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #FCD34D;
+            color: #78350F;
+            padding: 0.5rem 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+            z-index: 10001;
+            display: none;
+        }}
+
+        .offline-banner.visible {{
+            display: block;
+        }}
+
         /* Print stylesheet */
         @media print {{
             .header {{
@@ -1091,11 +1151,147 @@ def generate_html(docs, logo_data):
         <main class="main-content" id="main-content" role="main">
             <div class="content" id="content" aria-live="polite"></div>
         </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay" aria-hidden="true">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Offline Banner -->
+    <div class="offline-banner" id="offlineBanner" role="alert">
+        You are currently offline. Some features may be unavailable.
     </div>
 
     <script>
         // Embedded documentation pages
         const PAGES = {pages_json};
+
+        // Loading overlay
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        let loadingTimeout = null;
+
+        function showLoading() {{
+            // Only show loading for longer operations
+            loadingTimeout = setTimeout(() => {{
+                loadingOverlay.classList.add('active');
+                loadingOverlay.setAttribute('aria-hidden', 'false');
+            }}, 100);
+        }}
+
+        function hideLoading() {{
+            clearTimeout(loadingTimeout);
+            loadingOverlay.classList.remove('active');
+            loadingOverlay.setAttribute('aria-hidden', 'true');
+        }}
+
+        // Offline detection
+        const offlineBanner = document.getElementById('offlineBanner');
+
+        function updateOnlineStatus() {{
+            if (navigator.onLine) {{
+                offlineBanner.classList.remove('visible');
+            }} else {{
+                offlineBanner.classList.add('visible');
+            }}
+        }}
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // Service Worker for offline support
+        if ('serviceWorker' in navigator) {{
+            // Create inline service worker using Blob URL
+            const swCode = `
+                const CACHE_NAME = 'hemlock-docs-v1';
+                const urlsToCache = [self.location.href.replace('/sw.js', '/docs.html')];
+
+                self.addEventListener('install', event => {{
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then(cache => cache.addAll(urlsToCache))
+                            .then(() => self.skipWaiting())
+                    );
+                }});
+
+                self.addEventListener('activate', event => {{
+                    event.waitUntil(
+                        caches.keys().then(cacheNames => {{
+                            return Promise.all(
+                                cacheNames.filter(name => name !== CACHE_NAME)
+                                    .map(name => caches.delete(name))
+                            );
+                        }}).then(() => self.clients.claim())
+                    );
+                }});
+
+                self.addEventListener('fetch', event => {{
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => {{
+                                if (response) {{
+                                    // Return cached version and update in background
+                                    fetch(event.request).then(freshResponse => {{
+                                        if (freshResponse.ok) {{
+                                            caches.open(CACHE_NAME).then(cache => {{
+                                                cache.put(event.request, freshResponse);
+                                            }});
+                                        }}
+                                    }}).catch(() => {{}});
+                                    return response;
+                                }}
+                                return fetch(event.request).then(response => {{
+                                    if (response.ok) {{
+                                        const responseClone = response.clone();
+                                        caches.open(CACHE_NAME).then(cache => {{
+                                            cache.put(event.request, responseClone);
+                                        }});
+                                    }}
+                                    return response;
+                                }});
+                            }})
+                    );
+                }});
+            `;
+
+            // Register service worker from blob
+            const swBlob = new Blob([swCode], {{ type: 'application/javascript' }});
+            const swUrl = URL.createObjectURL(swBlob);
+
+            // Note: Blob URLs don't work for service workers in most browsers due to security
+            // So we'll use a fallback approach - cache the page directly if possible
+            try {{
+                // Use Cache API directly for simple offline support
+                if ('caches' in window) {{
+                    caches.open('hemlock-docs-v1').then(cache => {{
+                        // Cache the current page for offline access
+                        cache.add(window.location.href).catch(() => {{}});
+                    }});
+                }}
+            }} catch (e) {{
+                console.log('Cache API not available');
+            }}
+        }}
+
+        // Lazy content cache - parse markdown only when needed
+        const contentCache = {{}};
+
+        function getPageContent(pageId) {{
+            if (contentCache[pageId]) {{
+                return contentCache[pageId];
+            }}
+            const pageData = Object.values(PAGES).find(p => p.id === pageId);
+            if (!pageData) return null;
+
+            // Parse and cache the content
+            let content = parseMarkdown(pageData.content);
+            content = generateTOC(content);
+            content += getEditLink(pageId);
+            content += getPageNav(pageId);
+            contentCache[pageId] = content;
+            return content;
+        }}
 
         // Mobile menu toggle
         const menuToggle = document.getElementById('menuToggle');
@@ -1744,63 +1940,71 @@ def generate_html(docs, logo_data):
 
         // Load a page
         function loadPage(pageId) {{
-            const pageData = Object.values(PAGES).find(p => p.id === pageId);
-            if (!pageData) {{
-                console.error('Page not found:', pageId);
-                // Show error message to user
-                document.getElementById('content').innerHTML = '<p>Page not found. Please select a page from the navigation menu.</p>';
-                return;
-            }}
+            showLoading();
 
-            let content = parseMarkdown(pageData.content);
-            // Generate table of contents
-            content = generateTOC(content);
-            // Add edit on GitHub link
-            content += getEditLink(pageId);
-            // Add prev/next navigation
-            content += getPageNav(pageId);
-            // Sanitize content before inserting to prevent XSS
-            document.getElementById('content').innerHTML = sanitizeHtml(content);
-            // Apply syntax highlighting to code blocks
-            applySyntaxHighlighting();
-
-            // Update active nav link
-            document.querySelectorAll('.nav-link').forEach(link => {{
-                link.classList.remove('active');
-                if (link.dataset.page === pageId) {{
-                    link.classList.add('active');
+            // Use requestAnimationFrame for smooth rendering
+            requestAnimationFrame(() => {{
+                const pageData = Object.values(PAGES).find(p => p.id === pageId);
+                if (!pageData) {{
+                    console.error('Page not found:', pageId);
+                    document.getElementById('content').innerHTML = '<p>Page not found. Please select a page from the navigation menu.</p>';
+                    hideLoading();
+                    return;
                 }}
-            }});
 
-            // Setup TOC smooth scrolling
-            document.querySelectorAll('.toc-list a').forEach(link => {{
-                link.addEventListener('click', (e) => {{
-                    e.preventDefault();
-                    const targetId = link.getAttribute('href').substring(1);
-                    const target = document.getElementById(targetId);
-                    if (target) {{
-                        target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-                        history.pushState(null, '', '#' + pageId);
+                // Use cached content or generate new
+                let content = getPageContent(pageId);
+                if (!content) {{
+                    hideLoading();
+                    return;
+                }}
+
+                // Sanitize content before inserting to prevent XSS
+                document.getElementById('content').innerHTML = sanitizeHtml(content);
+                // Apply syntax highlighting to code blocks
+                applySyntaxHighlighting();
+
+                // Update active nav link
+                document.querySelectorAll('.nav-link').forEach(link => {{
+                    link.classList.remove('active');
+                    if (link.dataset.page === pageId) {{
+                        link.classList.add('active');
                     }}
                 }});
-            }});
 
-            // Setup prev/next navigation
-            document.querySelectorAll('.page-nav-link').forEach(link => {{
-                link.addEventListener('click', (e) => {{
-                    e.preventDefault();
-                    const targetPage = link.dataset.page;
-                    if (targetPage) {{
-                        loadPage(targetPage);
-                    }}
+                // Setup TOC smooth scrolling
+                document.querySelectorAll('.toc-list a').forEach(link => {{
+                    link.addEventListener('click', (e) => {{
+                        e.preventDefault();
+                        const targetId = link.getAttribute('href').substring(1);
+                        const target = document.getElementById(targetId);
+                        if (target) {{
+                            target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                            history.pushState(null, '', '#' + pageId);
+                        }}
+                    }});
                 }});
+
+                // Setup prev/next navigation
+                document.querySelectorAll('.page-nav-link').forEach(link => {{
+                    link.addEventListener('click', (e) => {{
+                        e.preventDefault();
+                        const targetPage = link.dataset.page;
+                        if (targetPage) {{
+                            loadPage(targetPage);
+                        }}
+                    }});
+                }});
+
+                // Scroll to top
+                window.scrollTo(0, 0);
+
+                // Update URL hash
+                window.location.hash = pageId;
+
+                // Hide loading indicator
+                hideLoading();
             }});
-
-            // Scroll to top
-            window.scrollTo(0, 0);
-
-            // Update URL hash
-            window.location.hash = pageId;
         }}
 
         // Setup navigation
