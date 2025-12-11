@@ -19,6 +19,7 @@ import os
 import sys
 import json
 import base64
+import re
 from pathlib import Path
 
 # Path to the hemlock submodule
@@ -49,6 +50,61 @@ def encode_image(path):
         return ""
 
 
+def convert_md_links(content, current_section):
+    """Convert markdown file links to hash-based page IDs.
+
+    Examples:
+        [Tutorial](tutorial.md) -> [Tutorial](#getting-started-tutorial)
+        [Syntax](../language-guide/syntax.md) -> [Syntax](#language-guide-syntax)
+    """
+    def replace_link(match):
+        text = match.group(1)
+        path = match.group(2)
+
+        # Skip external URLs and anchor-only links
+        if path.startswith(('http://', 'https://', '#', 'mailto:')):
+            return match.group(0)
+
+        # Skip non-markdown links
+        if not path.endswith('.md'):
+            return match.group(0)
+
+        # Parse the path to get section and filename
+        path = path.replace('\\', '/')
+
+        # Handle relative paths
+        if path.startswith('../'):
+            # Going up to parent, then into another section
+            # e.g., ../language-guide/syntax.md
+            parts = path.split('/')
+            # Find the section (first non-.. part)
+            section_idx = 0
+            for i, part in enumerate(parts):
+                if part != '..':
+                    section_idx = i
+                    break
+            if section_idx < len(parts) - 1:
+                section = parts[section_idx]
+                filename = parts[-1].replace('.md', '')
+                return f'[{text}](#{section}-{filename})'
+        elif '/' in path:
+            # Direct path like language-guide/syntax.md
+            parts = path.split('/')
+            section = parts[-2] if len(parts) >= 2 else current_section
+            filename = parts[-1].replace('.md', '')
+            return f'[{text}](#{section}-{filename})'
+        else:
+            # Same directory link like tutorial.md
+            filename = path.replace('.md', '')
+            return f'[{text}](#{current_section}-{filename})'
+
+        return match.group(0)
+
+    # Match markdown links: [text](path)
+    pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+    return re.sub(pattern, replace_link, content)
+
+
 def collect_docs():
     """Collect all documentation files from hemlock submodule."""
     docs = {}
@@ -56,9 +112,11 @@ def collect_docs():
     # Add CLAUDE.md as the main documentation
     claude_path = HEMLOCK_DIR / 'CLAUDE.md'
     if claude_path.exists():
+        content = read_file(claude_path)
+        content = convert_md_links(content, 'language-reference')
         docs['Language Reference'] = {
             'id': 'language-reference',
-            'content': read_file(claude_path),
+            'content': content,
             'order': 0
         }
 
@@ -89,9 +147,12 @@ def collect_docs():
                 title = file_name.replace('-', ' ').replace('_', ' ').title()
                 doc_id = f"{subdir}-{file_name}"
 
+                content = read_file(md_file)
+                content = convert_md_links(content, subdir)
+
                 docs[f"{section_name} -> {title}"] = {
                     'id': doc_id,
-                    'content': read_file(md_file),
+                    'content': content,
                     'order': order,
                     'section': section_name
                 }
@@ -391,14 +452,65 @@ def generate_html(docs, logo_data):
             color: var(--pine);
         }}
 
+        .code-block {{
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--code-bg);
+        }}
+
+        .code-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: var(--pine);
+            color: var(--light-sage);
+            font-size: 0.8rem;
+        }}
+
+        .code-lang {{
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-weight: 600;
+            text-transform: lowercase;
+        }}
+
+        .copy-btn {{
+            background: transparent;
+            border: 1px solid var(--sage);
+            color: var(--light-sage);
+            padding: 0.3rem 0.7rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }}
+
+        .copy-btn:hover {{
+            background: var(--sage);
+            color: var(--pine);
+        }}
+
+        .copy-btn.copied {{
+            background: var(--sage);
+            color: var(--pine);
+            border-color: var(--sage);
+        }}
+
+        .copy-btn svg {{
+            width: 14px;
+            height: 14px;
+        }}
+
         .content pre {{
             background: var(--code-bg);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--pine);
-            border-radius: 4px;
+            margin: 0;
             padding: 1.2rem;
             overflow-x: auto;
-            margin: 1.5rem 0;
         }}
 
         .content pre code {{
@@ -407,6 +519,14 @@ def generate_html(docs, logo_data):
             border-radius: 0;
             font-size: 0.85rem;
             line-height: 1.6;
+        }}
+
+        /* Standalone pre without code-block wrapper (legacy) */
+        .content > pre {{
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--pine);
+            border-radius: 4px;
+            margin: 1.5rem 0;
         }}
 
         /* Tables */
@@ -588,8 +708,17 @@ def generate_html(docs, logo_data):
 
                 if (line.startsWith('```')) {{
                     if (inCodeBlock) {{
-                        html += '<pre><code>' + escapeHtml(codeBlockContent) + '</code></pre>\\n';
+                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+                        const langDisplay = codeBlockLang || 'code';
+                        const copyIcon = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>';
+                        html += `<div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">${{langDisplay}}</span>
+                                <button class="copy-btn" onclick="copyCode('${{codeId}}')">${{copyIcon}}<span>Copy</span></button>
+                            </div>
+                            <pre><code id="${{codeId}}">` + escapeHtml(codeBlockContent) + '</code></pre></div>\\n';
                         codeBlockContent = '';
+                        codeBlockLang = '';
                         inCodeBlock = false;
                     }} else {{
                         flushList();
@@ -696,6 +825,30 @@ def generate_html(docs, logo_data):
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }}
+
+        // Copy code to clipboard
+        function copyCode(codeId) {{
+            const codeElement = document.getElementById(codeId);
+            if (!codeElement) return;
+
+            const text = codeElement.textContent;
+            navigator.clipboard.writeText(text).then(() => {{
+                // Find the button that triggered this
+                const btn = codeElement.closest('.code-block').querySelector('.copy-btn');
+                if (btn) {{
+                    const originalText = btn.querySelector('span').textContent;
+                    btn.classList.add('copied');
+                    btn.querySelector('span').textContent = 'Copied!';
+
+                    setTimeout(() => {{
+                        btn.classList.remove('copied');
+                        btn.querySelector('span').textContent = originalText;
+                    }}, 2000);
+                }}
+            }}).catch(err => {{
+                console.error('Failed to copy:', err);
+            }});
         }}
 
         // Load a page
