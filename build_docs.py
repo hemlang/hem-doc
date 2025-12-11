@@ -322,7 +322,7 @@ def generate_html(docs, logo_data):
             background: var(--light-sage);
             border-right: 2px solid var(--border);
             overflow-y: auto;
-            padding: 2rem 0;
+            padding: 1rem 0 2rem 0;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
             z-index: 900;
@@ -330,6 +330,129 @@ def generate_html(docs, logo_data):
 
         .sidebar.open {{
             transform: translateX(0);
+        }}
+
+        /* Search Box */
+        .search-container {{
+            padding: 0 1rem 1rem 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }}
+
+        .search-box {{
+            position: relative;
+            width: 100%;
+        }}
+
+        .search-input {{
+            width: 100%;
+            padding: 0.6rem 0.8rem 0.6rem 2.2rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }}
+
+        .search-input:focus {{
+            border-color: var(--sage);
+            box-shadow: 0 0 0 3px rgba(156, 175, 136, 0.2);
+            outline: none;
+        }}
+
+        .search-input::placeholder {{
+            color: var(--text-light);
+        }}
+
+        .search-icon {{
+            position: absolute;
+            left: 0.7rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: var(--text-light);
+            pointer-events: none;
+        }}
+
+        .search-shortcut {{
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            color: var(--text-light);
+            background: var(--light-sage);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            pointer-events: none;
+        }}
+
+        .search-results {{
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-top: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+        }}
+
+        .search-results.active {{
+            display: block;
+        }}
+
+        .search-result {{
+            padding: 0.6rem 0.8rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }}
+
+        .search-result:last-child {{
+            border-bottom: none;
+        }}
+
+        .search-result:hover,
+        .search-result.selected {{
+            background: var(--light-sage);
+        }}
+
+        .search-result-title {{
+            font-weight: 600;
+            color: var(--pine);
+            font-size: 0.9rem;
+        }}
+
+        .search-result-preview {{
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.2rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }}
+
+        .search-result-preview mark {{
+            background: rgba(156, 175, 136, 0.4);
+            color: var(--pine);
+            border-radius: 2px;
+            padding: 0 2px;
+        }}
+
+        .no-results {{
+            padding: 1rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
         }}
 
         @media (min-width: 1024px) {{
@@ -413,6 +536,59 @@ def generate_html(docs, logo_data):
             .main-content {{
                 margin-left: 280px;
             }}
+        }}
+
+        /* Table of Contents */
+        .toc {{
+            background: var(--light-sage);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+        }}
+
+        .toc-title {{
+            font-weight: 700;
+            color: var(--pine);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }}
+
+        .toc-title svg {{
+            width: 16px;
+            height: 16px;
+        }}
+
+        .toc-list {{
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }}
+
+        .toc-list li {{
+            margin: 0.3rem 0;
+        }}
+
+        .toc-list a {{
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+            display: block;
+            padding: 0.2rem 0;
+        }}
+
+        .toc-list a:hover {{
+            color: var(--pine);
+        }}
+
+        .toc-list .toc-h3 {{
+            padding-left: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-light);
         }}
 
         /* Typography */
@@ -548,6 +724,49 @@ def generate_html(docs, logo_data):
             border-radius: 0;
             font-size: 0.85rem;
             line-height: 1.6;
+        }}
+
+        /* Syntax Highlighting */
+        .token-keyword {{
+            color: #8B5CF6;
+            font-weight: 600;
+        }}
+
+        .token-string {{
+            color: #059669;
+        }}
+
+        .token-number {{
+            color: #D97706;
+        }}
+
+        .token-comment {{
+            color: #6B7280;
+            font-style: italic;
+        }}
+
+        .token-function {{
+            color: #2563EB;
+        }}
+
+        .token-operator {{
+            color: #DC2626;
+        }}
+
+        .token-punctuation {{
+            color: #64748B;
+        }}
+
+        .token-type {{
+            color: #0891B2;
+        }}
+
+        .token-builtin {{
+            color: #7C3AED;
+        }}
+
+        .token-property {{
+            color: #0D9488;
         }}
 
         /* Standalone pre without code-block wrapper (legacy) */
@@ -706,6 +925,17 @@ def generate_html(docs, logo_data):
     <div class="container">
         <!-- Sidebar Navigation -->
         <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+            <!-- Search Box -->
+            <div class="search-container">
+                <div class="search-box">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search docs..." aria-label="Search documentation" autocomplete="off">
+                    <span class="search-shortcut" aria-hidden="true">⌘K</span>
+                    <div class="search-results" id="searchResults" role="listbox" aria-label="Search results"></div>
+                </div>
+            </div>
             {navigation_html}
         </nav>
 
@@ -944,6 +1174,297 @@ def generate_html(docs, logo_data):
             return temp.innerHTML;
         }}
 
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        let selectedResultIndex = -1;
+
+        // Build search index
+        const searchIndex = Object.entries(PAGES).map(([title, data]) => ({{
+            title: title.split(' -> ').pop(),
+            fullTitle: title,
+            id: data.id,
+            content: data.content.toLowerCase(),
+            rawContent: data.content
+        }}));
+
+        function performSearch(query) {{
+            if (!query || query.length < 2) {{
+                searchResults.classList.remove('active');
+                return;
+            }}
+
+            const lowerQuery = query.toLowerCase();
+            const results = searchIndex
+                .map(page => {{
+                    const titleMatch = page.title.toLowerCase().includes(lowerQuery);
+                    const contentMatch = page.content.includes(lowerQuery);
+                    if (!titleMatch && !contentMatch) return null;
+
+                    // Find preview snippet
+                    let preview = '';
+                    if (contentMatch) {{
+                        const idx = page.content.indexOf(lowerQuery);
+                        const start = Math.max(0, idx - 40);
+                        const end = Math.min(page.content.length, idx + query.length + 60);
+                        preview = (start > 0 ? '...' : '') +
+                                  page.rawContent.substring(start, end).replace(/\\n/g, ' ') +
+                                  (end < page.content.length ? '...' : '');
+                    }}
+
+                    return {{
+                        ...page,
+                        preview,
+                        score: titleMatch ? 2 : 1
+                    }};
+                }})
+                .filter(Boolean)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 8);
+
+            if (results.length === 0) {{
+                searchResults.innerHTML = '<div class="no-results">No results found</div>';
+            }} else {{
+                searchResults.innerHTML = results.map((r, i) => `
+                    <div class="search-result${{i === selectedResultIndex ? ' selected' : ''}}" data-page="${{r.id}}" role="option">
+                        <div class="search-result-title">${{escapeHtml(r.title)}}</div>
+                        ${{r.preview ? `<div class="search-result-preview">${{highlightMatch(r.preview, query)}}</div>` : ''}}
+                    </div>
+                `).join('');
+            }}
+
+            searchResults.classList.add('active');
+            selectedResultIndex = -1;
+        }}
+
+        function highlightMatch(text, query) {{
+            const escaped = escapeHtml(text);
+            const regex = new RegExp(`(${{query.replace(/[.*+?^${{}}()|[\\]\\\\]/g, '\\\\$&')}})`, 'gi');
+            return escaped.replace(regex, '<mark>$1</mark>');
+        }}
+
+        searchInput.addEventListener('input', (e) => {{
+            performSearch(e.target.value);
+        }});
+
+        searchInput.addEventListener('keydown', (e) => {{
+            const results = searchResults.querySelectorAll('.search-result');
+            if (e.key === 'ArrowDown') {{
+                e.preventDefault();
+                selectedResultIndex = Math.min(selectedResultIndex + 1, results.length - 1);
+                updateSelectedResult(results);
+            }} else if (e.key === 'ArrowUp') {{
+                e.preventDefault();
+                selectedResultIndex = Math.max(selectedResultIndex - 1, 0);
+                updateSelectedResult(results);
+            }} else if (e.key === 'Enter' && selectedResultIndex >= 0) {{
+                e.preventDefault();
+                const selected = results[selectedResultIndex];
+                if (selected) {{
+                    loadPage(selected.dataset.page);
+                    searchInput.value = '';
+                    searchResults.classList.remove('active');
+                }}
+            }} else if (e.key === 'Escape') {{
+                searchResults.classList.remove('active');
+                searchInput.blur();
+            }}
+        }});
+
+        function updateSelectedResult(results) {{
+            results.forEach((r, i) => {{
+                r.classList.toggle('selected', i === selectedResultIndex);
+            }});
+        }}
+
+        searchResults.addEventListener('click', (e) => {{
+            const result = e.target.closest('.search-result');
+            if (result) {{
+                loadPage(result.dataset.page);
+                searchInput.value = '';
+                searchResults.classList.remove('active');
+            }}
+        }});
+
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {{
+            if (!e.target.closest('.search-box')) {{
+                searchResults.classList.remove('active');
+            }}
+        }});
+
+        // Keyboard shortcut for search (Cmd+K or Ctrl+K)
+        document.addEventListener('keydown', (e) => {{
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {{
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }}
+        }});
+
+        // Generate Table of Contents
+        function generateTOC(html) {{
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const headings = temp.querySelectorAll('h2, h3');
+
+            if (headings.length < 3) return html; // Don't show TOC for short pages
+
+            let tocItems = [];
+            headings.forEach(h => {{
+                const level = h.tagName.toLowerCase();
+                const text = h.textContent;
+                const id = h.id;
+                tocItems.push(`<li><a href="#${{id}}" class="toc-${{level}}">${{escapeHtml(text)}}</a></li>`);
+            }});
+
+            const tocHtml = `
+                <nav class="toc" aria-label="Table of Contents">
+                    <div class="toc-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                        </svg>
+                        On this page
+                    </div>
+                    <ul class="toc-list">
+                        ${{tocItems.join('\\n')}}
+                    </ul>
+                </nav>
+            `;
+
+            // Insert TOC after first h1
+            const h1 = temp.querySelector('h1');
+            if (h1) {{
+                h1.insertAdjacentHTML('afterend', tocHtml);
+            }} else {{
+                temp.insertAdjacentHTML('afterbegin', tocHtml);
+            }}
+
+            return temp.innerHTML;
+        }}
+
+        // Syntax highlighting
+        function highlightSyntax(lang, code) {{
+            if (!lang) return code;
+
+            const langLower = lang.toLowerCase();
+
+            // Define language-specific patterns
+            const patterns = {{
+                hemlock: [
+                    [/\\/\\/.*$/gm, 'comment'],
+                    [/\\/\\*[\\s\\S]*?\\*\\//g, 'comment'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/'(?:[^'\\\\]|\\\\.)*'/g, 'string'],
+                    [/\\b(fn|let|mut|if|else|while|for|in|return|match|struct|enum|impl|trait|pub|use|mod|const|type|self|true|false|nil|and|or|not)\\b/g, 'keyword'],
+                    [/\\b(i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|bool|str|char|void|any)\\b/g, 'type'],
+                    [/\\b\\d+\\.?\\d*\\b/g, 'number'],
+                    [/\\b([A-Z][a-zA-Z0-9_]*)\\b/g, 'type'],
+                    [/\\b([a-z_][a-zA-Z0-9_]*)\\s*\\(/g, 'function'],
+                    [/[+\\-*\\/%=<>!&|^~]+/g, 'operator'],
+                    [/[{{}}\\[\\]();,.:]/g, 'punctuation'],
+                ],
+                javascript: [
+                    [/\\/\\/.*$/gm, 'comment'],
+                    [/\\/\\*[\\s\\S]*?\\*\\//g, 'comment'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/'(?:[^'\\\\]|\\\\.)*'/g, 'string'],
+                    [/`(?:[^`\\\\]|\\\\.)*`/g, 'string'],
+                    [/\\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|try|catch|throw|new|class|extends|import|export|default|async|await|typeof|instanceof)\\b/g, 'keyword'],
+                    [/\\b(true|false|null|undefined|NaN|Infinity)\\b/g, 'builtin'],
+                    [/\\b\\d+\\.?\\d*\\b/g, 'number'],
+                    [/\\b([a-z_][a-zA-Z0-9_]*)\\s*\\(/g, 'function'],
+                    [/[+\\-*\\/%=<>!&|^~?:]+/g, 'operator'],
+                ],
+                python: [
+                    [/#.*$/gm, 'comment'],
+                    [/\\"\\"\\"[\\s\\S]*?\\"\\"\\"/g, 'string'],
+                    [/\\'\\'\\'[\\s\\S]*?\\'\\'\\']/g, 'string'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/'(?:[^'\\\\]|\\\\.)*'/g, 'string'],
+                    [/\\b(def|class|if|elif|else|for|while|try|except|finally|with|return|yield|import|from|as|pass|break|continue|raise|lambda|and|or|not|in|is|True|False|None)\\b/g, 'keyword'],
+                    [/\\b\\d+\\.?\\d*\\b/g, 'number'],
+                    [/\\b([a-z_][a-zA-Z0-9_]*)\\s*\\(/g, 'function'],
+                ],
+                bash: [
+                    [/#.*$/gm, 'comment'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/'[^']*'/g, 'string'],
+                    [/\\b(if|then|else|elif|fi|for|while|do|done|case|esac|function|return|exit|echo|cd|ls|cat|grep|sed|awk|export|source)\\b/g, 'keyword'],
+                    [/\\$[a-zA-Z_][a-zA-Z0-9_]*/g, 'property'],
+                    [/\\$\\{{[^}}]+\\}}/g, 'property'],
+                ],
+                json: [
+                    [/"(?:[^"\\\\]|\\\\.)*"\\s*:/g, 'property'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/\\b(true|false|null)\\b/g, 'keyword'],
+                    [/\\b-?\\d+\\.?\\d*\\b/g, 'number'],
+                ]
+            }};
+
+            // Use hemlock patterns for hml
+            const langPatterns = patterns[langLower] || patterns[langLower === 'hml' ? 'hemlock' : langLower] || patterns.hemlock;
+
+            // Apply patterns in order
+            let tokens = [];
+            let remaining = code;
+
+            // Simple tokenization - find all matches and sort by position
+            langPatterns.forEach(([regex, type]) => {{
+                let match;
+                const re = new RegExp(regex.source, regex.flags);
+                while ((match = re.exec(code)) !== null) {{
+                    tokens.push({{
+                        start: match.index,
+                        end: match.index + match[0].length,
+                        text: match[0],
+                        type: type
+                    }});
+                }}
+            }});
+
+            // Sort by start position and remove overlaps
+            tokens.sort((a, b) => a.start - b.start);
+            let filtered = [];
+            let lastEnd = 0;
+            tokens.forEach(t => {{
+                if (t.start >= lastEnd) {{
+                    filtered.push(t);
+                    lastEnd = t.end;
+                }}
+            }});
+
+            // Build highlighted HTML
+            let result = '';
+            let pos = 0;
+            filtered.forEach(t => {{
+                if (t.start > pos) {{
+                    result += escapeHtml(code.substring(pos, t.start));
+                }}
+                result += `<span class="token-${{t.type}}">${{escapeHtml(t.text)}}</span>`;
+                pos = t.end;
+            }});
+            if (pos < code.length) {{
+                result += escapeHtml(code.substring(pos));
+            }}
+
+            return result;
+        }}
+
+        // Apply syntax highlighting to code blocks after page load
+        function applySyntaxHighlighting() {{
+            document.querySelectorAll('.code-block').forEach(block => {{
+                const langSpan = block.querySelector('.code-lang');
+                const codeEl = block.querySelector('code');
+                if (langSpan && codeEl && !codeEl.dataset.highlighted) {{
+                    const lang = langSpan.textContent;
+                    const code = codeEl.textContent;
+                    codeEl.innerHTML = highlightSyntax(lang, code);
+                    codeEl.dataset.highlighted = 'true';
+                }}
+            }});
+        }}
+
         // Copy code to clipboard
         function copyCode(codeId) {{
             const codeElement = document.getElementById(codeId);
@@ -978,9 +1499,13 @@ def generate_html(docs, logo_data):
                 return;
             }}
 
-            const content = parseMarkdown(pageData.content);
+            let content = parseMarkdown(pageData.content);
+            // Generate table of contents
+            content = generateTOC(content);
             // Sanitize content before inserting to prevent XSS
             document.getElementById('content').innerHTML = sanitizeHtml(content);
+            // Apply syntax highlighting to code blocks
+            applySyntaxHighlighting();
 
             // Update active nav link
             document.querySelectorAll('.nav-link').forEach(link => {{
@@ -988,6 +1513,19 @@ def generate_html(docs, logo_data):
                 if (link.dataset.page === pageId) {{
                     link.classList.add('active');
                 }}
+            }});
+
+            // Setup TOC smooth scrolling
+            document.querySelectorAll('.toc-list a').forEach(link => {{
+                link.addEventListener('click', (e) => {{
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const target = document.getElementById(targetId);
+                    if (target) {{
+                        target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                        history.pushState(null, '', '#' + pageId);
+                    }}
+                }});
             }});
 
             // Scroll to top
