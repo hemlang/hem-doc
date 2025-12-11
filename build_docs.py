@@ -228,6 +228,35 @@ def generate_html(docs, logo_data):
             --accent: #6B8E6B;
         }}
 
+        /* Skip to content link for accessibility */
+        .skip-link {{
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--pine);
+            color: white;
+            padding: 8px 16px;
+            z-index: 10000;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0 0 4px 0;
+            transition: top 0.3s;
+        }}
+
+        .skip-link:focus {{
+            top: 0;
+        }}
+
+        /* Focus visible styles for keyboard navigation */
+        :focus-visible {{
+            outline: 3px solid var(--sage);
+            outline-offset: 2px;
+        }}
+
+        *:focus:not(:focus-visible) {{
+            outline: none;
+        }}
+
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
             line-height: 1.7;
@@ -611,29 +640,78 @@ def generate_html(docs, logo_data):
         .page.active {{
             display: block;
         }}
+
+        /* Print stylesheet */
+        @media print {{
+            .header {{
+                position: static;
+                box-shadow: none;
+            }}
+
+            .sidebar,
+            .menu-toggle,
+            .skip-link,
+            .copy-btn {{
+                display: none !important;
+            }}
+
+            .container {{
+                display: block;
+                margin-top: 0;
+            }}
+
+            .main-content {{
+                margin-left: 0 !important;
+                padding: 1rem;
+                max-width: none;
+            }}
+
+            .code-block {{
+                break-inside: avoid;
+            }}
+
+            .content h1,
+            .content h2,
+            .content h3 {{
+                break-after: avoid;
+            }}
+
+            .content a {{
+                color: var(--text);
+            }}
+
+            .content a[href^="http"]::after {{
+                content: " (" attr(href) ")";
+                font-size: 0.8em;
+                color: var(--text-light);
+            }}
+        }}
     </style>
 </head>
 <body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <!-- Header -->
-    <div class="header">
+    <header class="header" role="banner">
         <img src="{logo_data}" alt="Hemlock Logo" class="header-logo">
         <h1>Hemlock Language Manual</h1>
         <span class="tagline">"A small, unsafe language for writing unsafe things safely."</span>
-    </div>
+    </header>
 
     <!-- Mobile Menu Toggle -->
-    <button class="menu-toggle" id="menuToggle">&#9776;</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="sidebar">&#9776;</button>
 
     <!-- Container -->
     <div class="container">
         <!-- Sidebar Navigation -->
-        <nav class="sidebar" id="sidebar">
+        <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
             {navigation_html}
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <div class="content" id="content"></div>
+        <main class="main-content" id="main-content" role="main">
+            <div class="content" id="content" aria-live="polite"></div>
         </main>
     </div>
 
@@ -646,8 +724,9 @@ def generate_html(docs, logo_data):
         const sidebar = document.getElementById('sidebar');
 
         menuToggle.addEventListener('click', () => {{
-            sidebar.classList.toggle('open');
-            menuToggle.textContent = sidebar.classList.contains('open') ? '\\u00d7' : '\\u2630';
+            const isOpen = sidebar.classList.toggle('open');
+            menuToggle.textContent = isOpen ? '\\u00d7' : '\\u2630';
+            menuToggle.setAttribute('aria-expanded', isOpen);
         }});
 
         // Close sidebar when clicking outside on mobile
@@ -656,7 +735,18 @@ def generate_html(docs, logo_data):
                 if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {{
                     sidebar.classList.remove('open');
                     menuToggle.textContent = '\\u2630';
+                    menuToggle.setAttribute('aria-expanded', 'false');
                 }}
+            }}
+        }});
+
+        // Close sidebar with Escape key
+        document.addEventListener('keydown', (e) => {{
+            if (e.key === 'Escape' && sidebar.classList.contains('open')) {{
+                sidebar.classList.remove('open');
+                menuToggle.textContent = '\\u2630';
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.focus();
             }}
         }});
 
@@ -710,11 +800,11 @@ def generate_html(docs, logo_data):
                     if (inCodeBlock) {{
                         const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
                         const langDisplay = codeBlockLang || 'code';
-                        const copyIcon = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>';
-                        html += `<div class="code-block">
+                        const copyIcon = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>';
+                        html += `<div class="code-block" role="region" aria-label="${{langDisplay}} code example">
                             <div class="code-header">
                                 <span class="code-lang">${{langDisplay}}</span>
-                                <button class="copy-btn" onclick="copyCode('${{codeId}}')">${{copyIcon}}<span>Copy</span></button>
+                                <button class="copy-btn" onclick="copyCode('${{codeId}}')" aria-label="Copy code to clipboard">${{copyIcon}}<span>Copy</span></button>
                             </div>
                             <pre><code id="${{codeId}}">` + escapeHtml(codeBlockContent) + '</code></pre></div>\\n';
                         codeBlockContent = '';
@@ -827,6 +917,33 @@ def generate_html(docs, logo_data):
             return div.innerHTML;
         }}
 
+        // Sanitize HTML to prevent XSS attacks
+        function sanitizeHtml(html) {{
+            // Create a temporary container
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            // Remove dangerous elements
+            const dangerous = temp.querySelectorAll('script, iframe, object, embed, form, input, textarea, select, button:not(.copy-btn)');
+            dangerous.forEach(el => el.remove());
+
+            // Remove dangerous attributes from all elements
+            const allElements = temp.querySelectorAll('*');
+            allElements.forEach(el => {{
+                // Remove event handlers
+                const attrs = Array.from(el.attributes);
+                attrs.forEach(attr => {{
+                    if (attr.name.startsWith('on') ||
+                        (attr.name === 'href' && attr.value.toLowerCase().startsWith('javascript:')) ||
+                        (attr.name === 'src' && attr.value.toLowerCase().startsWith('javascript:'))) {{
+                        el.removeAttribute(attr.name);
+                    }}
+                }});
+            }});
+
+            return temp.innerHTML;
+        }}
+
         // Copy code to clipboard
         function copyCode(codeId) {{
             const codeElement = document.getElementById(codeId);
@@ -856,11 +973,14 @@ def generate_html(docs, logo_data):
             const pageData = Object.values(PAGES).find(p => p.id === pageId);
             if (!pageData) {{
                 console.error('Page not found:', pageId);
+                // Show error message to user
+                document.getElementById('content').innerHTML = '<p>Page not found. Please select a page from the navigation menu.</p>';
                 return;
             }}
 
             const content = parseMarkdown(pageData.content);
-            document.getElementById('content').innerHTML = content;
+            // Sanitize content before inserting to prevent XSS
+            document.getElementById('content').innerHTML = sanitizeHtml(content);
 
             // Update active nav link
             document.querySelectorAll('.nav-link').forEach(link => {{
