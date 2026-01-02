@@ -10,7 +10,7 @@ on:
 
   # Triggered by the sync workflow
   repository_dispatch:
-    types: [hemlock-updated]
+    types: [submodules-updated]
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:

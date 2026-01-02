@@ -1,3 +1,6 @@
 [submodule "hemlock"]
 	path = hemlock
 	url = https://github.com/hemlang/hemlock.git
+[submodule "hpm"]
+	path = hpm
+	url = https://github.com/hemlang/hpm.git

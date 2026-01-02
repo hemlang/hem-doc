@@ -1,4 +1,4 @@
-name: Sync Hemlock Submodule
+name: Sync Submodules
 
 on:
   # Run daily to check for updates
@@ -21,9 +21,10 @@ jobs:
           submodules: recursive
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update submodule to latest
+      - name: Update submodules to latest
         run: |
           git submodule update --remote --merge hemlock
+          git submodule update --remote --merge hpm
 
       - name: Check for changes
         id: check
@@ -39,6 +40,6 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add hemlock
-          git commit -m "Update hemlock submodule to latest"
+          git add hemlock hpm
+          git commit -m "Update submodules to latest"
           git push

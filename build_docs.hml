@@ -16,8 +16,9 @@ import { read_file, write_file, exists, list_dir, is_file, is_dir } from "@stdli
 import { base64_encode } from "@stdlib/encoding";
 import { stringify } from "@stdlib/json";
 
-// Path to the hemlock submodule
+// Paths to submodules
 let HEMLOCK_DIR = "hemlock";
+let HPM_DIR = "hpm";
 let OUTPUT_FILE = "docs.html";
 
 // Read file content safely
@@ -55,7 +56,7 @@ fn encode_image(path: string): string {
     }
 }
 
-// Collect all documentation files from hemlock submodule
+// Collect all documentation files from hemlock and hpm submodules
 fn collect_docs() {
     let docs = {};
 
@@ -70,7 +71,7 @@ fn collect_docs() {
         };
     }
 
-    // Define section order
+    // Define section order for hemlock docs
     let section_dirs = ["getting-started", "language-guide", "advanced", "reference", "design", "contributing"];
     let section_names = ["Getting Started", "Language Guide", "Advanced Topics", "API Reference", "Design & Philosophy", "Contributing"];
 
@@ -116,6 +117,53 @@ fn collect_docs() {
         }
     }
 
+    // Collect hpm documentation
+    let hpm_docs_dir = HPM_DIR + "/docs";
+    if (exists(hpm_docs_dir) && is_dir(hpm_docs_dir)) {
+        // hpm documentation file mappings
+        let hpm_files = ["installation", "quick-start", "project-setup", "commands", "configuration", "troubleshooting", "creating-packages", "package-spec", "versioning", "architecture", "exit-codes"];
+        let hpm_sections = ["hpm: Getting Started", "hpm: Getting Started", "hpm: Getting Started", "hpm: User Guide", "hpm: User Guide", "hpm: User Guide", "hpm: Package Development", "hpm: Package Development", "hpm: Package Development", "hpm: Reference", "hpm: Reference"];
+        let hpm_orders = [10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13];
+
+        let entries = list_dir(hpm_docs_dir);
+        let j = 0;
+        while (j < entries.length) {
+            let entry = entries[j];
+
+            // Only process .md files, skip README
+            if (entry.ends_with(".md") && !entry.to_lower().contains("readme")) {
+                let md_path = hpm_docs_dir + "/" + entry;
+
+                if (is_file(md_path)) {
+                    let file_name = entry.slice(0, entry.length - 3);  // Remove .md
+                    let title = filename_to_title(file_name);
+                    let doc_id = "hpm-" + file_name;
+
+                    // Find section and order for this file
+                    let section_name = "hpm: Other";
+                    let order = 14;
+                    let k = 0;
+                    while (k < hpm_files.length) {
+                        if (hpm_files[k] == file_name) {
+                            section_name = hpm_sections[k];
+                            order = hpm_orders[k];
+                        }
+                        k = k + 1;
+                    }
+
+                    let key = section_name + " -> " + title;
+                    docs[key] = {
+                        id: doc_id,
+                        content: safe_read_file(md_path),
+                        order: order,
+                        section: section_name
+                    };
+                }
+            }
+            j = j + 1;
+        }
+    }
+
     return docs;
 }
 
@@ -152,7 +200,7 @@ fn get_sorted_doc_keys(docs) {
         keys.push("Language Reference");
     }
 
-    // Then add other sections in order
+    // Then add hemlock sections in order
     let docs_dir = HEMLOCK_DIR + "/docs";
     let section_dirs = ["getting-started", "language-guide", "advanced", "reference", "design", "contributing"];
     let section_names = ["Getting Started", "Language Guide", "Advanced Topics", "API Reference", "Design & Philosophy", "Contributing"];
@@ -184,6 +232,27 @@ fn get_sorted_doc_keys(docs) {
             }
         }
         i = i + 1;
+    }
+
+    // Add hpm documentation sections
+    let hpm_docs_dir = HPM_DIR + "/docs";
+    if (exists(hpm_docs_dir) && is_dir(hpm_docs_dir)) {
+        // hpm documentation in order
+        let hpm_files = ["installation", "quick-start", "project-setup", "commands", "configuration", "troubleshooting", "creating-packages", "package-spec", "versioning", "architecture", "exit-codes"];
+        let hpm_sections = ["hpm: Getting Started", "hpm: Getting Started", "hpm: Getting Started", "hpm: User Guide", "hpm: User Guide", "hpm: User Guide", "hpm: Package Development", "hpm: Package Development", "hpm: Package Development", "hpm: Reference", "hpm: Reference"];
+
+        let k = 0;
+        while (k < hpm_files.length) {
+            let file_name = hpm_files[k];
+            let section_name = hpm_sections[k];
+            let title = filename_to_title(file_name);
+            let key = section_name + " -> " + title;
+
+            if (docs[key] != null) {
+                keys.push(key);
+            }
+            k = k + 1;
+        }
     }
 
     return keys;
@@ -896,6 +965,18 @@ fn main() {
         print("Error: No documentation found in hemlock submodule");
         print("  Expected: " + claude_md + " or " + docs_dir);
         exit(1);
+    }
+
+    // Check for hpm submodule (optional but warn if missing)
+    if (!exists(HPM_DIR)) {
+        print("Warning: hpm submodule not found at " + HPM_DIR);
+        print("  hpm documentation will not be included");
+        print("  Run: git submodule update --init --recursive");
+    } else {
+        let hpm_docs = HPM_DIR + "/docs";
+        if (exists(hpm_docs)) {
+            print("Found hpm documentation at " + hpm_docs);
+        }
     }
 
     // Collect documentation
