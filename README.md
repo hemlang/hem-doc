@@ -1,12 +1,12 @@
 # hem-doc
 
-Documentation site for the [Hemlock](https://github.com/nbeerbower/hemlock) programming language.
+Documentation site for the [Hemlock](https://github.com/hemlang/hemlock) programming language and [hpm](https://github.com/hemlang/hpm) package manager.
 
 ## How It Works
 
-This repo builds a single-file HTML documentation viewer from the markdown files in the hemlock submodule. The generated `docs.html` is deployed to GitHub Pages automatically.
+This repo builds a single-file HTML documentation viewer from the markdown files in the hemlock and hpm submodules. The generated `docs.html` is deployed to GitHub Pages automatically.
 
-It also includes a standalone documentation server built with [Sprout](https://github.com/nbeerbower/sprout), allowing you to serve the docs locally or deploy them anywhere.
+It also includes a standalone documentation server built with [Sprout](https://github.com/hemlang/sprout), allowing you to serve the docs locally or deploy them anywhere.
 
 ## Prerequisites
 
@@ -77,13 +77,52 @@ The server provides:
 - `/` - The documentation HTML
 - `/health` - Health check endpoint (JSON)
 
-## Updating Documentation
+## Updating Submodules
 
-To pull the latest changes from the hemlock repo:
+This repository uses Git submodules for the hemlock and hpm documentation sources. Here's how to manage them:
+
+### Update All Submodules
+
+To pull the latest changes from both hemlock and hpm repos:
 
 ```bash
+# Update all submodules to their latest commits
 git submodule update --remote --merge
+
+# Rebuild the documentation
 make docs
+
+# Commit the updated submodule references (if changed)
+git add hemlock hpm
+git commit -m "Update submodules to latest"
+```
+
+### Update a Specific Submodule
+
+To update just one submodule:
+
+```bash
+# Update only hemlock
+git submodule update --remote --merge hemlock
+
+# Update only hpm
+git submodule update --remote --merge hpm
+```
+
+### Initialize Submodules (First Time Clone)
+
+If you cloned without `--recursive`, initialize the submodules:
+
+```bash
+git submodule update --init --recursive
+```
+
+### Check Submodule Status
+
+To see which commits the submodules are pointing to:
+
+```bash
+git submodule status
 ```
 
 ## Project Structure
@@ -91,17 +130,19 @@ make docs
 ```
 hem-doc/
 ├── Makefile               # Build automation
-├── build_docs.py          # Documentation generator script
+├── build_docs.py          # Documentation generator script (Python)
+├── build_docs.hml         # Documentation generator script (Hemlock)
 ├── serve.hml              # Documentation server (Hemlock/Sprout)
-├── sprout.hml             # Sprout web framework
 ├── hemlock/               # Git submodule (hemlock source)
 │   ├── CLAUDE.md          # Main language reference
 │   ├── docs/              # Additional documentation
 │   └── logo.png           # Logo embedded in docs
+├── hpm/                   # Git submodule (hpm source)
+│   └── docs/              # hpm documentation
 ├── docs.html              # Generated output
 └── .github/workflows/
     ├── build-docs.yml     # Builds and deploys to GitHub Pages
-    └── sync-submodule.yml # Daily sync of hemlock submodule
+    └── sync-submodule.yml # Daily sync of submodules
 ```
 
 ## Make Targets
@@ -119,4 +160,4 @@ hem-doc/
 ## CI/CD
 
 - **build-docs.yml**: Builds and deploys documentation to GitHub Pages on push to main
-- **sync-submodule.yml**: Automatically updates the hemlock submodule daily and on-demand
+- **sync-submodule.yml**: Automatically updates the hemlock and hpm submodules daily and on-demand

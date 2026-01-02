@@ -22,8 +22,9 @@ import base64
 import re
 from pathlib import Path
 
-# Path to the hemlock submodule
+# Paths to submodules
 HEMLOCK_DIR = Path(__file__).parent / 'hemlock'
+HPM_DIR = Path(__file__).parent / 'hpm'
 OUTPUT_FILE = Path(__file__).parent / 'docs.html'
 
 
@@ -106,7 +107,7 @@ def convert_md_links(content, current_section):
 
 
 def collect_docs():
-    """Collect all documentation files from hemlock submodule."""
+    """Collect all documentation files from hemlock and hpm submodules."""
     docs = {}
 
     # Add CLAUDE.md as the main documentation
@@ -117,7 +118,8 @@ def collect_docs():
         docs['Language Reference'] = {
             'id': 'language-reference',
             'content': content,
-            'order': 0
+            'order': 0,
+            'section': ''
         }
 
     # Collect docs from hemlock/docs/ directory
@@ -156,6 +158,54 @@ def collect_docs():
                     'order': order,
                     'section': section_name
                 }
+
+    # Collect hpm documentation
+    hpm_docs_dir = HPM_DIR / 'docs'
+    if hpm_docs_dir.exists():
+        # hpm documentation structure - order starts at 10 to appear after hemlock docs
+        hpm_sections = {
+            # Getting Started docs
+            'installation': ('hpm: Getting Started', 10),
+            'quick-start': ('hpm: Getting Started', 10),
+            'project-setup': ('hpm: Getting Started', 10),
+            # User Guide docs
+            'commands': ('hpm: User Guide', 11),
+            'configuration': ('hpm: User Guide', 11),
+            'troubleshooting': ('hpm: User Guide', 11),
+            # Package Development docs
+            'creating-packages': ('hpm: Package Development', 12),
+            'package-spec': ('hpm: Package Development', 12),
+            'versioning': ('hpm: Package Development', 12),
+            # Reference docs
+            'architecture': ('hpm: Reference', 13),
+            'exit-codes': ('hpm: Reference', 13),
+        }
+
+        for md_file in sorted(hpm_docs_dir.glob('*.md')):
+            file_name = md_file.stem
+            # Skip the README as it's an index
+            if file_name.lower() == 'readme':
+                continue
+
+            if file_name in hpm_sections:
+                section_name, order = hpm_sections[file_name]
+            else:
+                # Default section for unknown files
+                section_name = 'hpm: Other'
+                order = 14
+
+            title = file_name.replace('-', ' ').replace('_', ' ').title()
+            doc_id = f"hpm-{file_name}"
+
+            content = read_file(md_file)
+            content = convert_md_links(content, f"hpm-{file_name}")
+
+            docs[f"{section_name} -> {title}"] = {
+                'id': doc_id,
+                'content': content,
+                'order': order,
+                'section': section_name
+            }
 
     # Sort by order, then by name
     sorted_docs = dict(sorted(docs.items(), key=lambda x: (x[1]['order'], x[0])))
@@ -928,6 +978,16 @@ def main():
         print("Error: No documentation found in hemlock submodule")
         print(f"  Expected: {claude_md} or {docs_dir}")
         sys.exit(1)
+
+    # Check for hpm submodule (optional but warn if missing)
+    if not HPM_DIR.exists():
+        print(f"Warning: hpm submodule not found at {HPM_DIR}")
+        print("  hpm documentation will not be included")
+        print("  Run: git submodule update --init --recursive")
+    else:
+        hpm_docs = HPM_DIR / 'docs'
+        if hpm_docs.exists():
+            print(f"Found hpm documentation at {hpm_docs}")
 
     # Collect documentation
     print("Collecting documentation files...")
