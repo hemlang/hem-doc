@@ -278,6 +278,70 @@ def generate_html(docs, logo_data):
             --accent: #6B8E6B;
         }}
 
+        /* Dark mode colors */
+        [data-theme="dark"] {{
+            --sage: #6B8E6B;
+            --pine: #9CAF88;
+            --dark-pine: #0d1a1a;
+            --light-sage: #1a2f2f;
+            --cream: #0f1f1f;
+            --text: #E8F4E1;
+            --text-light: #9CAF88;
+            --border: #2F4F4F;
+            --code-bg: #1a2f2f;
+            --accent: #9CAF88;
+        }}
+
+        [data-theme="dark"] .header {{
+            background: #1a2f2f;
+        }}
+
+        [data-theme="dark"] .search-input {{
+            background: #0f1f1f;
+            color: var(--text);
+        }}
+
+        [data-theme="dark"] .search-results {{
+            background: #1a2f2f;
+        }}
+
+        [data-theme="dark"] .toc {{
+            background: #1a2f2f;
+        }}
+
+        [data-theme="dark"] .code-header {{
+            background: #0d1a1a;
+        }}
+
+        /* Skip to content link for accessibility */
+        .skip-link {{
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--pine);
+            color: white;
+            padding: 8px 16px;
+            z-index: 10000;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 0 0 4px 0;
+            transition: top 0.3s;
+        }}
+
+        .skip-link:focus {{
+            top: 0;
+        }}
+
+        /* Focus visible styles for keyboard navigation */
+        :focus-visible {{
+            outline: 3px solid var(--sage);
+            outline-offset: 2px;
+        }}
+
+        *:focus:not(:focus-visible) {{
+            outline: none;
+        }}
+
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
             line-height: 1.7;
@@ -343,7 +407,7 @@ def generate_html(docs, logo_data):
             background: var(--light-sage);
             border-right: 2px solid var(--border);
             overflow-y: auto;
-            padding: 2rem 0;
+            padding: 1rem 0 2rem 0;
             transform: translateX(-100%);
             transition: transform 0.3s ease;
             z-index: 900;
@@ -351,6 +415,129 @@ def generate_html(docs, logo_data):
 
         .sidebar.open {{
             transform: translateX(0);
+        }}
+
+        /* Search Box */
+        .search-container {{
+            padding: 0 1rem 1rem 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem;
+        }}
+
+        .search-box {{
+            position: relative;
+            width: 100%;
+        }}
+
+        .search-input {{
+            width: 100%;
+            padding: 0.6rem 0.8rem 0.6rem 2.2rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: white;
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }}
+
+        .search-input:focus {{
+            border-color: var(--sage);
+            box-shadow: 0 0 0 3px rgba(156, 175, 136, 0.2);
+            outline: none;
+        }}
+
+        .search-input::placeholder {{
+            color: var(--text-light);
+        }}
+
+        .search-icon {{
+            position: absolute;
+            left: 0.7rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: var(--text-light);
+            pointer-events: none;
+        }}
+
+        .search-shortcut {{
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            color: var(--text-light);
+            background: var(--light-sage);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+            pointer-events: none;
+        }}
+
+        .search-results {{
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-top: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+        }}
+
+        .search-results.active {{
+            display: block;
+        }}
+
+        .search-result {{
+            padding: 0.6rem 0.8rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }}
+
+        .search-result:last-child {{
+            border-bottom: none;
+        }}
+
+        .search-result:hover,
+        .search-result.selected {{
+            background: var(--light-sage);
+        }}
+
+        .search-result-title {{
+            font-weight: 600;
+            color: var(--pine);
+            font-size: 0.9rem;
+        }}
+
+        .search-result-preview {{
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.2rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }}
+
+        .search-result-preview mark {{
+            background: rgba(156, 175, 136, 0.4);
+            color: var(--pine);
+            border-radius: 2px;
+            padding: 0 2px;
+        }}
+
+        .no-results {{
+            padding: 1rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
         }}
 
         @media (min-width: 1024px) {{
@@ -434,6 +621,59 @@ def generate_html(docs, logo_data):
             .main-content {{
                 margin-left: 280px;
             }}
+        }}
+
+        /* Table of Contents */
+        .toc {{
+            background: var(--light-sage);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+        }}
+
+        .toc-title {{
+            font-weight: 700;
+            color: var(--pine);
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }}
+
+        .toc-title svg {{
+            width: 16px;
+            height: 16px;
+        }}
+
+        .toc-list {{
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }}
+
+        .toc-list li {{
+            margin: 0.3rem 0;
+        }}
+
+        .toc-list a {{
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+            display: block;
+            padding: 0.2rem 0;
+        }}
+
+        .toc-list a:hover {{
+            color: var(--pine);
+        }}
+
+        .toc-list .toc-h3 {{
+            padding-left: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-light);
         }}
 
         /* Typography */
@@ -571,6 +811,49 @@ def generate_html(docs, logo_data):
             line-height: 1.6;
         }}
 
+        /* Syntax Highlighting */
+        .token-keyword {{
+            color: #8B5CF6;
+            font-weight: 600;
+        }}
+
+        .token-string {{
+            color: #059669;
+        }}
+
+        .token-number {{
+            color: #D97706;
+        }}
+
+        .token-comment {{
+            color: #6B7280;
+            font-style: italic;
+        }}
+
+        .token-function {{
+            color: #2563EB;
+        }}
+
+        .token-operator {{
+            color: #DC2626;
+        }}
+
+        .token-punctuation {{
+            color: #64748B;
+        }}
+
+        .token-type {{
+            color: #0891B2;
+        }}
+
+        .token-builtin {{
+            color: #7C3AED;
+        }}
+
+        .token-property {{
+            color: #0D9488;
+        }}
+
         /* Standalone pre without code-block wrapper (legacy) */
         .content > pre {{
             border: 1px solid var(--border);
@@ -661,43 +944,413 @@ def generate_html(docs, logo_data):
         .page.active {{
             display: block;
         }}
+
+        /* Theme Toggle */
+        .theme-toggle {{
+            background: transparent;
+            border: 1px solid var(--sage);
+            color: var(--light-sage);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            margin-left: 1rem;
+        }}
+
+        .theme-toggle:hover {{
+            background: var(--sage);
+            color: var(--pine);
+        }}
+
+        .theme-toggle svg {{
+            width: 16px;
+            height: 16px;
+        }}
+
+        @media (max-width: 768px) {{
+            .theme-toggle span {{
+                display: none;
+            }}
+        }}
+
+        /* Previous/Next Navigation */
+        .page-nav {{
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+            gap: 1rem;
+        }}
+
+        .page-nav-link {{
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.2s;
+            max-width: 45%;
+        }}
+
+        .page-nav-link:hover {{
+            border-color: var(--sage);
+            background: var(--light-sage);
+        }}
+
+        .page-nav-link.prev {{
+            align-items: flex-start;
+        }}
+
+        .page-nav-link.next {{
+            align-items: flex-end;
+            margin-left: auto;
+        }}
+
+        .page-nav-label {{
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.3rem;
+        }}
+
+        .page-nav-title {{
+            font-weight: 600;
+            color: var(--pine);
+            font-size: 0.95rem;
+        }}
+
+        /* Edit on GitHub link */
+        .edit-link {{
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-decoration: none;
+            margin-top: 2rem;
+            padding: 0.5rem 0;
+            transition: color 0.2s;
+        }}
+
+        .edit-link:hover {{
+            color: var(--pine);
+        }}
+
+        .edit-link svg {{
+            width: 16px;
+            height: 16px;
+        }}
+
+        /* Loading indicator */
+        .loading-overlay {{
+            position: fixed;
+            top: 70px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+        }}
+
+        .loading-overlay.active {{
+            opacity: 1;
+            pointer-events: auto;
+        }}
+
+        @media (min-width: 1024px) {{
+            .loading-overlay {{
+                left: 280px;
+            }}
+        }}
+
+        .loading-spinner {{
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--sage);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }}
+
+        @keyframes spin {{
+            to {{ transform: rotate(360deg); }}
+        }}
+
+        /* Offline indicator */
+        .offline-banner {{
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #FCD34D;
+            color: #78350F;
+            padding: 0.5rem 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+            z-index: 10001;
+            display: none;
+        }}
+
+        .offline-banner.visible {{
+            display: block;
+        }}
+
+        /* Print stylesheet */
+        @media print {{
+            .header {{
+                position: static;
+                box-shadow: none;
+            }}
+
+            .sidebar,
+            .menu-toggle,
+            .skip-link,
+            .copy-btn {{
+                display: none !important;
+            }}
+
+            .container {{
+                display: block;
+                margin-top: 0;
+            }}
+
+            .main-content {{
+                margin-left: 0 !important;
+                padding: 1rem;
+                max-width: none;
+            }}
+
+            .code-block {{
+                break-inside: avoid;
+            }}
+
+            .content h1,
+            .content h2,
+            .content h3 {{
+                break-after: avoid;
+            }}
+
+            .content a {{
+                color: var(--text);
+            }}
+
+            .content a[href^="http"]::after {{
+                content: " (" attr(href) ")";
+                font-size: 0.8em;
+                color: var(--text-light);
+            }}
+        }}
     </style>
 </head>
 <body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
     <!-- Header -->
-    <div class="header">
+    <header class="header" role="banner">
         <img src="{logo_data}" alt="Hemlock Logo" class="header-logo">
         <h1>Hemlock Language Manual</h1>
         <span class="tagline">"A small, unsafe language for writing unsafe things safely."</span>
-    </div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="sun-icon" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="moon-icon" style="display:none" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            <span>Dark</span>
+        </button>
+    </header>
 
     <!-- Mobile Menu Toggle -->
-    <button class="menu-toggle" id="menuToggle">&#9776;</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="sidebar">&#9776;</button>
 
     <!-- Container -->
     <div class="container">
         <!-- Sidebar Navigation -->
-        <nav class="sidebar" id="sidebar">
+        <nav class="sidebar" id="sidebar" aria-label="Documentation navigation">
+            <!-- Search Box -->
+            <div class="search-container">
+                <div class="search-box">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search docs..." aria-label="Search documentation" autocomplete="off">
+                    <span class="search-shortcut" aria-hidden="true">⌘K</span>
+                    <div class="search-results" id="searchResults" role="listbox" aria-label="Search results"></div>
+                </div>
+            </div>
             {navigation_html}
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <div class="content" id="content"></div>
+        <main class="main-content" id="main-content" role="main">
+            <div class="content" id="content" aria-live="polite"></div>
         </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay" aria-hidden="true">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Offline Banner -->
+    <div class="offline-banner" id="offlineBanner" role="alert">
+        You are currently offline. Some features may be unavailable.
     </div>
 
     <script>
         // Embedded documentation pages
         const PAGES = {pages_json};
 
+        // Loading overlay
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        let loadingTimeout = null;
+
+        function showLoading() {{
+            // Only show loading for longer operations
+            loadingTimeout = setTimeout(() => {{
+                loadingOverlay.classList.add('active');
+                loadingOverlay.setAttribute('aria-hidden', 'false');
+            }}, 100);
+        }}
+
+        function hideLoading() {{
+            clearTimeout(loadingTimeout);
+            loadingOverlay.classList.remove('active');
+            loadingOverlay.setAttribute('aria-hidden', 'true');
+        }}
+
+        // Offline detection
+        const offlineBanner = document.getElementById('offlineBanner');
+
+        function updateOnlineStatus() {{
+            if (navigator.onLine) {{
+                offlineBanner.classList.remove('visible');
+            }} else {{
+                offlineBanner.classList.add('visible');
+            }}
+        }}
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // Service Worker for offline support
+        if ('serviceWorker' in navigator) {{
+            // Create inline service worker using Blob URL
+            const swCode = `
+                const CACHE_NAME = 'hemlock-docs-v1';
+                const urlsToCache = [self.location.href.replace('/sw.js', '/docs.html')];
+
+                self.addEventListener('install', event => {{
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then(cache => cache.addAll(urlsToCache))
+                            .then(() => self.skipWaiting())
+                    );
+                }});
+
+                self.addEventListener('activate', event => {{
+                    event.waitUntil(
+                        caches.keys().then(cacheNames => {{
+                            return Promise.all(
+                                cacheNames.filter(name => name !== CACHE_NAME)
+                                    .map(name => caches.delete(name))
+                            );
+                        }}).then(() => self.clients.claim())
+                    );
+                }});
+
+                self.addEventListener('fetch', event => {{
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => {{
+                                if (response) {{
+                                    // Return cached version and update in background
+                                    fetch(event.request).then(freshResponse => {{
+                                        if (freshResponse.ok) {{
+                                            caches.open(CACHE_NAME).then(cache => {{
+                                                cache.put(event.request, freshResponse);
+                                            }});
+                                        }}
+                                    }}).catch(() => {{}});
+                                    return response;
+                                }}
+                                return fetch(event.request).then(response => {{
+                                    if (response.ok) {{
+                                        const responseClone = response.clone();
+                                        caches.open(CACHE_NAME).then(cache => {{
+                                            cache.put(event.request, responseClone);
+                                        }});
+                                    }}
+                                    return response;
+                                }});
+                            }})
+                    );
+                }});
+            `;
+
+            // Register service worker from blob
+            const swBlob = new Blob([swCode], {{ type: 'application/javascript' }});
+            const swUrl = URL.createObjectURL(swBlob);
+
+            // Note: Blob URLs don't work for service workers in most browsers due to security
+            // So we'll use a fallback approach - cache the page directly if possible
+            try {{
+                // Use Cache API directly for simple offline support
+                if ('caches' in window) {{
+                    caches.open('hemlock-docs-v1').then(cache => {{
+                        // Cache the current page for offline access
+                        cache.add(window.location.href).catch(() => {{}});
+                    }});
+                }}
+            }} catch (e) {{
+                console.log('Cache API not available');
+            }}
+        }}
+
+        // Lazy content cache - parse markdown only when needed
+        const contentCache = {{}};
+
+        function getPageContent(pageId) {{
+            if (contentCache[pageId]) {{
+                return contentCache[pageId];
+            }}
+            const pageData = Object.values(PAGES).find(p => p.id === pageId);
+            if (!pageData) return null;
+
+            // Parse and cache the content
+            let content = parseMarkdown(pageData.content);
+            content = generateTOC(content);
+            content += getEditLink(pageId);
+            content += getPageNav(pageId);
+            contentCache[pageId] = content;
+            return content;
+        }}
+
         // Mobile menu toggle
         const menuToggle = document.getElementById('menuToggle');
         const sidebar = document.getElementById('sidebar');
 
         menuToggle.addEventListener('click', () => {{
-            sidebar.classList.toggle('open');
-            menuToggle.textContent = sidebar.classList.contains('open') ? '\\u00d7' : '\\u2630';
+            const isOpen = sidebar.classList.toggle('open');
+            menuToggle.textContent = isOpen ? '\\u00d7' : '\\u2630';
+            menuToggle.setAttribute('aria-expanded', isOpen);
         }});
 
         // Close sidebar when clicking outside on mobile
@@ -706,9 +1359,125 @@ def generate_html(docs, logo_data):
                 if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {{
                     sidebar.classList.remove('open');
                     menuToggle.textContent = '\\u2630';
+                    menuToggle.setAttribute('aria-expanded', 'false');
                 }}
             }}
         }});
+
+        // Close sidebar with Escape key
+        document.addEventListener('keydown', (e) => {{
+            if (e.key === 'Escape' && sidebar.classList.contains('open')) {{
+                sidebar.classList.remove('open');
+                menuToggle.textContent = '\\u2630';
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.focus();
+            }}
+        }});
+
+        // Dark mode toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = themeToggle.querySelector('.sun-icon');
+        const moonIcon = themeToggle.querySelector('.moon-icon');
+        const themeText = themeToggle.querySelector('span');
+
+        function setTheme(theme) {{
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            if (theme === 'dark') {{
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+                themeText.textContent = 'Light';
+            }} else {{
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+                themeText.textContent = 'Dark';
+            }}
+        }}
+
+        // Initialize theme from localStorage or system preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {{
+            setTheme(savedTheme);
+        }} else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {{
+            setTheme('dark');
+        }}
+
+        themeToggle.addEventListener('click', () => {{
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        }});
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {{
+            if (!localStorage.getItem('theme')) {{
+                setTheme(e.matches ? 'dark' : 'light');
+            }}
+        }});
+
+        // Build page order for prev/next navigation
+        const pageOrder = Object.values(PAGES).map(p => p.id);
+        const pageInfo = {{}};
+        Object.entries(PAGES).forEach(([title, data]) => {{
+            pageInfo[data.id] = {{
+                title: title.split(' -> ').pop(),
+                fullTitle: title
+            }};
+        }});
+
+        function getPageNav(currentPageId) {{
+            const currentIndex = pageOrder.indexOf(currentPageId);
+            const prevId = currentIndex > 0 ? pageOrder[currentIndex - 1] : null;
+            const nextId = currentIndex < pageOrder.length - 1 ? pageOrder[currentIndex + 1] : null;
+
+            let navHtml = '<nav class="page-nav" aria-label="Page navigation">';
+
+            if (prevId) {{
+                navHtml += `
+                    <a href="#${{prevId}}" class="page-nav-link prev" data-page="${{prevId}}">
+                        <span class="page-nav-label">\\u2190 Previous</span>
+                        <span class="page-nav-title">${{escapeHtml(pageInfo[prevId].title)}}</span>
+                    </a>
+                `;
+            }}
+
+            if (nextId) {{
+                navHtml += `
+                    <a href="#${{nextId}}" class="page-nav-link next" data-page="${{nextId}}">
+                        <span class="page-nav-label">Next \\u2192</span>
+                        <span class="page-nav-title">${{escapeHtml(pageInfo[nextId].title)}}</span>
+                    </a>
+                `;
+            }}
+
+            navHtml += '</nav>';
+            return navHtml;
+        }}
+
+        // Generate edit on GitHub link
+        function getEditLink(pageId) {{
+            // Map page ID to approximate file path in hemlock repo
+            const parts = pageId.split('-');
+            let path = '';
+
+            if (pageId === 'language-reference') {{
+                path = 'CLAUDE.md';
+            }} else if (parts.length >= 2) {{
+                const section = parts[0];
+                const filename = parts.slice(1).join('-') + '.md';
+                path = `docs/${{section}}/${{filename}}`;
+            }} else {{
+                return '';
+            }}
+
+            const githubIcon = '<svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>';
+
+            return `
+                <a href="https://github.com/hemlang/hemlock/edit/main/${{path}}" class="edit-link" target="_blank" rel="noopener noreferrer">
+                    ${{githubIcon}}
+                    Edit this page on GitHub
+                </a>
+            `;
+        }}
 
         // Markdown parser
         function parseMarkdown(md) {{
@@ -760,11 +1529,11 @@ def generate_html(docs, logo_data):
                     if (inCodeBlock) {{
                         const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
                         const langDisplay = codeBlockLang || 'code';
-                        const copyIcon = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>';
-                        html += `<div class="code-block">
+                        const copyIcon = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>';
+                        html += `<div class="code-block" role="region" aria-label="${{langDisplay}} code example">
                             <div class="code-header">
                                 <span class="code-lang">${{langDisplay}}</span>
-                                <button class="copy-btn" onclick="copyCode('${{codeId}}')">${{copyIcon}}<span>Copy</span></button>
+                                <button class="copy-btn" onclick="copyCode('${{codeId}}')" aria-label="Copy code to clipboard">${{copyIcon}}<span>Copy</span></button>
                             </div>
                             <pre><code id="${{codeId}}">` + escapeHtml(codeBlockContent) + '</code></pre></div>\\n';
                         codeBlockContent = '';
@@ -877,6 +1646,324 @@ def generate_html(docs, logo_data):
             return div.innerHTML;
         }}
 
+        // Sanitize HTML to prevent XSS attacks
+        function sanitizeHtml(html) {{
+            // Create a temporary container
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+
+            // Remove dangerous elements
+            const dangerous = temp.querySelectorAll('script, iframe, object, embed, form, input, textarea, select, button:not(.copy-btn)');
+            dangerous.forEach(el => el.remove());
+
+            // Remove dangerous attributes from all elements
+            const allElements = temp.querySelectorAll('*');
+            allElements.forEach(el => {{
+                // Remove event handlers
+                const attrs = Array.from(el.attributes);
+                attrs.forEach(attr => {{
+                    if (attr.name.startsWith('on') ||
+                        (attr.name === 'href' && attr.value.toLowerCase().startsWith('javascript:')) ||
+                        (attr.name === 'src' && attr.value.toLowerCase().startsWith('javascript:'))) {{
+                        el.removeAttribute(attr.name);
+                    }}
+                }});
+            }});
+
+            return temp.innerHTML;
+        }}
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        let selectedResultIndex = -1;
+
+        // Build search index
+        const searchIndex = Object.entries(PAGES).map(([title, data]) => ({{
+            title: title.split(' -> ').pop(),
+            fullTitle: title,
+            id: data.id,
+            content: data.content.toLowerCase(),
+            rawContent: data.content
+        }}));
+
+        function performSearch(query) {{
+            if (!query || query.length < 2) {{
+                searchResults.classList.remove('active');
+                return;
+            }}
+
+            const lowerQuery = query.toLowerCase();
+            const results = searchIndex
+                .map(page => {{
+                    const titleMatch = page.title.toLowerCase().includes(lowerQuery);
+                    const contentMatch = page.content.includes(lowerQuery);
+                    if (!titleMatch && !contentMatch) return null;
+
+                    // Find preview snippet
+                    let preview = '';
+                    if (contentMatch) {{
+                        const idx = page.content.indexOf(lowerQuery);
+                        const start = Math.max(0, idx - 40);
+                        const end = Math.min(page.content.length, idx + query.length + 60);
+                        preview = (start > 0 ? '...' : '') +
+                                  page.rawContent.substring(start, end).replace(/\\n/g, ' ') +
+                                  (end < page.content.length ? '...' : '');
+                    }}
+
+                    return {{
+                        ...page,
+                        preview,
+                        score: titleMatch ? 2 : 1
+                    }};
+                }})
+                .filter(Boolean)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 8);
+
+            if (results.length === 0) {{
+                searchResults.innerHTML = '<div class="no-results">No results found</div>';
+            }} else {{
+                searchResults.innerHTML = results.map((r, i) => `
+                    <div class="search-result${{i === selectedResultIndex ? ' selected' : ''}}" data-page="${{r.id}}" role="option">
+                        <div class="search-result-title">${{escapeHtml(r.title)}}</div>
+                        ${{r.preview ? `<div class="search-result-preview">${{highlightMatch(r.preview, query)}}</div>` : ''}}
+                    </div>
+                `).join('');
+            }}
+
+            searchResults.classList.add('active');
+            selectedResultIndex = -1;
+        }}
+
+        function highlightMatch(text, query) {{
+            const escaped = escapeHtml(text);
+            const regex = new RegExp(`(${{query.replace(/[.*+?^${{}}()|[\\]\\\\]/g, '\\\\$&')}})`, 'gi');
+            return escaped.replace(regex, '<mark>$1</mark>');
+        }}
+
+        searchInput.addEventListener('input', (e) => {{
+            performSearch(e.target.value);
+        }});
+
+        searchInput.addEventListener('keydown', (e) => {{
+            const results = searchResults.querySelectorAll('.search-result');
+            if (e.key === 'ArrowDown') {{
+                e.preventDefault();
+                selectedResultIndex = Math.min(selectedResultIndex + 1, results.length - 1);
+                updateSelectedResult(results);
+            }} else if (e.key === 'ArrowUp') {{
+                e.preventDefault();
+                selectedResultIndex = Math.max(selectedResultIndex - 1, 0);
+                updateSelectedResult(results);
+            }} else if (e.key === 'Enter' && selectedResultIndex >= 0) {{
+                e.preventDefault();
+                const selected = results[selectedResultIndex];
+                if (selected) {{
+                    loadPage(selected.dataset.page);
+                    searchInput.value = '';
+                    searchResults.classList.remove('active');
+                }}
+            }} else if (e.key === 'Escape') {{
+                searchResults.classList.remove('active');
+                searchInput.blur();
+            }}
+        }});
+
+        function updateSelectedResult(results) {{
+            results.forEach((r, i) => {{
+                r.classList.toggle('selected', i === selectedResultIndex);
+            }});
+        }}
+
+        searchResults.addEventListener('click', (e) => {{
+            const result = e.target.closest('.search-result');
+            if (result) {{
+                loadPage(result.dataset.page);
+                searchInput.value = '';
+                searchResults.classList.remove('active');
+            }}
+        }});
+
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {{
+            if (!e.target.closest('.search-box')) {{
+                searchResults.classList.remove('active');
+            }}
+        }});
+
+        // Keyboard shortcut for search (Cmd+K or Ctrl+K)
+        document.addEventListener('keydown', (e) => {{
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {{
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }}
+        }});
+
+        // Generate Table of Contents
+        function generateTOC(html) {{
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const headings = temp.querySelectorAll('h2, h3');
+
+            if (headings.length < 3) return html; // Don't show TOC for short pages
+
+            let tocItems = [];
+            headings.forEach(h => {{
+                const level = h.tagName.toLowerCase();
+                const text = h.textContent;
+                const id = h.id;
+                tocItems.push(`<li><a href="#${{id}}" class="toc-${{level}}">${{escapeHtml(text)}}</a></li>`);
+            }});
+
+            const tocHtml = `
+                <nav class="toc" aria-label="Table of Contents">
+                    <div class="toc-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                        </svg>
+                        On this page
+                    </div>
+                    <ul class="toc-list">
+                        ${{tocItems.join('\\n')}}
+                    </ul>
+                </nav>
+            `;
+
+            // Insert TOC after first h1
+            const h1 = temp.querySelector('h1');
+            if (h1) {{
+                h1.insertAdjacentHTML('afterend', tocHtml);
+            }} else {{
+                temp.insertAdjacentHTML('afterbegin', tocHtml);
+            }}
+
+            return temp.innerHTML;
+        }}
+
+        // Syntax highlighting
+        function highlightSyntax(lang, code) {{
+            if (!lang) return code;
+
+            const langLower = lang.toLowerCase();
+
+            // Define language-specific patterns
+            const patterns = {{
+                hemlock: [
+                    [/\\/\\/.*$/gm, 'comment'],
+                    [/\\/\\*[\\s\\S]*?\\*\\//g, 'comment'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/'(?:[^'\\\\]|\\\\.)*'/g, 'string'],
+                    [/\\b(fn|let|mut|if|else|while|for|in|return|match|struct|enum|impl|trait|pub|use|mod|const|type|self|true|false|nil|and|or|not)\\b/g, 'keyword'],
+                    [/\\b(i8|i16|i32|i64|u8|u16|u32|u64|f32|f64|bool|str|char|void|any)\\b/g, 'type'],
+                    [/\\b\\d+\\.?\\d*\\b/g, 'number'],
+                    [/\\b([A-Z][a-zA-Z0-9_]*)\\b/g, 'type'],
+                    [/\\b([a-z_][a-zA-Z0-9_]*)\\s*\\(/g, 'function'],
+                    [/[+\\-*\\/%=<>!&|^~]+/g, 'operator'],
+                    [/[{{}}\\[\\]();,.:]/g, 'punctuation'],
+                ],
+                javascript: [
+                    [/\\/\\/.*$/gm, 'comment'],
+                    [/\\/\\*[\\s\\S]*?\\*\\//g, 'comment'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/'(?:[^'\\\\]|\\\\.)*'/g, 'string'],
+                    [/`(?:[^`\\\\]|\\\\.)*`/g, 'string'],
+                    [/\\b(const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|try|catch|throw|new|class|extends|import|export|default|async|await|typeof|instanceof)\\b/g, 'keyword'],
+                    [/\\b(true|false|null|undefined|NaN|Infinity)\\b/g, 'builtin'],
+                    [/\\b\\d+\\.?\\d*\\b/g, 'number'],
+                    [/\\b([a-z_][a-zA-Z0-9_]*)\\s*\\(/g, 'function'],
+                    [/[+\\-*\\/%=<>!&|^~?:]+/g, 'operator'],
+                ],
+                python: [
+                    [/#.*$/gm, 'comment'],
+                    [/\\"\\"\\"[\\s\\S]*?\\"\\"\\"/g, 'string'],
+                    [/\\'\\'\\'[\\s\\S]*?\\'\\'\\']/g, 'string'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/'(?:[^'\\\\]|\\\\.)*'/g, 'string'],
+                    [/\\b(def|class|if|elif|else|for|while|try|except|finally|with|return|yield|import|from|as|pass|break|continue|raise|lambda|and|or|not|in|is|True|False|None)\\b/g, 'keyword'],
+                    [/\\b\\d+\\.?\\d*\\b/g, 'number'],
+                    [/\\b([a-z_][a-zA-Z0-9_]*)\\s*\\(/g, 'function'],
+                ],
+                bash: [
+                    [/#.*$/gm, 'comment'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/'[^']*'/g, 'string'],
+                    [/\\b(if|then|else|elif|fi|for|while|do|done|case|esac|function|return|exit|echo|cd|ls|cat|grep|sed|awk|export|source)\\b/g, 'keyword'],
+                    [/\\$[a-zA-Z_][a-zA-Z0-9_]*/g, 'property'],
+                    [/\\$\\{{[^}}]+\\}}/g, 'property'],
+                ],
+                json: [
+                    [/"(?:[^"\\\\]|\\\\.)*"\\s*:/g, 'property'],
+                    [/"(?:[^"\\\\]|\\\\.)*"/g, 'string'],
+                    [/\\b(true|false|null)\\b/g, 'keyword'],
+                    [/\\b-?\\d+\\.?\\d*\\b/g, 'number'],
+                ]
+            }};
+
+            // Use hemlock patterns for hml
+            const langPatterns = patterns[langLower] || patterns[langLower === 'hml' ? 'hemlock' : langLower] || patterns.hemlock;
+
+            // Apply patterns in order
+            let tokens = [];
+            let remaining = code;
+
+            // Simple tokenization - find all matches and sort by position
+            langPatterns.forEach(([regex, type]) => {{
+                let match;
+                const re = new RegExp(regex.source, regex.flags);
+                while ((match = re.exec(code)) !== null) {{
+                    tokens.push({{
+                        start: match.index,
+                        end: match.index + match[0].length,
+                        text: match[0],
+                        type: type
+                    }});
+                }}
+            }});
+
+            // Sort by start position and remove overlaps
+            tokens.sort((a, b) => a.start - b.start);
+            let filtered = [];
+            let lastEnd = 0;
+            tokens.forEach(t => {{
+                if (t.start >= lastEnd) {{
+                    filtered.push(t);
+                    lastEnd = t.end;
+                }}
+            }});
+
+            // Build highlighted HTML
+            let result = '';
+            let pos = 0;
+            filtered.forEach(t => {{
+                if (t.start > pos) {{
+                    result += escapeHtml(code.substring(pos, t.start));
+                }}
+                result += `<span class="token-${{t.type}}">${{escapeHtml(t.text)}}</span>`;
+                pos = t.end;
+            }});
+            if (pos < code.length) {{
+                result += escapeHtml(code.substring(pos));
+            }}
+
+            return result;
+        }}
+
+        // Apply syntax highlighting to code blocks after page load
+        function applySyntaxHighlighting() {{
+            document.querySelectorAll('.code-block').forEach(block => {{
+                const langSpan = block.querySelector('.code-lang');
+                const codeEl = block.querySelector('code');
+                if (langSpan && codeEl && !codeEl.dataset.highlighted) {{
+                    const lang = langSpan.textContent;
+                    const code = codeEl.textContent;
+                    codeEl.innerHTML = highlightSyntax(lang, code);
+                    codeEl.dataset.highlighted = 'true';
+                }}
+            }});
+        }}
+
         // Copy code to clipboard
         function copyCode(codeId) {{
             const codeElement = document.getElementById(codeId);
@@ -903,28 +1990,71 @@ def generate_html(docs, logo_data):
 
         // Load a page
         function loadPage(pageId) {{
-            const pageData = Object.values(PAGES).find(p => p.id === pageId);
-            if (!pageData) {{
-                console.error('Page not found:', pageId);
-                return;
-            }}
+            showLoading();
 
-            const content = parseMarkdown(pageData.content);
-            document.getElementById('content').innerHTML = content;
-
-            // Update active nav link
-            document.querySelectorAll('.nav-link').forEach(link => {{
-                link.classList.remove('active');
-                if (link.dataset.page === pageId) {{
-                    link.classList.add('active');
+            // Use requestAnimationFrame for smooth rendering
+            requestAnimationFrame(() => {{
+                const pageData = Object.values(PAGES).find(p => p.id === pageId);
+                if (!pageData) {{
+                    console.error('Page not found:', pageId);
+                    document.getElementById('content').innerHTML = '<p>Page not found. Please select a page from the navigation menu.</p>';
+                    hideLoading();
+                    return;
                 }}
+
+                // Use cached content or generate new
+                let content = getPageContent(pageId);
+                if (!content) {{
+                    hideLoading();
+                    return;
+                }}
+
+                // Sanitize content before inserting to prevent XSS
+                document.getElementById('content').innerHTML = sanitizeHtml(content);
+                // Apply syntax highlighting to code blocks
+                applySyntaxHighlighting();
+
+                // Update active nav link
+                document.querySelectorAll('.nav-link').forEach(link => {{
+                    link.classList.remove('active');
+                    if (link.dataset.page === pageId) {{
+                        link.classList.add('active');
+                    }}
+                }});
+
+                // Setup TOC smooth scrolling
+                document.querySelectorAll('.toc-list a').forEach(link => {{
+                    link.addEventListener('click', (e) => {{
+                        e.preventDefault();
+                        const targetId = link.getAttribute('href').substring(1);
+                        const target = document.getElementById(targetId);
+                        if (target) {{
+                            target.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                            history.pushState(null, '', '#' + pageId);
+                        }}
+                    }});
+                }});
+
+                // Setup prev/next navigation
+                document.querySelectorAll('.page-nav-link').forEach(link => {{
+                    link.addEventListener('click', (e) => {{
+                        e.preventDefault();
+                        const targetPage = link.dataset.page;
+                        if (targetPage) {{
+                            loadPage(targetPage);
+                        }}
+                    }});
+                }});
+
+                // Scroll to top
+                window.scrollTo(0, 0);
+
+                // Update URL hash
+                window.location.hash = pageId;
+
+                // Hide loading indicator
+                hideLoading();
             }});
-
-            // Scroll to top
-            window.scrollTo(0, 0);
-
-            // Update URL hash
-            window.location.hash = pageId;
         }}
 
         // Setup navigation
