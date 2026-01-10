@@ -63,9 +63,11 @@ fn collect_docs() {
     // Add CLAUDE.md as the main documentation
     let claude_path = HEMLOCK_DIR + "/CLAUDE.md";
     if (exists(claude_path)) {
+        let content = safe_read_file(claude_path);
+        content = convert_md_links(content, "language-reference");
         docs["Language Reference"] = {
             id: "language-reference",
-            content: safe_read_file(claude_path),
+            content: content,
             order: 0,
             section: ""
         };
@@ -101,10 +103,13 @@ fn collect_docs() {
                             let title = filename_to_title(file_name);
                             let doc_id = subdir + "-" + file_name;
 
+                            let content = safe_read_file(md_path);
+                            content = convert_md_links(content, subdir);
+
                             let key = section_name + " -> " + title;
                             docs[key] = {
                                 id: doc_id,
-                                content: safe_read_file(md_path),
+                                content: content,
                                 order: i + 1,
                                 section: section_name
                             };
@@ -151,10 +156,13 @@ fn collect_docs() {
                         k = k + 1;
                     }
 
+                    let content = safe_read_file(md_path);
+                    content = convert_md_links(content, "hpm-" + file_name);
+
                     let key = section_name + " -> " + title;
                     docs[key] = {
                         id: doc_id,
-                        content: safe_read_file(md_path),
+                        content: content,
                         order: order,
                         section: section_name
                     };
@@ -165,6 +173,120 @@ fn collect_docs() {
     }
 
     return docs;
+}
+
+// Convert markdown file links to hash-based page IDs
+// Examples:
+//     [Tutorial](tutorial.md) -> [Tutorial](#getting-started-tutorial)
+//     [Syntax](../language-guide/syntax.md) -> [Syntax](#language-guide-syntax)
+fn convert_md_links(content: string, current_section: string): string {
+    let result = content;
+
+    // Find and replace markdown links: [text](path.md)
+    // We need to manually parse since we don't have regex
+    let i = 0;
+    while (i < result.length) {
+        // Look for '['
+        if (result.slice(i, i + 1) == "[") {
+            // Find the closing ']'
+            let bracket_end = i + 1;
+            let depth = 1;
+            while (bracket_end < result.length && depth > 0) {
+                let ch = result.slice(bracket_end, bracket_end + 1);
+                if (ch == "[") {
+                    depth = depth + 1;
+                } else if (ch == "]") {
+                    depth = depth - 1;
+                }
+                bracket_end = bracket_end + 1;
+            }
+
+            // Check if followed by '('
+            if (bracket_end < result.length && result.slice(bracket_end, bracket_end + 1) == "(") {
+                // Find the closing ')'
+                let paren_start = bracket_end + 1;
+                let paren_end = paren_start;
+                while (paren_end < result.length && result.slice(paren_end, paren_end + 1) != ")") {
+                    paren_end = paren_end + 1;
+                }
+
+                if (paren_end < result.length) {
+                    let link_text = result.slice(i + 1, bracket_end - 1);
+                    let path = result.slice(paren_start, paren_end);
+
+                    // Skip external URLs, anchor-only links, and non-markdown links
+                    let skip = false;
+                    if (path.starts_with("http://") || path.starts_with("https://") ||
+                        path.starts_with("#") || path.starts_with("mailto:")) {
+                        skip = true;
+                    }
+                    if (!path.ends_with(".md")) {
+                        skip = true;
+                    }
+
+                    if (!skip) {
+                        // Parse the path to get section and filename
+                        let new_href = convert_md_path_to_hash(path, current_section);
+                        let new_link = "[" + link_text + "](" + new_href + ")";
+                        let old_link = result.slice(i, paren_end + 1);
+
+                        result = result.slice(0, i) + new_link + result.slice(paren_end + 1, result.length);
+                        i = i + new_link.length;
+                        continue;
+                    }
+                }
+            }
+        }
+        i = i + 1;
+    }
+
+    return result;
+}
+
+// Convert a markdown path to a hash-based page ID
+fn convert_md_path_to_hash(path: string, current_section: string): string {
+    // Normalize path separators
+    let normalized = path.replace_all("\\", "/");
+
+    // Handle relative paths like ../language-guide/syntax.md
+    if (normalized.starts_with("../")) {
+        let parts = normalized.split("/");
+        // Find first non-.. part (the section)
+        let section_idx = 0;
+        let k = 0;
+        while (k < parts.length) {
+            if (parts[k] != "..") {
+                section_idx = k;
+                k = parts.length; // break
+            }
+            k = k + 1;
+        }
+
+        if (section_idx < parts.length - 1) {
+            let section = parts[section_idx];
+            let filename = parts[parts.length - 1];
+            // Remove .md extension
+            filename = filename.slice(0, filename.length - 3);
+            return "#" + section + "-" + filename;
+        }
+    } else if (normalized.contains("/")) {
+        // Direct path like language-guide/syntax.md
+        let parts = normalized.split("/");
+        let section = current_section;
+        if (parts.length >= 2) {
+            section = parts[parts.length - 2];
+        }
+        let filename = parts[parts.length - 1];
+        // Remove .md extension
+        filename = filename.slice(0, filename.length - 3);
+        return "#" + section + "-" + filename;
+    } else {
+        // Same directory link like tutorial.md
+        let filename = normalized.slice(0, normalized.length - 3);
+        return "#" + current_section + "-" + filename;
+    }
+
+    return "#" + path;
 }
 
 // Convert filename to title (e.g., "getting-started" -> "Getting Started")
@@ -580,14 +702,65 @@ fn generate_html(docs: object, logo_data: string): string {
             color: var(--pine);
         }
 
+        .code-block {
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--code-bg);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: var(--pine);
+            color: var(--light-sage);
+            font-size: 0.8rem;
+        }
+
+        .code-lang {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-weight: 600;
+            text-transform: lowercase;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--sage);
+            color: var(--light-sage);
+            padding: 0.3rem 0.7rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .copy-btn:hover {
+            background: var(--sage);
+            color: var(--pine);
+        }
+
+        .copy-btn.copied {
+            background: var(--sage);
+            color: var(--pine);
+            border-color: var(--sage);
+        }
+
+        .copy-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
         .content pre {
             background: var(--code-bg);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--pine);
-            border-radius: 4px;
+            margin: 0;
             padding: 1.2rem;
             overflow-x: auto;
-            margin: 1.5rem 0;
         }
 
         .content pre code {
@@ -596,6 +769,14 @@ fn generate_html(docs: object, logo_data: string): string {
             border-radius: 0;
             font-size: 0.85rem;
             line-height: 1.6;
+        }
+
+        /* Standalone pre without code-block wrapper (legacy) */
+        .content > pre {
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--pine);
+            border-radius: 4px;
+            margin: 1.5rem 0;
         }
 
         /* Tables */
@@ -777,8 +958,17 @@ fn generate_html(docs: object, logo_data: string): string {
 
                 if (line.startsWith('```')) {
                     if (inCodeBlock) {
-                        html += '<pre><code>' + escapeHtml(codeBlockContent) + '</code></pre>\\n';
+                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+                        const langDisplay = codeBlockLang || 'code';
+                        const copyIcon = '<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z\" /></svg>';
+                        html += `<div class=\"code-block\">
+                            <div class=\"code-header\">
+                                <span class=\"code-lang\">${langDisplay}</span>
+                                <button class=\"copy-btn\" onclick=\"copyCode('${codeId}')\">${copyIcon}<span>Copy</span></button>
+                            </div>
+                            <pre><code id=\"${codeId}\">` + escapeHtml(codeBlockContent) + '</code></pre></div>\\n';
                         codeBlockContent = '';
+                        codeBlockLang = '';
                         inCodeBlock = false;
                     } else {
                         flushList();
@@ -885,6 +1075,30 @@ fn generate_html(docs: object, logo_data: string): string {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Copy code to clipboard
+        function copyCode(codeId) {
+            const codeElement = document.getElementById(codeId);
+            if (!codeElement) return;
+
+            const text = codeElement.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                // Find the button that triggered this
+                const btn = codeElement.closest('.code-block').querySelector('.copy-btn');
+                if (btn) {
+                    const originalText = btn.querySelector('span').textContent;
+                    btn.classList.add('copied');
+                    btn.querySelector('span').textContent = 'Copied!';
+
+                    setTimeout(() => {
+                        btn.classList.remove('copied');
+                        btn.querySelector('span').textContent = originalText;
+                    }, 2000);
+                }
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
         }
 
         // Load a page
