@@ -38,6 +38,14 @@ def read_file(path):
         return ""
 
 
+def smart_title(text):
+    """Convert text to title case, preserving acronyms like API."""
+    result = text.replace('-', ' ').replace('_', ' ').title()
+    # Fix common acronyms that should stay uppercase
+    result = result.replace('Api', 'API')
+    return result
+
+
 def encode_image(path):
     """Encode image as base64 data URL."""
     try:
@@ -146,7 +154,7 @@ def collect_docs():
 
                 file_name = md_file.stem
                 # Convert filename to title
-                title = file_name.replace('-', ' ').replace('_', ' ').title()
+                title = smart_title(file_name)
                 doc_id = f"{subdir}-{file_name}"
 
                 content = read_file(md_file)
@@ -194,7 +202,7 @@ def collect_docs():
                 section_name = 'hpm: Other'
                 order = 14
 
-            title = file_name.replace('-', ' ').replace('_', ' ').title()
+            title = smart_title(file_name)
             doc_id = f"hpm-{file_name}"
 
             content = read_file(md_file)
@@ -224,7 +232,7 @@ def generate_html(docs, logo_data):
 
         # Add section header if it's a new section
         if section and section != current_section:
-            section_title = section.replace('-', ' ').title()
+            section_title = smart_title(section)
             if current_section is not None:  # Not the first section
                 nav_items.append('</div>')
             nav_items.append(f'<div class="nav-section">')
