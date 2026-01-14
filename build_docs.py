@@ -721,6 +721,9 @@ def generate_html(docs, logo_data):
             let listContent = '';
             let inBlockquote = false;
             let blockquoteContent = '';
+            let inTable = false;
+            let tableRows = [];
+            let tableHasHeader = false;
 
             function processInlineMarkdown(text) {{
                 text = text.replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1</strong>');
@@ -753,6 +756,38 @@ def generate_html(docs, logo_data):
                 }}
             }}
 
+            function flushTable() {{
+                if (inTable && tableRows.length > 0) {{
+                    html += '<table>\\n';
+                    for (let r = 0; r < tableRows.length; r++) {{
+                        const row = tableRows[r];
+                        const isHeader = tableHasHeader && r === 0;
+                        const tag = isHeader ? 'th' : 'td';
+                        html += '<tr>\\n';
+                        for (const cell of row) {{
+                            html += '<' + tag + '>' + processInlineMarkdown(cell.trim()) + '</' + tag + '>\\n';
+                        }}
+                        html += '</tr>\\n';
+                    }}
+                    html += '</table>\\n';
+                    tableRows = [];
+                    inTable = false;
+                    tableHasHeader = false;
+                }}
+            }}
+
+            function isTableSeparator(line) {{
+                return /^\\|?[\\s-:|]+\\|[\\s-:|]+\\|?$/.test(line) && line.includes('-');
+            }}
+
+            function parseTableRow(line) {{
+                let cells = line.split('|');
+                // Remove empty first/last cells from leading/trailing |
+                if (cells.length > 0 && cells[0].trim() === '') cells.shift();
+                if (cells.length > 0 && cells[cells.length - 1].trim() === '') cells.pop();
+                return cells;
+            }}
+
             for (let i = 0; i < lines.length; i++) {{
                 let line = lines[i];
 
@@ -782,6 +817,30 @@ def generate_html(docs, logo_data):
                 if (inCodeBlock) {{
                     codeBlockContent += line + '\\n';
                     continue;
+                }}
+
+                // Table handling
+                if (line.includes('|')) {{
+                    const trimmedLine = line.trim();
+                    if (trimmedLine.startsWith('|') || trimmedLine.endsWith('|')) {{
+                        flushList();
+                        flushBlockquote();
+                        if (isTableSeparator(trimmedLine)) {{
+                            // This is the separator row (|---|---|), mark header
+                            if (tableRows.length === 1) {{
+                                tableHasHeader = true;
+                            }}
+                        }} else {{
+                            // Regular table row
+                            tableRows.push(parseTableRow(trimmedLine));
+                            inTable = true;
+                        }}
+                        continue;
+                    }}
+                }}
+                // Flush table if we hit a non-table line
+                if (inTable) {{
+                    flushTable();
                 }}
 
                 if (line.startsWith('# ')) {{
@@ -867,6 +926,7 @@ def generate_html(docs, logo_data):
 
             flushList();
             flushBlockquote();
+            flushTable();
 
             return html;
         }}
