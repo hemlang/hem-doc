@@ -790,8 +790,10 @@ def generate_html(docs, logo_data):
 
             for (let i = 0; i < lines.length; i++) {{
                 let line = lines[i];
+                const trimmedLine = line.trim();
 
-                if (line.startsWith('```')) {{
+                // Handle code blocks (including indented ones in lists)
+                if (trimmedLine.startsWith('```')) {{
                     if (inCodeBlock) {{
                         const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
                         const langDisplay = codeBlockLang || 'code';
@@ -809,7 +811,7 @@ def generate_html(docs, logo_data):
                         flushList();
                         flushBlockquote();
                         inCodeBlock = true;
-                        codeBlockLang = line.substring(3).trim();
+                        codeBlockLang = trimmedLine.substring(3).trim();
                     }}
                     continue;
                 }}
@@ -820,8 +822,7 @@ def generate_html(docs, logo_data):
                 }}
 
                 // Table handling
-                if (line.includes('|')) {{
-                    const trimmedLine = line.trim();
+                if (trimmedLine.includes('|')) {{
                     if (trimmedLine.startsWith('|') || trimmedLine.endsWith('|')) {{
                         flushList();
                         flushBlockquote();
