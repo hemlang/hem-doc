@@ -5,7 +5,7 @@ import { App } from "hemlang/sprout";
 import { read_file } from "@stdlib/fs";
 
 // Supported languages for documentation
-let supported_langs = ["en", "de", "es", "zh"];
+let supported_langs = ["en", "de", "es", "ja", "zh"];
 
 // Read the docs HTML at startup
 let docs_html = read_file("docs.html");
@@ -29,6 +29,11 @@ if (docs_es == null) {
 let docs_zh = read_file("docs-zh.html");
 if (docs_zh == null) {
     print("Warning: docs-zh.html not found, Chinese docs will fall back to English");
+}
+
+let docs_ja = read_file("docs-ja.html");
+if (docs_ja == null) {
+    print("Warning: docs-ja.html not found, Japanese docs will fall back to English");
 }
 
 // Read the LLM-friendly documentation at startup
@@ -75,6 +80,15 @@ app.get("/docs-zh.html", fn(req, res, next) {
     }
 });
 
+// Serve Japanese documentation
+app.get("/docs-ja.html", fn(req, res, next) {
+    if (docs_ja != null) {
+        res.type("html").send(docs_ja);
+    } else {
+        res.type("html").send(docs_html);
+    }
+});
+
 // Serve LLM-friendly documentation
 app.get("/llms.txt", fn(req, res, next) {
     if (llms_txt == null) {
@@ -91,6 +105,7 @@ app.get("/health", fn(req, res, next) {
         docs_size: docs_html.length,
         docs_de_size: docs_de != null ? docs_de.length : 0,
         docs_es_size: docs_es != null ? docs_es.length : 0,
+        docs_ja_size: docs_ja != null ? docs_ja.length : 0,
         docs_zh_size: docs_zh != null ? docs_zh.length : 0,
         llms_size: llms_txt != null ? llms_txt.length : 0
     });
@@ -105,6 +120,7 @@ app.listen(port, fn() {
     print("  English:  http://localhost:" + port + "/");
     print("  German:   http://localhost:" + port + "/docs-de.html");
     print("  Spanish:  http://localhost:" + port + "/docs-es.html");
+    print("  Japanese: http://localhost:" + port + "/docs-ja.html");
     print("  Chinese:  http://localhost:" + port + "/docs-zh.html");
     print("LLM docs at http://localhost:" + port + "/llms.txt");
 });
