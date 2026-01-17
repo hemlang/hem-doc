@@ -37,6 +37,7 @@ LLM_OUTPUT_FILE = Path(__file__).parent / 'llms.txt'
 SUPPORTED_LANGUAGES = {
     'en': 'English',
     'zh': '中文',
+    'de': 'Deutsch',
 }
 
 # Section name translations
@@ -54,6 +55,20 @@ SECTION_TRANSLATIONS = {
         'hpm: Package Development': 'hpm: 包开发',
         'hpm: Reference': 'hpm: 参考',
         'hpm: Other': 'hpm: 其他',
+    },
+    'de': {
+        'Language Reference': 'Sprachreferenz',
+        'Getting Started': 'Erste Schritte',
+        'Language Guide': 'Sprachhandbuch',
+        'Advanced Topics': 'Fortgeschrittene Themen',
+        'API Reference': 'API-Referenz',
+        'Design & Philosophy': 'Design & Philosophie',
+        'Contributing': 'Mitwirken',
+        'hpm: Getting Started': 'hpm: Erste Schritte',
+        'hpm: User Guide': 'hpm: Benutzerhandbuch',
+        'hpm: Package Development': 'hpm: Paketentwicklung',
+        'hpm: Reference': 'hpm: Referenz',
+        'hpm: Other': 'hpm: Sonstiges',
     }
 }
 
@@ -114,6 +129,62 @@ TITLE_TRANSLATIONS = {
         'Versioning': '版本控制',
         'Architecture': '架构',
         'Exit Codes': '退出码',
+    },
+    'de': {
+        # Getting Started
+        'Installation': 'Installation',
+        'Quick Start': 'Schnellstart',
+        'Tutorial': 'Tutorial',
+        'Learning Paths': 'Lernpfade',
+        # Language Guide
+        'Syntax': 'Syntax',
+        'Types': 'Typen',
+        'Functions': 'Funktionen',
+        'Arrays': 'Arrays',
+        'Strings': 'Zeichenketten',
+        'Objects': 'Objekte',
+        'Control Flow': 'Kontrollfluss',
+        'Error Handling': 'Fehlerbehandlung',
+        'Modules': 'Module',
+        'Memory': 'Speicherverwaltung',
+        'Pattern Matching': 'Musterabgleich',
+        'Runes': 'Runen',
+        # Advanced
+        'Async Concurrency': 'Asynchronität & Nebenläufigkeit',
+        'Atomics': 'Atomare Operationen',
+        'Bundling Packaging': 'Bündeln & Paketieren',
+        'Command Execution': 'Befehlsausführung',
+        'Command Line Args': 'Kommandozeilenargumente',
+        'Ffi': 'FFI (Fremdsprachenschnittstelle)',
+        'File Io': 'Datei-I/O',
+        'Profiling': 'Profilerstellung',
+        'Signals': 'Signalverarbeitung',
+        # Reference
+        'Array API': 'Array-API',
+        'String API': 'String-API',
+        'File API': 'Datei-API',
+        'Memory API': 'Speicher-API',
+        'Concurrency API': 'Nebenläufigkeits-API',
+        'Builtins': 'Eingebaute Funktionen',
+        'Operators': 'Operatoren',
+        'Type System': 'Typsystem',
+        # Design
+        'Philosophy': 'Designphilosophie',
+        'Implementation': 'Implementierung',
+        'Signature Syntax': 'Signatur-Syntax',
+        # Contributing
+        'Guidelines': 'Richtlinien',
+        'Testing': 'Testen',
+        # hpm docs
+        'Commands': 'Befehle',
+        'Configuration': 'Konfiguration',
+        'Project Setup': 'Projekteinrichtung',
+        'Troubleshooting': 'Fehlerbehebung',
+        'Creating Packages': 'Pakete erstellen',
+        'Package Spec': 'Paketspezifikation',
+        'Versioning': 'Versionierung',
+        'Architecture': 'Architektur',
+        'Exit Codes': 'Exit-Codes',
     }
 }
 
@@ -464,6 +535,7 @@ def generate_html(docs, logo_data, lang='en'):
     titles = {
         'en': 'Hemlock Language Manual',
         'zh': 'Hemlock 语言手册',
+        'de': 'Hemlock-Sprachhandbuch',
     }
     page_title = titles.get(lang, titles['en'])
 
