@@ -1,4 +1,4 @@
-# Syntax-Uebersicht
+# Syntax-Übersicht
 
 Dieses Dokument behandelt die grundlegenden Syntaxregeln und die Struktur von Hemlock-Programmen.
 
@@ -22,7 +22,7 @@ let y = 10  // FEHLER: Fehlendes Semikolon
 
 ### Geschweifte Klammern sind immer erforderlich
 
-Alle Kontrollfluss-Bloecke muessen geschweifte Klammern verwenden, auch bei einzelnen Anweisungen:
+Alle Kontrollfluss-Blöcke müssen geschweifte Klammern verwenden, auch bei einzelnen Anweisungen:
 
 ```hemlock
 // RICHTIG
@@ -71,16 +71,16 @@ let text: string = "hallo";
 
 ### Konstanten
 
-Verwenden Sie `const` fuer unveraenderliche Werte:
+Verwenden Sie `const` für unveränderliche Werte:
 
 ```hemlock
 const MAX_SIZE: i32 = 1000;
 const PI: f64 = 3.14159;
 ```
 
-Der Versuch, eine Konstante neu zuzuweisen, fuehrt zu einem Laufzeitfehler: "Cannot assign to const variable".
+Der Versuch, eine Konstante neu zuzuweisen, führt zu einem Laufzeitfehler: "Cannot assign to const variable".
 
-## Ausdruecke
+## Ausdrücke
 
 ### Arithmetische Operatoren
 
@@ -99,9 +99,9 @@ print(a / b);   // 3  - Division (ganzzahlig)
 ```hemlock
 print(a == b);  // false - Gleich
 print(a != b);  // true  - Ungleich
-print(a > b);   // true  - Groesser als
+print(a > b);   // true  - Größer als
 print(a < b);   // false - Kleiner als
-print(a >= b);  // true  - Groesser oder gleich
+print(a >= b);  // true  - Größer oder gleich
 print(a <= b);  // false - Kleiner oder gleich
 ```
 
@@ -132,7 +132,7 @@ print(~a);      // -13 - Bitweises NICHT
 
 ### Operatorrangfolge
 
-Von hoechster zu niedrigster Prioritaet:
+Von hoechster zu niedrigster Priorität:
 
 1. `()` - Gruppierung
 2. `!`, `~`, `-` (unaer) - Unaere Operatoren
@@ -160,7 +160,7 @@ let z = 5 << 2 + 1;     // 40 (5 << 3)
 
 ```hemlock
 if (condition) {
-    // Koerper
+    // Körper
 }
 
 if (condition) {
@@ -182,7 +182,7 @@ if (condition1) {
 
 ```hemlock
 while (condition) {
-    // Koerper
+    // Körper
 }
 ```
 
@@ -200,7 +200,7 @@ while (i < 10) {
 **C-artige for-Schleife:**
 ```hemlock
 for (initializer; condition; increment) {
-    // Koerper
+    // Körper
 }
 ```
 
@@ -214,7 +214,7 @@ for (let i = 0; i < 10; i = i + 1) {
 **For-in (Arrays):**
 ```hemlock
 for (let item in array) {
-    // Koerper
+    // Körper
 }
 ```
 
@@ -231,13 +231,13 @@ for (let x in items) {
 ```hemlock
 switch (expression) {
     case value1:
-        // Koerper
+        // Körper
         break;
     case value2:
-        // Koerper
+        // Körper
         break;
     default:
-        // Standard-Koerper
+        // Standard-Körper
         break;
 }
 ```
@@ -272,7 +272,7 @@ for (let i = 0; i < 10; i = i + 1) {
     print(i);
 }
 
-// Continue: Zur naechsten Iteration springen
+// Continue: Zur nächsten Iteration springen
 for (let i = 0; i < 10; i = i + 1) {
     if (i == 5) {
         continue;
@@ -287,7 +287,7 @@ for (let i = 0; i < 10; i = i + 1) {
 
 ```hemlock
 fn function_name(param1: type1, param2: type2): return_type {
-    // Koerper
+    // Körper
     return value;
 }
 ```
@@ -303,7 +303,7 @@ fn add(a: i32, b: i32): i32 {
 
 ```hemlock
 let func = fn(params) {
-    // Koerper
+    // Körper
 };
 ```
 
@@ -322,7 +322,7 @@ fn greet(name) {
     return "Hallo, " + name;
 }
 
-// Mit Annotationen (zur Laufzeit geprueft)
+// Mit Annotationen (zur Laufzeit geprüft)
 fn divide(a: i32, b: i32): f64 {
     return a / b;
 }
@@ -407,7 +407,7 @@ let empty = [];
 ```hemlock
 let arr = [10, 20, 30];
 print(arr[0]);   // 10
-arr[1] = 99;     // Element aendern
+arr[1] = 99;     // Element ändern
 ```
 
 ## Fehlerbehandlung
@@ -428,7 +428,7 @@ try {
 try {
     // Riskanter Code
 } finally {
-    // Wird immer ausgefuehrt
+    // Wird immer ausgeführt
 }
 ```
 
@@ -493,7 +493,7 @@ import { name as alias } from "./module.hml";
 
 ```hemlock
 async fn function_name(params): return_type {
-    // Koerper
+    // Körper
 }
 ```
 
@@ -542,19 +542,19 @@ let decimal = 42;
 let negative = -100;
 let large = 5000000000;  // Automatisch i64
 
-// Hexadezimal (0x-Praefix)
+// Hexadezimal (0x-Präfix)
 let hex = 0xDEADBEEF;
 let hex2 = 0xFF;
 
-// Binaer (0b-Praefix)
+// Binär (0b-Präfix)
 let bin = 0b1010;
 let bin2 = 0b11110000;
 
-// Oktal (0o-Praefix)
+// Oktal (0o-Präfix)
 let oct = 0o777;
 let oct2 = 0O123;
 
-// Numerische Trennzeichen fuer Lesbarkeit
+// Numerische Trennzeichen für Lesbarkeit
 let million = 1_000_000;
 let hex_sep = 0xFF_FF_FF;
 let bin_sep = 0b1111_0000_1010_0101;
@@ -568,7 +568,7 @@ let f = 3.14;
 let e = 2.71828;
 let sci = 1.5e-10;       // Wissenschaftliche Notation
 let sci2 = 2.5E+3;       // Grosses E funktioniert auch
-let no_lead = .5;        // Ohne fuehrende Null (0.5)
+let no_lead = .5;        // Ohne führende Null (0.5)
 let sep = 3.14_159_265;  // Numerische Trennzeichen
 ```
 
@@ -593,7 +593,7 @@ let mixed = "Hallo \u{1F30D}!";        // Hallo (Erde)!
 - `\t` - Tabulator
 - `\r` - Wagenruecklauf
 - `\\` - Backslash
-- `\"` - Anfuehrungszeichen
+- `\"` - Anführungszeichen
 - `\'` - Apostroph
 - `\0` - Null-Zeichen
 - `\xNN` - Hex-Escape (2 Ziffern)
@@ -624,40 +624,40 @@ let nothing = null;
 
 ## Gueltigkeitsbereichsregeln
 
-### Block-Gueltigkeitsbereich
+### Block-Gültigkeitsbereich
 
-Variablen sind auf den naechsten umschliessenden Block beschraenkt:
+Variablen sind auf den nächsten umschliessenden Block beschränkt:
 
 ```hemlock
-let x = 1;  // Aeusserer Gueltigkeitsbereich
+let x = 1;  // Aeusserer Gültigkeitsbereich
 
 if (true) {
-    let x = 2;  // Innerer Gueltigkeitsbereich (ueberdeckt aeusseren)
+    let x = 2;  // Innerer Gültigkeitsbereich (ueberdeckt äußeren)
     print(x);   // 2
 }
 
 print(x);  // 1
 ```
 
-### Funktions-Gueltigkeitsbereich
+### Funktions-Gültigkeitsbereich
 
-Funktionen erstellen ihren eigenen Gueltigkeitsbereich:
+Funktionen erstellen ihren eigenen Gültigkeitsbereich:
 
 ```hemlock
 let global = "global";
 
 fn foo() {
     let local = "lokal";
-    print(global);  // Kann aeusseren Gueltigkeitsbereich lesen
+    print(global);  // Kann äußeren Gültigkeitsbereich lesen
 }
 
 foo();
 // print(local);  // FEHLER: 'local' ist hier nicht definiert
 ```
 
-### Closure-Gueltigkeitsbereich
+### Closure-Gültigkeitsbereich
 
-Closures erfassen Variablen aus dem umschliessenden Gueltigkeitsbereich:
+Closures erfassen Variablen aus dem umschliessenden Gültigkeitsbereich:
 
 ```hemlock
 fn makeCounter() {
@@ -689,7 +689,7 @@ fn example() {
 
 ### Zeilenumbrueche
 
-Anweisungen koennen mehrere Zeilen umfassen:
+Anweisungen können mehrere Zeilen umfassen:
 
 ```hemlock
 let result =
@@ -702,11 +702,11 @@ let result =
 
 ## Loop-Anweisung
 
-Das `loop`-Schluesselwort bietet eine sauberere Syntax fuer Endlosschleifen:
+Das `loop`-Schlüsselwort bietet eine sauberere Syntax für Endlosschleifen:
 
 ```hemlock
 loop {
-    // ... Arbeit ausfuehren
+    // ... Arbeit ausführen
     if (done) {
         break;
     }
@@ -715,9 +715,9 @@ loop {
 
 Dies entspricht `while (true)`, macht aber die Absicht deutlicher.
 
-## Reservierte Schluesselwoerter
+## Reservierte Schlüsselwörter
 
-Die folgenden Schluesselwoerter sind in Hemlock reserviert:
+Die folgenden Schlüsselwörter sind in Hemlock reserviert:
 
 ```
 let, const, fn, if, else, while, for, in, loop, break, continue,
@@ -727,9 +727,9 @@ detach, channel, define, switch, case, default, extern, self,
 type, defer, enum, ref, buffer, Self
 ```
 
-## Naechste Schritte
+## Nächste Schritte
 
-- [Typsystem](types.md) - Erfahren Sie mehr ueber das Hemlock-Typsystem
+- [Typsystem](types.md) - Erfahren Sie mehr über das Hemlock-Typsystem
 - [Kontrollfluss](control-flow.md) - Vertiefte Betrachtung der Kontrollstrukturen
 - [Funktionen](functions.md) - Beherrschen Sie Funktionen und Closures
 - [Speicherverwaltung](memory.md) - Verstehen Sie Pointer und Buffer

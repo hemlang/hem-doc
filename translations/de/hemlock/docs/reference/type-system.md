@@ -1,30 +1,30 @@
 # Typsystem-Referenz
 
-Vollstaendige Referenz fuer Hemlocks Typsystem, einschliesslich aller primitiven und zusammengesetzten Typen.
+Vollständige Referenz für Hemlocks Typsystem, einschließlich aller primitiven und zusammengesetzten Typen.
 
 ---
 
-## Uebersicht
+## Übersicht
 
 Hemlock verwendet ein **dynamisches Typsystem** mit Laufzeit-Typ-Tags und optionalen Typannotationen. Jeder Wert hat einen Laufzeittyp, und Typkonvertierungen folgen expliziten Promovierungsregeln.
 
 **Hauptmerkmale:**
 - Laufzeit-Typprüfung (Interpreter)
-- Kompilierzeit-Typprüfung (hemlockc - standardmaessig aktiviert)
+- Kompilierzeit-Typprüfung (hemlockc - standardmäßig aktiviert)
 - Optionale Typannotationen
-- Automatische Typinferenz fuer Literale
+- Automatische Typinferenz für Literale
 - Explizite Typpromovierungsregeln
-- Keine impliziten Konvertierungen die Praezision verlieren
+- Keine impliziten Konvertierungen die Präzision verlieren
 
 ---
 
 ## Kompilierzeit-Typprüfung (hemlockc)
 
-Der Hemlock-Compiler (`hemlockc`) enthaelt einen Kompilierzeit-Typchecker der Ihren Code vor der Generierung von ausfuehrbaren Dateien validiert. Dies erkennt Typfehler frueh ohne das Programm ausfuehren zu muessen.
+Der Hemlock-Compiler (`hemlockc`) enthält einen Kompilierzeit-Typchecker der Ihren Code vor der Generierung von ausfuehrbaren Dateien validiert. Dies erkennt Typfehler frueh ohne das Programm ausführen zu müssen.
 
 ### Standardverhalten
 
-Typprüfung ist in hemlockc **standardmaessig aktiviert**:
+Typprüfung ist in hemlockc **standardmäßig aktiviert**:
 
 ```bash
 # Typprüfung erfolgt automatisch
@@ -39,7 +39,7 @@ hemlockc bad_types.hml
 
 | Flag | Beschreibung |
 |------|--------------|
-| `--check` | Nur Typen pruefen, nicht kompilieren (nach Validierung beenden) |
+| `--check` | Nur Typen prüfen, nicht kompilieren (nach Validierung beenden) |
 | `--no-type-check` | Typprüfung deaktivieren (nicht empfohlen) |
 | `--strict-types` | Strengere Typwarnungen aktivieren |
 
@@ -53,7 +53,7 @@ hemlockc --check program.hml
 # Typprüfung deaktivieren (mit Vorsicht verwenden)
 hemlockc --no-type-check dynamic_code.hml -o program
 
-# Strenge Warnungen fuer implizite any-Typen aktivieren
+# Strenge Warnungen für implizite any-Typen aktivieren
 hemlockc --strict-types program.hml -o program
 ```
 
@@ -61,9 +61,9 @@ hemlockc --strict-types program.hml -o program
 
 1. **Typannotationen** - Stellt sicher dass zugewiesene Werte deklarierten Typen entsprechen
 2. **Funktionsaufrufe** - Validiert Argumenttypen gegen Parametertypen
-3. **Rueckgabetypen** - Prueft ob return-Anweisungen deklariertem Rueckgabetyp entsprechen
+3. **Rueckgabetypen** - Prueft ob return-Anweisungen deklariertem Rückgabetyp entsprechen
 4. **Operatorverwendung** - Verifiziert dass Operanden kompatibel sind
-5. **Eigenschaftszugriff** - Validiert Objektfeldtypen fuer typisierte Objekte
+5. **Eigenschaftszugriff** - Validiert Objektfeldtypen für typisierte Objekte
 
 ### Tolerante numerische Konvertierungen
 
@@ -81,7 +81,7 @@ Code ohne Typannotationen wird als dynamisch (`any`-Typ) behandelt und besteht i
 
 ```hemlock
 let x = get_value();  // Dynamisch - keine Annotation
-process(x);           // OK - dynamische Werte ueberall akzeptiert
+process(x);           // OK - dynamische Werte überall akzeptiert
 ```
 
 ---
@@ -92,7 +92,7 @@ process(x);           // OK - dynamische Werte ueberall akzeptiert
 
 #### Vorzeichenbehaftete Ganzzahlen
 
-| Typ    | Groesse  | Bereich                                     | Alias     |
+| Typ    | Größe  | Bereich                                     | Alias     |
 |--------|----------|---------------------------------------------|-----------|
 | `i8`   | 1 Byte   | -128 bis 127                                | -         |
 | `i16`  | 2 Bytes  | -32.768 bis 32.767                          | -         |
@@ -112,7 +112,7 @@ let x: integer = 42;  // Gleich wie i32
 
 #### Vorzeichenlose Ganzzahlen
 
-| Typ    | Groesse  | Bereich                          | Alias  |
+| Typ    | Größe  | Bereich                          | Alias  |
 |--------|----------|----------------------------------|--------|
 | `u8`   | 1 Byte   | 0 bis 255                        | `byte` |
 | `u16`  | 2 Bytes  | 0 bis 65.535                     | -      |
@@ -132,7 +132,7 @@ let byte_val: byte = 65;  // Gleich wie u8
 
 #### Gleitkomma
 
-| Typ    | Groesse  | Praezision     | Alias    |
+| Typ    | Größe  | Präzision     | Alias    |
 |--------|----------|----------------|----------|
 | `f32`  | 4 Bytes  | ~7 Stellen     | -        |
 | `f64`  | 8 Bytes  | ~15 Stellen    | `number` |
@@ -154,15 +154,15 @@ Ganzzahl-Literale werden automatisch basierend auf ihrem Wert typisiert:
 
 **Regeln:**
 - Werte im i32-Bereich (-2.147.483.648 bis 2.147.483.647): als `i32` inferiert
-- Werte ausserhalb i32-Bereich aber innerhalb i64-Bereich: als `i64` inferiert
-- Verwenden Sie explizite Typannotationen fuer andere Typen (i8, i16, u8, u16, u32, u64)
+- Werte außerhalb i32-Bereich aber innerhalb i64-Bereich: als `i64` inferiert
+- Verwenden Sie explizite Typannotationen für andere Typen (i8, i16, u8, u16, u32, u64)
 
 **Beispiele:**
 ```hemlock
 let small = 42;                    // i32 (passt in i32)
 let large = 5000000000;            // i64 (> i32 max)
 let max_i64 = 9223372036854775807; // i64 (INT64_MAX)
-let explicit: u32 = 100;           // u32 (Typannotation ueberschreibt)
+let explicit: u32 = 100;           // u32 (Typannotation überschreibt)
 ```
 
 ---
@@ -173,7 +173,7 @@ let explicit: u32 = 100;           // u32 (Typannotation ueberschreibt)
 
 **Werte:** `true`, `false`
 
-**Groesse:** 1 Byte (intern)
+**Größe:** 1 Byte (intern)
 
 **Beispiele:**
 ```hemlock
@@ -195,11 +195,11 @@ if (is_active && !done) {
 
 **Beschreibung:** Unicode-Codepoint (U+0000 bis U+10FFFF)
 
-**Groesse:** 4 Bytes (32-Bit-Wert)
+**Größe:** 4 Bytes (32-Bit-Wert)
 
 **Bereich:** 0 bis 0x10FFFF (1.114.111)
 
-**Literal-Syntax:** Einfache Anfuehrungszeichen `'x'`
+**Literal-Syntax:** Einfache Anführungszeichen `'x'`
 
 **Beispiele:**
 ```hemlock
@@ -241,7 +241,7 @@ let byte: u8 = 65;
 let rune_val: rune = byte;  // 'A'
 ```
 
-**Siehe auch:** [String-API](string-api.md) fuer String + Rune Verkettung
+**Siehe auch:** [String-API](string-api.md) für String + Rune Verkettung
 
 ---
 
@@ -259,12 +259,12 @@ let rune_val: rune = byte;  // 'A'
 - `.length` - Codepoint-Anzahl (Anzahl der Zeichen)
 - `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgroesse)
 
-**Literal-Syntax:** Doppelte Anfuehrungszeichen `"text"`
+**Literal-Syntax:** Doppelte Anführungszeichen `"text"`
 
 **Beispiele:**
 ```hemlock
 let s = "hello";
-s[0] = 'H';             // Aendern (jetzt "Hello")
+s[0] = 'H';             // Ändern (jetzt "Hello")
 print(s.length);        // 5 (Codepoint-Anzahl)
 print(s.byte_length);   // 5 (UTF-8-Bytes)
 
@@ -276,11 +276,11 @@ print(emoji.byte_length);   // 4 (vier UTF-8-Bytes)
 **Indizierung:**
 ```hemlock
 let s = "hello";
-let ch = s[0];          // Gibt Rune 'h' zurueck
+let ch = s[0];          // Gibt Rune 'h' zurück
 s[0] = 'H';             // Mit Rune setzen
 ```
 
-**Siehe auch:** [String-API](string-api.md) fuer vollstaendige Methodenreferenz
+**Siehe auch:** [String-API](string-api.md) für vollständige Methodenreferenz
 
 ---
 
@@ -290,7 +290,7 @@ s[0] = 'H';             // Mit Rune setzen
 
 **Beschreibung:** Der Null-Wert (Abwesenheit eines Wertes)
 
-**Groesse:** 8 Bytes (intern)
+**Größe:** 8 Bytes (intern)
 
 **Wert:** `null`
 
@@ -331,7 +331,7 @@ print(arr.length);     // 5
 let mixed = [1, "hello", true, null];
 ```
 
-**Siehe auch:** [Array-API](array-api.md) fuer vollstaendige Methodenreferenz
+**Siehe auch:** [Array-API](array-api.md) für vollständige Methodenreferenz
 
 ---
 
@@ -339,7 +339,7 @@ let mixed = [1, "hello", true, null];
 
 **Typ:** `object`
 
-**Beschreibung:** JavaScript-aehnliches Objekt mit dynamischen Feldern
+**Beschreibung:** JavaScript-ähnliches Objekt mit dynamischen Feldern
 
 **Literal-Syntax:** `{ field: value, ... }`
 
@@ -348,7 +348,7 @@ let mixed = [1, "hello", true, null];
 let person = { name: "Alice", age: 30 };
 print(person.name);  // "Alice"
 
-// Feld dynamisch hinzufuegen
+// Feld dynamisch hinzufügen
 person.email = "alice@example.com";
 ```
 
@@ -374,7 +374,7 @@ print(typeof(p));  // "Person"
 
 **Beschreibung:** Rohe Speicheradresse (unsicher)
 
-**Groesse:** 8 Bytes
+**Größe:** 8 Bytes
 
 **Grenzenprüfung:** Keine
 
@@ -391,11 +391,11 @@ free(p);
 
 **Beschreibung:** Sicherer Pointer-Wrapper mit Grenzenprüfung
 
-**Struktur:** Pointer + Laenge + Kapazitaet
+**Struktur:** Pointer + Länge + Kapazität
 
 **Eigenschaften:**
 - `.length` - Buffergroesse
-- `.capacity` - Allokierte Kapazitaet
+- `.capacity` - Allokierte Kapazität
 
 **Beispiele:**
 ```hemlock
@@ -405,7 +405,7 @@ print(b.length);        // 64
 free(b);
 ```
 
-**Siehe auch:** [Speicher-API](memory-api.md) fuer Allokationsfunktionen
+**Siehe auch:** [Speicher-API](memory-api.md) für Allokationsfunktionen
 
 ---
 
@@ -415,7 +415,7 @@ free(b);
 
 **Typ:** `file`
 
-**Beschreibung:** Dateihandle fuer I/O-Operationen
+**Beschreibung:** Dateihandle für I/O-Operationen
 
 **Eigenschaften:**
 - `.path` - Dateipfad (string)
@@ -430,7 +430,7 @@ free(b);
 
 **Typ:** `task`
 
-**Beschreibung:** Handle fuer nebenlaeufigen Task
+**Beschreibung:** Handle für nebenlaeufigen Task
 
 **Siehe auch:** [Nebenlaeufigkeits-API](concurrency-api.md)
 
@@ -482,7 +482,7 @@ Beim Mischen von Typen in Operationen promoviert Hemlock zum "hoeheren" Typ:
 
 **Promovierungshierarchie:**
 ```
-f64 (hoechste Praezision)
+f64 (hoechste Präzision)
  ↑
 f32
  ↑
@@ -504,28 +504,28 @@ i8 (niedrigste)
 ```
 
 **Regeln:**
-1. Float gewinnt immer ueber Ganzzahl
-2. Groessere Groesse gewinnt innerhalb gleicher Kategorie (int/uint/float)
+1. Float gewinnt immer über Ganzzahl
+2. Größere Größe gewinnt innerhalb gleicher Kategorie (int/uint/float)
 3. Beide Operanden werden zum Ergebnistyp promoviert
 4. **Praezisionserhaltung:** i64/u64 + f32 promoviert zu f64 (nicht f32)
 
 **Beispiele:**
 ```hemlock
 // Groessenpromovierung
-u8 + i32    → i32    // Groessere Groesse gewinnt
-i32 + i64   → i64    // Groessere Groesse gewinnt
-u32 + u64   → u64    // Groessere Groesse gewinnt
+u8 + i32    → i32    // Größere Größe gewinnt
+i32 + i64   → i64    // Größere Größe gewinnt
+u32 + u64   → u64    // Größere Größe gewinnt
 
 // Float-Promovierung
-i32 + f32   → f32    // Float gewinnt, f32 ausreichend fuer i32
-i64 + f32   → f64    // Promoviert zu f64 um i64-Praezision zu erhalten
+i32 + f32   → f32    // Float gewinnt, f32 ausreichend für i32
+i64 + f32   → f64    // Promoviert zu f64 um i64-Präzision zu erhalten
 i64 + f64   → f64    // Float gewinnt immer
 i8 + f64    → f64    // Float + groesster gewinnt
 ```
 
 **Warum i64 + f32 → f64?**
 
-f32 hat nur eine 24-Bit-Mantisse, die Ganzzahlen groesser als 2^24 (16.777.216) nicht praezise darstellen kann. Da i64 Werte bis 2^63 halten kann, wuerde das Mischen von i64 mit f32 schweren Praezisionsverlust verursachen. Hemlock promoviert stattdessen zu f64 (53-Bit-Mantisse).
+f32 hat nur eine 24-Bit-Mantisse, die Ganzzahlen größer als 2^24 (16.777.216) nicht praezise darstellen kann. Da i64 Werte bis 2^63 halten kann, würde das Mischen von i64 mit f32 schweren Praezisionsverlust verursachen. Hemlock promoviert stattdessen zu f64 (53-Bit-Mantisse).
 
 ---
 
@@ -543,7 +543,7 @@ let b: u64 = 4294967295;     // OK
 
 **Ungueltige Zuweisungen (Laufzeitfehler):**
 ```hemlock
-let x: u8 = 256;             // FEHLER: ausserhalb des Bereichs
+let x: u8 = 256;             // FEHLER: außerhalb des Bereichs
 let y: i8 = 128;             // FEHLER: max ist 127
 let z: u64 = -1;             // FEHLER: u64 kann nicht negativ sein
 ```
@@ -554,14 +554,14 @@ let z: u64 = -1;             // FEHLER: u64 kann nicht negativ sein
 
 ### typeof(value)
 
-Gibt den Typnamen als String zurueck.
+Gibt den Typnamen als String zurück.
 
 **Signatur:**
 ```hemlock
 typeof(value: any): string
 ```
 
-**Rueckgabe:**
+**Rückgabe:**
 - Primitive Typen: `"i8"`, `"i16"`, `"i32"`, `"i64"`, `"u8"`, `"u16"`, `"u32"`, `"u64"`, `"f32"`, `"f64"`, `"bool"`, `"string"`, `"rune"`, `"null"`
 - Zusammengesetzte Typen: `"array"`, `"object"`, `"ptr"`, `"buffer"`, `"function"`
 - Spezielle Typen: `"file"`, `"task"`, `"channel"`
@@ -590,7 +590,7 @@ print(typeof(p));               // "Person"
 
 ### Implizite Konvertierungen
 
-Hemlock fuehrt implizite Typkonvertierungen in arithmetischen Operationen nach den Typpromovierungsregeln durch.
+Hemlock führt implizite Typkonvertierungen in arithmetischen Operationen nach den Typpromovierungsregeln durch.
 
 **Beispiele:**
 ```hemlock
@@ -601,7 +601,7 @@ let result = a + b;     // result ist i32 (promoviert)
 
 ### Explizite Konvertierungen
 
-Verwenden Sie Typannotationen fuer explizite Konvertierungen:
+Verwenden Sie Typannotationen für explizite Konvertierungen:
 
 **Beispiele:**
 ```hemlock
@@ -629,7 +629,7 @@ let s: string = 'H';    // "H"
 
 ### Eingebaute Aliase
 
-Hemlock bietet eingebaute Typ-Aliase fuer haeufige Typen:
+Hemlock bietet eingebaute Typ-Aliase für häufige Typen:
 
 | Alias     | Tatsaechlicher Typ | Verwendung                 |
 |-----------|-------------------|----------------------------|
@@ -646,7 +646,7 @@ let b: byte = 255;              // Gleich wie u8
 
 ### Benutzerdefinierte Typ-Aliase
 
-Definieren Sie benutzerdefinierte Typ-Aliase mit dem `type`-Schluesselwort:
+Definieren Sie benutzerdefinierte Typ-Aliase mit dem `type`-Schlüsselwort:
 
 ```hemlock
 // Einfache Aliase
@@ -675,7 +675,7 @@ let p: Person = { name: "Alice", age: 30 };
 let coords: Pair<f64> = { first: 3.14, second: 2.71 };
 ```
 
-**Hinweis:** Typ-Aliase sind transparent - `typeof()` gibt den zugrundeliegenden Typnamen zurueck.
+**Hinweis:** Typ-Aliase sind transparent - `typeof()` gibt den zugrundeliegenden Typnamen zurück.
 
 ---
 
@@ -700,7 +700,7 @@ fn apply(f: fn(i32): i32, x: i32): i32 {
     return f(x);
 }
 
-// Higher-Order-Funktion die Funktion zurueckgibt
+// Higher-Order-Funktion die Funktion zurückgibt
 fn make_adder(n: i32): fn(i32): i32 {
     return fn(x) { return x + n; };
 }
@@ -722,7 +722,7 @@ define HasName { name: string }
 define HasAge { age: i32 }
 define HasEmail { email: string }
 
-// Objekt muss alle Typen erfuellen
+// Objekt muss alle Typen erfüllen
 let person: HasName & HasAge = { name: "Alice", age: 30 };
 
 // Drei oder mehr Typen
@@ -735,7 +735,7 @@ fn describe(p: HasName & HasAge & HasEmail) {
 
 ## Zusammenfassungstabelle
 
-| Typ        | Groesse   | Veraenderbar | Heap-allokiert | Beschreibung                   |
+| Typ        | Größe   | Veraenderbar | Heap-allokiert | Beschreibung                   |
 |------------|-----------|--------------|----------------|--------------------------------|
 | `i8`-`i64` | 1-8 Bytes | Nein         | Nein           | Vorzeichenbehaftete Ganzzahlen |
 | `u8`-`u64` | 1-8 Bytes | Nein         | Nein           | Vorzeichenlose Ganzzahlen      |

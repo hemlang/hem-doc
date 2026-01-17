@@ -1,8 +1,8 @@
 # Funktionen
 
-Funktionen in Hemlock sind **erstklassige Werte**, die Variablen zugewiesen, als Argumente uebergeben und von anderen Funktionen zurueckgegeben werden koennen. Diese Anleitung behandelt Funktionssyntax, Closures, Rekursion und fortgeschrittene Muster.
+Funktionen in Hemlock sind **erstklassige Werte**, die Variablen zugewiesen, als Argumente übergeben und von anderen Funktionen zurückgegeben werden können. Diese Anleitung behandelt Funktionssyntax, Closures, Rekursion und fortgeschrittene Muster.
 
-## Uebersicht
+## Übersicht
 
 ```hemlock
 // Benannte Funktionssyntax
@@ -42,8 +42,8 @@ let msg = greet("Alice");  // "Hello, Alice"
 - `fn` - Funktionsschluesselwort
 - `greet` - Funktionsname
 - `(name: string)` - Parameter mit optionalen Typen
-- `: string` - Optionaler Rueckgabetyp
-- `{ ... }` - Funktionskoerper
+- `: string` - Optionaler Rückgabetyp
+- `{ ... }` - Funktionskörper
 
 ### Anonyme Funktionen
 
@@ -59,7 +59,7 @@ print(square(5));  // 25
 
 **Benannt vs. Anonym:**
 ```hemlock
-// Diese sind aequivalent:
+// Diese sind äquivalent:
 fn add(a, b) { return a + b; }
 
 let add = fn(a, b) { return a + b; };
@@ -81,7 +81,7 @@ let result = example(1, 2, 3);  // 6
 
 ### Typannotationen
 
-Optionale Typannotationen fuer Parameter:
+Optionale Typannotationen für Parameter:
 
 ```hemlock
 fn add(a: i32, b: i32): i32 {
@@ -89,11 +89,11 @@ fn add(a: i32, b: i32): i32 {
 }
 
 add(5, 10);      // OK
-add(5, 10.5);    // Laufzeit-Typueberpruefung konvertiert zu f64
+add(5, 10.5);    // Laufzeit-Typüberprüfung konvertiert zu f64
 ```
 
-**Typueberpruefung:**
-- Parametertypen werden beim Aufruf ueberprueft, wenn annotiert
+**Typüberprüfung:**
+- Parametertypen werden beim Aufruf überprüft, wenn annotiert
 - Implizite Typkonvertierungen folgen Standard-Promotionsregeln
 - Typkonflikte verursachen Laufzeitfehler
 
@@ -108,10 +108,10 @@ fn modify(x) {
 
 let a = 10;
 modify(a);
-print(a);  // Immer noch 10 (unveraendert)
+print(a);  // Immer noch 10 (unverändert)
 ```
 
-**Hinweis:** Objekte und Arrays werden per Referenz uebergeben (die Referenz wird kopiert), sodass deren Inhalt geaendert werden kann:
+**Hinweis:** Objekte und Arrays werden per Referenz übergeben (die Referenz wird kopiert), sodass deren Inhalt geändert werden kann:
 
 ```hemlock
 fn modify_array(arr) {
@@ -120,7 +120,7 @@ fn modify_array(arr) {
 
 let a = [1, 2, 3];
 modify_array(a);
-print(a[0]);  // 99 (geaendert)
+print(a[0]);  // 99 (geändert)
 ```
 
 ## Rueckgabewerte
@@ -137,9 +137,9 @@ fn get_max(a: i32, b: i32): i32 {
 }
 ```
 
-### Rueckgabetyp-Annotationen
+### Rückgabetyp-Annotationen
 
-Optionale Typannotation fuer den Rueckgabewert:
+Optionale Typannotation für den Rückgabewert:
 
 ```hemlock
 fn calculate(): f64 {
@@ -151,24 +151,24 @@ fn get_name(): string {
 }
 ```
 
-**Typueberpruefung:**
-- Rueckgabetypen werden beim Zurueckgeben geprueft (wenn annotiert)
+**Typüberprüfung:**
+- Rueckgabetypen werden beim Zurückgeben geprüft (wenn annotiert)
 - Typkonvertierungen folgen Standard-Promotionsregeln
 
-### Implizite Rueckgabe
+### Implizite Rückgabe
 
-Funktionen ohne Rueckgabetyp-Annotation geben implizit `null` zurueck:
+Funktionen ohne Rückgabetyp-Annotation geben implizit `null` zurück:
 
 ```hemlock
 fn print_message(msg) {
     print(msg);
-    // Gibt implizit null zurueck
+    // Gibt implizit null zurück
 }
 
 let result = print_message("hello");  // result ist null
 ```
 
-### Fruehe Rueckgabe
+### Fruehe Rückgabe
 
 ```hemlock
 fn find_first_negative(arr) {
@@ -181,14 +181,14 @@ fn find_first_negative(arr) {
 }
 ```
 
-### Rueckgabe ohne Wert
+### Rückgabe ohne Wert
 
-`return;` ohne Wert gibt `null` zurueck:
+`return;` ohne Wert gibt `null` zurück:
 
 ```hemlock
 fn maybe_process(value) {
     if (value < 0) {
-        return;  // Gibt null zurueck
+        return;  // Gibt null zurück
     }
     return value * 2;
 }
@@ -196,7 +196,7 @@ fn maybe_process(value) {
 
 ## Erstklassige Funktionen
 
-Funktionen koennen wie jeder andere Wert zugewiesen, uebergeben und zurueckgegeben werden.
+Funktionen können wie jeder andere Wert zugewiesen, übergeben und zurückgegeben werden.
 
 ### Funktionen als Variablen
 
@@ -263,8 +263,8 @@ print(counter());  // 3
 ```
 
 **Wie es funktioniert:**
-- Die innere Funktion erfasst `count` aus dem aeusseren Scope
-- `count` bleibt ueber Aufrufe der zurueckgegebenen Funktion erhalten
+- Die innere Funktion erfasst `count` aus dem äußeren Scope
+- `count` bleibt über Aufrufe der zurueckgegebenen Funktion erhalten
 - Jeder Aufruf von `makeCounter()` erstellt eine neue Closure mit eigenem `count`
 
 ### Closure mit Parametern
@@ -300,7 +300,7 @@ print(ops.multiply(3));  // 15
 
 ### Lexikalisches Scoping
 
-Funktionen koennen durch lexikalisches Scoping auf Variablen des aeusseren Scopes zugreifen:
+Funktionen können durch lexikalisches Scoping auf Variablen des äußeren Scopes zugreifen:
 
 ```hemlock
 let global = 10;
@@ -320,11 +320,11 @@ fn outer() {
 outer();
 ```
 
-Closures erfassen Variablen per Referenz, was sowohl Lesen als auch Mutation von Variablen des aeusseren Scopes ermoeglicht (wie im `makeCounter`-Beispiel oben gezeigt).
+Closures erfassen Variablen per Referenz, was sowohl Lesen als auch Mutation von Variablen des äußeren Scopes ermöglicht (wie im `makeCounter`-Beispiel oben gezeigt).
 
 ## Rekursion
 
-Funktionen koennen sich selbst aufrufen.
+Funktionen können sich selbst aufrufen.
 
 ### Grundlegende Rekursion
 
@@ -341,7 +341,7 @@ print(factorial(5));  // 120
 
 ### Wechselseitige Rekursion
 
-Funktionen koennen sich gegenseitig aufrufen:
+Funktionen können sich gegenseitig aufrufen:
 
 ```hemlock
 fn is_even(n: i32): bool {
@@ -376,11 +376,11 @@ let numbers = [1, 2, 3, 4, 5];
 print(sum_array(numbers, 0));  // 15
 ```
 
-**Hinweis:** Noch keine Tail-Call-Optimierung - tiefe Rekursion kann zu Stack-Ueberlauf fuehren.
+**Hinweis:** Noch keine Tail-Call-Optimierung - tiefe Rekursion kann zu Stack-Überlauf führen.
 
-## Hoehere Ordnung Funktionen
+## Höhere Ordnung Funktionen
 
-Funktionen, die andere Funktionen entgegennehmen oder zurueckgeben.
+Funktionen, die andere Funktionen entgegennehmen oder zurückgeben.
 
 ### Map-Muster
 
@@ -457,7 +457,7 @@ let double_then_increment = compose(increment, double);
 print(double_then_increment(5));  // 11 (5*2 + 1)
 ```
 
-## Haeufige Muster
+## Häufige Muster
 
 ### Muster: Factory-Funktionen
 
@@ -537,9 +537,9 @@ print(fast_fib(10));  // Viel schneller mit Caching
 
 ## Funktionssemantik
 
-### Rueckgabetyp-Anforderungen
+### Rückgabetyp-Anforderungen
 
-Funktionen mit Rueckgabetyp-Annotation **muessen** einen Wert zurueckgeben:
+Funktionen mit Rückgabetyp-Annotation **müssen** einen Wert zurückgeben:
 
 ```hemlock
 fn get_value(): i32 {
@@ -551,7 +551,7 @@ fn get_value(): i32 {
 }
 ```
 
-### Typueberpruefung
+### Typüberprüfung
 
 ```hemlock
 fn add(a: i32, b: i32): i32 {
@@ -559,7 +559,7 @@ fn add(a: i32, b: i32): i32 {
 }
 
 add(5, 10);        // OK
-add(5.5, 10.5);    // Konvertiert zu f64, gibt f64 zurueck
+add(5.5, 10.5);    // Konvertiert zu f64, gibt f64 zurück
 add("a", "b");     // Laufzeitfehler: Typkonflikt
 ```
 
@@ -588,33 +588,33 @@ fn outer() {
 
 1. **Verwende Typannotationen** - Hilft Fehler zu finden und dokumentiert die Absicht
 2. **Halte Funktionen klein** - Jede Funktion sollte eine Sache tun
-3. **Bevorzuge reine Funktionen** - Vermeide Seiteneffekte wenn moeglich
+3. **Bevorzuge reine Funktionen** - Vermeide Seiteneffekte wenn möglich
 4. **Benenne Funktionen klar** - Verwende beschreibende Verb-Namen
-5. **Fruehe Rueckgabe** - Verwende Guard-Klauseln um Verschachtelung zu reduzieren
+5. **Fruehe Rückgabe** - Verwende Guard-Klauseln um Verschachtelung zu reduzieren
 6. **Dokumentiere komplexe Closures** - Mache erfasste Variablen explizit
 7. **Vermeide tiefe Rekursion** - Noch keine Tail-Call-Optimierung
 
-## Haeufige Fallstricke
+## Häufige Fallstricke
 
 ### Fallstrick: Rekursionstiefe
 
 ```hemlock
-// Tiefe Rekursion kann Stack-Ueberlauf verursachen
+// Tiefe Rekursion kann Stack-Überlauf verursachen
 fn count_down(n) {
     if (n == 0) { return; }
     count_down(n - 1);
 }
 
-count_down(100000);  // Kann mit Stack-Ueberlauf abstuerzen
+count_down(100000);  // Kann mit Stack-Überlauf abstuerzen
 ```
 
-### Fallstrick: Aendern erfasster Variablen
+### Fallstrick: Ändern erfasster Variablen
 
 ```hemlock
 fn make_counter() {
     let count = 0;
     return fn() {
-        count = count + 1;  // Kann erfasste Variablen lesen und aendern
+        count = count + 1;  // Kann erfasste Variablen lesen und ändern
         return count;
     };
 }
@@ -703,7 +703,7 @@ print(numbers);  // [1, 2, 5, 8, 9]
 
 ## Optionale Parameter (Standardargumente)
 
-Funktionen koennen optionale Parameter mit Standardwerten haben, unter Verwendung der `?:`-Syntax:
+Funktionen können optionale Parameter mit Standardwerten haben, unter Verwendung der `?:`-Syntax:
 
 ```hemlock
 fn greet(name, greeting?: "Hello") {
@@ -723,13 +723,13 @@ print(add(1, 2, 3));    // 6   (1 + 2 + 3)
 ```
 
 **Regeln:**
-- Optionale Parameter muessen nach erforderlichen Parametern kommen
-- Standardwerte koennen beliebige Ausdruecke sein
+- Optionale Parameter müssen nach erforderlichen Parametern kommen
+- Standardwerte können beliebige Ausdrücke sein
 - Ausgelassene Argumente verwenden den Standardwert
 
 ## Variadische Funktionen (Rest-Parameter)
 
-Funktionen koennen eine variable Anzahl von Argumenten akzeptieren, unter Verwendung von Rest-Parametern (`...`):
+Funktionen können eine variable Anzahl von Argumenten akzeptieren, unter Verwendung von Rest-Parametern (`...`):
 
 ```hemlock
 fn sum(...args) {
@@ -763,7 +763,7 @@ log("INFO", "Starting", "Running", "Done");
 
 ## Funktionstyp-Annotationen
 
-Funktionstypen ermoeglichen es, die genaue Signatur fuer Funktionsparameter und Rueckgabewerte zu spezifizieren:
+Funktionstypen ermöglichen es, die genaue Signatur für Funktionsparameter und Rueckgabewerte zu spezifizieren:
 
 ### Grundlegende Funktionstypen
 
@@ -777,10 +777,10 @@ let double = fn(n) { return n * 2; };
 let result = apply(double, 5);  // 10
 ```
 
-### Hoehere Ordnung Funktionstypen
+### Höhere Ordnung Funktionstypen
 
 ```hemlock
-// Funktion die eine Funktion zurueckgibt
+// Funktion die eine Funktion zurückgibt
 fn make_adder(n: i32): fn(i32): i32 {
     return fn(x) { return x + n; };
 }
@@ -805,7 +805,7 @@ run_task(async fn() {
 ### Funktionstyp-Aliase
 
 ```hemlock
-// Benannte Funktionstypen fuer Klarheit erstellen
+// Benannte Funktionstypen für Klarheit erstellen
 type Callback = fn(i32): void;
 type Predicate = fn(any): bool;
 type BinaryOp = fn(i32, i32): i32;
@@ -833,9 +833,9 @@ let nums = [1, 2, 3];
 print_all(nums);
 ```
 
-### Tiefe Unveraenderlichkeit
+### Tiefe Unveränderlichkeit
 
-Const-Parameter erzwingen tiefe Unveraenderlichkeit - keine Mutation ueber irgendeinen Pfad:
+Const-Parameter erzwingen tiefe Unveränderlichkeit - keine Mutation über irgendeinen Pfad:
 
 ```hemlock
 fn describe(const person: object) {
@@ -852,11 +852,11 @@ fn describe(const person: object) {
 | array | push, pop, shift, unshift, insert, remove, clear, reverse | slice, concat, map, filter, find, contains |
 | object | Feldzuweisung | Feldlesen |
 | buffer | Indexzuweisung | Indexlesen |
-| string | Indexzuweisung | alle Methoden (geben neue Strings zurueck) |
+| string | Indexzuweisung | alle Methoden (geben neue Strings zurück) |
 
 ## Benannte Argumente
 
-Funktionen koennen mit benannten Argumenten aufgerufen werden fuer Klarheit und Flexibilitaet:
+Funktionen können mit benannten Argumenten aufgerufen werden für Klarheit und Flexibilitaet:
 
 ### Grundlegende benannte Argumente
 
@@ -868,7 +868,7 @@ fn create_user(name: string, age?: 18, active?: true) {
 // Positionsargumente (traditionell)
 create_user("Alice", 25, false);
 
-// Benannte Argumente - koennen in beliebiger Reihenfolge sein
+// Benannte Argumente - können in beliebiger Reihenfolge sein
 create_user(name: "Bob", age: 30);
 create_user(age: 25, name: "Charlie", active: false);
 ```
@@ -876,29 +876,29 @@ create_user(age: 25, name: "Charlie", active: false);
 ### Mischen von Positions- und benannten Argumenten
 
 ```hemlock
-// Optionale Parameter ueberspringen durch Benennen des Benotigten
+// Optionale Parameter überspringen durch Benennen des Benotigten
 create_user("David", active: false);  // Verwendet Standard-age=18
 
-// Benannte Argumente muessen nach Positionsargumenten kommen
+// Benannte Argumente müssen nach Positionsargumenten kommen
 create_user("Eve", age: 21);          // OK
 // create_user(name: "Bad", 25);      // FEHLER: Positionsargument nach benanntem
 ```
 
-### Regeln fuer benannte Argumente
+### Regeln für benannte Argumente
 
-- Verwende `name: wert`-Syntax fuer benannte Argumente
-- Benannte Argumente koennen in beliebiger Reihenfolge nach Positionsargumenten erscheinen
-- Positionsargumente koennen nicht auf benannte Argumente folgen
+- Verwende `name: wert`-Syntax für benannte Argumente
+- Benannte Argumente können in beliebiger Reihenfolge nach Positionsargumenten erscheinen
+- Positionsargumente können nicht auf benannte Argumente folgen
 - Funktioniert mit Standard/optionalen Parametern
 - Unbekannte Parameternamen verursachen Laufzeitfehler
 
-## Einschraenkungen
+## Einschränkungen
 
-Aktuelle Einschraenkungen, die zu beachten sind:
+Aktuelle Einschränkungen, die zu beachten sind:
 
-- **Keine Referenzuebergabe** - `ref`-Schluesselwort wird geparst aber nicht implementiert
+- **Keine Referenzuebergabe** - `ref`-Schlüsselwort wird geparst aber nicht implementiert
 - **Kein Funktionsueberladen** - Eine Funktion pro Name
-- **Keine Tail-Call-Optimierung** - Tiefe Rekursion durch Stack-Groesse begrenzt
+- **Keine Tail-Call-Optimierung** - Tiefe Rekursion durch Stack-Größe begrenzt
 
 ## Verwandte Themen
 
@@ -909,6 +909,6 @@ Aktuelle Einschraenkungen, die zu beachten sind:
 
 ## Siehe auch
 
-- **Closures**: Siehe CLAUDE.md Abschnitt "Functions" fuer Closure-Semantik
+- **Closures**: Siehe CLAUDE.md Abschnitt "Functions" für Closure-Semantik
 - **Erstklassige Werte**: Funktionen sind Werte wie alle anderen
 - **Lexikalisches Scoping**: Funktionen erfassen ihre definierende Umgebung

@@ -1,14 +1,14 @@
 # Strings
 
-Hemlock-Strings sind **UTF-8 erstklassige veraenderbare Sequenzen** mit voller Unicode-Unterstuetzung und einem umfangreichen Satz von Methoden zur Textverarbeitung. Anders als in vielen Sprachen sind Hemlock-Strings veraenderbar und arbeiten nativ mit Unicode-Codepoints.
+Hemlock-Strings sind **UTF-8 erstklassige veraenderbare Sequenzen** mit voller Unicode-Unterstützung und einem umfangreichen Satz von Methoden zur Textverarbeitung. Anders als in vielen Sprachen sind Hemlock-Strings veraenderbar und arbeiten nativ mit Unicode-Codepoints.
 
-## Ueberblick
+## Überblick
 
 ```hemlock
 let s = "hello";
 s[0] = 'H';             // veraendern mit Rune (jetzt "Hello")
 print(s.length);        // 5 (Codepoint-Anzahl)
-let c = s[0];           // gibt Rune zurueck (Unicode-Codepoint)
+let c = s[0];           // gibt Rune zurück (Unicode-Codepoint)
 let msg = s + " world"; // Verkettung
 let emoji = "🚀";
 print(emoji.length);    // 1 (ein Codepoint)
@@ -19,11 +19,11 @@ print(emoji.byte_length); // 4 (vier UTF-8-Bytes)
 
 Hemlock-Strings haben diese Hauptmerkmale:
 
-- **UTF-8-kodiert** - Volle Unicode-Unterstuetzung (U+0000 bis U+10FFFF)
+- **UTF-8-kodiert** - Volle Unicode-Unterstützung (U+0000 bis U+10FFFF)
 - **Veraenderbar** - Anders als Python-, JavaScript- und Java-Strings
-- **Codepoint-basierte Indizierung** - Gibt `rune` (Unicode-Codepoint) zurueck, nicht Byte
+- **Codepoint-basierte Indizierung** - Gibt `rune` (Unicode-Codepoint) zurück, nicht Byte
 - **Heap-allokiert** - Mit interner Kapazitaetsverfolgung
-- **Zwei Laengeneigenschaften**:
+- **Zwei Längeneigenschaften**:
   - `.length` - Codepoint-Anzahl (Anzahl der Zeichen)
   - `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgroesse)
 
@@ -68,7 +68,7 @@ let s7 = "中文字符";
 
 ## Template-Strings (String-Interpolation)
 
-Verwenden Sie Backticks fuer Template-Strings mit eingebetteten Ausdruecken:
+Verwenden Sie Backticks für Template-Strings mit eingebetteten Ausdrücken:
 
 ```hemlock
 let name = "Alice";
@@ -78,7 +78,7 @@ let age = 30;
 let greeting = `Hallo, ${name}!`;           // "Hallo, Alice!"
 let info = `${name} ist ${age} Jahre alt`;  // "Alice ist 30 Jahre alt"
 
-// Ausdruecke in der Interpolation
+// Ausdrücke in der Interpolation
 let x = 5;
 let y = 10;
 let sum = `${x} + ${y} = ${x + y}`;         // "5 + 10 = 15"
@@ -90,17 +90,17 @@ let upper = `Name: ${name.to_upper()}`;     // "Name: ALICE"
 let person = { name: "Bob", city: "NYC" };
 let desc = `${person.name} lebt in ${person.city}`;  // "Bob lebt in NYC"
 
-// Mehrzeilig (behaelt Zeilenumbrueche bei)
+// Mehrzeilig (behält Zeilenumbrueche bei)
 let multi = `Zeile 1
 Zeile 2
 Zeile 3`;
 ```
 
 **Template-String-Funktionen:**
-- Ausdruecke innerhalb von `${...}` werden ausgewertet und in Strings konvertiert
+- Ausdrücke innerhalb von `${...}` werden ausgewertet und in Strings konvertiert
 - Jeder gueltige Ausdruck kann verwendet werden (Variablen, Funktionsaufrufe, Arithmetik)
-- Backtick-Strings unterstuetzen dieselben Escape-Sequenzen wie regulaere Strings
-- Nuetzlich zum Erstellen dynamischer Strings ohne Verkettung
+- Backtick-Strings unterstützen dieselben Escape-Sequenzen wie reguläre Strings
+- Nützlich zum Erstellen dynamischer Strings ohne Verkettung
 
 ### Escaping in Template-Strings
 
@@ -112,16 +112,16 @@ let text = `Preis: \${price} oder ${price}`;
 // "Preis: ${price} oder 100"
 
 // Literaler Backtick
-let code = `Verwende \` fuer Template-Strings`;
-// "Verwende ` fuer Template-Strings"
+let code = `Verwende \` für Template-Strings`;
+// "Verwende ` für Template-Strings"
 ```
 
-### Komplexe Ausdruecke
+### Komplexe Ausdrücke
 
-Template-Strings koennen jeden gueltigen Ausdruck enthalten:
+Template-Strings können jeden gueltigen Ausdruck enthalten:
 
 ```hemlock
-// Ternaer-aehnliche Ausdruecke
+// Ternaer-ähnliche Ausdrücke
 let age = 25;
 let status = `Status: ${age >= 18 ? "erwachsen" : "minderjaehrig"}`;
 
@@ -155,7 +155,7 @@ let msg2 = `Hallo, ${name}! Du hast ${count} Nachrichten.`;
 
 ### Zeichen lesen
 
-Indizierung gibt eine `rune` (Unicode-Codepoint) zurueck:
+Indizierung gibt eine `rune` (Unicode-Codepoint) zurück:
 
 ```hemlock
 let s = "Hello";
@@ -169,7 +169,7 @@ let rocket = emoji[2];  // '🚀' (Rune an Codepoint-Index 2)
 
 ### Zeichen schreiben
 
-Strings sind veraenderbar - Sie koennen einzelne Zeichen modifizieren:
+Strings sind veraenderbar - Sie können einzelne Zeichen modifizieren:
 
 ```hemlock
 let s = "hello";
@@ -198,19 +198,19 @@ let s = "Hello" + '!';          // "Hello!"
 
 ## String-Methoden
 
-Hemlock bietet 19 String-Methoden fuer umfassende Textmanipulation.
+Hemlock bietet 19 String-Methoden für umfassende Textmanipulation.
 
 ### Teilstring & Slicing
 
-**`substr(start, length)`** - Teilstring nach Position und Laenge extrahieren:
+**`substr(start, length)`** - Teilstring nach Position und Länge extrahieren:
 ```hemlock
 let s = "hello world";
-let sub = s.substr(6, 5);       // "world" (Start bei 6, Laenge 5)
+let sub = s.substr(6, 5);       // "world" (Start bei 6, Länge 5)
 let first = s.substr(0, 5);     // "hello"
 
 // UTF-8-Beispiel
 let text = "Hi🚀!";
-let emoji = text.substr(2, 1);  // "🚀" (Position 2, Laenge 1)
+let emoji = text.substr(2, 1);  // "🚀" (Position 2, Länge 1)
 ```
 
 **`slice(start, end)`** - Teilstring nach Bereich extrahieren (Ende exklusiv):
@@ -234,7 +234,7 @@ let pos2 = s.find("foo");       // -1 (nicht gefunden)
 let pos3 = s.find("l");         // 2 (erstes 'l')
 ```
 
-**`contains(needle)`** - Pruefen, ob String Teilstring enthaelt:
+**`contains(needle)`** - Prüfen, ob String Teilstring enthält:
 ```hemlock
 let s = "hello world";
 let has = s.contains("world");  // true
@@ -254,7 +254,7 @@ let words = "eins zwei drei".split(" ");  // ["eins", "zwei", "drei"]
 let chars = "abc".split("");    // ["a", "b", "c"]
 ```
 
-**`trim()`** - Fuehrende/nachfolgende Leerzeichen entfernen:
+**`trim()`** - Führende/nachfolgende Leerzeichen entfernen:
 ```hemlock
 let s = "  hello  ";
 let clean = s.trim();           // "hello"
@@ -263,7 +263,7 @@ let s2 = "\t\ntext\n\t";
 let clean2 = s2.trim();         // "text"
 ```
 
-### Gross-/Kleinschreibung
+### Groß-/Kleinschreibung
 
 **`to_upper()`** - In Grossbuchstaben umwandeln:
 ```hemlock
@@ -281,16 +281,16 @@ let s = "HELLO WORLD";
 let lower = s.to_lower();       // "hello world"
 ```
 
-### Praefix-/Suffix-Pruefung
+### Präfix-/Suffix-Prüfung
 
-**`starts_with(prefix)`** - Pruefen, ob mit Praefix beginnt:
+**`starts_with(prefix)`** - Prüfen, ob mit Präfix beginnt:
 ```hemlock
 let s = "hello world";
 let starts = s.starts_with("hello");  // true
 let starts2 = s.starts_with("world"); // false
 ```
 
-**`ends_with(suffix)`** - Pruefen, ob mit Suffix endet:
+**`ends_with(suffix)`** - Prüfen, ob mit Suffix endet:
 ```hemlock
 let s = "hello world";
 let ends = s.ends_with("world");      // true
@@ -329,14 +329,14 @@ let line = "=".repeat(40);      // "========================================"
 
 ### Zeichen- & Byte-Zugriff
 
-**`char_at(index)`** - Unicode-Codepoint an Index abrufen (gibt Rune zurueck):
+**`char_at(index)`** - Unicode-Codepoint an Index abrufen (gibt Rune zurück):
 ```hemlock
 let s = "hello";
 let char = s.char_at(0);        // 'h' (Rune)
 
 // UTF-8-Beispiel
 let emoji = "🚀";
-let rocket = emoji.char_at(0);  // Gibt Rune U+1F680 zurueck
+let rocket = emoji.char_at(0);  // Gibt Rune U+1F680 zurück
 ```
 
 **`chars()`** - In Array von Runen (Codepoints) umwandeln:
@@ -349,7 +349,7 @@ let text = "Hi🚀";
 let chars2 = text.chars();      // ['H', 'i', '🚀']
 ```
 
-**`byte_at(index)`** - Byte-Wert an Index abrufen (gibt u8 zurueck):
+**`byte_at(index)`** - Byte-Wert an Index abrufen (gibt u8 zurück):
 ```hemlock
 let s = "hello";
 let byte = s.byte_at(0);        // 104 (ASCII-Wert von 'h')
@@ -369,17 +369,17 @@ let emoji = "🚀";
 let bytes2 = emoji.bytes();     // [240, 159, 154, 128] (4 UTF-8-Bytes)
 ```
 
-**`to_bytes()`** - In Buffer fuer Low-Level-Zugriff umwandeln:
+**`to_bytes()`** - In Buffer für Low-Level-Zugriff umwandeln:
 ```hemlock
 let s = "hello";
-let buf = s.to_bytes();         // Gibt Buffer mit UTF-8-Bytes zurueck
+let buf = s.to_bytes();         // Gibt Buffer mit UTF-8-Bytes zurück
 print(buf.length);              // 5
 free(buf);                      // Nicht vergessen freizugeben
 ```
 
 ## Methodenverkettung
 
-Alle String-Methoden geben neue Strings zurueck, was Verkettung ermoeglicht:
+Alle String-Methoden geben neue Strings zurück, was Verkettung ermöglicht:
 
 ```hemlock
 let result = "  Hello World  "
@@ -393,20 +393,20 @@ let processed = "foo,bar,baz"
     .to_upper();                    // "FOO | BAR | BAZ"
 ```
 
-## Vollstaendige Methodenreferenz
+## Vollständige Methodenreferenz
 
-| Methode | Parameter | Rueckgabe | Beschreibung |
+| Methode | Parameter | Rückgabe | Beschreibung |
 |---------|-----------|-----------|--------------|
-| `substr(start, length)` | i32, i32 | string | Teilstring nach Position und Laenge extrahieren |
+| `substr(start, length)` | i32, i32 | string | Teilstring nach Position und Länge extrahieren |
 | `slice(start, end)` | i32, i32 | string | Teilstring nach Bereich extrahieren (Ende exklusiv) |
 | `find(needle)` | string | i32 | Erstes Vorkommen finden (-1 wenn nicht gefunden) |
-| `contains(needle)` | string | bool | Pruefen, ob Teilstring enthalten ist |
+| `contains(needle)` | string | bool | Prüfen, ob Teilstring enthalten ist |
 | `split(delimiter)` | string | array | In Array von Strings aufteilen |
-| `trim()` | - | string | Fuehrende/nachfolgende Leerzeichen entfernen |
+| `trim()` | - | string | Führende/nachfolgende Leerzeichen entfernen |
 | `to_upper()` | - | string | In Grossbuchstaben umwandeln |
 | `to_lower()` | - | string | In Kleinbuchstaben umwandeln |
-| `starts_with(prefix)` | string | bool | Pruefen, ob mit Praefix beginnt |
-| `ends_with(suffix)` | string | bool | Pruefen, ob mit Suffix endet |
+| `starts_with(prefix)` | string | bool | Prüfen, ob mit Präfix beginnt |
+| `ends_with(suffix)` | string | bool | Prüfen, ob mit Suffix endet |
 | `replace(old, new)` | string, string | string | Erstes Vorkommen ersetzen |
 | `replace_all(old, new)` | string, string | string | Alle Vorkommen ersetzen |
 | `repeat(count)` | i32 | string | String n-mal wiederholen |
@@ -453,7 +453,7 @@ let csv = "Apfel, Banane , Kirsche";
 let fields = parse_csv_line(csv);  // ["Apfel", "Banane", "Kirsche"]
 ```
 
-### Beispiel: Woerter zaehlen
+### Beispiel: Wörter zaehlen
 
 ```hemlock
 fn count_words(text: string): i32 {
@@ -485,7 +485,7 @@ fn is_valid_email(email: string): bool {
 }
 
 print(is_valid_email("user@example.com"));  // true
-print(is_valid_email("ungueltig"));         // false
+print(is_valid_email("ungültig"));         // false
 ```
 
 ## Speicherverwaltung
@@ -493,29 +493,29 @@ print(is_valid_email("ungueltig"));         // false
 Strings sind heap-allokiert mit interner Referenzzaehlung:
 
 - **Erstellung**: Auf dem Heap allokiert mit Kapazitaetsverfolgung
-- **Verkettung**: Erzeugt neuen String (alte Strings unveraendert)
-- **Methoden**: Die meisten Methoden geben neue Strings zurueck
-- **Lebensdauer**: Strings sind referenzgezaehlt und werden automatisch freigegeben, wenn der Gueltigkeitsbereich endet
+- **Verkettung**: Erzeugt neuen String (alte Strings unverändert)
+- **Methoden**: Die meisten Methoden geben neue Strings zurück
+- **Lebensdauer**: Strings sind referenzgezählt und werden automatisch freigegeben, wenn der Gültigkeitsbereich endet
 
 **Automatische Bereinigung:**
 ```hemlock
 fn create_strings() {
     let s = "hello";
     let s2 = s + " world";  // Neue Allokation
-}  // Sowohl s als auch s2 werden automatisch freigegeben, wenn die Funktion zurueckkehrt
+}  // Sowohl s als auch s2 werden automatisch freigegeben, wenn die Funktion zurückkehrt
 ```
 
-**Hinweis:** Lokale String-Variablen werden automatisch bereinigt, wenn sie den Gueltigkeitsbereich verlassen. Verwenden Sie `free()` nur fuer fruehe Bereinigung vor Bereichsende oder fuer langlebige/globale Daten. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) fuer Details.
+**Hinweis:** Lokale String-Variablen werden automatisch bereinigt, wenn sie den Gültigkeitsbereich verlassen. Verwenden Sie `free()` nur für fruehe Bereinigung vor Bereichsende oder für langlebige/globale Daten. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
 
 ## Best Practices
 
 1. **Codepoint-Indizierung verwenden** - Strings verwenden Codepoint-Positionen, nicht Byte-Offsets
 2. **Mit Unicode testen** - String-Operationen immer mit Mehrbyte-Zeichen testen
-3. **Unveraenderliche Operationen bevorzugen** - Methoden verwenden, die neue Strings zurueckgeben, statt Mutation
-4. **Grenzen pruefen** - String-Indizierung fuehrt keine Grenzpruefung durch (gibt null/Fehler bei ungueltig zurueck)
-5. **Eingabe normalisieren** - `trim()` und `to_lower()` fuer Benutzereingaben verwenden
+3. **Unveränderliche Operationen bevorzugen** - Methoden verwenden, die neue Strings zurückgeben, statt Mutation
+4. **Grenzen prüfen** - String-Indizierung führt keine Grenzprüfung durch (gibt null/Fehler bei ungültig zurück)
+5. **Eingabe normalisieren** - `trim()` und `to_lower()` für Benutzereingaben verwenden
 
-## Haeufige Fallstricke
+## Häufige Fallstricke
 
 ### Fallstrick: Byte vs. Codepoint-Verwirrung
 
@@ -541,11 +541,11 @@ print(s2);         // Immer noch "hello" (Strings sind Werttypen)
 ## Verwandte Themen
 
 - [Runes](runes.md) - Unicode-Codepoint-Typ, der bei String-Indizierung verwendet wird
-- [Arrays](arrays.md) - String-Methoden geben oft Arrays zurueck oder arbeiten mit ihnen
+- [Arrays](arrays.md) - String-Methoden geben oft Arrays zurück oder arbeiten mit ihnen
 - [Types](types.md) - String-Typ-Details und Konvertierungen
 
 ## Siehe auch
 
 - **UTF-8-Kodierung**: Siehe CLAUDE.md Abschnitt "Strings"
-- **Typkonvertierungen**: Siehe [Types](types.md) fuer String-Konvertierungen
-- **Speicher**: Siehe [Memory](memory.md) fuer String-Allokationsdetails
+- **Typkonvertierungen**: Siehe [Types](types.md) für String-Konvertierungen
+- **Speicher**: Siehe [Memory](memory.md) für String-Allokationsdetails

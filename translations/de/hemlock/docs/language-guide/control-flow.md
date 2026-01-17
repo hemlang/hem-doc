@@ -1,8 +1,8 @@
 # Kontrollfluss
 
-Hemlock bietet vertrauten C-aehnlichen Kontrollfluss mit obligatorischen geschweiften Klammern und expliziter Syntax. Diese Anleitung behandelt Bedingungen, Schleifen, Switch-Anweisungen und Operatoren.
+Hemlock bietet vertrauten C-ähnlichen Kontrollfluss mit obligatorischen geschweiften Klammern und expliziter Syntax. Diese Anleitung behandelt Bedingungen, Schleifen, Switch-Anweisungen und Operatoren.
 
-## Ueberblick
+## Überblick
 
 Verfuegbare Kontrollfluss-Funktionen:
 
@@ -12,8 +12,8 @@ Verfuegbare Kontrollfluss-Funktionen:
 - `loop` - Endlosschleifen (sauberer als `while (true)`)
 - `switch`-Anweisungen - Mehrfachverzweigung
 - `break`/`continue` - Schleifensteuerung
-- Schleifen-Labels - Gezieltes break/continue fuer verschachtelte Schleifen
-- `defer` - Verzoegerte Ausfuehrung (Bereinigung)
+- Schleifen-Labels - Gezieltes break/continue für verschachtelte Schleifen
+- `defer` - Verzögerte Ausführung (Bereinigung)
 - Boolesche Operatoren: `&&`, `||`, `!`
 - Vergleichsoperatoren: `==`, `!=`, `<`, `>`, `<=`, `>=`
 - Bitweise Operatoren: `&`, `|`, `^`, `<<`, `>>`, `~`
@@ -24,15 +24,15 @@ Verfuegbare Kontrollfluss-Funktionen:
 
 ```hemlock
 if (x > 10) {
-    print("gross");
+    print("groß");
 } else {
     print("klein");
 }
 ```
 
 **Regeln:**
-- Geschweifte Klammern sind **immer erforderlich** fuer alle Zweige
-- Bedingungen muessen in Klammern eingeschlossen sein
+- Geschweifte Klammern sind **immer erforderlich** für alle Zweige
+- Bedingungen müssen in Klammern eingeschlossen sein
 - Keine optionalen geschweiften Klammern (anders als C)
 
 ### If ohne Else
@@ -41,16 +41,16 @@ if (x > 10) {
 if (x > 0) {
     print("positiv");
 }
-// Kein else-Zweig noetig
+// Kein else-Zweig nötig
 ```
 
 ### Else-If-Ketten
 
 ```hemlock
 if (x > 100) {
-    print("sehr gross");
+    print("sehr groß");
 } else if (x > 50) {
-    print("gross");
+    print("groß");
 } else if (x > 10) {
     print("mittel");
 } else {
@@ -58,7 +58,7 @@ if (x > 100) {
 }
 ```
 
-**Hinweis:** `else if` ist syntaktischer Zucker fuer verschachtelte if-Anweisungen. Diese sind aequivalent:
+**Hinweis:** `else if` ist syntaktischer Zucker für verschachtelte if-Anweisungen. Diese sind äquivalent:
 
 ```hemlock
 // else if (syntaktischer Zucker)
@@ -68,7 +68,7 @@ if (a) {
     bar();
 }
 
-// Aequivalentes verschachteltes if
+// Äquivalentes verschachteltes if
 if (a) {
     foo();
 } else {
@@ -114,11 +114,11 @@ while (true) {
 }
 ```
 
-**Hinweis:** Fuer Endlosschleifen bevorzugen Sie das `loop`-Schluesselwort (siehe unten).
+**Hinweis:** Für Endlosschleifen bevorzugen Sie das `loop`-Schlüsselwort (siehe unten).
 
 ## Loop (Endlosschleife)
 
-Das Schluesselwort `loop` bietet eine sauberere Syntax fuer Endlosschleifen:
+Das Schlüsselwort `loop` bietet eine sauberere Syntax für Endlosschleifen:
 
 ```hemlock
 loop {
@@ -129,7 +129,7 @@ loop {
 }
 ```
 
-**Aequivalent zu `while (true)`, aber expliziter in der Absicht.**
+**Äquivalent zu `while (true)`, aber expliziter in der Absicht.**
 
 ### Einfache Schleife mit Break
 
@@ -155,7 +155,7 @@ loop {
         break;
     }
     if (i == 3) {
-        continue;  // Ueberspringt Ausgabe von 3
+        continue;  // Überspringt Ausgabe von 3
     }
     print(i);
 }
@@ -181,9 +181,9 @@ loop {
 
 ### Wann Loop verwenden
 
-- **`loop` verwenden** fuer absichtlich unendliche Schleifen, die via `break` beendet werden
+- **`loop` verwenden** für absichtlich unendliche Schleifen, die via `break` beendet werden
 - **`while` verwenden** wenn es eine natuerliche Abbruchbedingung gibt
-- **`for` verwenden** beim Iterieren einer bekannten Anzahl von Malen oder ueber eine Sammlung
+- **`for` verwenden** beim Iterieren einer bekannten Anzahl von Malen oder über eine Sammlung
 
 ## For-Schleifen
 
@@ -198,21 +198,21 @@ for (let i = 0; i < 10; i = i + 1) {
 ```
 
 **Komponenten:**
-- **Initialisierer**: `let i = 0` - Wird einmal vor der Schleife ausgefuehrt
-- **Bedingung**: `i < 10` - Wird vor jeder Iteration geprueft
-- **Aktualisierung**: `i = i + 1` - Wird nach jeder Iteration ausgefuehrt
+- **Initialisierer**: `let i = 0` - Wird einmal vor der Schleife ausgeführt
+- **Bedingung**: `i < 10` - Wird vor jeder Iteration geprüft
+- **Aktualisierung**: `i = i + 1` - Wird nach jeder Iteration ausgeführt
 
-**Gueltigkeitsbereich:**
+**Gültigkeitsbereich:**
 ```hemlock
 for (let i = 0; i < 10; i = i + 1) {
     print(i);
 }
-// i ist hier nicht zugaenglich (schleifenbezogen)
+// i ist hier nicht zugänglich (schleifenbezogen)
 ```
 
 ### For-In-Schleifen
 
-Ueber Array-Elemente iterieren:
+Über Array-Elemente iterieren:
 
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
@@ -274,12 +274,12 @@ switch (color) {
 
 **Regeln:**
 - `default` trifft zu, wenn kein anderer Fall zutrifft
-- `default` kann ueberall im Switch-Koerper erscheinen
+- `default` kann überall im Switch-Körper erscheinen
 - Nur ein default-Fall erlaubt
 
 ### Fall-Through-Verhalten
 
-Faelle ohne `break` fallen durch zum naechsten Fall (C-artiges Verhalten). Dies ist **beabsichtigt** und kann zum Gruppieren von Faellen verwendet werden:
+Faelle ohne `break` fallen durch zum nächsten Fall (C-artiges Verhalten). Dies ist **beabsichtigt** und kann zum Gruppieren von Faellen verwendet werden:
 
 ```hemlock
 let grade = 85;
@@ -319,7 +319,7 @@ switch (day) {
 }
 ```
 
-**Wichtig:** Anders als einige moderne Sprachen erfordert Hemlock KEIN explizites `fallthrough`-Schluesselwort. Faelle fallen automatisch durch, es sei denn, sie werden durch `break`, `return` oder `throw` beendet. Verwenden Sie immer `break`, um unbeabsichtigtes Fall-Through zu verhindern.
+**Wichtig:** Anders als einige moderne Sprachen erfordert Hemlock KEIN explizites `fallthrough`-Schlüsselwort. Faelle fallen automatisch durch, es sei denn, sie werden durch `break`, `return` oder `throw` beendet. Verwenden Sie immer `break`, um unbeabsichtigtes Fall-Through zu verhindern.
 
 ### Switch mit Return
 
@@ -396,35 +396,35 @@ switch (x) {
 
 ### Continue
 
-Springt zur naechsten Iteration der Schleife:
+Springt zur nächsten Iteration der Schleife:
 
 ```hemlock
 for (let i = 0; i < 10; i = i + 1) {
     if (i == 5) {
-        continue;  // Iteration ueberspringen wenn i 5 ist
+        continue;  // Iteration überspringen wenn i 5 ist
     }
     print(i);  // Gibt aus: 0,1,2,3,4,6,7,8,9
 }
 ```
 
 **Unterschied:**
-- `break` - Verlasst Schleife vollstaendig
-- `continue` - Springt zur naechsten Iteration
+- `break` - Verlasst Schleife vollständig
+- `continue` - Springt zur nächsten Iteration
 
 ## Schleifen-Labels
 
-Schleifen-Labels erlauben `break` und `continue`, spezifische aeussere Schleifen anzusprechen, statt nur die innerste Schleife. Dies ist nuetzlich fuer verschachtelte Schleifen, wo Sie eine aeussere Schleife von einer inneren aus steuern muessen.
+Schleifen-Labels erlauben `break` und `continue`, spezifische äußere Schleifen anzusprechen, statt nur die innerste Schleife. Dies ist nützlich für verschachtelte Schleifen, wo Sie eine äußere Schleife von einer inneren aus steuern müssen.
 
 ### Labeled Break
 
-Eine aeussere Schleife von einer inneren verlassen:
+Eine äußere Schleife von einer inneren verlassen:
 
 ```hemlock
 outer: while (i < 3) {
     let j = 0;
     while (j < 3) {
         if (i == 1 && j == 1) {
-            break outer;  // Aeussere while-Schleife verlassen
+            break outer;  // Äußere while-Schleife verlassen
         }
         print(i * 10 + j);
         j = j + 1;
@@ -436,7 +436,7 @@ outer: while (i < 3) {
 
 ### Labeled Continue
 
-Zur naechsten Iteration einer aeusseren Schleife springen:
+Zur nächsten Iteration einer äußeren Schleife springen:
 
 ```hemlock
 let i = 0;
@@ -446,12 +446,12 @@ outer: while (i < 3) {
     while (j < 3) {
         j = j + 1;
         if (i == 2 && j == 1) {
-            continue outer;  // Rest der inneren Schleife ueberspringen, aeussere fortsetzen
+            continue outer;  // Rest der inneren Schleife überspringen, äußere fortsetzen
         }
         print(i * 10 + j);
     }
 }
-// Wenn i=2, j=1: springt zur naechsten aeusseren Iteration
+// Wenn i=2, j=1: springt zur nächsten äußeren Iteration
 ```
 
 ### Labels mit For-Schleifen
@@ -485,7 +485,7 @@ outer: for (let a in arr1) {
 }
 ```
 
-### Labels mit Loop-Schluesselwort
+### Labels mit Loop-Schlüsselwort
 
 ```hemlock
 let x = 0;
@@ -506,17 +506,17 @@ outer: loop {
 
 ### Mehrere Labels
 
-Sie koennen Labels auf verschiedenen Verschachtelungsebenen haben:
+Sie können Labels auf verschiedenen Verschachtelungsebenen haben:
 
 ```hemlock
 outer: for (let a = 0; a < 2; a = a + 1) {
     inner: for (let b = 0; b < 3; b = b + 1) {
         for (let c = 0; c < 3; c = c + 1) {
             if (c == 1) {
-                continue inner;  // Zur naechsten Iteration der mittleren Schleife springen
+                continue inner;  // Zur nächsten Iteration der mittleren Schleife springen
             }
             if (a == 1 && b == 1) {
-                break outer;      // Aeusserste Schleife verlassen
+                break outer;      // Äußerste Schleife verlassen
             }
             print(a * 100 + b * 10 + c);
         }
@@ -526,7 +526,7 @@ outer: for (let a = 0; a < 2; a = a + 1) {
 
 ### Unlabeled Break/Continue mit gelabelten Schleifen
 
-Unlabeled `break` und `continue` funktionieren weiterhin normal (betreffen die innerste Schleife), auch wenn aeussere Schleifen Labels haben:
+Unlabeled `break` und `continue` funktionieren weiterhin normal (betreffen die innerste Schleife), auch wenn äußere Schleifen Labels haben:
 
 ```hemlock
 outer: for (let x = 0; x < 3; x = x + 1) {
@@ -543,20 +543,20 @@ outer: for (let x = 0; x < 3; x = x + 1) {
 ### Label-Syntax
 
 - Labels sind Bezeichner gefolgt von einem Doppelpunkt
-- Labels muessen direkt vor einer Schleifenanweisung stehen (`while`, `for`, `loop`)
+- Labels müssen direkt vor einer Schleifenanweisung stehen (`while`, `for`, `loop`)
 - Label-Namen folgen Bezeichnerregeln (Buchstaben, Ziffern, Unterstriche)
-- Gaengige Konventionen: `outer`, `inner`, `row`, `col`, beschreibende Namen
+- Gängige Konventionen: `outer`, `inner`, `row`, `col`, beschreibende Namen
 
 ## Defer-Anweisung
 
-Die `defer`-Anweisung plant Code zur Ausfuehrung, wenn die aktuelle Funktion zurueckkehrt. Dies ist nuetzlich fuer Bereinigungsoperationen wie Dateien schliessen, Ressourcen freigeben oder Sperren loesen.
+Die `defer`-Anweisung plant Code zur Ausführung, wenn die aktuelle Funktion zurückkehrt. Dies ist nützlich für Bereinigungsoperationen wie Dateien schließen, Ressourcen freigeben oder Sperren lösen.
 
 ### Einfaches Defer
 
 ```hemlock
 fn example() {
     print("start");
-    defer print("bereinigung");  // Wird ausgefuehrt, wenn Funktion zurueckkehrt
+    defer print("bereinigung");  // Wird ausgeführt, wenn Funktion zurückkehrt
     print("ende");
 }
 
@@ -568,35 +568,35 @@ example();
 ```
 
 **Kernverhalten:**
-- Deferred-Anweisungen werden **nach** Abschluss des Funktionskoerpers ausgefuehrt
-- Deferred-Anweisungen werden **vor** der Rueckkehr der Funktion an ihren Aufrufer ausgefuehrt
-- Deferred-Anweisungen werden immer ausgefuehrt, auch wenn die Funktion eine Ausnahme wirft
+- Deferred-Anweisungen werden **nach** Abschluss des Funktionskoerpers ausgeführt
+- Deferred-Anweisungen werden **vor** der Rückkehr der Funktion an ihren Aufrufer ausgeführt
+- Deferred-Anweisungen werden immer ausgeführt, auch wenn die Funktion eine Ausnahme wirft
 
 ### Mehrere Defers (LIFO-Reihenfolge)
 
-Wenn mehrere `defer`-Anweisungen verwendet werden, werden sie in **umgekehrter Reihenfolge** ausgefuehrt (Last-In-First-Out):
+Wenn mehrere `defer`-Anweisungen verwendet werden, werden sie in **umgekehrter Reihenfolge** ausgeführt (Last-In-First-Out):
 
 ```hemlock
 fn example() {
-    defer print("erstes");   // Wird zuletzt ausgefuehrt
-    defer print("zweites");  // Wird als zweites ausgefuehrt
-    defer print("drittes");  // Wird zuerst ausgefuehrt
-    print("koerper");
+    defer print("erstes");   // Wird zuletzt ausgeführt
+    defer print("zweites");  // Wird als zweites ausgeführt
+    defer print("drittes");  // Wird zuerst ausgeführt
+    print("körper");
 }
 
 example();
 // Ausgabe:
-// koerper
+// körper
 // drittes
 // zweites
 // erstes
 ```
 
-Diese LIFO-Reihenfolge ist beabsichtigt - sie entspricht der natuerlichen Reihenfolge fuer verschachtelte Ressourcenbereinigung (innere Ressourcen vor aeusseren schliessen).
+Diese LIFO-Reihenfolge ist beabsichtigt - sie entspricht der natuerlichen Reihenfolge für verschachtelte Ressourcenbereinigung (innere Ressourcen vor äußeren schließen).
 
 ### Defer mit Return
 
-Deferred-Anweisungen werden ausgefuehrt, bevor `return` die Kontrolle uebergibt:
+Deferred-Anweisungen werden ausgeführt, bevor `return` die Kontrolle übergibt:
 
 ```hemlock
 fn get_value(): i32 {
@@ -615,7 +615,7 @@ print("ergebnis:", result);
 
 ### Defer mit Ausnahmen
 
-Deferred-Anweisungen werden auch ausgefuehrt, wenn eine Ausnahme geworfen wird:
+Deferred-Anweisungen werden auch ausgeführt, wenn eine Ausnahme geworfen wird:
 
 ```hemlock
 fn risky() {
@@ -640,7 +640,7 @@ try {
 
 ### Ressourcenbereinigungsmuster
 
-Der Hauptanwendungsfall fuer `defer` ist sicherzustellen, dass Ressourcen bereinigt werden:
+Der Hauptanwendungsfall für `defer` ist sicherzustellen, dass Ressourcen bereinigt werden:
 
 ```hemlock
 fn process_file(filename: string) {
@@ -650,7 +650,7 @@ fn process_file(filename: string) {
     let content = file.read();
     // ... Inhalt verarbeiten ...
 
-    // Datei wird automatisch geschlossen, wenn Funktion zurueckkehrt
+    // Datei wird automatisch geschlossen, wenn Funktion zurückkehrt
 }
 ```
 
@@ -683,15 +683,15 @@ fn example() {
 
 ### Wann Defer verwenden
 
-**Defer verwenden fuer:**
-- Dateien und Netzwerkverbindungen schliessen
+**Defer verwenden für:**
+- Dateien und Netzwerkverbindungen schließen
 - Allokierten Speicher freigeben
 - Sperren und Mutexe freigeben
 - Bereinigung in jeder Funktion, die Ressourcen erwirbt
 
 **Defer vs. Finally:**
-- `defer` ist einfacher fuer Einzelressourcen-Bereinigung
-- `try/finally` ist besser fuer komplexe Fehlerbehandlung mit Wiederherstellung
+- `defer` ist einfacher für Einzelressourcen-Bereinigung
+- `try/finally` ist besser für komplexe Fehlerbehandlung mit Wiederherstellung
 
 ### Best Practices
 
@@ -702,7 +702,7 @@ fn example() {
    // ... Datei verwenden ...
    ```
 
-2. **Mehrere Defers fuer mehrere Ressourcen verwenden:**
+2. **Mehrere Defers für mehrere Ressourcen verwenden:**
    ```hemlock
    let file1 = open("input.txt", "r");
    defer file1.close();
@@ -713,7 +713,7 @@ fn example() {
    // Beide Dateien werden in umgekehrter Reihenfolge geschlossen
    ```
 
-3. **LIFO-Reihenfolge fuer abhaengige Ressourcen beachten:**
+3. **LIFO-Reihenfolge für abhaengige Ressourcen beachten:**
    ```hemlock
    let outer = acquire_outer();
    defer release_outer(outer);
@@ -728,7 +728,7 @@ fn example() {
 
 ### Logisches UND (`&&`)
 
-Beide Bedingungen muessen wahr sein:
+Beide Bedingungen müssen wahr sein:
 
 ```hemlock
 if (x > 0 && x < 10) {
@@ -749,7 +749,7 @@ Mindestens eine Bedingung muss wahr sein:
 
 ```hemlock
 if (x < 0 || x > 100) {
-    print("ausserhalb des Bereichs");
+    print("außerhalb des Bereichs");
 }
 ```
 
@@ -766,7 +766,7 @@ Negiert booleschen Wert:
 
 ```hemlock
 if (!is_valid) {
-    print("ungueltig");
+    print("ungültig");
 }
 
 if (!(x > 10)) {
@@ -794,28 +794,28 @@ null == null        // true
 
 ```hemlock
 if (x < 10) { }     // Kleiner als
-if (x > 10) { }     // Groesser als
+if (x > 10) { }     // Größer als
 if (x <= 10) { }    // Kleiner oder gleich
-if (x >= 10) { }    // Groesser oder gleich
+if (x >= 10) { }    // Größer oder gleich
 ```
 
 **Typpromotion gilt:**
 ```hemlock
 let a: i32 = 10;
 let b: i64 = 10;
-if (a == b) { }     // true (i32 wird zu i64 befoerdert)
+if (a == b) { }     // true (i32 wird zu i64 befördert)
 ```
 
 ## Bitweise Operatoren
 
-Hemlock bietet bitweise Operatoren fuer Ganzzahlmanipulation. Diese funktionieren **nur mit Ganzzahltypen** (i8-i64, u8-u64).
+Hemlock bietet bitweise Operatoren für Ganzzahlmanipulation. Diese funktionieren **nur mit Ganzzahltypen** (i8-i64, u8-u64).
 
-### Binaere bitweise Operatoren
+### Binäre bitweise Operatoren
 
 **Bitweises UND (`&`)**
 ```hemlock
-let a = 12;  // 1100 in binaer
-let b = 10;  // 1010 in binaer
+let a = 12;  // 1100 in binär
+let b = 10;  // 1010 in binär
 print(a & b);   // 8 (1000)
 ```
 
@@ -846,7 +846,7 @@ print(a >> 1);  // 6 (110) - 1 nach rechts schieben
 let a = 12;
 print(~a);      // -13 (Zweierkomplement)
 
-let c: u8 = 15;   // 00001111 in binaer
+let c: u8 = 15;   // 00001111 in binär
 print(~c);        // 240 (11110000) in u8
 ```
 
@@ -854,8 +854,8 @@ print(~c);        // 240 (11110000) in u8
 
 **Mit vorzeichenlosen Typen:**
 ```hemlock
-let c: u8 = 15;   // 00001111 in binaer
-let d: u8 = 7;    // 00000111 in binaer
+let c: u8 = 15;   // 00001111 in binär
+let d: u8 = 7;    // 00000111 in binär
 
 print(c & d);     // 7  (00000111)
 print(c | d);     // 15 (00001111)
@@ -873,9 +873,9 @@ let y: i32 = 100;
 let result2 = y << 2;  // result2 ist i32 mit Wert 400
 ```
 
-**Gaengige Muster:**
+**Gängige Muster:**
 ```hemlock
-// Pruefen, ob Bit gesetzt ist
+// Prüfen, ob Bit gesetzt ist
 if (flags & 0x04) {
     print("Bit 2 ist gesetzt");
 }
@@ -883,7 +883,7 @@ if (flags & 0x04) {
 // Bit setzen
 flags = flags | 0x08;
 
-// Bit loeschen
+// Bit löschen
 flags = flags & ~0x02;
 
 // Bit umschalten
@@ -892,36 +892,36 @@ flags = flags ^ 0x01;
 
 ### Operatorpraezedenz
 
-Bitweise Operatoren folgen C-artiger Praezedenz:
+Bitweise Operatoren folgen C-artiger Präzedenz:
 
 1. `~` (unaeres NICHT) - hoechste, gleiche Ebene wie `!` und `-`
-2. `<<`, `>>` (Shifts) - hoeher als Vergleiche, niedriger als `+`/`-`
-3. `&` (bitweises UND) - hoeher als `^` und `|`
+2. `<<`, `>>` (Shifts) - höher als Vergleiche, niedriger als `+`/`-`
+3. `&` (bitweises UND) - höher als `^` und `|`
 4. `^` (bitweises XOR) - zwischen `&` und `|`
-5. `|` (bitweises ODER) - niedriger als `&` und `^`, hoeher als `&&`
-6. `&&`, `||` (logisch) - niedrigste Praezedenz
+5. `|` (bitweises ODER) - niedriger als `&` und `^`, höher als `&&`
+6. `&&`, `||` (logisch) - niedrigste Präzedenz
 
 **Beispiele:**
 ```hemlock
-// & hat hoehere Praezedenz als |
+// & hat höhere Präzedenz als |
 let result1 = 12 | 10 & 8;  // (10 & 8) | 12 = 8 | 12 = 12
 
-// Shift hat hoehere Praezedenz als bitweise Operatoren
+// Shift hat höhere Präzedenz als bitweise Operatoren
 let result2 = 8 | 1 << 2;   // 8 | (1 << 2) = 8 | 4 = 12
 
-// Klammern fuer Klarheit verwenden
+// Klammern für Klarheit verwenden
 let result3 = (5 & 3) | (2 << 1);  // 1 | 4 = 5
 ```
 
 **Wichtige Hinweise:**
 - Bitweise Operatoren funktionieren nur mit Ganzzahltypen (nicht Floats, Strings, etc.)
-- Typpromotion folgt Standardregeln (kleinere Typen werden zu groesseren befoerdert)
-- Rechtsshift (`>>`) ist arithmetisch fuer vorzeichenbehaftete Typen, logisch fuer vorzeichenlose
-- Shift-Betraege werden nicht bereichsgeprueft (Verhalten ist plattformabhaengig fuer grosse Shifts)
+- Typpromotion folgt Standardregeln (kleinere Typen werden zu groesseren befördert)
+- Rechtsshift (`>>`) ist arithmetisch für vorzeichenbehaftete Typen, logisch für vorzeichenlose
+- Shift-Betraege werden nicht bereichsgeprueft (Verhalten ist plattformabhaengig für große Shifts)
 
-## Operatorpraezedenz (Vollstaendig)
+## Operatorpraezedenz (Vollständig)
 
-Von hoechster zu niedrigster Praezedenz:
+Von hoechster zu niedrigster Präzedenz:
 
 1. **Unaer**: `!`, `-`, `~`
 2. **Multiplikativ**: `*`, `/`, `%`
@@ -935,7 +935,7 @@ Von hoechster zu niedrigster Praezedenz:
 10. **Logisches UND**: `&&`
 11. **Logisches ODER**: `||`
 
-**Klammern fuer Klarheit verwenden:**
+**Klammern für Klarheit verwenden:**
 ```hemlock
 // Unklar
 if (a || b && c) { }
@@ -945,7 +945,7 @@ if (a || (b && c)) { }
 if ((a || b) && c) { }
 ```
 
-## Gaengige Muster
+## Gängige Muster
 
 ### Muster: Eingabevalidierung
 
@@ -958,7 +958,7 @@ fn validate_age(age: i32): bool {
 }
 ```
 
-### Muster: Bereichspruefung
+### Muster: Bereichsprüfung
 
 ```hemlock
 fn in_range(value: i32, min: i32, max: i32): bool {
@@ -1015,7 +1015,7 @@ let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 // Nur gerade Zahlen ausgeben
 for (let i = 0; i < arr.length; i = i + 1) {
     if (arr[i] % 2 != 0) {
-        continue;  // Ungerade Zahlen ueberspringen
+        continue;  // Ungerade Zahlen überspringen
     }
     print(arr[i]);
 }
@@ -1036,15 +1036,15 @@ fn find_first_negative(arr: array): i32 {
 
 ## Best Practices
 
-1. **Immer geschweifte Klammern verwenden** - Auch fuer einzeilige Bloecke (durch Syntax erzwungen)
-2. **Explizite Bedingungen** - `x == 0` statt `!x` fuer Klarheit verwenden
+1. **Immer geschweifte Klammern verwenden** - Auch für einzeilige Blöcke (durch Syntax erzwungen)
+2. **Explizite Bedingungen** - `x == 0` statt `!x` für Klarheit verwenden
 3. **Tiefe Verschachtelung vermeiden** - Verschachtelte Bedingungen in Funktionen extrahieren
 4. **Fruehe Returns verwenden** - Verschachtelung mit Guard-Klauseln reduzieren
 5. **Komplexe Bedingungen aufteilen** - In benannte boolesche Variablen aufteilen
 6. **Default in Switch** - Immer einen Default-Fall einschliessen
 7. **Fall-Through kommentieren** - Beabsichtigtes Fall-Through explizit machen
 
-## Haeufige Fallstricke
+## Häufige Fallstricke
 
 ### Fallstrick: Zuweisung in Bedingung
 
@@ -1065,11 +1065,11 @@ switch (x) {
         print("eins");
         // Fehlendes break - faellt durch!
     case 2:
-        print("zwei");  // Wird fuer 1 und 2 ausgefuehrt
+        print("zwei");  // Wird für 1 und 2 ausgeführt
         break;
 }
 
-// Korrektur: Break hinzufuegen
+// Korrektur: Break hinzufügen
 switch (x) {
     case 1:
         print("eins");
@@ -1080,10 +1080,10 @@ switch (x) {
 }
 ```
 
-### Fallstrick: Schleifenvariablen-Gueltigkeitsbereich
+### Fallstrick: Schleifenvariablen-Gültigkeitsbereich
 
 ```hemlock
-// i ist auf die Schleife beschraenkt
+// i ist auf die Schleife beschränkt
 for (let i = 0; i < 10; i = i + 1) {
     print(i);
 }
@@ -1165,5 +1165,5 @@ fn menu() {
 
 ## Siehe auch
 
-- **Syntax**: Siehe [Syntax](syntax.md) fuer Anweisungssyntax-Details
-- **Operatoren**: Siehe [Types](types.md) fuer Typpromotion bei Operationen
+- **Syntax**: Siehe [Syntax](syntax.md) für Anweisungssyntax-Details
+- **Operatoren**: Siehe [Types](types.md) für Typpromotion bei Operationen

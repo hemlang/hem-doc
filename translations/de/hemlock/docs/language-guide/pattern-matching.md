@@ -1,6 +1,6 @@
 # Pattern Matching
 
-Hemlock bietet leistungsfaehiges Pattern Matching durch `match`-Ausdruecke, die eine praegnante Moeglichkeit bieten, Werte zu destrukturieren, Typen zu pruefen und mehrere Faelle zu behandeln.
+Hemlock bietet leistungsfaehiges Pattern Matching durch `match`-Ausdrücke, die eine praegnante Möglichkeit bieten, Werte zu destrukturieren, Typen zu prüfen und mehrere Faelle zu behandeln.
 
 ## Grundlegende Syntax
 
@@ -12,7 +12,7 @@ let result = match (value) {
 };
 ```
 
-Match-Ausdruecke werten `value` gegen jedes Pattern der Reihe nach aus und geben das Ergebnis des Ausdrucks des ersten passenden Arms zurueck.
+Match-Ausdrücke werten `value` gegen jedes Pattern der Reihe nach aus und geben das Ergebnis des Ausdrucks des ersten passenden Arms zurück.
 
 ## Pattern-Typen
 
@@ -72,7 +72,7 @@ let x = 2;
 let size = match (x) {
     1 | 2 | 3 => "klein",
     4 | 5 | 6 => "mittel",
-    _ => "gross"
+    _ => "groß"
 };
 
 // Funktioniert auch mit Strings
@@ -84,9 +84,9 @@ let action = match (cmd) {
 };
 ```
 
-### Guard-Ausdruecke (`if`)
+### Guard-Ausdrücke (`if`)
 
-Bedingungen zu Patterns hinzufuegen:
+Bedingungen zu Patterns hinzufügen:
 
 ```hemlock
 let x = 15;
@@ -95,14 +95,14 @@ let category = match (x) {
     n if n == 0 => "null",
     n if n < 10 => "klein",
     n if n < 100 => "mittel",
-    n => "gross: " + n
+    n => "groß: " + n
 };
 print(category);  // "mittel"
 
 // Komplexe Guards
 let y = 12;
 let result = match (y) {
-    n if n % 2 == 0 && n > 10 => "gerade und groesser als 10",
+    n if n % 2 == 0 && n > 10 => "gerade und größer als 10",
     n if n % 2 == 0 => "gerade",
     n => "ungerade"
 };
@@ -110,7 +110,7 @@ let result = match (y) {
 
 ### Typ-Patterns
 
-Basierend auf Typ pruefen und binden:
+Basierend auf Typ prüfen und binden:
 
 ```hemlock
 let val = 42;
@@ -199,7 +199,7 @@ print(result2);  // "erste zwei: 1,2"
 
 ### Verschachtelte Destrukturierung
 
-Patterns fuer komplexe Daten kombinieren:
+Patterns für komplexe Daten kombinieren:
 
 ```hemlock
 let user = {
@@ -224,7 +224,7 @@ print(result2);  // "erstes: 1, gesamt: 3"
 
 ## Match als Ausdruck
 
-Match ist ein Ausdruck, der einen Wert zurueckgibt:
+Match ist ein Ausdruck, der einen Wert zurückgibt:
 
 ```hemlock
 // Direkte Zuweisung
@@ -253,15 +253,15 @@ fn classify(n: i32): string {
 }
 ```
 
-## Best Practices fuer Pattern Matching
+## Best Practices für Pattern Matching
 
-1. **Reihenfolge ist wichtig**: Patterns werden von oben nach unten geprueft; setzen Sie spezifische Patterns vor allgemeine
-2. **Wildcards fuer Vollstaendigkeit**: Fuegen Sie immer einen `_`-Fallback ein, ausser Sie sind sicher, dass alle Faelle abgedeckt sind
+1. **Reihenfolge ist wichtig**: Patterns werden von oben nach unten geprüft; setzen Sie spezifische Patterns vor allgemeine
+2. **Wildcards für Vollstaendigkeit**: Fuegen Sie immer einen `_`-Fallback ein, außer Sie sind sicher, dass alle Faelle abgedeckt sind
 3. **Guards statt verschachtelter Bedingungen bevorzugen**: Guards machen die Absicht klarer
 4. **Destrukturierung statt manuellem Feldzugriff bevorzugen**: Praegnanter und sicherer
 
 ```hemlock
-// Gut: Guards fuer Bereichspruefung
+// Gut: Guards für Bereichsprüfung
 match (score) {
     n if n >= 90 => "A",
     n if n >= 80 => "B",
@@ -288,8 +288,8 @@ match (point) {
 | ODER-Patterns | `1 \| 2 \| 3 =>` | `1 \| 2 \| 3 =>` | `case 1: case 2: case 3:` |
 | Rest-Patterns | `[a, ...rest]` | `[a, rest @ ..]` | N/A |
 | Typ-Patterns | `n: i32` | Typ via `match`-Arm | N/A |
-| Gibt Wert zurueck | Ja | Ja | Nein (Statement) |
+| Gibt Wert zurück | Ja | Ja | Nein (Statement) |
 
 ## Implementierungshinweise
 
-Pattern Matching ist sowohl im Interpreter- als auch im Compiler-Backend mit voller Paritaet implementiert - beide erzeugen identische Ergebnisse fuer dieselbe Eingabe. Das Feature ist ab Hemlock v1.8.0 verfuegbar.
+Pattern Matching ist sowohl im Interpreter- als auch im Compiler-Backend mit voller Paritaet implementiert - beide erzeugen identische Ergebnisse für dieselbe Eingabe. Das Feature ist ab Hemlock v1.8.0 verfügbar.

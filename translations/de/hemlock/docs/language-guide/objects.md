@@ -1,8 +1,8 @@
 # Objekte
 
-Hemlock implementiert JavaScript-aehnliche Objekte mit Heap-Allokation, dynamischen Feldern, Methoden und Duck-Typing. Objekte sind flexible Datenstrukturen, die Daten und Verhalten kombinieren.
+Hemlock implementiert JavaScript-ähnliche Objekte mit Heap-Allokation, dynamischen Feldern, Methoden und Duck-Typing. Objekte sind flexible Datenstrukturen, die Daten und Verhalten kombinieren.
 
-## Ueberblick
+## Überblick
 
 ```hemlock
 // Anonymes Objekt
@@ -35,16 +35,16 @@ let person = {
 
 **Syntax:**
 - Geschweifte Klammern `{}` umschliessen das Objekt
-- Schluessel-Wert-Paare durch Kommas getrennt
-- Schluessel sind Bezeichner (keine Anfuehrungszeichen noetig)
-- Werte koennen jeden Typ haben
+- Schlüssel-Wert-Paare durch Kommas getrennt
+- Schlüssel sind Bezeichner (keine Anführungszeichen nötig)
+- Werte können jeden Typ haben
 
 ### Leere Objekte
 
 ```hemlock
 let obj = {};  // Leeres Objekt
 
-// Felder spaeter hinzufuegen
+// Felder später hinzufügen
 obj.name = "Alice";
 obj.age = 30;
 ```
@@ -81,16 +81,16 @@ let mixed = {
 };
 ```
 
-### Kurzschreibweise fuer Eigenschaften
+### Kurzschreibweise für Eigenschaften
 
-Wenn ein Variablenname mit dem Eigenschaftsnamen uebereinstimmt, verwenden Sie die Kurzschreibweise:
+Wenn ein Variablenname mit dem Eigenschaftsnamen übereinstimmt, verwenden Sie die Kurzschreibweise:
 
 ```hemlock
 let name = "Alice";
 let age = 30;
 let active = true;
 
-// Kurzschreibweise: { name } ist aequivalent zu { name: name }
+// Kurzschreibweise: { name } ist äquivalent zu { name: name }
 let person = { name, age, active };
 
 print(person.name);   // "Alice"
@@ -122,12 +122,12 @@ print(extended.z);  // 3
 let defaults = { theme: "light", size: "medium", debug: false };
 let custom = { ...defaults, theme: "dark" };
 
-print(custom.theme);  // "dark" (ueberschrieben)
+print(custom.theme);  // "dark" (überschrieben)
 print(custom.size);   // "medium" (von defaults)
 print(custom.debug);  // false (von defaults)
 ```
 
-**Mehrere Spreads (spaetere Spreads ueberschreiben fruehere):**
+**Mehrere Spreads (spätere Spreads ueberschreiben fruehere):**
 ```hemlock
 let a = { x: 1 };
 let b = { y: 2 };
@@ -137,7 +137,7 @@ print(merged.x);  // 1
 print(merged.y);  // 2
 print(merged.z);  // 3
 
-// Spaeterer Spread ueberschreibt frueheren
+// Spaeterer Spread überschreibt frueheren
 let first = { val: "first" };
 let second = { val: "second" };
 let combined = { ...first, ...second };
@@ -170,7 +170,7 @@ print(prodConfig.timeout);  // 60
 print(devConfig.debug);     // true
 ```
 
-**Hinweis:** Spread fuehrt eine flache Kopie durch. Verschachtelte Objekte teilen Referenzen:
+**Hinweis:** Spread führt eine flache Kopie durch. Verschachtelte Objekte teilen Referenzen:
 ```hemlock
 let nested = { inner: { val: 42 } };
 let copied = { ...nested };
@@ -188,19 +188,19 @@ let person = { name: "Alice", age: 30 };
 let name = person.name;      // "Alice"
 let age = person.age;        // 30
 
-// Feld aendern
+// Feld ändern
 person.age = 31;
 print(person.age);           // 31
 ```
 
-### Dynamisches Hinzufuegen von Feldern
+### Dynamisches Hinzufügen von Feldern
 
-Neue Felder zur Laufzeit hinzufuegen:
+Neue Felder zur Laufzeit hinzufügen:
 
 ```hemlock
 let person = { name: "Alice" };
 
-// Neues Feld hinzufuegen
+// Neues Feld hinzufügen
 person.email = "alice@example.com";
 person.phone = "555-1234";
 
@@ -209,12 +209,12 @@ print(person.email);  // "alice@example.com"
 
 ### Feldloeschung
 
-**Hinweis:** Feldloeschung wird derzeit nicht unterstuetzt. Setzen Sie stattdessen auf `null`:
+**Hinweis:** Feldloeschung wird derzeit nicht unterstützt. Setzen Sie stattdessen auf `null`:
 
 ```hemlock
 let obj = { x: 10, y: 20 };
 
-// Felder koennen nicht geloescht werden (nicht unterstuetzt)
+// Felder können nicht gelöscht werden (nicht unterstützt)
 // obj.x = undefined;  // Kein 'undefined' in Hemlock
 
 // Workaround: Auf null setzen
@@ -242,7 +242,7 @@ let counter = {
 };
 ```
 
-### Das Schluesselwort `self`
+### Das Schlüsselwort `self`
 
 Wenn eine Funktion als Methode aufgerufen wird, wird `self` automatisch an das Objekt gebunden:
 
@@ -259,7 +259,7 @@ print(counter.count);  // 1
 ```
 
 **Funktionsweise:**
-- Methodenaufrufe werden erkannt, indem geprueft wird, ob der Funktionsausdruck ein Eigenschaftszugriff ist
+- Methodenaufrufe werden erkannt, indem geprüft wird, ob der Funktionsausdruck ein Eigenschaftszugriff ist
 - `self` wird automatisch zum Aufrufzeitpunkt an das Objekt gebunden
 - `self` ist schreibgeschuetzt (man kann `self` selbst nicht neu zuweisen)
 
@@ -324,8 +324,8 @@ print(typeof(typed_p));  // "Person"
 
 **Was `define` macht:**
 - Deklariert einen Typ mit erforderlichen Feldern
-- Ermoeglicht Duck-Typing-Validierung
-- Setzt den Typnamen des Objekts fuer `typeof()`
+- Ermöglicht Duck-Typing-Validierung
+- Setzt den Typnamen des Objekts für `typeof()`
 
 ### Duck-Typing
 
@@ -340,7 +340,7 @@ define Person {
 // OK: Hat alle erforderlichen Felder
 let p1: Person = { name: "Alice", age: 30 };
 
-// OK: Zusaetzliche Felder sind erlaubt
+// OK: Zusätzliche Felder sind erlaubt
 let p2: Person = {
     name: "Bob",
     age: 25,
@@ -351,19 +351,19 @@ let p2: Person = {
 // FEHLER: Fehlendes erforderliches Feld 'age'
 let p3: Person = { name: "Carol" };
 
-// FEHLER: Falscher Typ fuer 'age'
+// FEHLER: Falscher Typ für 'age'
 let p4: Person = { name: "Dave", age: "dreissig" };
 ```
 
 **Duck-Typing-Regeln:**
-- Alle erforderlichen Felder muessen vorhanden sein
-- Feldtypen muessen uebereinstimmen
-- Zusaetzliche Felder sind erlaubt und werden beibehalten
+- Alle erforderlichen Felder müssen vorhanden sein
+- Feldtypen müssen übereinstimmen
+- Zusätzliche Felder sind erlaubt und werden beibehalten
 - Validierung erfolgt zum Zuweisungszeitpunkt
 
 ### Optionale Felder
 
-Felder koennen mit Standardwerten optional sein:
+Felder können mit Standardwerten optional sein:
 
 ```hemlock
 define Person {
@@ -380,17 +380,17 @@ let typed_p: Person = p;
 print(typed_p.active);    // true (Standard angewendet)
 print(typed_p.nickname);  // null (kein Standard)
 
-// Optionale Felder koennen ueberschrieben werden
+// Optionale Felder können überschrieben werden
 let p2: Person = { name: "Bob", age: 25, active: false };
-print(p2.active);  // false (ueberschrieben)
+print(p2.active);  // false (überschrieben)
 ```
 
-**Syntax fuer optionale Felder:**
+**Syntax für optionale Felder:**
 - `field?: default_value` - Optional mit Standard
 - `field?: type` - Optional mit Typannotation, Standard ist null
-- Optionale Felder werden beim Duck-Typing hinzugefuegt, falls fehlend
+- Optionale Felder werden beim Duck-Typing hinzugefügt, falls fehlend
 
-### Typpruefung
+### Typprüfung
 
 ```hemlock
 define Point {
@@ -399,21 +399,21 @@ define Point {
 }
 
 let p = { x: 10, y: 20 };
-let point: Point = p;  // Typpruefung erfolgt hier
+let point: Point = p;  // Typprüfung erfolgt hier
 
 print(typeof(point));  // "Point"
 print(typeof(p));      // "object" (Original ist immer noch anonym)
 ```
 
-**Wann Typpruefung erfolgt:**
+**Wann Typprüfung erfolgt:**
 - Zum Zuweisungszeitpunkt an typisierte Variable
 - Validiert, dass alle erforderlichen Felder vorhanden sind
-- Validiert, dass Feldtypen uebereinstimmen (mit impliziten Konvertierungen)
+- Validiert, dass Feldtypen übereinstimmen (mit impliziten Konvertierungen)
 - Setzt den Typnamen des Objekts
 
 ## Methodensignaturen in Define
 
-Define-Bloecke koennen Methodensignaturen spezifizieren und erstellen Interface-aehnliche Vertraege:
+Define-Blöcke können Methodensignaturen spezifizieren und erstellen Interface-ähnliche Verträge:
 
 ### Erforderliche Methoden
 
@@ -423,7 +423,7 @@ define Comparable {
     fn compare(other: Self): i32;  // Erforderliche Methodensignatur
 }
 
-// Objekte muessen die erforderliche Methode bereitstellen
+// Objekte müssen die erforderliche Methode bereitstellen
 let a: Comparable = {
     value: 10,
     compare: fn(other) { return self.value - other.value; }
@@ -441,11 +441,11 @@ define Serializable {
 
 ### Der `Self`-Typ
 
-`Self` verweist auf den zu definierenden Typ und ermoeglicht rekursive Typdefinitionen:
+`Self` verweist auf den zu definierenden Typ und ermöglicht rekursive Typdefinitionen:
 
 ```hemlock
 define Cloneable {
-    fn clone(): Self;  // Gibt denselben Typ wie das Objekt zurueck
+    fn clone(): Self;  // Gibt denselben Typ wie das Objekt zurück
 }
 
 define Comparable {
@@ -481,7 +481,7 @@ let user: Entity = {
 
 ## Zusammengesetzte Typen (Schnittmengentypen)
 
-Zusammengesetzte Typen verwenden `&`, um zu verlangen, dass ein Objekt mehrere Typdefinitionen erfuellt:
+Zusammengesetzte Typen verwenden `&`, um zu verlangen, dass ein Objekt mehrere Typdefinitionen erfüllt:
 
 ### Grundlegende zusammengesetzte Typen
 
@@ -489,7 +489,7 @@ Zusammengesetzte Typen verwenden `&`, um zu verlangen, dass ein Objekt mehrere T
 define HasName { name: string }
 define HasAge { age: i32 }
 
-// Zusammengesetzter Typ: Objekt muss ALLE Typen erfuellen
+// Zusammengesetzter Typ: Objekt muss ALLE Typen erfüllen
 let person: HasName & HasAge = { name: "Alice", age: 30 };
 ```
 
@@ -500,7 +500,7 @@ fn greet(p: HasName & HasAge) {
     print(p.name + " ist " + p.age);
 }
 
-greet({ name: "Bob", age: 25, city: "NYC" });  // Zusaetzliche Felder OK
+greet({ name: "Bob", age: 25, city: "NYC" });  // Zusätzliche Felder OK
 ```
 
 ### Drei oder mehr Typen
@@ -513,10 +513,10 @@ fn describe(p: HasName & HasAge & HasEmail) {
 }
 ```
 
-### Typaliasse fuer zusammengesetzte Typen
+### Typaliasse für zusammengesetzte Typen
 
 ```hemlock
-// Benannten Alias fuer zusammengesetzten Typ erstellen
+// Benannten Alias für zusammengesetzten Typ erstellen
 type Person = HasName & HasAge;
 type Employee = HasName & HasAge & HasEmail;
 
@@ -527,7 +527,7 @@ let emp: Employee = {
 };
 ```
 
-**Duck-Typing mit zusammengesetzten Typen:** Zusaetzliche Felder sind immer erlaubt - das Objekt muss nur mindestens die von allen Komponententypen geforderten Felder haben.
+**Duck-Typing mit zusammengesetzten Typen:** Zusätzliche Felder sind immer erlaubt - das Objekt muss nur mindestens die von allen Komponententypen geforderten Felder haben.
 
 ## JSON-Serialisierung
 
@@ -548,7 +548,7 @@ print(nested.serialize());  // {"inner":{"a":1,"b":2},"outer":3}
 
 ### Von JSON deserialisieren
 
-JSON-Strings zurueck in Objekte parsen:
+JSON-Strings zurück in Objekte parsen:
 
 ```hemlock
 // json.deserialize() - JSON-String in Objekt parsen
@@ -572,7 +572,7 @@ obj.serialize();  // FEHLER: serialize() hat zirkulaere Referenz erkannt
 
 ### Unterstuetzte Typen
 
-JSON-Serialisierung unterstuetzt:
+JSON-Serialisierung unterstützt:
 
 - **Zahlen**: i8-i32, u8-u32, f32, f64
 - **Booleans**: true, false
@@ -581,14 +581,14 @@ JSON-Serialisierung unterstuetzt:
 - **Objekte**: Verschachtelte Objekte
 - **Arrays**: Verschachtelte Arrays
 
-**Nicht unterstuetzt:**
+**Nicht unterstützt:**
 - Funktionen (werden still ausgelassen)
 - Pointer (Fehler)
 - Buffer (Fehler)
 
 ### Fehlerbehandlung
 
-Serialisierung und Deserialisierung koennen Fehler werfen:
+Serialisierung und Deserialisierung können Fehler werfen:
 
 ```hemlock
 // Ungueltiges JSON wirft einen Fehler
@@ -598,7 +598,7 @@ try {
     print("Parse-Fehler:", e);
 }
 
-// Pointer koennen nicht serialisiert werden
+// Pointer können nicht serialisiert werden
 let obj = { ptr: alloc(10) };
 try {
     obj.serialize();
@@ -609,7 +609,7 @@ try {
 
 ### Round-Trip-Beispiel
 
-Vollstaendiges Beispiel fuer Serialisierung und Deserialisierung:
+Vollstaendiges Beispiel für Serialisierung und Deserialisierung:
 
 ```hemlock
 define Config {
@@ -627,7 +627,7 @@ let config: Config = {
 let json = config.serialize();
 print(json);  // {"host":"localhost","port":8080,"debug":true}
 
-// Zurueck deserialisieren
+// Zurück deserialisieren
 let restored = json.deserialize();
 print(restored.host);  // "localhost"
 print(restored.port);  // 8080
@@ -637,7 +637,7 @@ print(restored.port);  // 8080
 
 ### `typeof(value)`
 
-Gibt den Typnamen als String zurueck:
+Gibt den Typnamen als String zurück:
 
 ```hemlock
 let obj = { x: 10 };
@@ -659,7 +659,7 @@ print(typeof(p));    // "Person"
 - **Heap-allokiert** - Alle Objekte werden auf dem Heap allokiert
 - **Flache Kopie** - Zuweisung kopiert die Referenz, nicht das Objekt
 - **Dynamische Felder** - Gespeichert als dynamische Arrays von Name/Wert-Paaren
-- **Referenzgezaehlt** - Objekte werden automatisch freigegeben, wenn der Gueltigkeitsbereich endet
+- **Referenzgezählt** - Objekte werden automatisch freigegeben, wenn der Gültigkeitsbereich endet
 
 ### Referenzsemantik
 
@@ -685,7 +685,7 @@ let obj = {
 print(typeof(obj.method));  // "function"
 ```
 
-## Gaengige Muster
+## Gängige Muster
 
 ### Muster: Konstruktorfunktion
 
@@ -714,7 +714,7 @@ fn PersonBuilder() {
 
         setName: fn(n) {
             self.name = n;
-            return self;  // Verkettung ermoeglichen
+            return self;  // Verkettung ermöglichen
         },
 
         setAge: fn(a) {
@@ -783,7 +783,7 @@ let config = {
 
 ## Best Practices
 
-1. **`define` fuer Struktur verwenden** - Erwartete Objektstrukturen dokumentieren
+1. **`define` für Struktur verwenden** - Erwartete Objektstrukturen dokumentieren
 2. **Factory-Funktionen bevorzugen** - Objekte mit Konstruktoren erstellen
 3. **Objekte einfach halten** - Nicht zu tief verschachteln
 4. **`self`-Verwendung dokumentieren** - Methodenverhalten klar machen
@@ -791,7 +791,7 @@ let config = {
 6. **Zirkulaere Referenzen vermeiden** - Verursachen Serialisierungsfehler
 7. **Optionale Felder verwenden** - Sinnvolle Standardwerte bereitstellen
 
-## Haeufige Fallstricke
+## Häufige Fallstricke
 
 ### Fallstrick: Referenz vs. Wert
 
@@ -800,7 +800,7 @@ let obj1 = { x: 10 };
 let obj2 = obj1;  // Flache Kopie
 
 obj2.x = 20;
-print(obj1.x);  // 20 (Ueberraschung! Beide haben sich geaendert)
+print(obj1.x);  // 20 (Ueberraschung! Beide haben sich geändert)
 
 // Um das zu vermeiden: Neues Objekt erstellen
 let obj3 = { x: obj1.x };  // Tiefe Kopie (manuell)
@@ -831,7 +831,7 @@ fn create_objects() {
     // obj wird automatisch freigegeben, wenn Bereich endet, aber obj.data leckt!
 }
 
-// Loesung: Rohe Pointer vor Bereichsende freigeben
+// Lösung: Rohe Pointer vor Bereichsende freigeben
 fn safe_create() {
     let obj = { data: alloc(1000) };
     // ... obj.data verwenden ...
@@ -957,17 +957,17 @@ emitter.on("message", fn(data) {
 emitter.emit("message", "Hallo!");
 ```
 
-## Einschraenkungen
+## Einschränkungen
 
-Aktuelle Einschraenkungen:
+Aktuelle Einschränkungen:
 
-- **Keine tiefe Kopie** - Verschachtelte Objekte muessen manuell kopiert werden (Spread ist flach)
-- **Keine Wertuebergabe** - Objekte werden immer als Referenz uebergeben
+- **Keine tiefe Kopie** - Verschachtelte Objekte müssen manuell kopiert werden (Spread ist flach)
+- **Keine Wertuebergabe** - Objekte werden immer als Referenz übergeben
 - **Keine berechneten Eigenschaften** - Keine `{[key]: value}`-Syntax
 - **`self` ist schreibgeschuetzt** - Kann `self` in Methoden nicht neu zuweisen
-- **Keine Eigenschaftsloeschung** - Felder koennen nicht entfernt werden, sobald sie hinzugefuegt sind
+- **Keine Eigenschaftsloeschung** - Felder können nicht entfernt werden, sobald sie hinzugefügt sind
 
-**Hinweis:** Objekte sind referenzgezaehlt und werden automatisch freigegeben, wenn der Gueltigkeitsbereich endet. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) fuer Details.
+**Hinweis:** Objekte sind referenzgezählt und werden automatisch freigegeben, wenn der Gültigkeitsbereich endet. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
 
 ## Verwandte Themen
 
@@ -978,6 +978,6 @@ Aktuelle Einschraenkungen:
 
 ## Siehe auch
 
-- **Duck-Typing**: Siehe CLAUDE.md Abschnitt "Objects" fuer Duck-Typing-Details
-- **JSON**: Siehe CLAUDE.md fuer JSON-Serialisierungsdetails
-- **Speicher**: Siehe [Memory](memory.md) fuer Objekt-Allokation
+- **Duck-Typing**: Siehe CLAUDE.md Abschnitt "Objects" für Duck-Typing-Details
+- **JSON**: Siehe CLAUDE.md für JSON-Serialisierungsdetails
+- **Speicher**: Siehe [Memory](memory.md) für Objekt-Allokation

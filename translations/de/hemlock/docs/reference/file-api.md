@@ -1,12 +1,12 @@
 # Datei-API-Referenz
 
-Vollstaendige Referenz fuer Hemlocks Datei-I/O-System.
+Vollständige Referenz für Hemlocks Datei-I/O-System.
 
 ---
 
-## Uebersicht
+## Übersicht
 
-Hemlock bietet eine **Dateiobjekt-API** fuer Dateioperationen mit ordnungsgemaesser Fehlerbehandlung und Ressourcenverwaltung. Dateien muessen manuell geoeffnet und geschlossen werden.
+Hemlock bietet eine **Dateiobjekt-API** für Dateioperationen mit ordnungsgemaesser Fehlerbehandlung und Ressourcenverwaltung. Dateien müssen manuell geöffnet und geschlossen werden.
 
 **Hauptmerkmale:**
 - Dateiobjekt mit Methoden
@@ -21,7 +21,7 @@ Hemlock bietet eine **Dateiobjekt-API** fuer Dateioperationen mit ordnungsgemaes
 
 **Typ:** `file`
 
-**Beschreibung:** Dateihandle fuer I/O-Operationen
+**Beschreibung:** Dateihandle für I/O-Operationen
 
 **Eigenschaften (Nur-Lesen):**
 - `.path` - Dateipfad (string)
@@ -30,7 +30,7 @@ Hemlock bietet eine **Dateiobjekt-API** fuer Dateioperationen mit ordnungsgemaes
 
 ---
 
-## Dateien oeffnen
+## Dateien öffnen
 
 ### open
 
@@ -45,7 +45,7 @@ open(path: string, mode?: string): file
 - `path` - Dateipfad (relativ oder absolut)
 - `mode` (optional) - Oeffnungsmodus (Standard: `"r"`)
 
-**Rueckgabe:** Dateiobjekt
+**Rückgabe:** Dateiobjekt
 
 **Modi:**
 - `"r"` - Lesen (Standard)
@@ -82,12 +82,12 @@ let f_ra = open("log.txt", "a+");
 try {
     let f = open("missing.txt", "r");
 } catch (e) {
-    print("Oeffnen fehlgeschlagen:", e);
-    // Fehler: Konnte 'missing.txt' nicht oeffnen: Datei oder Verzeichnis nicht gefunden
+    print("Öffnen fehlgeschlagen:", e);
+    // Fehler: Konnte 'missing.txt' nicht öffnen: Datei oder Verzeichnis nicht gefunden
 }
 ```
 
-**Wichtig:** Dateien muessen manuell mit `f.close()` geschlossen werden um Dateideskriptor-Lecks zu vermeiden.
+**Wichtig:** Dateien müssen manuell mit `f.close()` geschlossen werden um Dateideskriptor-Lecks zu vermeiden.
 
 ---
 
@@ -107,7 +107,7 @@ file.read(size?: i32): string
 **Parameter:**
 - `size` (optional) - Anzahl der zu lesenden Bytes (wenn weggelassen, bis EOF lesen)
 
-**Rueckgabe:** String mit Dateiinhalt
+**Rückgabe:** String mit Dateiinhalt
 
 **Beispiele:**
 ```hemlock
@@ -125,8 +125,8 @@ f.close();
 
 **Verhalten:**
 - Liest ab aktueller Dateiposition
-- Gibt leeren String bei EOF zurueck
-- Bewegt Dateiposition vorwaerts
+- Gibt leeren String bei EOF zurück
+- Bewegt Dateiposition vorwärts
 
 **Fehler:**
 - Lesen aus geschlossener Datei
@@ -146,7 +146,7 @@ file.read_bytes(size: i32): buffer
 **Parameter:**
 - `size` - Anzahl der zu lesenden Bytes
 
-**Rueckgabe:** Buffer mit Binaerdaten
+**Rückgabe:** Buffer mit Binaerdaten
 
 **Beispiele:**
 ```hemlock
@@ -168,8 +168,8 @@ f.close();
 
 **Verhalten:**
 - Liest exakte Anzahl Bytes
-- Gibt Buffer zurueck (kein String)
-- Bewegt Dateiposition vorwaerts
+- Gibt Buffer zurück (kein String)
+- Bewegt Dateiposition vorwärts
 
 ---
 
@@ -187,7 +187,7 @@ file.write(data: string): i32
 **Parameter:**
 - `data` - Zu schreibender String
 
-**Rueckgabe:** Anzahl geschriebener Bytes (i32)
+**Rückgabe:** Anzahl geschriebener Bytes (i32)
 
 **Beispiele:**
 ```hemlock
@@ -207,8 +207,8 @@ f.close();
 
 **Verhalten:**
 - Schreibt an aktueller Dateiposition
-- Gibt Anzahl geschriebener Bytes zurueck
-- Bewegt Dateiposition vorwaerts
+- Gibt Anzahl geschriebener Bytes zurück
+- Bewegt Dateiposition vorwärts
 
 **Fehler:**
 - Schreiben in geschlossene Datei
@@ -228,7 +228,7 @@ file.write_bytes(data: buffer): i32
 **Parameter:**
 - `data` - Zu schreibender Buffer
 
-**Rueckgabe:** Anzahl geschriebener Bytes (i32)
+**Rückgabe:** Anzahl geschriebener Bytes (i32)
 
 **Beispiele:**
 ```hemlock
@@ -249,8 +249,8 @@ f.close();
 
 **Verhalten:**
 - Schreibt Buffer-Inhalt in Datei
-- Gibt Anzahl geschriebener Bytes zurueck
-- Bewegt Dateiposition vorwaerts
+- Gibt Anzahl geschriebener Bytes zurück
+- Bewegt Dateiposition vorwärts
 
 ---
 
@@ -268,7 +268,7 @@ file.seek(position: i32): i32
 **Parameter:**
 - `position` - Byte-Offset vom Dateianfang
 
-**Rueckgabe:** Neue Dateiposition (i32)
+**Rückgabe:** Neue Dateiposition (i32)
 
 **Beispiele:**
 ```hemlock
@@ -280,7 +280,7 @@ f.seek(100);
 // Von dieser Position lesen
 let chunk = f.read(50);
 
-// Zum Anfang zuruecksetzen
+// Zum Anfang zurücksetzen
 f.seek(0);
 
 // Vom Anfang lesen
@@ -291,21 +291,21 @@ f.close();
 
 **Verhalten:**
 - Setzt Dateiposition auf absoluten Offset
-- Gibt neue Position zurueck
+- Gibt neue Position zurück
 - Suchen hinter EOF ist erlaubt (erzeugt Loch in Datei beim Schreiben)
 
 ---
 
 #### tell
 
-Gibt aktuelle Dateiposition zurueck.
+Gibt aktuelle Dateiposition zurück.
 
 **Signatur:**
 ```hemlock
 file.tell(): i32
 ```
 
-**Rueckgabe:** Aktueller Byte-Offset vom Dateianfang (i32)
+**Rückgabe:** Aktueller Byte-Offset vom Dateianfang (i32)
 
 **Beispiele:**
 ```hemlock
@@ -324,7 +324,7 @@ f.close();
 
 ---
 
-### Schliessen
+### Schließen
 
 #### close
 
@@ -335,7 +335,7 @@ Schliesst Datei (idempotent).
 file.close(): null
 ```
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -354,7 +354,7 @@ f.close();  // Kein Fehler
 - Idempotent (sicher mehrmals aufzurufen)
 - Setzt `.closed`-Eigenschaft auf `true`
 
-**Wichtig:** Schliessen Sie Dateien immer wenn fertig um Dateideskriptor-Lecks zu vermeiden.
+**Wichtig:** Schließen Sie Dateien immer wenn fertig um Dateideskriptor-Lecks zu vermeiden.
 
 ---
 
@@ -362,7 +362,7 @@ f.close();  // Kein Fehler
 
 ### .path
 
-Gibt Dateipfad zurueck.
+Gibt Dateipfad zurück.
 
 **Typ:** `string`
 
@@ -379,7 +379,7 @@ f.close();
 
 ### .mode
 
-Gibt Oeffnungsmodus zurueck.
+Gibt Oeffnungsmodus zurück.
 
 **Typ:** `string`
 
@@ -424,7 +424,7 @@ Alle Dateioperationen enthalten ordnungsgemaesse Fehlermeldungen mit Kontext:
 ### Datei nicht gefunden
 ```hemlock
 let f = open("missing.txt", "r");
-// Fehler: Konnte 'missing.txt' nicht oeffnen: Datei oder Verzeichnis nicht gefunden
+// Fehler: Konnte 'missing.txt' nicht öffnen: Datei oder Verzeichnis nicht gefunden
 ```
 
 ### Lesen aus geschlossener Datei
@@ -439,7 +439,7 @@ f.read();
 ```hemlock
 let f = open("readonly.txt", "r");
 f.write("data");
-// Fehler: Kann nicht in Datei 'readonly.txt' schreiben, die im Nur-Lesen-Modus geoeffnet wurde
+// Fehler: Kann nicht in Datei 'readonly.txt' schreiben, die im Nur-Lesen-Modus geöffnet wurde
 ```
 
 ### Mit try/catch
@@ -478,7 +478,7 @@ try {
     let content = f.read();
     process(content);
 } finally {
-    f.close();  // Immer schliessen, auch bei Fehler
+    f.close();  // Immer schließen, auch bei Fehler
 }
 ```
 
@@ -570,7 +570,7 @@ buf[0] = 65;
 write_binary("output.bin", buf);
 ```
 
-### Datei Zeile fuer Zeile lesen
+### Datei Zeile für Zeile lesen
 
 ```hemlock
 fn read_lines(filename: string): array {
@@ -617,7 +617,7 @@ fn process_chunks(filename: string) {
             break;  // EOF
         }
 
-        // Stueck verarbeiten
+        // Stück verarbeiten
         print("Verarbeite", chunk.length, "Bytes");
     }
 
@@ -629,9 +629,9 @@ process_chunks("large_file.txt");
 
 ---
 
-## Vollstaendige Methodenuebersicht
+## Vollständige Methodenuebersicht
 
-| Methode       | Signatur                 | Rueckgabe | Beschreibung                 |
+| Methode       | Signatur                 | Rückgabe | Beschreibung                 |
 |---------------|--------------------------|-----------|------------------------------|
 | `read`        | `(size?: i32)`           | `string`  | Text lesen                   |
 | `read_bytes`  | `(size: i32)`            | `buffer`  | Binaerdaten lesen            |
@@ -639,11 +639,11 @@ process_chunks("large_file.txt");
 | `write_bytes` | `(data: buffer)`         | `i32`     | Binaerdaten schreiben        |
 | `seek`        | `(position: i32)`        | `i32`     | Dateiposition setzen         |
 | `tell`        | `()`                     | `i32`     | Dateiposition holen          |
-| `close`       | `()`                     | `null`    | Datei schliessen (idempotent)|
+| `close`       | `()`                     | `null`    | Datei schließen (idempotent)|
 
 ---
 
-## Vollstaendige Eigenschaftsuebersicht
+## Vollständige Eigenschaftsuebersicht
 
 | Eigenschaft | Typ      | Zugriff    | Beschreibung             |
 |-------------|----------|------------|--------------------------|

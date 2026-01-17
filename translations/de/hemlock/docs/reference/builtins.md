@@ -1,12 +1,12 @@
 # Eingebaute Funktionen Referenz
 
-Vollstaendige Referenz fuer alle eingebauten Funktionen und Konstanten in Hemlock.
+Vollständige Referenz für alle eingebauten Funktionen und Konstanten in Hemlock.
 
 ---
 
-## Uebersicht
+## Übersicht
 
-Hemlock bietet eine Reihe von eingebauten Funktionen fuer I/O, Typ-Introspektion, Speicherverwaltung, Nebenlaeufigkeit und Systeminteraktion. Alle eingebauten Funktionen sind global verfuegbar ohne Imports.
+Hemlock bietet eine Reihe von eingebauten Funktionen für I/O, Typ-Introspektion, Speicherverwaltung, Nebenläufigkeit und Systeminteraktion. Alle eingebauten Funktionen sind global verfügbar ohne Imports.
 
 ---
 
@@ -24,7 +24,7 @@ print(...values): null
 **Parameter:**
 - `...values` - Beliebige Anzahl von Werten zum Ausgeben
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -58,7 +58,7 @@ read_line(): string | null
 
 **Parameter:** Keine
 
-**Rueckgabe:**
+**Rückgabe:**
 - `string` - Die von stdin gelesene Zeile (Zeilenumbruch entfernt)
 - `null` - Bei EOF (Ende der Datei/Eingabe)
 
@@ -72,7 +72,7 @@ print("Hallo, " + name + "!");
 // Zahlen lesen (erfordert manuelles Parsen)
 print("Gib eine Zahl ein:");
 let input = read_line();
-let num = parse_int(input);  // Siehe unten fuer parse_int
+let num = parse_int(input);  // Siehe unten für parse_int
 print("Das Doppelte:", num * 2);
 
 // EOF behandeln
@@ -95,12 +95,12 @@ while (true) {
 **Verhalten:**
 - Blockiert bis Benutzer Enter drueckt
 - Entfernt nachfolgenden Zeilenumbruch (`\n`) und Wagenruecklauf (`\r`)
-- Gibt `null` bei EOF zurueck (Strg+D auf Unix, Strg+Z auf Windows)
+- Gibt `null` bei EOF zurück (Strg+D auf Unix, Strg+Z auf Windows)
 - Liest nur von stdin (nicht von Dateien)
 
 **Benutzereingabe parsen:**
 
-Da `read_line()` immer einen String zurueckgibt, muessen Sie numerische Eingaben manuell parsen:
+Da `read_line()` immer einen String zurückgibt, müssen Sie numerische Eingaben manuell parsen:
 
 ```hemlock
 // Einfacher Integer-Parser
@@ -153,7 +153,7 @@ eprint(value: any): null
 **Parameter:**
 - `value` - Einzelner Wert zum Ausgeben auf stderr
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -175,7 +175,7 @@ fn load_config(path: string) {
 - Gibt auf stderr aus (Standardfehlerausgabe)
 - Fuegt Zeilenumbruch am Ende hinzu
 - Akzeptiert nur ein Argument (anders als `print`)
-- Nuetzlich fuer Fehlermeldungen die sich nicht mit normaler Ausgabe vermischen sollen
+- Nützlich für Fehlermeldungen die sich nicht mit normaler Ausgabe vermischen sollen
 
 **Unterschied zu print:**
 - `print()` → stdout (normale Ausgabe, kann mit `>` umgeleitet werden)
@@ -192,7 +192,7 @@ fn load_config(path: string) {
 
 ### typeof
 
-Gibt den Typnamen eines Wertes zurueck.
+Gibt den Typnamen eines Wertes zurück.
 
 **Signatur:**
 ```hemlock
@@ -202,7 +202,7 @@ typeof(value: any): string
 **Parameter:**
 - `value` - Beliebiger Wert
 
-**Rueckgabe:** Typname als String
+**Rückgabe:** Typname als String
 
 **Beispiele:**
 ```hemlock
@@ -250,7 +250,7 @@ exec(command: string): object
 **Parameter:**
 - `command` - Auszufuehrender Shell-Befehl
 
-**Rueckgabe:** Objekt mit Feldern:
+**Rückgabe:** Objekt mit Feldern:
 - `output` (string) - stdout des Befehls
 - `exit_code` (i32) - Exit-Statuscode (0 = Erfolg)
 
@@ -260,7 +260,7 @@ let result = exec("echo hello");
 print(result.output);      // "hello\n"
 print(result.exit_code);   // 0
 
-// Exit-Status pruefen
+// Exit-Status prüfen
 let r = exec("grep pattern file.txt");
 if (r.exit_code == 0) {
     print("Gefunden:", r.output);
@@ -274,23 +274,23 @@ let lines = r2.output.split("\n");
 ```
 
 **Verhalten:**
-- Fuehrt Befehl ueber `/bin/sh` aus
+- Fuehrt Befehl über `/bin/sh` aus
 - Erfasst nur stdout (stderr geht zum Terminal)
 - Blockiert bis Befehl abgeschlossen ist
-- Gibt leeren String zurueck wenn keine Ausgabe
+- Gibt leeren String zurück wenn keine Ausgabe
 
 **Fehlerbehandlung:**
 ```hemlock
 try {
     let r = exec("nonexistent_command");
 } catch (e) {
-    print("Ausfuehrung fehlgeschlagen:", e);
+    print("Ausführung fehlgeschlagen:", e);
 }
 ```
 
-**Sicherheitswarnung:** Anfaellig fuer Shell-Injection. Validieren/bereinigen Sie immer Benutzereingaben.
+**Sicherheitswarnung:** Anfaellig für Shell-Injection. Validieren/bereinigen Sie immer Benutzereingaben.
 
-**Einschraenkungen:**
+**Einschränkungen:**
 - Keine stderr-Erfassung
 - Kein Streaming
 - Kein Timeout
@@ -310,7 +310,7 @@ exec_argv(argv: array): object
 **Parameter:**
 - `argv` - Array von Strings: `[befehl, arg1, arg2, ...]`
 
-**Rueckgabe:** Objekt mit Feldern:
+**Rückgabe:** Objekt mit Feldern:
 - `output` (string) - stdout des Befehls
 - `exit_code` (i32) - Exit-Statuscode (0 = Erfolg)
 
@@ -323,7 +323,7 @@ print(result.output);
 // Befehl mit Argumenten die Leerzeichen enthalten (sicher!)
 let r = exec_argv(["grep", "hello world", "file.txt"]);
 
-// Skript mit Argumenten ausfuehren
+// Skript mit Argumenten ausführen
 let r2 = exec_argv(["python", "script.py", "--input", "data.json"]);
 print(r2.exit_code);
 ```
@@ -334,15 +334,15 @@ print(r2.exit_code);
 exec("ls " + user_input);  // Shell-Injection-Risiko!
 
 // exec_argv() umgeht Shell - SICHER
-exec_argv(["ls", user_input]);  // Keine Injection moeglich
+exec_argv(["ls", user_input]);  // Keine Injection möglich
 ```
 
 **Wann verwenden:**
-- Wenn Argumente Leerzeichen, Anfuehrungszeichen oder Sonderzeichen enthalten
+- Wenn Argumente Leerzeichen, Anführungszeichen oder Sonderzeichen enthalten
 - Bei Verarbeitung von Benutzereingaben (Sicherheit)
-- Wenn vorhersagbares Argument-Parsing benoetigt wird
+- Wenn vorhersagbares Argument-Parsing benötigt wird
 
-**Siehe auch:** `exec()` fuer einfache Shell-Befehle
+**Siehe auch:** `exec()` für einfache Shell-Befehle
 
 ---
 
@@ -360,7 +360,7 @@ throw expression
 **Parameter:**
 - `expression` - Zu werfender Wert (beliebiger Typ)
 
-**Rueckgabe:** Gibt nie zurueck (uebertraegt Kontrolle)
+**Rückgabe:** Gibt nie zurück (überträgt Kontrolle)
 
 **Beispiele:**
 ```hemlock
@@ -386,7 +386,7 @@ panic(message?: any): never
 **Parameter:**
 - `message` (optional) - Auszugebende Fehlermeldung
 
-**Rueckgabe:** Gibt nie zurueck (Programm beendet sich)
+**Rückgabe:** Gibt nie zurück (Programm beendet sich)
 
 **Beispiele:**
 ```hemlock
@@ -397,7 +397,7 @@ panic(42);
 // Haeufiger Anwendungsfall
 fn process_state(state: i32): string {
     if (state == 1) { return "bereit"; }
-    if (state == 2) { return "laeuft"; }
+    if (state == 2) { return "läuft"; }
     panic("Ungueltiger Status: " + typeof(state));
 }
 ```
@@ -406,7 +406,7 @@ fn process_state(state: i32): string {
 - Gibt Fehler auf stderr aus: `panic: <message>`
 - Beendet mit Code 1
 - **NICHT abfangbar** mit try/catch
-- Verwenden fuer Bugs und nicht wiederherstellbare Fehler
+- Verwenden für Bugs und nicht wiederherstellbare Fehler
 
 **Panic vs Throw:**
 - `panic()` - Nicht wiederherstellbarer Fehler, beendet sofort
@@ -425,13 +425,13 @@ assert(condition: any, message?: string): null
 
 **Parameter:**
 - `condition` - Auf Wahrheit zu pruefender Wert
-- `message` (optional) - Benutzerdefinierte Fehlermeldung bei fehlgeschlagener Pruefung
+- `message` (optional) - Benutzerdefinierte Fehlermeldung bei fehlgeschlagener Prüfung
 
-**Rueckgabe:** `null` (wenn Pruefung erfolgreich)
+**Rückgabe:** `null` (wenn Prüfung erfolgreich)
 
 **Beispiele:**
 ```hemlock
-// Grundlegende Pruefungen
+// Grundlegende Prüfungen
 assert(x > 0);
 assert(name != null);
 assert(arr.length > 0, "Array darf nicht leer sein");
@@ -451,7 +451,7 @@ fn process_data(data: array) {
 ```
 
 **Verhalten:**
-- Wenn Bedingung wahr: gibt `null` zurueck, Ausfuehrung fortgesetzt
+- Wenn Bedingung wahr: gibt `null` zurück, Ausführung fortgesetzt
 - Wenn Bedingung falsch: gibt Fehler aus und beendet mit Code 1
 - Falsche Werte: `false`, `0`, `0.0`, `null`, `""` (leerer String)
 - Wahre Werte: alles andere
@@ -463,7 +463,7 @@ Assertion failed: Array darf nicht leer sein
 
 **Wann verwenden:**
 - Validierung von Funktionsvorbedingungen
-- Pruefen von Invarianten waehrend der Entwicklung
+- Prüfen von Invarianten während der Entwicklung
 - Fruehzeitiges Erkennen von Programmierfehlern
 
 **assert vs panic:**
@@ -476,7 +476,7 @@ Assertion failed: Array darf nicht leer sein
 
 ### signal
 
-Registriert oder setzt Signal-Handler zurueck.
+Registriert oder setzt Signal-Handler zurück.
 
 **Signatur:**
 ```hemlock
@@ -485,9 +485,9 @@ signal(signum: i32, handler: function | null): function | null
 
 **Parameter:**
 - `signum` - Signalnummer (verwenden Sie Konstanten wie `SIGINT`)
-- `handler` - Funktion die bei Signalempfang aufgerufen wird, oder `null` zum Zuruecksetzen auf Standard
+- `handler` - Funktion die bei Signalempfang aufgerufen wird, oder `null` zum Zurücksetzen auf Standard
 
-**Rueckgabe:** Vorherige Handler-Funktion, oder `null`
+**Rückgabe:** Vorherige Handler-Funktion, oder `null`
 
 **Beispiele:**
 ```hemlock
@@ -497,14 +497,14 @@ fn handle_interrupt(sig) {
 
 signal(SIGINT, handle_interrupt);
 
-// Auf Standard zuruecksetzen
+// Auf Standard zurücksetzen
 signal(SIGINT, null);
 ```
 
 **Handler-Signatur:**
 ```hemlock
 fn handler(signum: i32) {
-    // signum enthaelt die Signalnummer
+    // signum enthält die Signalnummer
 }
 ```
 
@@ -526,7 +526,7 @@ raise(signum: i32): null
 **Parameter:**
 - `signum` - Zu sendende Signalnummer
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -634,7 +634,7 @@ signal(SIGINT, handle_signal);
 signal(SIGTERM, handle_signal);
 ```
 
-**Hinweis:** `SIGKILL` (9) und `SIGSTOP` (19) koennen nicht abgefangen oder ignoriert werden.
+**Hinweis:** `SIGKILL` (9) und `SIGSTOP` (19) können nicht abgefangen oder ignoriert werden.
 
 ---
 
@@ -642,7 +642,7 @@ signal(SIGTERM, handle_signal);
 
 ### div
 
-Ganzzahldivision die eine Gleitkommazahl zurueckgibt.
+Ganzzahldivision die eine Gleitkommazahl zurückgibt.
 
 **Signatur:**
 ```hemlock
@@ -653,7 +653,7 @@ div(a: number, b: number): f64
 - `a` - Dividend
 - `b` - Divisor
 
-**Rueckgabe:** Abrundung von `a / b` als Gleitkommazahl (f64)
+**Rückgabe:** Abrundung von `a / b` als Gleitkommazahl (f64)
 
 **Beispiele:**
 ```hemlock
@@ -662,13 +662,13 @@ let result2 = div(10, 3);  // 3.0
 let result3 = div(-7, 2);  // -4.0 (Abrundung richtet sich nach negativer Unendlichkeit)
 ```
 
-**Hinweis:** In Hemlock gibt der `/`-Operator immer eine Gleitkommazahl zurueck. Verwenden Sie `div()` fuer Ganzzahldivision wenn Sie den ganzzahligen Teil als Gleitkommazahl benoetigen, oder `divi()` wenn Sie ein ganzzahliges Ergebnis benoetigen.
+**Hinweis:** In Hemlock gibt der `/`-Operator immer eine Gleitkommazahl zurück. Verwenden Sie `div()` für Ganzzahldivision wenn Sie den ganzzahligen Teil als Gleitkommazahl benötigen, oder `divi()` wenn Sie ein ganzzahliges Ergebnis benötigen.
 
 ---
 
 ### divi
 
-Ganzzahldivision die eine Ganzzahl zurueckgibt.
+Ganzzahldivision die eine Ganzzahl zurückgibt.
 
 **Signatur:**
 ```hemlock
@@ -679,7 +679,7 @@ divi(a: number, b: number): i64
 - `a` - Dividend
 - `b` - Divisor
 
-**Rueckgabe:** Abrundung von `a / b` als Ganzzahl (i64)
+**Rückgabe:** Abrundung von `a / b` als Ganzzahl (i64)
 
 **Beispiele:**
 ```hemlock
@@ -699,7 +699,7 @@ print(divi(7, 2)); // 3   (Ganzzahldivision, Ganzzahlergebnis)
 
 ## Speicherverwaltungsfunktionen
 
-Siehe [Speicher-API](memory-api.md) fuer vollstaendige Referenz:
+Siehe [Speicher-API](memory-api.md) für vollständige Referenz:
 - `alloc(size)` - Rohen Speicher allokieren
 - `free(ptr)` - Speicher freigeben
 - `buffer(size)` - Sicheren Buffer allokieren
@@ -709,7 +709,7 @@ Siehe [Speicher-API](memory-api.md) fuer vollstaendige Referenz:
 
 ### sizeof
 
-Gibt die Groesse eines Typs in Bytes zurueck.
+Gibt die Größe eines Typs in Bytes zurück.
 
 **Signatur:**
 ```hemlock
@@ -719,7 +719,7 @@ sizeof(type): i32
 **Parameter:**
 - `type` - Eine Typkonstante (`i32`, `f64`, `ptr`, etc.) oder Typname-String
 
-**Rueckgabe:** Groesse in Bytes als `i32`
+**Rückgabe:** Größe in Bytes als `i32`
 
 **Beispiele:**
 ```hemlock
@@ -742,7 +742,7 @@ print(sizeof("i32"));    // 4
 ```
 
 **Unterstuetzte Typen:**
-| Typ | Groesse | Aliase |
+| Typ | Größe | Aliase |
 |-----|---------|--------|
 | `i8` | 1 | - |
 | `i16` | 2 | - |
@@ -758,13 +758,13 @@ print(sizeof("i32"));    // 4
 | `rune` | 4 | - |
 | `bool` | 1 | - |
 
-**Siehe auch:** `talloc()` fuer typisierte Allokation
+**Siehe auch:** `talloc()` für typisierte Allokation
 
 ---
 
 ### talloc
 
-Allokiert Speicher fuer ein typisiertes Array (typbewusste Allokation).
+Allokiert Speicher für ein typisiertes Array (typbewusste Allokation).
 
 **Signatur:**
 ```hemlock
@@ -775,7 +775,7 @@ talloc(type, count: i32): ptr
 - `type` - Eine Typkonstante (`i32`, `f64`, `ptr`, etc.)
 - `count` - Anzahl der zu allokierenden Elemente
 
-**Rueckgabe:** `ptr` zum allokierten Speicher, oder `null` bei Fehlschlag
+**Rückgabe:** `ptr` zum allokierten Speicher, oder `null` bei Fehlschlag
 
 **Beispiele:**
 ```hemlock
@@ -798,7 +798,7 @@ free(byte_arr);
 
 **Vergleich mit alloc:**
 ```hemlock
-// Diese sind aequivalent:
+// Diese sind äquivalent:
 let p1 = talloc(i32, 10);      // Typbewusst: 10 i32s
 let p2 = alloc(sizeof(i32) * 10);  // Manuelle Berechnung
 
@@ -806,7 +806,7 @@ let p2 = alloc(sizeof(i32) * 10);  // Manuelle Berechnung
 ```
 
 **Fehlerbehandlung:**
-- Gibt `null` zurueck wenn Allokation fehlschlaegt
+- Gibt `null` zurück wenn Allokation fehlschlaegt
 - Beendet mit Fehler wenn count nicht positiv ist
 - Prueft auf Groessenueberlauf (count * element_size)
 
@@ -816,7 +816,7 @@ let p2 = alloc(sizeof(i32) * 10);  // Manuelle Berechnung
 
 ## FFI-Pointer-Hilfsfunktionen
 
-Diese Funktionen helfen beim Lesen und Schreiben von typisierten Werten im Rohspeicher, nuetzlich fuer FFI und Low-Level-Speichermanipulation.
+Diese Funktionen helfen beim Lesen und Schreiben von typisierten Werten im Rohspeicher, nützlich für FFI und Low-Level-Speichermanipulation.
 
 ### ptr_null
 
@@ -827,7 +827,7 @@ Erstellt einen Null-Pointer.
 ptr_null(): ptr
 ```
 
-**Rueckgabe:** Ein Null-Pointer
+**Rückgabe:** Ein Null-Pointer
 
 **Beispiel:**
 ```hemlock
@@ -851,9 +851,9 @@ ptr_offset(ptr: ptr, index: i32, element_size: i32): ptr
 **Parameter:**
 - `ptr` - Basis-Pointer
 - `index` - Element-Index
-- `element_size` - Groesse jedes Elements in Bytes
+- `element_size` - Größe jedes Elements in Bytes
 
-**Rueckgabe:** Pointer zum Element am gegebenen Index
+**Rückgabe:** Pointer zum Element am gegebenen Index
 
 **Beispiel:**
 ```hemlock
@@ -872,7 +872,7 @@ free(arr);
 
 Liest typisierte Werte aus dem Speicher.
 
-| Funktion | Signatur | Rueckgabe | Beschreibung |
+| Funktion | Signatur | Rückgabe | Beschreibung |
 |----------|----------|-----------|--------------|
 | `ptr_read_i8` | `(ptr)` | `i8` | Liest vorzeichenbehaftete 8-Bit-Ganzzahl |
 | `ptr_read_i16` | `(ptr)` | `i16` | Liest vorzeichenbehaftete 16-Bit-Ganzzahl |
@@ -901,7 +901,7 @@ free(p);
 
 Schreibt typisierte Werte in den Speicher.
 
-| Funktion | Signatur | Rueckgabe | Beschreibung |
+| Funktion | Signatur | Rückgabe | Beschreibung |
 |----------|----------|-----------|--------------|
 | `ptr_write_i8` | `(ptr, value)` | `null` | Schreibt vorzeichenbehaftete 8-Bit-Ganzzahl |
 | `ptr_write_i16` | `(ptr, value)` | `null` | Schreibt vorzeichenbehaftete 16-Bit-Ganzzahl |
@@ -964,14 +964,14 @@ buf[0] = 65;  // Hat jetzt Grenzenprüfung
 
 ## Datei-I/O-Funktionen
 
-Siehe [Datei-API](file-api.md) fuer vollstaendige Referenz:
-- `open(path, mode?)` - Datei oeffnen
+Siehe [Datei-API](file-api.md) für vollständige Referenz:
+- `open(path, mode?)` - Datei öffnen
 
 ---
 
 ## Nebenlaeufigkeitsfunktionen
 
-Siehe [Nebenlaeufigkeits-API](concurrency-api.md) fuer vollstaendige Referenz:
+Siehe [Nebenlaeufigkeits-API](concurrency-api.md) für vollständige Referenz:
 - `spawn(fn, args...)` - Task starten
 - `join(task)` - Auf Task warten
 - `detach(task)` - Task ablösen
@@ -988,9 +988,9 @@ apply(fn: function, args: array): any
 
 **Parameter:**
 - `fn` - Die aufzurufende Funktion
-- `args` - Array von Argumenten die an die Funktion uebergeben werden
+- `args` - Array von Argumenten die an die Funktion übergeben werden
 
-**Rueckgabe:** Der Rueckgabewert der aufgerufenen Funktion
+**Rückgabe:** Der Rückgabewert der aufgerufenen Funktion
 
 **Beispiele:**
 ```hemlock
@@ -1040,7 +1040,7 @@ print(apply(sum, numbers));  // 15
 
 ### select
 
-Wartet auf Daten von mehreren Kanaelen, gibt zurueck wenn einer Daten hat.
+Wartet auf Daten von mehreren Kanaelen, gibt zurück wenn einer Daten hat.
 
 **Signatur:**
 ```hemlock
@@ -1049,9 +1049,9 @@ select(channels: array, timeout_ms?: i32): object | null
 
 **Parameter:**
 - `channels` - Array von Kanalwerten
-- `timeout_ms` (optional) - Timeout in Millisekunden (-1 oder weglassen fuer unendlich)
+- `timeout_ms` (optional) - Timeout in Millisekunden (-1 oder weglassen für unendlich)
 
-**Rueckgabe:**
+**Rückgabe:**
 - `{ channel, value }` - Objekt mit dem Kanal der Daten hatte und dem empfangenen Wert
 - `null` - Bei Timeout
 
@@ -1087,7 +1087,7 @@ if (result2 == null) {
 while (true) {
     let msg = select([ch1, ch2], 5000);
     if (msg == null) {
-        print("Keine Aktivitaet fuer 5 Sekunden");
+        print("Keine Aktivitaet für 5 Sekunden");
         break;
     }
     print("Nachricht erhalten:", msg.value);
@@ -1095,10 +1095,10 @@ while (true) {
 ```
 
 **Verhalten:**
-- Blockiert bis ein Kanal Daten hat oder Timeout ablaeuft
-- Gibt sofort zurueck wenn ein Kanal bereits Daten hat
-- Wenn Kanal geschlossen und leer ist, gibt `{ channel, value: null }` zurueck
-- Prueft Kanaele der Reihe nach (erster bereiter Kanal gewinnt)
+- Blockiert bis ein Kanal Daten hat oder Timeout abläuft
+- Gibt sofort zurück wenn ein Kanal bereits Daten hat
+- Wenn Kanal geschlossen und leer ist, gibt `{ channel, value: null }` zurück
+- Prueft Kanäle der Reihe nach (erster bereiter Kanal gewinnt)
 
 **Anwendungsfaelle:**
 - Multiplexen mehrerer Produzenten
@@ -1111,15 +1111,15 @@ while (true) {
 
 ### Funktionen
 
-| Funktion   | Kategorie       | Rueckgabe    | Beschreibung                     |
+| Funktion   | Kategorie       | Rückgabe    | Beschreibung                     |
 |------------|-----------------|--------------|----------------------------------|
 | `print`    | I/O             | `null`       | Auf stdout ausgeben              |
 | `read_line`| I/O             | `string?`    | Zeile von stdin lesen            |
 | `eprint`   | I/O             | `null`       | Auf stderr ausgeben              |
 | `typeof`   | Typ             | `string`     | Typname holen                    |
-| `exec`     | Befehl          | `object`     | Shell-Befehl ausfuehren          |
-| `exec_argv`| Befehl          | `object`     | Mit Argument-Array ausfuehren    |
-| `assert`   | Fehler          | `null`       | Bedingung pruefen oder beenden   |
+| `exec`     | Befehl          | `object`     | Shell-Befehl ausführen          |
+| `exec_argv`| Befehl          | `object`     | Mit Argument-Array ausführen    |
+| `assert`   | Fehler          | `null`       | Bedingung prüfen oder beenden   |
 | `panic`    | Fehler          | `never`      | Nicht wiederherstellbarer Fehler (beendet) |
 | `signal`   | Signal          | `function?`  | Signal-Handler registrieren      |
 | `raise`    | Signal          | `null`       | Signal an Prozess senden         |
@@ -1131,12 +1131,12 @@ while (true) {
 | `memset`   | Speicher        | `null`       | Speicher fuellen                 |
 | `memcpy`   | Speicher        | `null`       | Speicher kopieren                |
 | `realloc`  | Speicher        | `ptr`        | Allokation vergroessern          |
-| `open`     | Datei-I/O       | `file`       | Datei oeffnen                    |
-| `spawn`    | Nebenlaeufigkeit| `task`       | Nebenlaeufigen Task starten      |
-| `join`     | Nebenlaeufigkeit| `any`        | Auf Task-Ergebnis warten         |
-| `detach`   | Nebenlaeufigkeit| `null`       | Task abloesen                    |
-| `channel`  | Nebenlaeufigkeit| `channel`    | Kommunikationskanal erstellen    |
-| `select`   | Nebenlaeufigkeit| `object?`    | Auf mehrere Kanaele warten       |
+| `open`     | Datei-I/O       | `file`       | Datei öffnen                    |
+| `spawn`    | Nebenläufigkeit| `task`       | Nebenlaeufigen Task starten      |
+| `join`     | Nebenläufigkeit| `any`        | Auf Task-Ergebnis warten         |
+| `detach`   | Nebenläufigkeit| `null`       | Task abloesen                    |
+| `channel`  | Nebenläufigkeit| `channel`    | Kommunikationskanal erstellen    |
+| `select`   | Nebenläufigkeit| `object?`    | Auf mehrere Kanäle warten       |
 | `apply`    | Funktionen      | `any`        | Funktion mit Args-Array aufrufen |
 
 ### Globale Variablen
