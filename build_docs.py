@@ -39,6 +39,7 @@ SUPPORTED_LANGUAGES = {
     'zh': '中文',
     'de': 'Deutsch',
     'es': 'Español',
+    'ja': '日本語',
 }
 
 # Section name translations
@@ -84,6 +85,20 @@ SECTION_TRANSLATIONS = {
         'hpm: Package Development': 'hpm: Desarrollo de Paquetes',
         'hpm: Reference': 'hpm: Referencia',
         'hpm: Other': 'hpm: Otros',
+    },
+    'ja': {
+        'Language Reference': '言語リファレンス',
+        'Getting Started': 'はじめに',
+        'Language Guide': '言語ガイド',
+        'Advanced Topics': '高度なトピック',
+        'API Reference': 'APIリファレンス',
+        'Design & Philosophy': '設計と思想',
+        'Contributing': 'コントリビューション',
+        'hpm: Getting Started': 'hpm: はじめに',
+        'hpm: User Guide': 'hpm: ユーザーガイド',
+        'hpm: Package Development': 'hpm: パッケージ開発',
+        'hpm: Reference': 'hpm: リファレンス',
+        'hpm: Other': 'hpm: その他',
     }
 }
 
@@ -256,6 +271,62 @@ TITLE_TRANSLATIONS = {
         'Versioning': 'Versionado',
         'Architecture': 'Arquitectura',
         'Exit Codes': 'Códigos de Salida',
+    },
+    'ja': {
+        # Getting Started
+        'Installation': 'インストール',
+        'Quick Start': 'クイックスタート',
+        'Tutorial': 'チュートリアル',
+        'Learning Paths': '学習パス',
+        # Language Guide
+        'Syntax': '構文',
+        'Types': '型',
+        'Functions': '関数',
+        'Arrays': '配列',
+        'Strings': '文字列',
+        'Objects': 'オブジェクト',
+        'Control Flow': '制御フロー',
+        'Error Handling': 'エラー処理',
+        'Modules': 'モジュール',
+        'Memory': 'メモリ管理',
+        'Pattern Matching': 'パターンマッチング',
+        'Runes': 'ルーン',
+        # Advanced
+        'Async Concurrency': '非同期と並行処理',
+        'Atomics': 'アトミック操作',
+        'Bundling Packaging': 'バンドルとパッケージング',
+        'Command Execution': 'コマンド実行',
+        'Command Line Args': 'コマンドライン引数',
+        'Ffi': 'FFI（外部関数インターフェース）',
+        'File Io': 'ファイルI/O',
+        'Profiling': 'プロファイリング',
+        'Signals': 'シグナル処理',
+        # Reference
+        'Array API': '配列API',
+        'String API': '文字列API',
+        'File API': 'ファイルAPI',
+        'Memory API': 'メモリAPI',
+        'Concurrency API': '並行処理API',
+        'Builtins': '組み込み関数',
+        'Operators': '演算子',
+        'Type System': '型システム',
+        # Design
+        'Philosophy': '設計思想',
+        'Implementation': '実装の詳細',
+        'Signature Syntax': 'シグネチャ構文',
+        # Contributing
+        'Guidelines': 'ガイドライン',
+        'Testing': 'テスト',
+        # hpm docs
+        'Commands': 'コマンド',
+        'Configuration': '設定',
+        'Project Setup': 'プロジェクトセットアップ',
+        'Troubleshooting': 'トラブルシューティング',
+        'Creating Packages': 'パッケージの作成',
+        'Package Spec': 'パッケージ仕様',
+        'Versioning': 'バージョニング',
+        'Architecture': 'アーキテクチャ',
+        'Exit Codes': '終了コード',
     }
 }
 
@@ -608,6 +679,7 @@ def generate_html(docs, logo_data, lang='en'):
         'zh': 'Hemlock 语言手册',
         'de': 'Hemlock-Sprachhandbuch',
         'es': 'Manual del Lenguaje Hemlock',
+        'ja': 'Hemlock言語マニュアル',
     }
     page_title = titles.get(lang, titles['en'])
 
