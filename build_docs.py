@@ -2101,7 +2101,7 @@ def generate_html(docs, logo_data, lang='en'):
     return html
 
 
-def generate_llm_txt(docs):
+def generate_llm_txt(docs, lang='en'):
     """Generate LLM-friendly plain text documentation.
 
     Creates a single text file optimized for LLM context windows:
@@ -2112,13 +2112,29 @@ def generate_llm_txt(docs):
     """
     lines = []
 
+    # Language-specific header text
+    lang_name = SUPPORTED_LANGUAGES.get(lang, 'English')
+    if lang == 'en':
+        title = "HEMLOCK PROGRAMMING LANGUAGE - COMPLETE DOCUMENTATION"
+        description = [
+            "This file contains the complete documentation for the Hemlock programming",
+            "language and the hpm package manager. It is optimized for LLM consumption."
+        ]
+    else:
+        title = f"HEMLOCK PROGRAMMING LANGUAGE - COMPLETE DOCUMENTATION ({lang_name})"
+        description = [
+            f"This file contains the complete documentation for the Hemlock programming",
+            f"language and the hpm package manager in {lang_name}.",
+            "It is optimized for LLM consumption."
+        ]
+
     # Header
     lines.append("=" * 80)
-    lines.append("HEMLOCK PROGRAMMING LANGUAGE - COMPLETE DOCUMENTATION")
+    lines.append(title)
     lines.append("=" * 80)
     lines.append("")
-    lines.append("This file contains the complete documentation for the Hemlock programming")
-    lines.append("language and the hpm package manager. It is optimized for LLM consumption.")
+    for line in description:
+        lines.append(line)
     lines.append("")
     lines.append("Source: https://github.com/hemlang/hem-doc")
     lines.append("")
@@ -2273,24 +2289,30 @@ def main():
 
     # Build for each language
     success_count = 0
-    english_docs = None
+    built_docs = {}  # Store docs for each language
     for lang in languages:
         success, docs = build_for_language(lang, logo_data)
         if success:
             success_count += 1
-            if lang == 'en':
-                english_docs = docs
+            built_docs[lang] = docs
 
-    # Generate LLM-friendly documentation (only for English)
-    if english_docs:
+    # Generate LLM-friendly documentation for all languages
+    if built_docs:
         print("\nGenerating LLM-friendly documentation...")
-        llm_txt = generate_llm_txt(english_docs)
+        for lang, docs in built_docs.items():
+            llm_txt = generate_llm_txt(docs, lang)
 
-        with open(LLM_OUTPUT_FILE, 'w', encoding='utf-8') as f:
-            f.write(llm_txt)
+            # Determine output file (llms.txt for English, llms-{lang}.txt for others)
+            if lang == 'en':
+                llm_file = LLM_OUTPUT_FILE
+            else:
+                llm_file = Path(__file__).parent / f'llms-{lang}.txt'
 
-        print(f"LLM documentation built: {LLM_OUTPUT_FILE}")
-        print(f"  - {len(llm_txt)} characters")
+            with open(llm_file, 'w', encoding='utf-8') as f:
+                f.write(llm_txt)
+
+            lang_name = SUPPORTED_LANGUAGES.get(lang, lang)
+            print(f"  {lang_name}: {llm_file.name} ({len(llm_txt)} characters)")
 
     print(f"\nBuild complete: {success_count}/{len(languages)} languages built successfully")
 
