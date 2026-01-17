@@ -27,6 +27,7 @@ import { args } from "@stdlib/env";
 let HEMLOCK_DIR = "hemlock";
 let HPM_DIR = "hpm";
 let TRANSLATIONS_DIR = "translations";
+let WELCOME_DIR = "welcome";
 
 // Supported languages with display names
 let SUPPORTED_LANGUAGES = {
@@ -34,7 +35,8 @@ let SUPPORTED_LANGUAGES = {
     zh: "中文",
     de: "Deutsch",
     es: "Español",
-    ja: "日本語"
+    ja: "日本語",
+    pt: "Português"
 };
 
 // Section name translations
@@ -94,6 +96,20 @@ let SECTION_TRANSLATIONS = {
         "hpm: Package Development": "hpm: パッケージ開発",
         "hpm: Reference": "hpm: リファレンス",
         "hpm: Other": "hpm: その他"
+    },
+    pt: {
+        "Language Reference": "Referência da Linguagem",
+        "Getting Started": "Primeiros Passos",
+        "Language Guide": "Guia da Linguagem",
+        "Advanced Topics": "Tópicos Avançados",
+        "API Reference": "Referência da API",
+        "Design & Philosophy": "Design e Filosofia",
+        "Contributing": "Contribuição",
+        "hpm: Getting Started": "hpm: Primeiros Passos",
+        "hpm: User Guide": "hpm: Guia do Usuário",
+        "hpm: Package Development": "hpm: Desenvolvimento de Pacotes",
+        "hpm: Reference": "hpm: Referência",
+        "hpm: Other": "hpm: Outros"
     }
 };
 
@@ -294,6 +310,55 @@ let TITLE_TRANSLATIONS = {
         "Versioning": "バージョニング",
         "Architecture": "アーキテクチャ",
         "Exit Codes": "終了コード"
+    },
+    pt: {
+        "Installation": "Instalação",
+        "Quick Start": "Início Rápido",
+        "Tutorial": "Tutorial",
+        "Learning Paths": "Caminhos de Aprendizado",
+        "Syntax": "Sintaxe",
+        "Types": "Tipos",
+        "Functions": "Funções",
+        "Arrays": "Arrays",
+        "Strings": "Strings",
+        "Objects": "Objetos",
+        "Control Flow": "Fluxo de Controle",
+        "Error Handling": "Tratamento de Erros",
+        "Modules": "Módulos",
+        "Memory": "Gerenciamento de Memória",
+        "Pattern Matching": "Correspondência de Padrões",
+        "Runes": "Runas",
+        "Async Concurrency": "Assincronismo e Concorrência",
+        "Atomics": "Operações Atômicas",
+        "Bundling Packaging": "Empacotamento e Distribuição",
+        "Command Execution": "Execução de Comandos",
+        "Command Line Args": "Argumentos de Linha de Comando",
+        "FFI": "FFI (Interface de Funções Estrangeiras)",
+        "File IO": "E/S de Arquivos",
+        "Profiling": "Perfilamento",
+        "Signals": "Sinais",
+        "Array API": "API de Arrays",
+        "String API": "API de Strings",
+        "File API": "API de Arquivos",
+        "Memory API": "API de Memória",
+        "Concurrency API": "API de Concorrência",
+        "Builtins": "Funções Integradas",
+        "Operators": "Operadores",
+        "Type System": "Sistema de Tipos",
+        "Philosophy": "Filosofia",
+        "Implementation": "Implementação",
+        "Signature Syntax": "Sintaxe de Assinaturas",
+        "Guidelines": "Diretrizes",
+        "Testing": "Testes",
+        "Commands": "Comandos",
+        "Configuration": "Configuração",
+        "Project Setup": "Configuração do Projeto",
+        "Troubleshooting": "Solução de Problemas",
+        "Creating Packages": "Criação de Pacotes",
+        "Package Spec": "Especificação de Pacotes",
+        "Versioning": "Versionamento",
+        "Architecture": "Arquitetura",
+        "Exit Codes": "Códigos de Saída"
     }
 };
 
@@ -303,7 +368,18 @@ let PAGE_TITLES = {
     zh: "Hemlock 语言手册",
     de: "Hemlock-Sprachhandbuch",
     es: "Manual del Lenguaje Hemlock",
-    ja: "Hemlock言語マニュアル"
+    ja: "Hemlock言語マニュアル",
+    pt: "Manual da Linguagem Hemlock"
+};
+
+// Welcome page title translations
+let WELCOME_TITLE_TRANSLATIONS = {
+    en: "Welcome",
+    zh: "欢迎",
+    de: "Willkommen",
+    es: "Bienvenido",
+    ja: "ようこそ",
+    pt: "Bem-vindo"
 };
 
 // Translate a section name to the target language
@@ -558,6 +634,26 @@ fn collect_docs(lang: string) {
     let docs = {};
     let translation_stats = { translated: 0, fallback: 0 };
 
+    // Add Welcome page first (from welcome/ directory)
+    let welcome_file = WELCOME_DIR + "/" + lang + ".md";
+    if (!exists(welcome_file)) {
+        welcome_file = WELCOME_DIR + "/en.md";  // Fallback to English
+    }
+    if (exists(welcome_file)) {
+        let welcome_content = safe_read_file(welcome_file);
+        let welcome_title = WELCOME_TITLE_TRANSLATIONS[lang];
+        if (welcome_title == null) {
+            welcome_title = WELCOME_TITLE_TRANSLATIONS["en"];
+        }
+        docs[welcome_title] = {
+            id: "welcome",
+            content: welcome_content,
+            order: -1,
+            section: ""
+        };
+        translation_stats.translated = translation_stats.translated + 1;
+    }
+
     // Add CLAUDE.md as the main documentation
     let claude_path = HEMLOCK_DIR + "/CLAUDE.md";
     if (exists(claude_path)) {
@@ -708,7 +804,16 @@ fn collect_docs(lang: string) {
 fn get_sorted_doc_keys(docs, lang: string) {
     let keys = [];
 
-    // Add Language Reference first if it exists
+    // Add Welcome page first if it exists
+    let welcome_title = WELCOME_TITLE_TRANSLATIONS[lang];
+    if (welcome_title == null) {
+        welcome_title = WELCOME_TITLE_TRANSLATIONS["en"];
+    }
+    if (docs[welcome_title] != null) {
+        keys.push(welcome_title);
+    }
+
+    // Add Language Reference next if it exists
     let lang_ref_title = translate_section("Language Reference", lang);
     if (docs[lang_ref_title] != null) {
         keys.push(lang_ref_title);
@@ -844,7 +949,7 @@ fn generate_pages_json(docs: object, sorted_keys: array): string {
 // Generate language switcher options HTML
 fn generate_lang_options(current_lang: string): string {
     let options = [];
-    let langs = ["en", "zh", "de", "es", "ja"];
+    let langs = ["en", "zh", "de", "es", "ja", "pt"];
 
     let i = 0;
     while (i < langs.length) {
@@ -2524,12 +2629,12 @@ fn main() {
     // Determine which languages to build
     let languages = [];
     if (lang == "all") {
-        languages = ["en", "zh", "de", "es", "ja"];
+        languages = ["en", "zh", "de", "es", "ja", "pt"];
     } else if (SUPPORTED_LANGUAGES[lang] != null) {
         languages = [lang];
     } else {
         print("Error: Unknown language '" + lang + "'");
-        print("Supported languages: en, zh, de, es, ja");
+        print("Supported languages: en, zh, de, es, ja, pt");
         exit(1);
     }
 
@@ -2554,7 +2659,7 @@ fn main() {
     // Generate LLM-friendly documentation for all languages
     if (success_count > 0) {
         print("\nGenerating LLM-friendly documentation...");
-        let langs_built = ["en", "zh", "de", "es", "ja"];
+        let langs_built = ["en", "zh", "de", "es", "ja", "pt"];
         let j = 0;
         while (j < langs_built.length) {
             let llm_lang = langs_built[j];
