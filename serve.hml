@@ -5,7 +5,7 @@ import { App } from "hemlang/sprout";
 import { read_file } from "@stdlib/fs";
 
 // Supported languages for documentation
-let supported_langs = ["en", "de", "es", "ja", "pt", "zh"];
+let supported_langs = ["en", "de", "es", "fr", "ja", "pt", "zh"];
 
 // Read the docs HTML at startup
 let docs_html = read_file("docs.html");
@@ -24,6 +24,11 @@ if (docs_de == null) {
 let docs_es = read_file("docs-es.html");
 if (docs_es == null) {
     print("Warning: docs-es.html not found, Spanish docs will fall back to English");
+}
+
+let docs_fr = read_file("docs-fr.html");
+if (docs_fr == null) {
+    print("Warning: docs-fr.html not found, French docs will fall back to English");
 }
 
 let docs_zh = read_file("docs-zh.html");
@@ -56,6 +61,11 @@ if (llms_de == null) {
 let llms_es = read_file("llms-es.txt");
 if (llms_es == null) {
     print("Warning: llms-es.txt not found, Spanish LLM docs will fall back to English");
+}
+
+let llms_fr = read_file("llms-fr.txt");
+if (llms_fr == null) {
+    print("Warning: llms-fr.txt not found, French LLM docs will fall back to English");
 }
 
 let llms_zh = read_file("llms-zh.txt");
@@ -97,6 +107,15 @@ app.get("/docs-de.html", fn(req, res, next) {
 app.get("/docs-es.html", fn(req, res, next) {
     if (docs_es != null) {
         res.type("html").send(docs_es);
+    } else {
+        res.type("html").send(docs_html);
+    }
+});
+
+// Serve French documentation
+app.get("/docs-fr.html", fn(req, res, next) {
+    if (docs_fr != null) {
+        res.type("html").send(docs_fr);
     } else {
         res.type("html").send(docs_html);
     }
@@ -160,6 +179,17 @@ app.get("/llms-es.txt", fn(req, res, next) {
     }
 });
 
+// Serve French LLM documentation
+app.get("/llms-fr.txt", fn(req, res, next) {
+    if (llms_fr != null) {
+        res.type("text").send(llms_fr);
+    } else if (llms_txt != null) {
+        res.type("text").send(llms_txt);
+    } else {
+        res.status(404).type("text").send("llms-fr.txt not found. Run 'make docs' to generate it.");
+    }
+});
+
 // Serve Chinese LLM documentation
 app.get("/llms-zh.txt", fn(req, res, next) {
     if (llms_zh != null) {
@@ -200,12 +230,14 @@ app.get("/health", fn(req, res, next) {
         docs_size: docs_html.length,
         docs_de_size: docs_de != null ? docs_de.length : 0,
         docs_es_size: docs_es != null ? docs_es.length : 0,
+        docs_fr_size: docs_fr != null ? docs_fr.length : 0,
         docs_ja_size: docs_ja != null ? docs_ja.length : 0,
         docs_pt_size: docs_pt != null ? docs_pt.length : 0,
         docs_zh_size: docs_zh != null ? docs_zh.length : 0,
         llms_size: llms_txt != null ? llms_txt.length : 0,
         llms_de_size: llms_de != null ? llms_de.length : 0,
         llms_es_size: llms_es != null ? llms_es.length : 0,
+        llms_fr_size: llms_fr != null ? llms_fr.length : 0,
         llms_ja_size: llms_ja != null ? llms_ja.length : 0,
         llms_pt_size: llms_pt != null ? llms_pt.length : 0,
         llms_zh_size: llms_zh != null ? llms_zh.length : 0
@@ -221,6 +253,7 @@ app.listen(port, fn() {
     print("  English:    http://localhost:" + port + "/");
     print("  German:     http://localhost:" + port + "/docs-de.html");
     print("  Spanish:    http://localhost:" + port + "/docs-es.html");
+    print("  French:     http://localhost:" + port + "/docs-fr.html");
     print("  Japanese:   http://localhost:" + port + "/docs-ja.html");
     print("  Portuguese: http://localhost:" + port + "/docs-pt.html");
     print("  Chinese:    http://localhost:" + port + "/docs-zh.html");
@@ -228,6 +261,7 @@ app.listen(port, fn() {
     print("  English:    http://localhost:" + port + "/llms.txt");
     print("  German:     http://localhost:" + port + "/llms-de.txt");
     print("  Spanish:    http://localhost:" + port + "/llms-es.txt");
+    print("  French:     http://localhost:" + port + "/llms-fr.txt");
     print("  Japanese:   http://localhost:" + port + "/llms-ja.txt");
     print("  Portuguese: http://localhost:" + port + "/llms-pt.txt");
     print("  Chinese:    http://localhost:" + port + "/llms-zh.txt");
