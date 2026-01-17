@@ -57,6 +57,66 @@ SECTION_TRANSLATIONS = {
     }
 }
 
+# Page title translations
+TITLE_TRANSLATIONS = {
+    'zh': {
+        # Getting Started
+        'Installation': '安装',
+        'Quick Start': '快速开始',
+        'Tutorial': '教程',
+        'Learning Paths': '学习路径',
+        # Language Guide
+        'Syntax': '语法',
+        'Types': '类型',
+        'Functions': '函数',
+        'Arrays': '数组',
+        'Strings': '字符串',
+        'Objects': '对象',
+        'Control Flow': '控制流',
+        'Error Handling': '错误处理',
+        'Modules': '模块',
+        'Memory': '内存管理',
+        'Pattern Matching': '模式匹配',
+        'Runes': '字符(Rune)',
+        # Advanced
+        'Async Concurrency': '异步与并发',
+        'Atomics': '原子操作',
+        'Bundling Packaging': '打包与发布',
+        'Command Execution': '命令执行',
+        'Command Line Args': '命令行参数',
+        'Ffi': 'FFI (外部函数接口)',
+        'File Io': '文件 I/O',
+        'Profiling': '性能分析',
+        'Signals': '信号处理',
+        # Reference
+        'Array API': '数组 API',
+        'String API': '字符串 API',
+        'File API': '文件 API',
+        'Memory API': '内存 API',
+        'Concurrency API': '并发 API',
+        'Builtins': '内置函数',
+        'Operators': '运算符',
+        'Type System': '类型系统',
+        # Design
+        'Philosophy': '设计理念',
+        'Implementation': '实现细节',
+        'Signature Syntax': '签名语法',
+        # Contributing
+        'Guidelines': '贡献指南',
+        'Testing': '测试',
+        # hpm docs
+        'Commands': '命令',
+        'Configuration': '配置',
+        'Project Setup': '项目设置',
+        'Troubleshooting': '故障排除',
+        'Creating Packages': '创建包',
+        'Package Spec': '包规范',
+        'Versioning': '版本控制',
+        'Architecture': '架构',
+        'Exit Codes': '退出码',
+    }
+}
+
 # Current build language
 CURRENT_LANG = 'en'
 
@@ -67,6 +127,14 @@ def translate_section(section_name, lang):
         return section_name
     translations = SECTION_TRANSLATIONS.get(lang, {})
     return translations.get(section_name, section_name)
+
+
+def translate_title(title, lang):
+    """Translate a page title to the target language."""
+    if lang == 'en':
+        return title
+    translations = TITLE_TRANSLATIONS.get(lang, {})
+    return translations.get(title, title)
 
 
 def read_file(path):
@@ -235,14 +303,15 @@ def collect_docs(lang='en'):
                     continue
 
                 file_name = md_file.stem
-                # Convert filename to title
+                # Convert filename to title and translate
                 title = smart_title(file_name)
+                translated_title = translate_title(title, lang)
                 doc_id = f"{subdir}-{file_name}"
 
                 content, is_translated = read_file_with_translation(md_file, lang)
                 content = convert_md_links(content, subdir)
 
-                docs[f"{translated_section} -> {title}"] = {
+                docs[f"{translated_section} -> {translated_title}"] = {
                     'id': doc_id,
                     'content': content,
                     'order': order,
@@ -291,12 +360,13 @@ def collect_docs(lang='en'):
 
             translated_section = translate_section(section_name, lang)
             title = smart_title(file_name)
+            translated_title = translate_title(title, lang)
             doc_id = f"hpm-{file_name}"
 
             content, is_translated = read_file_with_translation(md_file, lang)
             content = convert_md_links(content, f"hpm-{file_name}")
 
-            docs[f"{translated_section} -> {title}"] = {
+            docs[f"{translated_section} -> {translated_title}"] = {
                 'id': doc_id,
                 'content': content,
                 'order': order,
