@@ -1,16 +1,16 @@
-# Creating Packages
+# 创建包
 
-This guide covers how to create, structure, and publish Hemlock packages.
+本指南介绍如何创建、组织和发布 Hemlock 包。
 
-## Overview
+## 概述
 
-hpm uses GitHub as its package registry. Packages are identified by their GitHub `owner/repo` path, and versions are Git tags. Publishing is simply pushing a tagged release.
+hpm 使用 GitHub 作为其包注册表。包通过其 GitHub `owner/repo` 路径标识，版本是 Git 标签。发布只需推送带标签的发布版本。
 
-## Creating a New Package
+## 创建新包
 
-### 1. Initialize the Package
+### 1. 初始化包
 
-Create a new directory and initialize:
+创建新目录并初始化：
 
 ```bash
 mkdir my-package
@@ -18,7 +18,7 @@ cd my-package
 hpm init
 ```
 
-Answer the prompts:
+回答提示：
 
 ```
 Package name (owner/repo): yourusername/my-package
@@ -31,27 +31,27 @@ Main file (src/index.hml):
 Created package.json
 ```
 
-### 2. Create the Project Structure
+### 2. 创建项目结构
 
-Recommended structure for packages:
+包的推荐结构：
 
 ```
 my-package/
-├── package.json          # Package manifest
-├── README.md             # Documentation
-├── LICENSE               # License file
+├── package.json          # 包清单
+├── README.md             # 文档
+├── LICENSE               # 许可证文件
 ├── src/
-│   ├── index.hml         # Main entry point (exports public API)
-│   ├── utils.hml         # Internal utilities
-│   └── types.hml         # Type definitions
+│   ├── index.hml         # 主入口点（导出公共 API）
+│   ├── utils.hml         # 内部工具
+│   └── types.hml         # 类型定义
 └── test/
-    ├── framework.hml     # Test framework
-    └── test_utils.hml    # Tests
+    ├── framework.hml     # 测试框架
+    └── test_utils.hml    # 测试
 ```
 
-### 3. Define Your Public API
+### 3. 定义你的公共 API
 
-**src/index.hml** - Main entry point:
+**src/index.hml** - 主入口点：
 
 ```hemlock
 // Re-export public API
@@ -69,9 +69,9 @@ export fn validate(config: Config): bool {
 }
 ```
 
-### 4. Write Your package.json
+### 4. 编写你的 package.json
 
-Complete package.json example:
+完整的 package.json 示例：
 
 ```json
 {
@@ -101,16 +101,16 @@ Complete package.json example:
 }
 ```
 
-## Package Naming
+## 包命名
 
-### Requirements
+### 要求
 
-- Must be in `owner/repo` format
-- `owner` should be your GitHub username or organization
-- `repo` should be the repository name
-- Use lowercase with hyphens for multi-word names
+- 必须是 `owner/repo` 格式
+- `owner` 应该是你的 GitHub 用户名或组织
+- `repo` 应该是仓库名称
+- 多词名称使用小写字母和连字符
 
-### Good Names
+### 好的名称
 
 ```
 hemlang/sprout
@@ -119,19 +119,19 @@ myorg/json-utils
 bob/date-formatter
 ```
 
-### Avoid
+### 避免
 
 ```
-my-package          # Missing owner
+my-package          # 缺少 owner
 alice/MyPackage     # PascalCase
-alice/my_package    # Underscores
+alice/my_package    # 下划线
 ```
 
-## Package Structure Best Practices
+## 包结构最佳实践
 
-### Entry Point
+### 入口点
 
-The `main` field in package.json specifies the entry point:
+package.json 中的 `main` 字段指定入口点：
 
 ```json
 {
@@ -139,7 +139,7 @@ The `main` field in package.json specifies the entry point:
 }
 ```
 
-This file should export your public API:
+此文件应导出你的公共 API：
 
 ```hemlock
 // Export everything users need
@@ -150,21 +150,21 @@ export { Formatter, format } from "./formatter.hml";
 export type { Config, Options } from "./types.hml";
 ```
 
-### Internal vs Public
+### 内部与公共
 
-Keep internal implementation details private:
+保持内部实现细节私有：
 
 ```
 src/
-├── index.hml          # Public: exported API
-├── parser.hml         # Public: used by index.hml
-├── formatter.hml      # Public: used by index.hml
+├── index.hml          # 公共：导出的 API
+├── parser.hml         # 公共：被 index.hml 使用
+├── formatter.hml      # 公共：被 index.hml 使用
 └── internal/
-    ├── helpers.hml    # Private: internal use only
-    └── constants.hml  # Private: internal use only
+    ├── helpers.hml    # 私有：仅供内部使用
+    └── constants.hml  # 私有：仅供内部使用
 ```
 
-Users import from your package root:
+用户从你的包根目录导入：
 
 ```hemlock
 // Good - imports from public API
@@ -177,13 +177,13 @@ import { validate } from "yourusername/my-package/validator";
 import { helper } from "yourusername/my-package/internal/helpers";
 ```
 
-### Subpath Exports
+### 子路径导出
 
-Support importing from subpaths:
+支持从子路径导入：
 
 ```
 src/
-├── index.hml              # Main entry
+├── index.hml              # 主入口
 ├── parser/
 │   └── index.hml          # yourusername/pkg/parser
 ├── formatter/
@@ -192,7 +192,7 @@ src/
     └── index.hml          # yourusername/pkg/utils
 ```
 
-Users can import:
+用户可以导入：
 
 ```hemlock
 import { parse } from "yourusername/my-package";           // Main
@@ -200,21 +200,21 @@ import { Parser } from "yourusername/my-package/parser";   // Subpath
 import { format } from "yourusername/my-package/formatter";
 ```
 
-## Dependencies
+## 依赖
 
-### Adding Dependencies
+### 添加依赖
 
 ```bash
-# Runtime dependency
+# 运行时依赖
 hpm install hemlang/json
 
-# Development dependency
+# 开发依赖
 hpm install hemlang/test-utils --dev
 ```
 
-### Dependency Best Practices
+### 依赖最佳实践
 
-1. **Use caret ranges** for most dependencies:
+1. **大多数依赖使用插入符范围**：
    ```json
    {
      "dependencies": {
@@ -223,7 +223,7 @@ hpm install hemlang/test-utils --dev
    }
    ```
 
-2. **Pin versions** only when necessary (API instability):
+2. **仅在必要时锁定版本**（API 不稳定）：
    ```json
    {
      "dependencies": {
@@ -232,7 +232,7 @@ hpm install hemlang/test-utils --dev
    }
    ```
 
-3. **Avoid overly restrictive ranges**:
+3. **避免过于严格的范围**：
    ```json
    // Bad: too restrictive
    "hemlang/json": ">=1.2.3 <1.2.5"
@@ -241,7 +241,7 @@ hpm install hemlang/test-utils --dev
    "hemlang/json": "^1.2.3"
    ```
 
-4. **Keep dev dependencies separate**:
+4. **分离开发依赖**：
    ```json
    {
      "dependencies": {
@@ -253,9 +253,9 @@ hpm install hemlang/test-utils --dev
    }
    ```
 
-## Testing Your Package
+## 测试你的包
 
-### Write Tests
+### 编写测试
 
 **test/run.hml:**
 
@@ -288,9 +288,9 @@ fn run_tests() {
 run_tests();
 ```
 
-### Run Tests
+### 运行测试
 
-Add a test script:
+添加测试脚本：
 
 ```json
 {
@@ -300,66 +300,66 @@ Add a test script:
 }
 ```
 
-Run with:
+运行：
 
 ```bash
 hpm test
 ```
 
-## Publishing
+## 发布
 
-### Prerequisites
+### 前提条件
 
-1. Create a GitHub repository matching your package name
-2. Ensure `package.json` is complete and valid
-3. All tests pass
+1. 创建与你的包名称匹配的 GitHub 仓库
+2. 确保 `package.json` 完整有效
+3. 所有测试通过
 
-### Publishing Process
+### 发布流程
 
-Publishing is simply pushing a Git tag:
+发布只需推送 Git 标签：
 
 ```bash
-# 1. Ensure everything is committed
+# 1. 确保所有内容已提交
 git add .
 git commit -m "Prepare v1.0.0 release"
 
-# 2. Create a version tag (must start with 'v')
+# 2. 创建版本标签（必须以 'v' 开头）
 git tag v1.0.0
 
-# 3. Push code and tags
+# 3. 推送代码和标签
 git push origin main
 git push origin v1.0.0
-# Or push all tags at once
+# 或一次推送所有标签
 git push origin main --tags
 ```
 
-### Version Tags
+### 版本标签
 
-Tags must follow the format `vX.Y.Z`:
+标签必须遵循 `vX.Y.Z` 格式：
 
 ```bash
-git tag v1.0.0      # Release
-git tag v1.0.1      # Patch
-git tag v1.1.0      # Minor
-git tag v2.0.0      # Major
-git tag v1.0.0-beta.1  # Pre-release
+git tag v1.0.0      # 发布版
+git tag v1.0.1      # 补丁
+git tag v1.1.0      # 次要版本
+git tag v2.0.0      # 主要版本
+git tag v1.0.0-beta.1  # 预发布
 ```
 
-### Release Checklist
+### 发布清单
 
-Before publishing a new version:
+发布新版本之前：
 
-1. **Update version** in package.json
-2. **Run tests**: `hpm test`
-3. **Update CHANGELOG** (if you have one)
-4. **Update README** if API changed
-5. **Commit changes**
-6. **Create tag**
-7. **Push to GitHub**
+1. **更新** package.json 中的版本
+2. **运行测试**：`hpm test`
+3. **更新 CHANGELOG**（如果有的话）
+4. **更新 README**（如果 API 改变了）
+5. **提交更改**
+6. **创建标签**
+7. **推送到 GitHub**
 
-### Automated Example
+### 自动化示例
 
-Create a release script:
+创建发布脚本：
 
 ```bash
 #!/bin/bash
@@ -389,32 +389,32 @@ git push origin main --tags
 echo "Released v$VERSION"
 ```
 
-## Users Installing Your Package
+## 用户安装你的包
 
-After publishing, users can install:
+发布后，用户可以安装：
 
 ```bash
-# Latest version
+# 最新版本
 hpm install yourusername/my-package
 
-# Specific version
+# 特定版本
 hpm install yourusername/my-package@1.0.0
 
-# Version constraint
+# 版本约束
 hpm install yourusername/my-package@^1.0.0
 ```
 
-And import:
+并导入：
 
 ```hemlock
 import { parse, stringify } from "yourusername/my-package";
 ```
 
-## Documentation
+## 文档
 
 ### README.md
 
-Every package should have a README:
+每个包都应该有 README：
 
 ```markdown
 # my-package
@@ -450,9 +450,9 @@ Converts object to string.
 MIT
 ```
 
-### API Documentation
+### API 文档
 
-Document all public exports:
+记录所有公共导出：
 
 ```hemlock
 /// Parses the input string into a structured Result.
@@ -473,29 +473,29 @@ export fn parse(input: string): Result {
 }
 ```
 
-## Versioning Guidelines
+## 版本指南
 
-Follow [Semantic Versioning](https://semver.org/):
+遵循[语义化版本](https://semver.org/)：
 
-- **MAJOR** (1.0.0 → 2.0.0): Breaking changes
-- **MINOR** (1.0.0 → 1.1.0): New features, backward compatible
-- **PATCH** (1.0.0 → 1.0.1): Bug fixes, backward compatible
+- **MAJOR**（1.0.0 → 2.0.0）：破坏性更改
+- **MINOR**（1.0.0 → 1.1.0）：新功能，向后兼容
+- **PATCH**（1.0.0 → 1.0.1）：错误修复，向后兼容
 
-### When to Bump
+### 何时递增
 
-| Change Type | Version Bump |
+| 更改类型 | 版本递增 |
 |-------------|--------------|
-| Breaking API change | MAJOR |
-| Remove function/type | MAJOR |
-| Change function signature | MAJOR |
-| Add new function | MINOR |
-| Add new feature | MINOR |
-| Bug fix | PATCH |
-| Documentation update | PATCH |
-| Internal refactor | PATCH |
+| 破坏性 API 更改 | MAJOR |
+| 移除函数/类型 | MAJOR |
+| 更改函数签名 | MAJOR |
+| 添加新函数 | MINOR |
+| 添加新功能 | MINOR |
+| 错误修复 | PATCH |
+| 文档更新 | PATCH |
+| 内部重构 | PATCH |
 
-## See Also
+## 另请参阅
 
-- [Package Specification](package-spec.md) - Full package.json reference
-- [Versioning](versioning.md) - Semantic versioning details
-- [Configuration](configuration.md) - GitHub authentication
+- [包规范](package-spec.md) - 完整的 package.json 参考
+- [版本控制](versioning.md) - 语义化版本详情
+- [配置](configuration.md) - GitHub 认证

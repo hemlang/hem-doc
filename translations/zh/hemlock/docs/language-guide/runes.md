@@ -1,232 +1,232 @@
-# Runes
+# Rune 字符
 
-Runes represent **Unicode codepoints** (U+0000 to U+10FFFF) as a distinct type for character manipulation in Hemlock. Unlike bytes (u8), runes are full Unicode characters that can represent any character in any language or emoji.
+Rune 表示 **Unicode 码点**（U+0000 到 U+10FFFF），作为 Hemlock 中字符操作的独立类型。与字节（u8）不同，rune 是完整的 Unicode 字符，可以表示任何语言的字符或表情符号。
 
-## Overview
+## 概述
 
 ```hemlock
-let ch = 'A';           // Rune literal
-let emoji = '🚀';       // Multi-byte character as single rune
+let ch = 'A';           // Rune 字面量
+let emoji = '🚀';       // 多字节字符作为单个 rune
 print(ch);              // 'A'
 print(emoji);           // U+1F680
 
-let s = "Hello " + '!'; // String + rune concatenation
-let r = '>' + " msg";   // Rune + string concatenation
+let s = "Hello " + '!'; // 字符串 + rune 连接
+let r = '>' + " msg";   // Rune + 字符串连接
 ```
 
-## What is a Rune?
+## 什么是 Rune？
 
-A rune is a **32-bit value** representing a Unicode codepoint:
+Rune 是表示 Unicode 码点的 **32 位值**：
 
-- **Range:** 0 to 0x10FFFF (1,114,111 valid codepoints)
-- **Not a numeric type** - Used for character representation
-- **Distinct from u8/char** - Runes are full Unicode, u8 is just bytes
-- **Returned by string indexing** - `str[0]` returns a rune, not a byte
+- **范围：** 0 到 0x10FFFF（1,114,111 个有效码点）
+- **不是数值类型** - 用于字符表示
+- **与 u8/char 不同** - Rune 是完整的 Unicode，u8 只是字节
+- **字符串索引返回** - `str[0]` 返回 rune，而不是字节
 
-**Why runes?**
-- Hemlock strings are UTF-8 encoded
-- A single Unicode character can be 1-4 bytes in UTF-8
-- Runes allow working with complete characters, not partial bytes
+**为什么使用 rune？**
+- Hemlock 字符串是 UTF-8 编码的
+- 单个 Unicode 字符在 UTF-8 中可能是 1-4 个字节
+- Rune 允许处理完整字符，而不是部分字节
 
-## Rune Literals
+## Rune 字面量
 
-### Basic Syntax
+### 基本语法
 
-Single quotes denote rune literals:
+单引号表示 rune 字面量：
 
 ```hemlock
-let a = 'A';            // ASCII character
-let b = '0';            // Digit character
-let c = '!';            // Punctuation
-let d = ' ';            // Space
+let a = 'A';            // ASCII 字符
+let b = '0';            // 数字字符
+let c = '!';            // 标点符号
+let d = ' ';            // 空格
 ```
 
-### Multi-byte UTF-8 Characters
+### 多字节 UTF-8 字符
 
-Runes can represent any Unicode character:
+Rune 可以表示任何 Unicode 字符：
 
 ```hemlock
-// Emoji
-let rocket = '🚀';      // Emoji (U+1F680)
-let heart = '❤';        // Heart (U+2764)
-let smile = '😀';       // Grinning face (U+1F600)
+// 表情符号
+let rocket = '🚀';      // 表情符号（U+1F680）
+let heart = '❤';        // 心形（U+2764）
+let smile = '😀';       // 笑脸（U+1F600）
 
-// CJK characters
-let chinese = '中';     // Chinese (U+4E2D)
-let japanese = 'あ';    // Hiragana (U+3042)
-let korean = '한';      // Hangul (U+D55C)
+// CJK 字符
+let chinese = '中';     // 中文（U+4E2D）
+let japanese = 'あ';    // 平假名（U+3042）
+let korean = '한';      // 韩文（U+D55C）
 
-// Symbols
-let check = '✓';        // Checkmark (U+2713)
-let arrow = '→';        // Rightwards arrow (U+2192)
+// 符号
+let check = '✓';        // 对勾（U+2713）
+let arrow = '→';        // 右箭头（U+2192）
 ```
 
-### Escape Sequences
+### 转义序列
 
-Common escape sequences for special characters:
+特殊字符的常用转义序列：
 
 ```hemlock
-let newline = '\n';     // Newline (U+000A)
-let tab = '\t';         // Tab (U+0009)
-let backslash = '\\';   // Backslash (U+005C)
-let quote = '\'';       // Single quote (U+0027)
-let dquote = '"';       // Double quote (U+0022)
-let null_char = '\0';   // Null character (U+0000)
-let cr = '\r';          // Carriage return (U+000D)
+let newline = '\n';     // 换行符（U+000A）
+let tab = '\t';         // 制表符（U+0009）
+let backslash = '\\';   // 反斜杠（U+005C）
+let quote = '\'';       // 单引号（U+0027）
+let dquote = '"';       // 双引号（U+0022）
+let null_char = '\0';   // 空字符（U+0000）
+let cr = '\r';          // 回车符（U+000D）
 ```
 
-**Available escape sequences:**
-- `\n` - Newline (line feed)
-- `\t` - Horizontal tab
-- `\r` - Carriage return
-- `\0` - Null character
-- `\\` - Backslash
-- `\'` - Single quote
-- `\"` - Double quote
+**可用的转义序列：**
+- `\n` - 换行符
+- `\t` - 水平制表符
+- `\r` - 回车符
+- `\0` - 空字符
+- `\\` - 反斜杠
+- `\'` - 单引号
+- `\"` - 双引号
 
-### Unicode Escapes
+### Unicode 转义
 
-Use `\u{XXXXXX}` syntax for Unicode codepoints (up to 6 hex digits):
+使用 `\u{XXXXXX}` 语法表示 Unicode 码点（最多 6 个十六进制数字）：
 
 ```hemlock
-let rocket = '\u{1F680}';   // 🚀 Emoji via Unicode escape
-let heart = '\u{2764}';     // ❤ Heart
-let ascii = '\u{41}';       // 'A' via escape
-let max = '\u{10FFFF}';     // Maximum Unicode codepoint
+let rocket = '\u{1F680}';   // 🚀 通过 Unicode 转义表示的表情符号
+let heart = '\u{2764}';     // ❤ 心形
+let ascii = '\u{41}';       // 'A' 通过转义表示
+let max = '\u{10FFFF}';     // 最大 Unicode 码点
 
-// Leading zeros optional
-let a = '\u{41}';           // Same as '\u{0041}'
+// 前导零是可选的
+let a = '\u{41}';           // 与 '\u{0041}' 相同
 let b = '\u{0041}';
 ```
 
-**Rules:**
-- Range: `\u{0}` to `\u{10FFFF}`
-- Hex digits: 1 to 6 digits
-- Case insensitive: `\u{1F680}` or `\u{1f680}`
-- Values outside valid Unicode range cause error
+**规则：**
+- 范围：`\u{0}` 到 `\u{10FFFF}`
+- 十六进制数字：1 到 6 位
+- 不区分大小写：`\u{1F680}` 或 `\u{1f680}`
+- 超出有效 Unicode 范围的值会导致错误
 
-## String + Rune Concatenation
+## 字符串 + Rune 连接
 
-Runes can be concatenated with strings:
+Rune 可以与字符串连接：
 
 ```hemlock
-// String + rune
+// 字符串 + rune
 let greeting = "Hello" + '!';       // "Hello!"
 let decorated = "Text" + '✓';       // "Text✓"
 
-// Rune + string
+// Rune + 字符串
 let prefix = '>' + " Message";      // "> Message"
 let bullet = '•' + " Item";         // "• Item"
 
-// Multiple concatenations
+// 多重连接
 let msg = "Hi " + '👋' + " World " + '🌍';  // "Hi 👋 World 🌍"
 
-// Method chaining works
+// 方法链可以使用
 let result = ('>' + " Important").to_upper();  // "> IMPORTANT"
 ```
 
-**How it works:**
-- Runes are automatically encoded to UTF-8
-- Converted to strings during concatenation
-- The string concatenation operator handles this transparently
+**工作原理：**
+- Rune 自动编码为 UTF-8
+- 在连接过程中转换为字符串
+- 字符串连接运算符透明地处理这一点
 
-## Type Conversions
+## 类型转换
 
-Runes can convert to/from other types.
+Rune 可以与其他类型相互转换。
 
-### Integer ↔ Rune
+### 整数 ↔ Rune
 
-Convert between integers and runes to work with codepoint values:
+在整数和 rune 之间转换以处理码点值：
 
 ```hemlock
-// Integer to rune (codepoint value)
-let code: rune = 65;            // 'A' (ASCII 65)
-let emoji_code: rune = 128640;  // U+1F680 (🚀)
+// 整数到 rune（码点值）
+let code: rune = 65;            // 'A'（ASCII 65）
+let emoji_code: rune = 128640;  // U+1F680（🚀）
 
-// Rune to integer (get codepoint value)
+// Rune 到整数（获取码点值）
 let r = 'Z';
-let value: i32 = r;             // 90 (ASCII value)
+let value: i32 = r;             // 90（ASCII 值）
 
 let rocket = '🚀';
-let code: i32 = rocket;         // 128640 (U+1F680)
+let code: i32 = rocket;         // 128640（U+1F680）
 ```
 
-**Range checking:**
-- Integer to rune: Must be in [0, 0x10FFFF]
-- Out of range values cause runtime error
-- Rune to integer: Always succeeds (returns codepoint)
+**范围检查：**
+- 整数到 rune：必须在 [0, 0x10FFFF] 范围内
+- 超出范围的值会导致运行时错误
+- Rune 到整数：始终成功（返回码点）
 
-### Rune → String
+### Rune → 字符串
 
-Runes can be explicitly converted to strings:
+Rune 可以显式转换为字符串：
 
 ```hemlock
-// Explicit conversion
+// 显式转换
 let ch: string = 'H';           // "H"
 let emoji: string = '🚀';       // "🚀"
 
-// Automatic during concatenation
+// 连接时自动转换
 let s = "" + 'A';               // "A"
 let s2 = "x" + 'y' + "z";       // "xyz"
 ```
 
-### u8 (Byte) → Rune
+### u8（字节）→ Rune
 
-Any u8 value (0-255) can convert to rune:
+任何 u8 值（0-255）都可以转换为 rune：
 
 ```hemlock
-// ASCII range (0-127)
+// ASCII 范围（0-127）
 let byte: u8 = 65;
 let rune_val: rune = byte;      // 'A'
 
-// Extended ASCII / Latin-1 (128-255)
+// 扩展 ASCII / Latin-1（128-255）
 let extended: u8 = 200;
-let r: rune = extended;         // U+00C8 (È)
+let r: rune = extended;         // U+00C8（È）
 
-// Note: Values 0-127 are ASCII, 128-255 are Latin-1
+// 注意：0-127 是 ASCII，128-255 是 Latin-1
 ```
 
-### Chained Conversions
+### 链式转换
 
-Type conversions can be chained:
+类型转换可以链式进行：
 
 ```hemlock
 // i32 → rune → string
-let code: i32 = 128512;         // Grinning face codepoint
+let code: i32 = 128512;         // 笑脸码点
 let r: rune = code;             // 😀
 let s: string = r;              // "😀"
 
-// All in one expression
-let emoji: string = 128640;     // Implicit i32 → rune → string (🚀)
+// 在一个表达式中完成
+let emoji: string = 128640;     // 隐式 i32 → rune → string（🚀）
 ```
 
-## Rune Operations
+## Rune 操作
 
-### Printing
+### 打印
 
-How runes are displayed depends on the codepoint:
+Rune 的显示方式取决于码点：
 
 ```hemlock
 let ascii = 'A';
-print(ascii);                   // 'A' (quoted, printable ASCII)
+print(ascii);                   // 'A'（带引号，可打印 ASCII）
 
 let emoji = '🚀';
-print(emoji);                   // U+1F680 (Unicode notation for non-ASCII)
+print(emoji);                   // U+1F680（非 ASCII 的 Unicode 表示法）
 
 let tab = '\t';
-print(tab);                     // U+0009 (non-printable as hex)
+print(tab);                     // U+0009（不可打印字符用十六进制表示）
 
 let space = ' ';
-print(space);                   // ' ' (printable)
+print(space);                   // ' '（可打印）
 ```
 
-**Print format:**
-- Printable ASCII (32-126): Quoted character `'A'`
-- Non-printable or Unicode: Hex notation `U+XXXX`
+**打印格式：**
+- 可打印 ASCII（32-126）：带引号的字符 `'A'`
+- 不可打印或 Unicode：十六进制表示法 `U+XXXX`
 
-### Type Checking
+### 类型检查
 
-Use `typeof()` to check if a value is a rune:
+使用 `typeof()` 检查值是否为 rune：
 
 ```hemlock
 let r = '🚀';
@@ -234,15 +234,15 @@ print(typeof(r));               // "rune"
 
 let s = "text";
 let ch = s[0];
-print(typeof(ch));              // "rune" (indexing returns runes)
+print(typeof(ch));              // "rune"（索引返回 rune）
 
 let num = 65;
 print(typeof(num));             // "i32"
 ```
 
-### Comparison
+### 比较
 
-Runes can be compared for equality:
+Rune 可以进行相等性比较：
 
 ```hemlock
 let a = 'A';
@@ -250,57 +250,57 @@ let b = 'B';
 print(a == a);                  // true
 print(a == b);                  // false
 
-// Case sensitive
+// 区分大小写
 let upper = 'A';
 let lower = 'a';
 print(upper == lower);          // false
 
-// Runes can be compared with integers (codepoint values)
-print(a == 65);                 // true (implicit conversion)
+// Rune 可以与整数比较（码点值）
+print(a == 65);                 // true（隐式转换）
 print('🚀' == 128640);          // true
 ```
 
-**Comparison operators:**
-- `==` - Equal
-- `!=` - Not equal
-- `<`, `>`, `<=`, `>=` - Codepoint order
+**比较运算符：**
+- `==` - 相等
+- `!=` - 不相等
+- `<`、`>`、`<=`、`>=` - 码点顺序
 
 ```hemlock
-print('A' < 'B');               // true (65 < 66)
-print('a' > 'Z');               // true (97 > 90)
+print('A' < 'B');               // true（65 < 66）
+print('a' > 'Z');               // true（97 > 90）
 ```
 
-## Working with String Indexing
+## 处理字符串索引
 
-String indexing returns runes, not bytes:
+字符串索引返回 rune，而不是字节：
 
 ```hemlock
 let s = "Hello🚀";
-let h = s[0];                   // 'H' (rune)
-let rocket = s[5];              // '🚀' (rune)
+let h = s[0];                   // 'H'（rune）
+let rocket = s[5];              // '🚀'（rune）
 
 print(typeof(h));               // "rune"
 print(typeof(rocket));          // "rune"
 
-// Convert to string if needed
+// 如果需要可转换为字符串
 let h_str: string = h;          // "H"
 let rocket_str: string = rocket; // "🚀"
 ```
 
-**Important:** String indexing uses codepoint positions, not byte offsets:
+**重要：** 字符串索引使用码点位置，而不是字节偏移：
 
 ```hemlock
 let text = "Hi🚀!";
-// Codepoint positions: 0='H', 1='i', 2='🚀', 3='!'
-// Byte positions:      0='H', 1='i', 2-5='🚀', 6='!'
+// 码点位置：0='H', 1='i', 2='🚀', 3='!'
+// 字节位置：0='H', 1='i', 2-5='🚀', 6='!'
 
-let r = text[2];                // '🚀' (codepoint 2)
+let r = text[2];                // '🚀'（码点 2）
 print(typeof(r));               // "rune"
 ```
 
-## Examples
+## 示例
 
-### Example: Character Classification
+### 示例：字符分类
 
 ```hemlock
 fn is_digit(r: rune): bool {
@@ -320,12 +320,12 @@ print(is_upper('A'));           // true
 print(is_lower('z'));           // true
 ```
 
-### Example: Case Conversion
+### 示例：大小写转换
 
 ```hemlock
 fn to_upper_rune(r: rune): rune {
     if (r >= 'a' && r <= 'z') {
-        // Convert to uppercase (subtract 32)
+        // 转换为大写（减去 32）
         let code: i32 = r;
         code = code - 32;
         return code;
@@ -335,7 +335,7 @@ fn to_upper_rune(r: rune): rune {
 
 fn to_lower_rune(r: rune): rune {
     if (r >= 'A' && r <= 'Z') {
-        // Convert to lowercase (add 32)
+        // 转换为小写（加上 32）
         let code: i32 = r;
         code = code + 32;
         return code;
@@ -347,7 +347,7 @@ print(to_upper_rune('a'));      // 'A'
 print(to_lower_rune('Z'));      // 'z'
 ```
 
-### Example: Character Iteration
+### 示例：字符迭代
 
 ```hemlock
 fn print_chars(s: string) {
@@ -365,7 +365,7 @@ print_chars("Hi🚀");
 // Position 2: U+1F680
 ```
 
-### Example: Building Strings from Runes
+### 示例：从 Rune 构建字符串
 
 ```hemlock
 fn repeat_char(ch: rune, count: i32): string {
@@ -382,9 +382,9 @@ let line = repeat_char('=', 40);  // "========================================"
 let stars = repeat_char('⭐', 5);  // "⭐⭐⭐⭐⭐"
 ```
 
-## Common Patterns
+## 常见模式
 
-### Pattern: Character Filter
+### 模式：字符过滤
 
 ```hemlock
 fn filter_digits(s: string): string {
@@ -404,7 +404,7 @@ let text = "abc123def456";
 let digits = filter_digits(text);  // "123456"
 ```
 
-### Pattern: Character Counting
+### 模式：字符计数
 
 ```hemlock
 fn count_char(s: string, target: rune): i32 {
@@ -424,49 +424,49 @@ let l_count = count_char(text, 'l');  // 3
 let o_count = count_char(text, 'o');  // 2
 ```
 
-## Best Practices
+## 最佳实践
 
-1. **Use runes for character operations** - Don't try to work with bytes for text
-2. **String indexing returns runes** - Remember that `str[i]` gives you a rune
-3. **Unicode-aware comparisons** - Runes handle any Unicode character
-4. **Convert when needed** - Runes convert easily to strings and integers
-5. **Test with emoji** - Always test character operations with multi-byte characters
+1. **对字符操作使用 rune** - 不要尝试用字节处理文本
+2. **字符串索引返回 rune** - 记住 `str[i]` 给你的是 rune
+3. **Unicode 感知的比较** - Rune 可以处理任何 Unicode 字符
+4. **需要时进行转换** - Rune 可以轻松转换为字符串和整数
+5. **用表情符号测试** - 始终用多字节字符测试字符操作
 
-## Common Pitfalls
+## 常见陷阱
 
-### Pitfall: Rune vs. Byte Confusion
-
-```hemlock
-// DON'T: Treat runes as bytes
-let r: rune = '🚀';
-let b: u8 = r;              // ERROR: Rune codepoint 128640 doesn't fit in u8
-
-// DO: Use appropriate conversions
-let r: rune = '🚀';
-let code: i32 = r;          // OK: 128640
-```
-
-### Pitfall: String Byte Indexing
+### 陷阱：Rune 与字节混淆
 
 ```hemlock
-// DON'T: Assume byte indexing
-let s = "🚀";
-let byte = s.byte_at(0);    // 240 (first UTF-8 byte, not complete char)
+// 不要：将 rune 当作字节
+let r: rune = '🚀';
+let b: u8 = r;              // 错误：Rune 码点 128640 无法放入 u8
 
-// DO: Use codepoint indexing
-let s = "🚀";
-let rune = s[0];            // '🚀' (complete character)
-let rune2 = s.char_at(0);   // '🚀' (explicit method)
+// 要：使用适当的转换
+let r: rune = '🚀';
+let code: i32 = r;          // 可以：128640
 ```
 
-## Related Topics
+### 陷阱：字符串字节索引
 
-- [Strings](strings.md) - String operations and UTF-8 handling
-- [Types](types.md) - Type system and conversions
-- [Control Flow](control-flow.md) - Using runes in comparisons
+```hemlock
+// 不要：假设字节索引
+let s = "🚀";
+let byte = s.byte_at(0);    // 240（第一个 UTF-8 字节，不是完整字符）
 
-## See Also
+// 要：使用码点索引
+let s = "🚀";
+let rune = s[0];            // '🚀'（完整字符）
+let rune2 = s.char_at(0);   // '🚀'（显式方法）
+```
 
-- **Unicode Standard**: Unicode codepoints are defined by the Unicode Consortium
-- **UTF-8 Encoding**: See [Strings](strings.md) for UTF-8 details
-- **Type Conversions**: See [Types](types.md) for conversion rules
+## 相关主题
+
+- [字符串](strings.md) - 字符串操作和 UTF-8 处理
+- [类型](types.md) - 类型系统和转换
+- [控制流](control-flow.md) - 在比较中使用 rune
+
+## 另请参阅
+
+- **Unicode 标准**：Unicode 码点由 Unicode 联盟定义
+- **UTF-8 编码**：有关 UTF-8 详细信息，请参阅[字符串](strings.md)
+- **类型转换**：有关转换规则，请参阅[类型](types.md)

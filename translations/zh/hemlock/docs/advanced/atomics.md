@@ -1,61 +1,61 @@
-# Atomic Operations
+# 原子操作
 
-Hemlock provides atomic operations for **lock-free concurrent programming**. These operations enable safe manipulation of shared memory across multiple threads without traditional locks or mutexes.
+Hemlock 提供原子操作用于**无锁并发编程**。这些操作使得在多个线程间安全操作共享内存成为可能，无需传统的锁或互斥锁。
 
-## Table of Contents
+## 目录
 
-- [Overview](#overview)
-- [When to Use Atomics](#when-to-use-atomics)
-- [Memory Model](#memory-model)
-- [Atomic Load and Store](#atomic-load-and-store)
-- [Fetch-and-Modify Operations](#fetch-and-modify-operations)
-- [Compare-and-Swap (CAS)](#compare-and-swap-cas)
-- [Atomic Exchange](#atomic-exchange)
-- [Memory Fence](#memory-fence)
-- [Function Reference](#function-reference)
-- [Common Patterns](#common-patterns)
-- [Best Practices](#best-practices)
-- [Limitations](#limitations)
-
----
-
-## Overview
-
-Atomic operations are **indivisible** operations that complete without the possibility of interruption. When one thread performs an atomic operation, no other thread can observe the operation in a partially-completed state.
-
-**Key features:**
-- All operations use **sequential consistency** (`memory_order_seq_cst`)
-- Supported types: **i32** and **i64**
-- Operations work on raw pointers allocated with `alloc()`
-- Thread-safe without explicit locks
-
-**Available operations:**
-- Load/Store - Read and write values atomically
-- Add/Sub - Arithmetic operations returning the old value
-- And/Or/Xor - Bitwise operations returning the old value
-- CAS - Compare-and-swap for conditional updates
-- Exchange - Swap values atomically
-- Fence - Full memory barrier
+- [概述](#概述)
+- [何时使用原子操作](#何时使用原子操作)
+- [内存模型](#内存模型)
+- [原子加载和存储](#原子加载和存储)
+- [获取并修改操作](#获取并修改操作)
+- [比较并交换 (CAS)](#比较并交换-cas)
+- [原子交换](#原子交换)
+- [内存栅栏](#内存栅栏)
+- [函数参考](#函数参考)
+- [常见模式](#常见模式)
+- [最佳实践](#最佳实践)
+- [限制](#限制)
 
 ---
 
-## When to Use Atomics
+## 概述
 
-**Use atomics for:**
-- Counters shared across tasks (e.g., request counts, progress tracking)
-- Flags and status indicators
-- Lock-free data structures
-- Simple synchronization primitives
-- Performance-critical concurrent code
+原子操作是**不可分割的**操作，完成时不可能被中断。当一个线程执行原子操作时，其他线程无法观察到操作的部分完成状态。
 
-**Use channels instead when:**
-- Passing complex data between tasks
-- Implementing producer-consumer patterns
-- You need message-passing semantics
+**主要特性：**
+- 所有操作使用**顺序一致性**（`memory_order_seq_cst`）
+- 支持的类型：**i32** 和 **i64**
+- 操作适用于通过 `alloc()` 分配的原始指针
+- 无需显式锁即可保证线程安全
 
-**Example use case - Shared counter:**
+**可用操作：**
+- Load/Store - 原子读取和写入值
+- Add/Sub - 返回旧值的算术操作
+- And/Or/Xor - 返回旧值的位运算操作
+- CAS - 条件更新的比较并交换
+- Exchange - 原子交换值
+- Fence - 完整内存屏障
+
+---
+
+## 何时使用原子操作
+
+**使用原子操作的场景：**
+- 跨任务共享的计数器（如请求计数、进度跟踪）
+- 标志和状态指示器
+- 无锁数据结构
+- 简单的同步原语
+- 性能关键的并发代码
+
+**改用通道的场景：**
+- 在任务间传递复杂数据
+- 实现生产者-消费者模式
+- 需要消息传递语义时
+
+**示例用例 - 共享计数器：**
 ```hemlock
-// Allocate shared counter
+// 分配共享计数器
 let counter = alloc(4);
 ptr_write_i32(counter, 0);
 
@@ -67,7 +67,7 @@ async fn worker(counter: ptr, id: i32) {
     }
 }
 
-// Spawn multiple workers
+// 生成多个工作者
 let t1 = spawn(worker, counter, 1);
 let t2 = spawn(worker, counter, 2);
 let t3 = spawn(worker, counter, 3);
@@ -76,7 +76,7 @@ join(t1);
 join(t2);
 join(t3);
 
-// Counter will be exactly 3000 (no data races)
+// 计数器将恰好是 3000（无数据竞争）
 print(atomic_load_i32(counter));
 
 free(counter);
@@ -84,36 +84,36 @@ free(counter);
 
 ---
 
-## Memory Model
+## 内存模型
 
-All Hemlock atomic operations use **sequential consistency** (`memory_order_seq_cst`), which provides the strongest memory ordering guarantees:
+所有 Hemlock 原子操作使用**顺序一致性**（`memory_order_seq_cst`），提供最强的内存排序保证：
 
-1. **Atomicity**: Each operation is indivisible
-2. **Total ordering**: All threads see the same order of operations
-3. **No reordering**: Operations are not reordered by the compiler or CPU
+1. **原子性**：每个操作都是不可分割的
+2. **全局排序**：所有线程看到相同的操作顺序
+3. **无重排序**：操作不会被编译器或 CPU 重排序
 
-This makes reasoning about concurrent code simpler, at the cost of some potential performance compared to weaker memory orderings.
+这使得并发代码的推理更简单，但与较弱的内存排序相比可能有一些性能成本。
 
 ---
 
-## Atomic Load and Store
+## 原子加载和存储
 
 ### atomic_load_i32 / atomic_load_i64
 
-Atomically read a value from memory.
+原子地从内存读取值。
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_load_i32(ptr: ptr): i32
 atomic_load_i64(ptr: ptr): i64
 ```
 
-**Parameters:**
-- `ptr` - Pointer to the memory location (must be properly aligned)
+**参数：**
+- `ptr` - 指向内存位置的指针（必须正确对齐）
 
-**Returns:** The value at the memory location
+**返回：** 内存位置的值
 
-**Example:**
+**示例：**
 ```hemlock
 let p = alloc(4);
 ptr_write_i32(p, 42);
@@ -128,21 +128,21 @@ free(p);
 
 ### atomic_store_i32 / atomic_store_i64
 
-Atomically write a value to memory.
+原子地向内存写入值。
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_store_i32(ptr: ptr, value: i32): null
 atomic_store_i64(ptr: ptr, value: i64): null
 ```
 
-**Parameters:**
-- `ptr` - Pointer to the memory location
-- `value` - Value to store
+**参数：**
+- `ptr` - 指向内存位置的指针
+- `value` - 要存储的值
 
-**Returns:** `null`
+**返回：** `null`
 
-**Example:**
+**示例：**
 ```hemlock
 let p = alloc(8);
 
@@ -154,30 +154,30 @@ free(p);
 
 ---
 
-## Fetch-and-Modify Operations
+## 获取并修改操作
 
-These operations atomically modify a value and return the **old** (previous) value.
+这些操作原子地修改值并返回**旧的**（之前的）值。
 
 ### atomic_add_i32 / atomic_add_i64
 
-Atomically add to a value.
+原子地加法。
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_add_i32(ptr: ptr, value: i32): i32
 atomic_add_i64(ptr: ptr, value: i64): i64
 ```
 
-**Returns:** The **old** value (before addition)
+**返回：** **旧的**值（加法之前）
 
-**Example:**
+**示例：**
 ```hemlock
 let p = alloc(4);
 ptr_write_i32(p, 100);
 
 let old = atomic_add_i32(p, 10);
-print(old);                    // 100 (old value)
-print(atomic_load_i32(p));     // 110 (new value)
+print(old);                    // 100（旧值）
+print(atomic_load_i32(p));     // 110（新值）
 
 free(p);
 ```
@@ -186,24 +186,24 @@ free(p);
 
 ### atomic_sub_i32 / atomic_sub_i64
 
-Atomically subtract from a value.
+原子地减法。
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_sub_i32(ptr: ptr, value: i32): i32
 atomic_sub_i64(ptr: ptr, value: i64): i64
 ```
 
-**Returns:** The **old** value (before subtraction)
+**返回：** **旧的**值（减法之前）
 
-**Example:**
+**示例：**
 ```hemlock
 let p = alloc(4);
 ptr_write_i32(p, 100);
 
 let old = atomic_sub_i32(p, 25);
-print(old);                    // 100 (old value)
-print(atomic_load_i32(p));     // 75 (new value)
+print(old);                    // 100（旧值）
+print(atomic_load_i32(p));     // 75（新值）
 
 free(p);
 ```
@@ -212,23 +212,23 @@ free(p);
 
 ### atomic_and_i32 / atomic_and_i64
 
-Atomically perform bitwise AND.
+原子地执行按位与。
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_and_i32(ptr: ptr, value: i32): i32
 atomic_and_i64(ptr: ptr, value: i64): i64
 ```
 
-**Returns:** The **old** value (before AND)
+**返回：** **旧的**值（与运算之前）
 
-**Example:**
+**示例：**
 ```hemlock
 let p = alloc(4);
-ptr_write_i32(p, 0xFF);  // 255 in binary: 11111111
+ptr_write_i32(p, 0xFF);  // 二进制 255：11111111
 
-let old = atomic_and_i32(p, 0x0F);  // AND with 00001111
-print(old);                    // 255 (old value)
+let old = atomic_and_i32(p, 0x0F);  // 与 00001111 进行与运算
+print(old);                    // 255（旧值）
 print(atomic_load_i32(p));     // 15 (0xFF & 0x0F = 0x0F)
 
 free(p);
@@ -238,23 +238,23 @@ free(p);
 
 ### atomic_or_i32 / atomic_or_i64
 
-Atomically perform bitwise OR.
+原子地执行按位或。
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_or_i32(ptr: ptr, value: i32): i32
 atomic_or_i64(ptr: ptr, value: i64): i64
 ```
 
-**Returns:** The **old** value (before OR)
+**返回：** **旧的**值（或运算之前）
 
-**Example:**
+**示例：**
 ```hemlock
 let p = alloc(4);
-ptr_write_i32(p, 0x0F);  // 15 in binary: 00001111
+ptr_write_i32(p, 0x0F);  // 二进制 15：00001111
 
-let old = atomic_or_i32(p, 0xF0);  // OR with 11110000
-print(old);                    // 15 (old value)
+let old = atomic_or_i32(p, 0xF0);  // 与 11110000 进行或运算
+print(old);                    // 15（旧值）
 print(atomic_load_i32(p));     // 255 (0x0F | 0xF0 = 0xFF)
 
 free(p);
@@ -264,23 +264,23 @@ free(p);
 
 ### atomic_xor_i32 / atomic_xor_i64
 
-Atomically perform bitwise XOR.
+原子地执行按位异或。
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_xor_i32(ptr: ptr, value: i32): i32
 atomic_xor_i64(ptr: ptr, value: i64): i64
 ```
 
-**Returns:** The **old** value (before XOR)
+**返回：** **旧的**值（异或运算之前）
 
-**Example:**
+**示例：**
 ```hemlock
 let p = alloc(4);
-ptr_write_i32(p, 0xAA);  // 170 in binary: 10101010
+ptr_write_i32(p, 0xAA);  // 二进制 170：10101010
 
-let old = atomic_xor_i32(p, 0xFF);  // XOR with 11111111
-print(old);                    // 170 (old value)
+let old = atomic_xor_i32(p, 0xFF);  // 与 11111111 进行异或运算
+print(old);                    // 170（旧值）
 print(atomic_load_i32(p));     // 85 (0xAA ^ 0xFF = 0x55)
 
 free(p);
@@ -288,152 +288,152 @@ free(p);
 
 ---
 
-## Compare-and-Swap (CAS)
+## 比较并交换 (CAS)
 
-The most powerful atomic operation. Atomically compares the current value with an expected value and, if they match, replaces it with a new value.
+最强大的原子操作。原子地将当前值与期望值比较，如果匹配则替换为新值。
 
 ### atomic_cas_i32 / atomic_cas_i64
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_cas_i32(ptr: ptr, expected: i32, desired: i32): bool
 atomic_cas_i64(ptr: ptr, expected: i64, desired: i64): bool
 ```
 
-**Parameters:**
-- `ptr` - Pointer to the memory location
-- `expected` - Value we expect to find
-- `desired` - Value to store if expectation matches
+**参数：**
+- `ptr` - 指向内存位置的指针
+- `expected` - 我们期望找到的值
+- `desired` - 如果期望匹配则存储的值
 
-**Returns:**
-- `true` - Swap succeeded (value was `expected`, now is `desired`)
-- `false` - Swap failed (value was not `expected`, unchanged)
+**返回：**
+- `true` - 交换成功（值是 `expected`，现在是 `desired`）
+- `false` - 交换失败（值不是 `expected`，未改变）
 
-**Example:**
+**示例：**
 ```hemlock
 let p = alloc(4);
 ptr_write_i32(p, 100);
 
-// CAS succeeds: value is 100, swap to 999
+// CAS 成功：值是 100，交换为 999
 let success1 = atomic_cas_i32(p, 100, 999);
 print(success1);               // true
 print(atomic_load_i32(p));     // 999
 
-// CAS fails: value is 999, not 100
+// CAS 失败：值是 999，不是 100
 let success2 = atomic_cas_i32(p, 100, 888);
 print(success2);               // false
-print(atomic_load_i32(p));     // 999 (unchanged)
+print(atomic_load_i32(p));     // 999（未改变）
 
 free(p);
 ```
 
-**Use cases:**
-- Implementing locks and semaphores
-- Lock-free data structures
-- Optimistic concurrency control
-- Atomic conditional updates
+**用例：**
+- 实现锁和信号量
+- 无锁数据结构
+- 乐观并发控制
+- 原子条件更新
 
 ---
 
-## Atomic Exchange
+## 原子交换
 
-Atomically swap a value, returning the old value.
+原子地交换值，返回旧值。
 
 ### atomic_exchange_i32 / atomic_exchange_i64
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_exchange_i32(ptr: ptr, value: i32): i32
 atomic_exchange_i64(ptr: ptr, value: i64): i64
 ```
 
-**Parameters:**
-- `ptr` - Pointer to the memory location
-- `value` - New value to store
+**参数：**
+- `ptr` - 指向内存位置的指针
+- `value` - 要存储的新值
 
-**Returns:** The **old** value (before exchange)
+**返回：** **旧的**值（交换之前）
 
-**Example:**
+**示例：**
 ```hemlock
 let p = alloc(4);
 ptr_write_i32(p, 100);
 
 let old = atomic_exchange_i32(p, 200);
-print(old);                    // 100 (old value)
-print(atomic_load_i32(p));     // 200 (new value)
+print(old);                    // 100（旧值）
+print(atomic_load_i32(p));     // 200（新值）
 
 free(p);
 ```
 
 ---
 
-## Memory Fence
+## 内存栅栏
 
-A full memory barrier that ensures all memory operations before the fence are visible to all threads before any operations after the fence.
+完整的内存屏障，确保栅栏之前的所有内存操作对所有线程可见，然后才执行栅栏之后的任何操作。
 
 ### atomic_fence
 
-**Signature:**
+**签名：**
 ```hemlock
 atomic_fence(): null
 ```
 
-**Returns:** `null`
+**返回：** `null`
 
-**Example:**
+**示例：**
 ```hemlock
-// Ensure all previous writes are visible
+// 确保之前的所有写入对其他线程可见
 atomic_fence();
 ```
 
-**Note:** In most cases, you don't need explicit fences because all atomic operations already use sequential consistency. Fences are useful when you need to synchronize non-atomic memory operations.
+**注意：** 在大多数情况下，你不需要显式的栅栏，因为所有原子操作已经使用顺序一致性。栅栏在需要同步非原子内存操作时很有用。
 
 ---
 
-## Function Reference
+## 函数参考
 
-### i32 Operations
+### i32 操作
 
-| Function | Signature | Returns | Description |
-|----------|-----------|---------|-------------|
-| `atomic_load_i32` | `(ptr)` | `i32` | Load value atomically |
-| `atomic_store_i32` | `(ptr, value)` | `null` | Store value atomically |
-| `atomic_add_i32` | `(ptr, value)` | `i32` | Add and return old value |
-| `atomic_sub_i32` | `(ptr, value)` | `i32` | Subtract and return old value |
-| `atomic_and_i32` | `(ptr, value)` | `i32` | Bitwise AND and return old value |
-| `atomic_or_i32` | `(ptr, value)` | `i32` | Bitwise OR and return old value |
-| `atomic_xor_i32` | `(ptr, value)` | `i32` | Bitwise XOR and return old value |
-| `atomic_cas_i32` | `(ptr, expected, desired)` | `bool` | Compare-and-swap |
-| `atomic_exchange_i32` | `(ptr, value)` | `i32` | Exchange and return old value |
+| 函数 | 签名 | 返回 | 描述 |
+|------|------|------|------|
+| `atomic_load_i32` | `(ptr)` | `i32` | 原子加载值 |
+| `atomic_store_i32` | `(ptr, value)` | `null` | 原子存储值 |
+| `atomic_add_i32` | `(ptr, value)` | `i32` | 加法并返回旧值 |
+| `atomic_sub_i32` | `(ptr, value)` | `i32` | 减法并返回旧值 |
+| `atomic_and_i32` | `(ptr, value)` | `i32` | 按位与并返回旧值 |
+| `atomic_or_i32` | `(ptr, value)` | `i32` | 按位或并返回旧值 |
+| `atomic_xor_i32` | `(ptr, value)` | `i32` | 按位异或并返回旧值 |
+| `atomic_cas_i32` | `(ptr, expected, desired)` | `bool` | 比较并交换 |
+| `atomic_exchange_i32` | `(ptr, value)` | `i32` | 交换并返回旧值 |
 
-### i64 Operations
+### i64 操作
 
-| Function | Signature | Returns | Description |
-|----------|-----------|---------|-------------|
-| `atomic_load_i64` | `(ptr)` | `i64` | Load value atomically |
-| `atomic_store_i64` | `(ptr, value)` | `null` | Store value atomically |
-| `atomic_add_i64` | `(ptr, value)` | `i64` | Add and return old value |
-| `atomic_sub_i64` | `(ptr, value)` | `i64` | Subtract and return old value |
-| `atomic_and_i64` | `(ptr, value)` | `i64` | Bitwise AND and return old value |
-| `atomic_or_i64` | `(ptr, value)` | `i64` | Bitwise OR and return old value |
-| `atomic_xor_i64` | `(ptr, value)` | `i64` | Bitwise XOR and return old value |
-| `atomic_cas_i64` | `(ptr, expected, desired)` | `bool` | Compare-and-swap |
-| `atomic_exchange_i64` | `(ptr, value)` | `i64` | Exchange and return old value |
+| 函数 | 签名 | 返回 | 描述 |
+|------|------|------|------|
+| `atomic_load_i64` | `(ptr)` | `i64` | 原子加载值 |
+| `atomic_store_i64` | `(ptr, value)` | `null` | 原子存储值 |
+| `atomic_add_i64` | `(ptr, value)` | `i64` | 加法并返回旧值 |
+| `atomic_sub_i64` | `(ptr, value)` | `i64` | 减法并返回旧值 |
+| `atomic_and_i64` | `(ptr, value)` | `i64` | 按位与并返回旧值 |
+| `atomic_or_i64` | `(ptr, value)` | `i64` | 按位或并返回旧值 |
+| `atomic_xor_i64` | `(ptr, value)` | `i64` | 按位异或并返回旧值 |
+| `atomic_cas_i64` | `(ptr, expected, desired)` | `bool` | 比较并交换 |
+| `atomic_exchange_i64` | `(ptr, value)` | `i64` | 交换并返回旧值 |
 
-### Memory Barrier
+### 内存屏障
 
-| Function | Signature | Returns | Description |
-|----------|-----------|---------|-------------|
-| `atomic_fence` | `()` | `null` | Full memory barrier |
+| 函数 | 签名 | 返回 | 描述 |
+|------|------|------|------|
+| `atomic_fence` | `()` | `null` | 完整内存屏障 |
 
 ---
 
-## Common Patterns
+## 常见模式
 
-### Pattern: Atomic Counter
+### 模式：原子计数器
 
 ```hemlock
-// Thread-safe counter
+// 线程安全的计数器
 let counter = alloc(4);
 ptr_write_i32(counter, 0);
 
@@ -449,26 +449,26 @@ fn get_count(): i32 {
     return atomic_load_i32(counter);
 }
 
-// Usage
-increment();  // Returns 0 (old value)
-increment();  // Returns 1
-increment();  // Returns 2
+// 使用
+increment();  // 返回 0（旧值）
+increment();  // 返回 1
+increment();  // 返回 2
 print(get_count());  // 3
 
 free(counter);
 ```
 
-### Pattern: Spinlock
+### 模式：自旋锁
 
 ```hemlock
-// Simple spinlock implementation
+// 简单的自旋锁实现
 let lock = alloc(4);
-ptr_write_i32(lock, 0);  // 0 = unlocked, 1 = locked
+ptr_write_i32(lock, 0);  // 0 = 未锁定，1 = 已锁定
 
 fn acquire() {
-    // Spin until we successfully set lock from 0 to 1
+    // 自旋直到成功将锁从 0 设置为 1
     while (!atomic_cas_i32(lock, 0, 1)) {
-        // Busy wait
+        // 忙等待
     }
 }
 
@@ -476,31 +476,31 @@ fn release() {
     atomic_store_i32(lock, 0);
 }
 
-// Usage
+// 使用
 acquire();
-// ... critical section ...
+// ... 临界区 ...
 release();
 
 free(lock);
 ```
 
-### Pattern: One-Time Initialization
+### 模式：一次性初始化
 
 ```hemlock
 let initialized = alloc(4);
-ptr_write_i32(initialized, 0);  // 0 = not initialized, 1 = initialized
+ptr_write_i32(initialized, 0);  // 0 = 未初始化，1 = 已初始化
 
 fn ensure_initialized() {
-    // Try to be the one to initialize
+    // 尝试成为初始化者
     if (atomic_cas_i32(initialized, 0, 1)) {
-        // We won the race, do initialization
+        // 我们赢得了竞争，执行初始化
         do_expensive_init();
     }
-    // Otherwise, already initialized
+    // 否则，已经初始化过了
 }
 ```
 
-### Pattern: Atomic Flag
+### 模式：原子标志
 
 ```hemlock
 let flag = alloc(4);
@@ -515,7 +515,7 @@ fn clear_flag() {
 }
 
 fn test_and_set(): bool {
-    // Returns true if flag was already set
+    // 如果标志已经设置则返回 true
     return atomic_exchange_i32(flag, 1) == 1;
 }
 
@@ -524,7 +524,7 @@ fn check_flag(): bool {
 }
 ```
 
-### Pattern: Bounded Counter
+### 模式：有界计数器
 
 ```hemlock
 let counter = alloc(4);
@@ -535,59 +535,59 @@ fn try_increment(): bool {
     while (true) {
         let current = atomic_load_i32(counter);
         if (current >= max_value) {
-            return false;  // At maximum
+            return false;  // 已达最大值
         }
         if (atomic_cas_i32(counter, current, current + 1)) {
-            return true;  // Successfully incremented
+            return true;  // 成功递增
         }
-        // CAS failed, another thread modified - retry
+        // CAS 失败，另一个线程修改了值 - 重试
     }
 }
 ```
 
 ---
 
-## Best Practices
+## 最佳实践
 
-### 1. Use Proper Alignment
+### 1. 使用正确的对齐
 
-Pointers must be properly aligned for the data type:
-- i32: 4-byte alignment
-- i64: 8-byte alignment
+指针必须为数据类型正确对齐：
+- i32：4 字节对齐
+- i64：8 字节对齐
 
-Memory from `alloc()` is typically properly aligned.
+来自 `alloc()` 的内存通常是正确对齐的。
 
-### 2. Prefer Higher-Level Abstractions
+### 2. 优先使用更高级的抽象
 
-When possible, use channels for inter-task communication. Atomics are lower-level and require careful reasoning.
+如果可能，使用通道进行任务间通信。原子操作是更底层的，需要仔细推理。
 
 ```hemlock
-// Prefer this:
+// 优先这样：
 let ch = channel(10);
 spawn(fn() { ch.send(result); });
 let value = ch.recv();
 
-// Over manual atomic coordination when appropriate
+// 而不是在适当时使用手动原子协调
 ```
 
-### 3. Be Aware of ABA Problem
+### 3. 注意 ABA 问题
 
-CAS can suffer from the ABA problem: a value changes from A to B and back to A. Your CAS succeeds, but the state may have changed in between.
+CAS 可能遭受 ABA 问题：值从 A 变为 B 然后又变回 A。你的 CAS 成功了，但状态可能在中间已经改变。
 
-### 4. Initialize Before Sharing
+### 4. 在共享之前初始化
 
-Always initialize atomic variables before spawning tasks that access them:
+始终在生成访问原子变量的任务之前初始化它们：
 
 ```hemlock
 let counter = alloc(4);
-ptr_write_i32(counter, 0);  // Initialize BEFORE spawning
+ptr_write_i32(counter, 0);  // 在生成之前初始化
 
 let task = spawn(worker, counter);
 ```
 
-### 5. Free After All Tasks Complete
+### 5. 在所有任务完成后释放
 
-Don't free atomic memory while tasks might still access it:
+不要在任务可能仍在访问原子内存时释放它：
 
 ```hemlock
 let counter = alloc(4);
@@ -599,31 +599,31 @@ let t2 = spawn(worker, counter);
 join(t1);
 join(t2);
 
-// Now safe to free
+// 现在可以安全释放
 free(counter);
 ```
 
 ---
 
-## Limitations
+## 限制
 
-### Current Limitations
+### 当前限制
 
-1. **Only i32 and i64 supported** - No atomic operations for other types
-2. **No pointer atomics** - Cannot atomically load/store pointers
-3. **Sequential consistency only** - No weaker memory orderings available
-4. **No atomic floating-point** - Use integer representation if needed
+1. **仅支持 i32 和 i64** - 其他类型没有原子操作
+2. **没有指针原子操作** - 无法原子地加载/存储指针
+3. **仅顺序一致性** - 没有较弱的内存排序可用
+4. **没有原子浮点数** - 如果需要请使用整数表示
 
-### Platform Notes
+### 平台说明
 
-- Atomic operations use C11 `<stdatomic.h>` under the hood
-- Available on all platforms that support POSIX threads
-- Guaranteed to be lock-free on modern 64-bit systems
+- 原子操作底层使用 C11 `<stdatomic.h>`
+- 在所有支持 POSIX 线程的平台上可用
+- 在现代 64 位系统上保证无锁
 
 ---
 
-## See Also
+## 另请参阅
 
-- [Async/Concurrency](async-concurrency.md) - Task spawning and channels
-- [Memory Management](../language-guide/memory.md) - Pointer and buffer allocation
-- [Memory API](../reference/memory-api.md) - Allocation functions
+- [异步/并发](async-concurrency.md) - 任务生成和通道
+- [内存管理](../language-guide/memory.md) - 指针和缓冲区分配
+- [内存 API](../reference/memory-api.md) - 分配函数

@@ -1,18 +1,18 @@
-# Quick Start
+# 快速开始
 
-Get up and running with hpm in 5 minutes.
+5 分钟内开始使用 hpm。
 
-## Install hpm
+## 安装 hpm
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hemlang/hpm/main/install.sh | sh
 ```
 
-For more installation options, see the [Installation Guide](installation.md).
+更多安装选项请参阅[安装指南](installation.md)。
 
-## Create a New Project
+## 创建新项目
 
-Start by creating a new directory and initializing a package:
+首先创建一个新目录并初始化包：
 
 ```bash
 mkdir my-project
@@ -20,7 +20,7 @@ cd my-project
 hpm init
 ```
 
-You'll be prompted for project details:
+系统会提示你输入项目详情：
 
 ```
 Package name (owner/repo): myname/my-project
@@ -33,26 +33,26 @@ Main file (src/index.hml):
 Created package.json
 ```
 
-Use `--yes` to accept all defaults:
+使用 `--yes` 接受所有默认值：
 
 ```bash
 hpm init --yes
 ```
 
-## Project Structure
+## 项目结构
 
-Create the basic project structure:
+创建基本项目结构：
 
 ```
 my-project/
-├── package.json        # Project manifest
+├── package.json        # 项目清单
 ├── src/
-│   └── index.hml      # Main entry point
+│   └── index.hml      # 主入口点
 └── test/
-    └── test.hml       # Tests
+    └── test.hml       # 测试文件
 ```
 
-Create your main file:
+创建主文件：
 
 ```bash
 mkdir -p src test
@@ -70,28 +70,28 @@ export fn main() {
 }
 ```
 
-## Install Dependencies
+## 安装依赖
 
-Search for packages on GitHub (packages use `owner/repo` format):
+在 GitHub 上搜索包（包使用 `owner/repo` 格式）：
 
 ```bash
-# Install a package
+# 安装一个包
 hpm install hemlang/sprout
 
-# Install with version constraint
+# 使用版本约束安装
 hpm install hemlang/json@^1.0.0
 
-# Install as dev dependency
+# 安装为开发依赖
 hpm install hemlang/test-utils --dev
 ```
 
-After installation, your project structure includes `hem_modules/`:
+安装后，你的项目结构将包含 `hem_modules/`：
 
 ```
 my-project/
 ├── package.json
-├── package-lock.json   # Lock file (auto-generated)
-├── hem_modules/        # Installed packages
+├── package-lock.json   # 锁定文件（自动生成）
+├── hem_modules/        # 已安装的包
 │   └── hemlang/
 │       └── sprout/
 ├── src/
@@ -100,9 +100,9 @@ my-project/
     └── test.hml
 ```
 
-## Use Installed Packages
+## 使用已安装的包
 
-Import packages using their GitHub path:
+使用 GitHub 路径导入包：
 
 ```hemlock
 // Import from installed package
@@ -117,9 +117,9 @@ import { HashMap } from "@stdlib/collections";
 import { readFile } from "@stdlib/fs";
 ```
 
-## Add Scripts
+## 添加脚本
 
-Add scripts to your `package.json`:
+在 `package.json` 中添加脚本：
 
 ```json
 {
@@ -133,21 +133,21 @@ Add scripts to your `package.json`:
 }
 ```
 
-Run scripts with `hpm run`:
+使用 `hpm run` 运行脚本：
 
 ```bash
 hpm run start
 hpm run build
 
-# Shorthand for test
+# test 的简写形式
 hpm test
 ```
 
-## Common Workflows
+## 常用工作流
 
-### Installing All Dependencies
+### 安装所有依赖
 
-When you clone a project with a `package.json`:
+当你克隆一个带有 `package.json` 的项目时：
 
 ```bash
 git clone https://github.com/someone/project.git
@@ -155,29 +155,29 @@ cd project
 hpm install
 ```
 
-### Updating Dependencies
+### 更新依赖
 
-Update all packages to latest versions within constraints:
+将所有包更新到约束范围内的最新版本：
 
 ```bash
 hpm update
 ```
 
-Update a specific package:
+更新特定的包：
 
 ```bash
 hpm update hemlang/sprout
 ```
 
-### Viewing Installed Packages
+### 查看已安装的包
 
-List all installed packages:
+列出所有已安装的包：
 
 ```bash
 hpm list
 ```
 
-Output shows the dependency tree:
+输出显示依赖树：
 
 ```
 my-project@1.0.0
@@ -186,23 +186,23 @@ my-project@1.0.0
 └── hemlang/json@1.2.3
 ```
 
-### Checking for Updates
+### 检查更新
 
-See which packages have newer versions:
+查看哪些包有更新版本：
 
 ```bash
 hpm outdated
 ```
 
-### Removing a Package
+### 移除包
 
 ```bash
 hpm uninstall hemlang/sprout
 ```
 
-## Example: Web Application
+## 示例：Web 应用
 
-Here's a complete example using a web framework:
+这是一个使用 Web 框架的完整示例：
 
 **package.json:**
 ```json
@@ -244,16 +244,16 @@ fn main() {
 }
 ```
 
-Run the application:
+运行应用：
 
 ```bash
 hpm install
 hpm run start
 ```
 
-## Next Steps
+## 后续步骤
 
-- [Command Reference](commands.md) - Learn all hpm commands
-- [Creating Packages](creating-packages.md) - Publish your own packages
-- [Configuration](configuration.md) - Configure hpm and GitHub tokens
-- [Project Setup](project-setup.md) - Detailed project configuration
+- [命令参考](commands.md) - 学习所有 hpm 命令
+- [创建包](creating-packages.md) - 发布你自己的包
+- [配置](configuration.md) - 配置 hpm 和 GitHub token
+- [项目设置](project-setup.md) - 详细的项目配置

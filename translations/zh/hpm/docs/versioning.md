@@ -1,96 +1,96 @@
-# Versioning
+# 版本控制
 
-Complete guide to semantic versioning in hpm.
+hpm 中语义化版本控制的完整指南。
 
-## Semantic Versioning
+## 语义化版本
 
-hpm uses [Semantic Versioning 2.0.0](https://semver.org/) (semver) for package versions.
+hpm 使用[语义化版本 2.0.0](https://semver.org/)（semver）进行包版本管理。
 
-### Version Format
+### 版本格式
 
 ```
 MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
 ```
 
-**Examples:**
+**示例：**
 ```
-1.0.0           # Release version
-2.1.3           # Release version
-1.0.0-alpha     # Pre-release
-1.0.0-beta.1    # Pre-release with number
-1.0.0-rc.1      # Release candidate
-1.0.0+20231201  # With build metadata
-1.0.0-beta+exp  # Pre-release with build metadata
+1.0.0           # 发布版本
+2.1.3           # 发布版本
+1.0.0-alpha     # 预发布
+1.0.0-beta.1    # 带编号的预发布
+1.0.0-rc.1      # 候选发布
+1.0.0+20231201  # 带构建元数据
+1.0.0-beta+exp  # 预发布带构建元数据
 ```
 
-### Version Components
+### 版本组成部分
 
-| Component | Description | Example |
+| 组成部分 | 描述 | 示例 |
 |-----------|-------------|---------|
-| MAJOR | Breaking changes | `1.0.0` → `2.0.0` |
-| MINOR | New features (backward compatible) | `1.0.0` → `1.1.0` |
-| PATCH | Bug fixes (backward compatible) | `1.0.0` → `1.0.1` |
-| PRERELEASE | Pre-release identifier | `1.0.0-alpha` |
-| BUILD | Build metadata (ignored in comparison) | `1.0.0+build123` |
+| MAJOR | 破坏性更改 | `1.0.0` → `2.0.0` |
+| MINOR | 新功能（向后兼容） | `1.0.0` → `1.1.0` |
+| PATCH | 错误修复（向后兼容） | `1.0.0` → `1.0.1` |
+| PRERELEASE | 预发布标识符 | `1.0.0-alpha` |
+| BUILD | 构建元数据（比较时忽略） | `1.0.0+build123` |
 
-### When to Increment
+### 何时递增
 
-| Change Type | Increment | Example |
+| 更改类型 | 递增 | 示例 |
 |-------------|-----------|---------|
-| Breaking API change | MAJOR | Removing a function |
-| Renaming public function | MAJOR | `parse()` → `decode()` |
-| Changing function signature | MAJOR | Adding required parameter |
-| Adding new function | MINOR | Adding `validate()` |
-| Adding optional parameter | MINOR | New optional `options` arg |
-| Bug fix | PATCH | Fix null pointer |
-| Performance improvement | PATCH | Faster algorithm |
-| Internal refactor | PATCH | No API change |
+| 破坏性 API 更改 | MAJOR | 移除函数 |
+| 重命名公共函数 | MAJOR | `parse()` → `decode()` |
+| 更改函数签名 | MAJOR | 添加必需参数 |
+| 添加新函数 | MINOR | 添加 `validate()` |
+| 添加可选参数 | MINOR | 新的可选 `options` 参数 |
+| 错误修复 | PATCH | 修复空指针 |
+| 性能改进 | PATCH | 更快的算法 |
+| 内部重构 | PATCH | 无 API 更改 |
 
-## Version Constraints
+## 版本约束
 
-### Constraint Syntax
+### 约束语法
 
-| Syntax | Meaning | Resolves to |
+| 语法 | 含义 | 解析为 |
 |--------|---------|-------------|
-| `1.2.3` | Exact version | 1.2.3 only |
-| `^1.2.3` | Caret (compatible) | ≥1.2.3 and <2.0.0 |
-| `~1.2.3` | Tilde (patch updates) | ≥1.2.3 and <1.3.0 |
-| `>=1.0.0` | At least | 1.0.0 or higher |
-| `>1.0.0` | Greater than | Higher than 1.0.0 |
-| `<2.0.0` | Less than | Lower than 2.0.0 |
-| `<=2.0.0` | At most | 2.0.0 or lower |
-| `>=1.0.0 <2.0.0` | Range | Between 1.0.0 and 2.0.0 |
-| `*` | Any | Any version |
+| `1.2.3` | 精确版本 | 仅 1.2.3 |
+| `^1.2.3` | 插入符（兼容） | ≥1.2.3 且 <2.0.0 |
+| `~1.2.3` | 波浪号（补丁更新） | ≥1.2.3 且 <1.3.0 |
+| `>=1.0.0` | 至少 | 1.0.0 或更高 |
+| `>1.0.0` | 大于 | 高于 1.0.0 |
+| `<2.0.0` | 小于 | 低于 2.0.0 |
+| `<=2.0.0` | 最多 | 2.0.0 或更低 |
+| `>=1.0.0 <2.0.0` | 范围 | 在 1.0.0 和 2.0.0 之间 |
+| `*` | 任意 | 任意版本 |
 
-### Caret Ranges (^)
+### 插入符范围 (^)
 
-The caret (`^`) allows changes that don't modify the leftmost non-zero digit:
-
-```
-^1.2.3  →  >=1.2.3 <2.0.0   # Allows 1.x.x
-^0.2.3  →  >=0.2.3 <0.3.0   # Allows 0.2.x
-^0.0.3  →  >=0.0.3 <0.0.4   # Allows 0.0.3 only
-```
-
-**Use when:** You want compatible updates within a major version.
-
-**Most common constraint** - recommended for most dependencies.
-
-### Tilde Ranges (~)
-
-The tilde (`~`) allows only patch-level changes:
+插入符（`^`）允许不修改最左边非零数字的更改：
 
 ```
-~1.2.3  →  >=1.2.3 <1.3.0   # Allows 1.2.x
-~1.2    →  >=1.2.0 <1.3.0   # Allows 1.2.x
-~1      →  >=1.0.0 <2.0.0   # Allows 1.x.x
+^1.2.3  →  >=1.2.3 <2.0.0   # 允许 1.x.x
+^0.2.3  →  >=0.2.3 <0.3.0   # 允许 0.2.x
+^0.0.3  →  >=0.0.3 <0.0.4   # 仅允许 0.0.3
 ```
 
-**Use when:** You want only bug fixes, no new features.
+**使用场景：** 你希望在主版本内获得兼容更新。
 
-### Comparison Ranges
+**最常见的约束** - 推荐用于大多数依赖。
 
-Combine comparison operators for precise control:
+### 波浪号范围 (~)
+
+波浪号（`~`）仅允许补丁级别的更改：
+
+```
+~1.2.3  →  >=1.2.3 <1.3.0   # 允许 1.2.x
+~1.2    →  >=1.2.0 <1.3.0   # 允许 1.2.x
+~1      →  >=1.0.0 <2.0.0   # 允许 1.x.x
+```
+
+**使用场景：** 你只希望获得错误修复，不要新功能。
+
+### 比较范围
+
+组合比较运算符进行精确控制：
 
 ```json
 {
@@ -101,9 +101,9 @@ Combine comparison operators for precise control:
 }
 ```
 
-### Any Version (*)
+### 任意版本 (*)
 
-Matches any version:
+匹配任意版本：
 
 ```json
 {
@@ -113,64 +113,64 @@ Matches any version:
 }
 ```
 
-**Warning:** Not recommended for production. Will always get the latest version.
+**警告：** 不推荐用于生产环境。将始终获取最新版本。
 
-## Pre-release Versions
+## 预发布版本
 
-### Pre-release Identifiers
+### 预发布标识符
 
-Pre-releases have lower precedence than releases:
+预发布版本的优先级低于正式发布版本：
 
 ```
 1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-beta < 1.0.0-rc.1 < 1.0.0
 ```
 
-### Common Pre-release Tags
+### 常见预发布标签
 
-| Tag | Meaning | Stage |
+| 标签 | 含义 | 阶段 |
 |-----|---------|-------|
-| `alpha` | Early development | Very unstable |
-| `beta` | Feature complete | Testing |
-| `rc` | Release candidate | Final testing |
-| `dev` | Development snapshot | Unstable |
+| `alpha` | 早期开发 | 非常不稳定 |
+| `beta` | 功能完整 | 测试中 |
+| `rc` | 候选发布 | 最终测试 |
+| `dev` | 开发快照 | 不稳定 |
 
-### Pre-release in Constraints
+### 约束中的预发布
 
-Constraints don't match pre-releases by default:
-
-```
-^1.0.0    # Does NOT match 1.1.0-beta
->=1.0.0   # Does NOT match 2.0.0-alpha
-```
-
-To include pre-releases, reference them explicitly:
+约束默认不匹配预发布版本：
 
 ```
->=1.0.0-alpha <2.0.0   # Includes all 1.x pre-releases
+^1.0.0    # 不匹配 1.1.0-beta
+>=1.0.0   # 不匹配 2.0.0-alpha
 ```
 
-## Version Comparison
+要包含预发布版本，请明确引用它们：
 
-### Comparison Rules
+```
+>=1.0.0-alpha <2.0.0   # 包含所有 1.x 预发布版本
+```
 
-1. Compare MAJOR, MINOR, PATCH numerically
-2. Release > pre-release with same version
-3. Pre-releases compared alphanumerically
-4. Build metadata is ignored
+## 版本比较
 
-### Examples
+### 比较规则
+
+1. 按数值比较 MAJOR、MINOR、PATCH
+2. 发布版本 > 相同版本号的预发布版本
+3. 预发布版本按字母数字顺序比较
+4. 构建元数据被忽略
+
+### 示例
 
 ```
 1.0.0 < 1.0.1 < 1.1.0 < 2.0.0
 
 1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-beta < 1.0.0
 
-1.0.0 = 1.0.0+build123  # Build metadata ignored
+1.0.0 = 1.0.0+build123  # 构建元数据被忽略
 ```
 
-### Sorting
+### 排序
 
-Versions sort ascending:
+版本按升序排序：
 
 ```
 1.0.0
@@ -182,18 +182,18 @@ Versions sort ascending:
 2.0.0
 ```
 
-## Version Resolution
+## 版本解析
 
-### Resolution Algorithm
+### 解析算法
 
-When multiple packages require the same dependency:
+当多个包需要同一个依赖时：
 
-1. Collect all constraints
-2. Find intersection of all ranges
-3. Select highest version in intersection
-4. Error if no version satisfies all
+1. 收集所有约束
+2. 找到所有范围的交集
+3. 选择交集中的最高版本
+4. 如果没有版本满足所有约束则报错
 
-### Example Resolution
+### 解析示例
 
 ```
 package-a requires hemlang/json@^1.0.0  (>=1.0.0 <2.0.0)
@@ -204,9 +204,9 @@ Available: [1.0.0, 1.1.0, 1.2.0, 1.2.1, 1.2.5, 1.3.0]
 Resolved: 1.2.5 (highest in intersection)
 ```
 
-### Conflict Detection
+### 冲突检测
 
-Conflict occurs when no version satisfies all constraints:
+当没有版本满足所有约束时发生冲突：
 
 ```
 package-a requires hemlang/json@^1.0.0  (>=1.0.0 <2.0.0)
@@ -216,59 +216,59 @@ Intersection: (empty)
 Result: CONFLICT - no version satisfies both
 ```
 
-## Best Practices
+## 最佳实践
 
-### For Package Consumers
+### 对于包使用者
 
-1. **Use caret ranges** for most dependencies:
+1. **大多数依赖使用插入符范围**：
    ```json
    "hemlang/json": "^1.2.0"
    ```
 
-2. **Use tilde ranges** for critical dependencies:
+2. **关键依赖使用波浪号范围**：
    ```json
    "critical/lib": "~1.2.0"
    ```
 
-3. **Pin versions** only when necessary:
+3. **仅在必要时锁定版本**：
    ```json
    "unstable/pkg": "1.2.3"
    ```
 
-4. **Commit your lock file** for reproducible builds
+4. **提交锁定文件**以实现可重现的构建
 
-5. **Update regularly** to get security fixes:
+5. **定期更新**以获取安全修复：
    ```bash
    hpm update
    hpm outdated
    ```
 
-### For Package Authors
+### 对于包作者
 
-1. **Start at 0.1.0** for initial development:
-   - API may change frequently
-   - Users expect instability
+1. **初始开发从 0.1.0 开始**：
+   - API 可能频繁更改
+   - 用户预期不稳定
 
-2. **Go to 1.0.0** when API is stable:
-   - Public commitment to stability
-   - Breaking changes require major bump
+2. **API 稳定后升级到 1.0.0**：
+   - 对稳定性的公开承诺
+   - 破坏性更改需要递增主版本
 
-3. **Follow semver strictly**:
-   - Breaking change = MAJOR
-   - New feature = MINOR
-   - Bug fix = PATCH
+3. **严格遵循 semver**：
+   - 破坏性更改 = MAJOR
+   - 新功能 = MINOR
+   - 错误修复 = PATCH
 
-4. **Use pre-releases** for testing:
+4. **使用预发布版本进行测试**：
    ```bash
    git tag v2.0.0-beta.1
    git push --tags
    ```
 
-5. **Document breaking changes** in CHANGELOG
+5. **在 CHANGELOG 中记录破坏性更改**
 
-## Publishing Versions
+## 发布版本
 
-### Creating Releases
+### 创建发布
 
 ```bash
 # Update version in package.json
@@ -283,17 +283,17 @@ git tag v1.1.0
 git push origin main --tags
 ```
 
-### Tag Format
+### 标签格式
 
-Tags **must** start with `v`:
+标签**必须**以 `v` 开头：
 
 ```
-v1.0.0      ✓ Correct
-v1.0.0-beta ✓ Correct
-1.0.0       ✗ Won't be recognized
+v1.0.0      ✓ 正确
+v1.0.0-beta ✓ 正确
+1.0.0       ✗ 不会被识别
 ```
 
-### Release Workflow
+### 发布工作流
 
 ```bash
 # 1. Ensure tests pass
@@ -312,43 +312,43 @@ git tag v1.2.0
 git push origin main --tags
 ```
 
-## Checking Versions
+## 检查版本
 
-### List Installed Versions
+### 列出已安装版本
 
 ```bash
 hpm list
 ```
 
-### Check for Updates
+### 检查更新
 
 ```bash
 hpm outdated
 ```
 
-Output:
+输出：
 ```
 Package         Current  Wanted  Latest
 hemlang/json    1.0.0    1.0.5   1.2.0
 hemlang/sprout  2.0.0    2.0.3   2.1.0
 ```
 
-- **Current**: Installed version
-- **Wanted**: Highest matching constraint
-- **Latest**: Latest available
+- **Current**：已安装版本
+- **Wanted**：符合约束的最高版本
+- **Latest**：最新可用版本
 
-### Update Packages
+### 更新包
 
 ```bash
-# Update all
+# 更新所有
 hpm update
 
-# Update specific package
+# 更新特定包
 hpm update hemlang/json
 ```
 
-## See Also
+## 另请参阅
 
-- [Creating Packages](creating-packages.md) - Publishing guide
-- [Package Specification](package-spec.md) - package.json format
-- [Commands](commands.md) - CLI reference
+- [创建包](creating-packages.md) - 发布指南
+- [包规范](package-spec.md) - package.json 格式
+- [命令](commands.md) - CLI 参考

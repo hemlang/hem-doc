@@ -1,63 +1,63 @@
-# Configuration
+# 配置
 
-This guide covers all configuration options for hpm.
+本指南涵盖 hpm 的所有配置选项。
 
-## Overview
+## 概述
 
-hpm can be configured through:
+hpm 可以通过以下方式配置：
 
-1. **Environment variables** - For runtime settings
-2. **Global config file** - `~/.hpm/config.json`
-3. **Project files** - `package.json` and `package-lock.json`
+1. **环境变量** - 用于运行时设置
+2. **全局配置文件** - `~/.hpm/config.json`
+3. **项目文件** - `package.json` 和 `package-lock.json`
 
-## Environment Variables
+## 环境变量
 
 ### GITHUB_TOKEN
 
-GitHub API token for authentication.
+用于认证的 GitHub API token。
 
 ```bash
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
 ```
 
-**Benefits of authentication:**
-- Higher API rate limits (5000 vs 60 requests/hour)
-- Access to private repositories
-- Faster dependency resolution
+**认证的好处：**
+- 更高的 API 速率限制（5000 vs 60 请求/小时）
+- 访问私有仓库
+- 更快的依赖解析
 
-**Creating a token:**
+**创建 token：**
 
-1. Go to GitHub → Settings → Developer settings → Personal access tokens
-2. Click "Generate new token (classic)"
-3. Select scopes:
-   - `repo` - For private repository access
-   - `read:packages` - For GitHub Packages (if used)
-4. Generate and copy the token
+1. 前往 GitHub → Settings → Developer settings → Personal access tokens
+2. 点击 "Generate new token (classic)"
+3. 选择权限范围：
+   - `repo` - 用于私有仓库访问
+   - `read:packages` - 用于 GitHub Packages（如果使用）
+4. 生成并复制 token
 
 ### HPM_CACHE_DIR
 
-Override the default cache directory.
+覆盖默认缓存目录。
 
 ```bash
 export HPM_CACHE_DIR=/custom/cache/path
 ```
 
-Default: `~/.hpm/cache`
+默认值：`~/.hpm/cache`
 
-**Use cases:**
-- CI/CD systems with custom cache locations
-- Shared cache across projects
-- Temporary cache for isolated builds
+**使用场景：**
+- 具有自定义缓存位置的 CI/CD 系统
+- 跨项目共享缓存
+- 隔离构建的临时缓存
 
 ### HOME
 
-User home directory. Used to locate:
-- Config directory: `$HOME/.hpm/`
-- Cache directory: `$HOME/.hpm/cache/`
+用户主目录。用于定位：
+- 配置目录：`$HOME/.hpm/`
+- 缓存目录：`$HOME/.hpm/cache/`
 
-Usually set by the system; override only if needed.
+通常由系统设置；仅在需要时覆盖。
 
-### Example .bashrc / .zshrc
+### .bashrc / .zshrc 示例
 
 ```bash
 # GitHub authentication (recommended)
@@ -70,13 +70,13 @@ export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-## Global Configuration File
+## 全局配置文件
 
-### Location
+### 位置
 
 `~/.hpm/config.json`
 
-### Format
+### 格式
 
 ```json
 {
@@ -84,7 +84,7 @@ export PATH="$HOME/.local/bin:$PATH"
 }
 ```
 
-### Creating the Config File
+### 创建配置文件
 
 ```bash
 # Create config directory
@@ -101,51 +101,51 @@ EOF
 chmod 600 ~/.hpm/config.json
 ```
 
-### Token Priority
+### Token 优先级
 
-If both are set, environment variable takes precedence:
+如果两者都设置，环境变量优先：
 
-1. `GITHUB_TOKEN` environment variable (highest)
-2. `~/.hpm/config.json` `github_token` field
-3. No authentication (default)
+1. `GITHUB_TOKEN` 环境变量（最高）
+2. `~/.hpm/config.json` 的 `github_token` 字段
+3. 无认证（默认）
 
-## Directory Structure
+## 目录结构
 
-### Global Directories
+### 全局目录
 
 ```
 ~/.hpm/
-├── config.json          # Global configuration
-└── cache/               # Package cache
+├── config.json          # 全局配置
+└── cache/               # 包缓存
     └── owner/
         └── repo/
             └── 1.0.0.tar.gz
 ```
 
-### Project Directories
+### 项目目录
 
 ```
 my-project/
-├── package.json         # Project manifest
-├── package-lock.json    # Dependency lock file
-├── hem_modules/         # Installed packages
+├── package.json         # 项目清单
+├── package-lock.json    # 依赖锁定文件
+├── hem_modules/         # 已安装的包
 │   └── owner/
 │       └── repo/
 │           ├── package.json
 │           └── src/
-├── src/                 # Source code
-└── test/                # Tests
+├── src/                 # 源代码
+└── test/                # 测试
 ```
 
-## Package Cache
+## 包缓存
 
-### Location
+### 位置
 
-Default: `~/.hpm/cache/`
+默认：`~/.hpm/cache/`
 
-Override with: `HPM_CACHE_DIR` environment variable
+使用 `HPM_CACHE_DIR` 环境变量覆盖
 
-### Structure
+### 结构
 
 ```
 ~/.hpm/cache/
@@ -160,75 +160,75 @@ Override with: `HPM_CACHE_DIR` environment variable
         └── 1.0.0.tar.gz
 ```
 
-### Managing the Cache
+### 管理缓存
 
 ```bash
-# View cached packages
+# 查看缓存的包
 hpm cache list
 
-# Clear entire cache
+# 清除整个缓存
 hpm cache clean
 ```
 
-### Cache Behavior
+### 缓存行为
 
-- Packages are cached after first download
-- Subsequent installs use cached versions
-- Use `--offline` to install only from cache
-- Cache is shared across all projects
+- 包在首次下载后被缓存
+- 后续安装使用缓存版本
+- 使用 `--offline` 仅从缓存安装
+- 缓存在所有项目间共享
 
-## GitHub API Rate Limits
+## GitHub API 速率限制
 
-### Without Authentication
+### 无认证
 
-- **60 requests per hour** per IP address
-- Shared across all unauthenticated users on same IP
-- Quickly exhausted in CI/CD or with many dependencies
+- **每小时 60 个请求**，按 IP 地址计算
+- 在同一 IP 上的所有未认证用户间共享
+- 在 CI/CD 或有多个依赖时会很快耗尽
 
-### With Authentication
+### 有认证
 
-- **5000 requests per hour** per authenticated user
-- Personal rate limit, not shared
+- **每小时 5000 个请求**，按认证用户计算
+- 个人速率限制，不共享
 
-### Handling Rate Limits
+### 处理速率限制
 
-hpm automatically:
-- Retries with exponential backoff (1s, 2s, 4s, 8s)
-- Reports rate limit errors with exit code 7
-- Suggests authentication if rate limited
+hpm 自动：
+- 使用指数退避重试（1秒、2秒、4秒、8秒）
+- 以退出码 7 报告速率限制错误
+- 如果被速率限制则建议认证
 
-**Solutions when rate limited:**
+**速率限制时的解决方案：**
 
 ```bash
-# Option 1: Authenticate with GitHub token
+# 选项 1：使用 GitHub token 认证
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 hpm install
 
-# Option 2: Wait for rate limit reset
-# (Limits reset hourly)
+# 选项 2：等待速率限制重置
+# （限制每小时重置）
 
-# Option 3: Use offline mode (if packages are cached)
+# 选项 3：使用离线模式（如果包已缓存）
 hpm install --offline
 ```
 
-## Offline Mode
+## 离线模式
 
-Install packages without network access:
+无网络访问时安装包：
 
 ```bash
 hpm install --offline
 ```
 
-**Requirements:**
-- All packages must be in cache
-- Lock file must exist with exact versions
+**要求：**
+- 所有包必须在缓存中
+- 锁定文件必须存在且有精确版本
 
-**Use cases:**
-- Air-gapped environments
-- Faster CI/CD builds (with warm cache)
-- Avoiding rate limits
+**使用场景：**
+- 隔离网络的环境
+- 更快的 CI/CD 构建（有热缓存）
+- 避免速率限制
 
-## CI/CD Configuration
+## CI/CD 配置
 
 ### GitHub Actions
 
@@ -334,9 +334,9 @@ volumes:
   hpm-cache:
 ```
 
-## Proxy Configuration
+## 代理配置
 
-For environments behind a proxy, configure at the system level:
+对于代理后面的环境，在系统级别配置：
 
 ```bash
 export HTTP_PROXY=http://proxy.example.com:8080
@@ -346,73 +346,73 @@ export NO_PROXY=localhost,127.0.0.1
 hpm install
 ```
 
-## Security Best Practices
+## 安全最佳实践
 
-### Token Security
+### Token 安全
 
-1. **Never commit tokens** to version control
-2. **Use environment variables** in CI/CD
-3. **Restrict token scopes** to minimum required
-4. **Rotate tokens** regularly
-5. **Secure config file**:
+1. **永远不要提交 token** 到版本控制
+2. **在 CI/CD 中使用环境变量**
+3. **将 token 权限范围限制**到最小需要
+4. **定期轮换 token**
+5. **保护配置文件**：
    ```bash
    chmod 600 ~/.hpm/config.json
    ```
 
-### Private Repositories
+### 私有仓库
 
-To access private packages:
+要访问私有包：
 
-1. Create token with `repo` scope
-2. Configure authentication (env var or config file)
-3. Ensure token has access to the repository
+1. 创建具有 `repo` 权限范围的 token
+2. 配置认证（环境变量或配置文件）
+3. 确保 token 有仓库访问权限
 
 ```bash
-# Test access
+# 测试访问
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 hpm install yourorg/private-package
 ```
 
-## Troubleshooting Configuration
+## 配置故障排除
 
-### Verify Configuration
+### 验证配置
 
 ```bash
-# Check if token is set
+# 检查 token 是否设置
 echo $GITHUB_TOKEN | head -c 10
 
-# Check config file
+# 检查配置文件
 cat ~/.hpm/config.json
 
-# Check cache directory
+# 检查缓存目录
 ls -la ~/.hpm/cache/
 
-# Test with verbose output
+# 使用详细输出测试
 hpm install --verbose
 ```
 
-### Common Issues
+### 常见问题
 
 **"GitHub rate limit exceeded"**
-- Set up authentication with `GITHUB_TOKEN`
-- Wait for rate limit reset
-- Use `--offline` if packages are cached
+- 使用 `GITHUB_TOKEN` 设置认证
+- 等待速率限制重置
+- 如果包已缓存，使用 `--offline`
 
-**"Permission denied" on cache**
+**缓存上的 "Permission denied"**
 ```bash
-# Fix cache permissions
+# 修复缓存权限
 chmod -R u+rw ~/.hpm/cache
 ```
 
 **"Config file not found"**
 ```bash
-# Create config directory
+# 创建配置目录
 mkdir -p ~/.hpm
 touch ~/.hpm/config.json
 ```
 
-## See Also
+## 另请参阅
 
-- [Installation](installation.md) - Installing hpm
-- [Troubleshooting](troubleshooting.md) - Common problems
-- [Commands](commands.md) - Command reference
+- [安装](installation.md) - 安装 hpm
+- [故障排除](troubleshooting.md) - 常见问题
+- [命令](commands.md) - 命令参考

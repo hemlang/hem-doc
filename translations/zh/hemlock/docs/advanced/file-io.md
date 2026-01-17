@@ -1,103 +1,103 @@
-# File I/O in Hemlock
+# Hemlock 文件 I/O
 
-Hemlock provides a **File object API** for file operations with proper error handling and resource management.
+Hemlock 提供**文件对象 API**用于文件操作，具有适当的错误处理和资源管理。
 
-## Table of Contents
+## 目录
 
-- [Overview](#overview)
-- [Opening Files](#opening-files)
-- [File Methods](#file-methods)
-- [File Properties](#file-properties)
-- [Error Handling](#error-handling)
-- [Resource Management](#resource-management)
-- [Complete API Reference](#complete-api-reference)
-- [Common Patterns](#common-patterns)
-- [Best Practices](#best-practices)
+- [概述](#概述)
+- [打开文件](#打开文件)
+- [文件方法](#文件方法)
+- [文件属性](#文件属性)
+- [错误处理](#错误处理)
+- [资源管理](#资源管理)
+- [完整 API 参考](#完整-api-参考)
+- [常见模式](#常见模式)
+- [最佳实践](#最佳实践)
 
-## Overview
+## 概述
 
-The File object API provides:
+文件对象 API 提供：
 
-- **Explicit resource management** - Files must be manually closed
-- **Multiple open modes** - Read, write, append, read/write
-- **Text and binary operations** - Read/write both text and binary data
-- **Seeking support** - Random access within files
-- **Comprehensive error messages** - Context-aware error reporting
+- **显式资源管理** - 文件必须手动关闭
+- **多种打开模式** - 读取、写入、追加、读写
+- **文本和二进制操作** - 读写文本和二进制数据
+- **定位支持** - 文件内的随机访问
+- **全面的错误消息** - 上下文感知的错误报告
 
-**Important:** Files are not automatically closed. You must call `f.close()` to avoid file descriptor leaks.
+**重要：** 文件不会自动关闭。您必须调用 `f.close()` 以避免文件描述符泄漏。
 
-## Opening Files
+## 打开文件
 
-Use `open(path, mode?)` to open a file:
+使用 `open(path, mode?)` 打开文件：
 
 ```hemlock
-let f = open("data.txt", "r");     // Read mode (default)
-let f2 = open("output.txt", "w");  // Write mode (truncate)
-let f3 = open("log.txt", "a");     // Append mode
-let f4 = open("data.bin", "r+");   // Read/write mode
+let f = open("data.txt", "r");     // 读取模式（默认）
+let f2 = open("output.txt", "w");  // 写入模式（截断）
+let f3 = open("log.txt", "a");     // 追加模式
+let f4 = open("data.bin", "r+");   // 读写模式
 ```
 
-### Open Modes
+### 打开模式
 
-| Mode | Description | File Must Exist | Truncates | Position |
-|------|-------------|----------------|-----------|----------|
-| `"r"` | Read (default) | Yes | No | Start |
-| `"w"` | Write | No (creates) | Yes | Start |
-| `"a"` | Append | No (creates) | No | End |
-| `"r+"` | Read and write | Yes | No | Start |
-| `"w+"` | Read and write | No (creates) | Yes | Start |
-| `"a+"` | Read and append | No (creates) | No | End |
+| 模式 | 描述 | 文件必须存在 | 截断 | 位置 |
+|------|------|------------|------|------|
+| `"r"` | 读取（默认） | 是 | 否 | 开始 |
+| `"w"` | 写入 | 否（创建） | 是 | 开始 |
+| `"a"` | 追加 | 否（创建） | 否 | 结束 |
+| `"r+"` | 读写 | 是 | 否 | 开始 |
+| `"w+"` | 读写 | 否（创建） | 是 | 开始 |
+| `"a+"` | 读取和追加 | 否（创建） | 否 | 结束 |
 
-### Examples
+### 示例
 
-**Reading an existing file:**
+**读取现有文件：**
 ```hemlock
 let f = open("config.json", "r");
-// or simply:
-let f = open("config.json");  // "r" is default
+// 或简单地：
+let f = open("config.json");  // "r" 是默认值
 ```
 
-**Creating a new file for writing:**
+**创建新文件用于写入：**
 ```hemlock
-let f = open("output.txt", "w");  // Creates or truncates
+let f = open("output.txt", "w");  // 创建或截断
 ```
 
-**Appending to a file:**
+**追加到文件：**
 ```hemlock
-let f = open("log.txt", "a");  // Creates if doesn't exist
+let f = open("log.txt", "a");  // 如果不存在则创建
 ```
 
-**Read and write mode:**
+**读写模式：**
 ```hemlock
-let f = open("data.bin", "r+");  // Existing file, can read/write
+let f = open("data.bin", "r+");  // 现有文件，可读写
 ```
 
-## File Methods
+## 文件方法
 
-### Reading
+### 读取
 
 #### read(size?: i32): string
 
-Read text from file (optional size parameter).
+从文件读取文本（可选的大小参数）。
 
-**Without size (read all):**
+**不带大小（读取全部）：**
 ```hemlock
 let f = open("data.txt", "r");
-let all = f.read();  // Read from current position to EOF
+let all = f.read();  // 从当前位置读取到 EOF
 f.close();
 ```
 
-**With size (read specific bytes):**
+**带大小（读取指定字节）：**
 ```hemlock
 let f = open("data.txt", "r");
-let chunk = f.read(1024);  // Read up to 1024 bytes
-let next = f.read(1024);   // Read next 1024 bytes
+let chunk = f.read(1024);  // 读取最多 1024 字节
+let next = f.read(1024);   // 读取下一个 1024 字节
 f.close();
 ```
 
-**Returns:** String containing the read data, or empty string if at EOF
+**返回：** 包含读取数据的字符串，如果在 EOF 则返回空字符串
 
-**Example - Reading entire file:**
+**示例 - 读取整个文件：**
 ```hemlock
 let f = open("poem.txt", "r");
 let content = f.read();
@@ -105,12 +105,12 @@ print(content);
 f.close();
 ```
 
-**Example - Reading in chunks:**
+**示例 - 分块读取：**
 ```hemlock
 let f = open("large.txt", "r");
 while (true) {
-    let chunk = f.read(4096);  // 4KB chunks
-    if (chunk == "") { break; }  // EOF reached
+    let chunk = f.read(4096);  // 4KB 块
+    if (chunk == "") { break; }  // 到达 EOF
     process(chunk);
 }
 f.close();
@@ -118,51 +118,35 @@ f.close();
 
 #### read_bytes(size: i32): buffer
 
-Read binary data (returns buffer).
+读取二进制数据（返回缓冲区）。
 
-**Parameters:**
-- `size` (i32) - Number of bytes to read
+**参数：**
+- `size` (i32) - 要读取的字节数
 
-**Returns:** Buffer containing the read bytes
+**返回：** 包含读取字节的缓冲区
 
 ```hemlock
 let f = open("image.png", "r");
-let binary = f.read_bytes(256);  // Read 256 bytes
-print(binary.length);  // 256 (or less if EOF)
+let binary = f.read_bytes(256);  // 读取 256 字节
+print(binary.length);  // 256（如果 EOF 则更少）
 
-// Access individual bytes
+// 访问单个字节
 let first_byte = binary[0];
 print(first_byte);
 
 f.close();
 ```
 
-**Example - Reading entire binary file:**
-```hemlock
-let f = open("data.bin", "r");
-let size = 10240;  // Expected size
-let data = f.read_bytes(size);
-f.close();
-
-// Process binary data
-let i = 0;
-while (i < data.length) {
-    let byte = data[i];
-    // ... process byte
-    i = i + 1;
-}
-```
-
-### Writing
+### 写入
 
 #### write(data: string): i32
 
-Write text to file (returns bytes written).
+向文件写入文本（返回写入的字节数）。
 
-**Parameters:**
-- `data` (string) - Text to write
+**参数：**
+- `data` (string) - 要写入的文本
 
-**Returns:** Number of bytes written (i32)
+**返回：** 写入的字节数 (i32)
 
 ```hemlock
 let f = open("output.txt", "w");
@@ -171,7 +155,7 @@ print("Wrote " + typeof(written) + " bytes");  // "Wrote 14 bytes"
 f.close();
 ```
 
-**Example - Writing multiple lines:**
+**示例 - 写入多行：**
 ```hemlock
 let f = open("output.txt", "w");
 f.write("Line 1\n");
@@ -180,7 +164,7 @@ f.write("Line 3\n");
 f.close();
 ```
 
-**Example - Appending to log file:**
+**示例 - 追加到日志文件：**
 ```hemlock
 let f = open("app.log", "a");
 f.write("[INFO] Application started\n");
@@ -190,17 +174,17 @@ f.close();
 
 #### write_bytes(data: buffer): i32
 
-Write binary data (returns bytes written).
+写入二进制数据（返回写入的字节数）。
 
-**Parameters:**
-- `data` (buffer) - Binary data to write
+**参数：**
+- `data` (buffer) - 要写入的二进制数据
 
-**Returns:** Number of bytes written (i32)
+**返回：** 写入的字节数 (i32)
 
 ```hemlock
 let f = open("output.bin", "w");
 
-// Create binary data
+// 创建二进制数据
 let buf = buffer(10);
 buf[0] = 65;  // 'A'
 buf[1] = 66;  // 'B'
@@ -212,56 +196,41 @@ print("Wrote " + typeof(bytes) + " bytes");
 f.close();
 ```
 
-**Example - Copying binary file:**
-```hemlock
-let src = open("input.bin", "r");
-let dst = open("output.bin", "w");
-
-let data = src.read_bytes(1024);
-while (data.length > 0) {
-    dst.write_bytes(data);
-    data = src.read_bytes(1024);
-}
-
-src.close();
-dst.close();
-```
-
-### Seeking
+### 定位
 
 #### seek(position: i32): i32
 
-Move to specific position (returns new position).
+移动到指定位置（返回新位置）。
 
-**Parameters:**
-- `position` (i32) - Byte offset from beginning of file
+**参数：**
+- `position` (i32) - 从文件开头的字节偏移量
 
-**Returns:** New position (i32)
+**返回：** 新位置 (i32)
 
 ```hemlock
 let f = open("data.txt", "r");
 
-// Move to byte 100
+// 移动到第 100 字节
 f.seek(100);
 
-// Read from position 100
+// 从位置 100 读取
 let data = f.read(50);
 
-// Reset to beginning
+// 重置到开头
 f.seek(0);
 
 f.close();
 ```
 
-**Example - Random access:**
+**示例 - 随机访问：**
 ```hemlock
 let f = open("records.dat", "r");
 
-// Read record at offset 1000
+// 读取偏移量 1000 处的记录
 f.seek(1000);
 let record1 = f.read_bytes(100);
 
-// Read record at offset 2000
+// 读取偏移量 2000 处的记录
 f.seek(2000);
 let record2 = f.read_bytes(100);
 
@@ -270,64 +239,50 @@ f.close();
 
 #### tell(): i32
 
-Get current position in file.
+获取文件中的当前位置。
 
-**Returns:** Current byte offset (i32)
+**返回：** 当前字节偏移量 (i32)
 
 ```hemlock
 let f = open("data.txt", "r");
 
-let pos1 = f.tell();  // 0 (at start)
+let pos1 = f.tell();  // 0（在开始处）
 
 f.read(100);
-let pos2 = f.tell();  // 100 (after reading 100 bytes)
+let pos2 = f.tell();  // 100（读取 100 字节后）
 
 f.seek(500);
-let pos3 = f.tell();  // 500 (after seeking)
+let pos3 = f.tell();  // 500（定位后）
 
 f.close();
 ```
 
-**Example - Measuring read amount:**
-```hemlock
-let f = open("data.txt", "r");
-
-let start = f.tell();
-let content = f.read();
-let end = f.tell();
-
-let bytes_read = end - start;
-print("Read " + typeof(bytes_read) + " bytes");
-
-f.close();
-```
-
-### Closing
+### 关闭
 
 #### close()
 
-Close file (idempotent, can call multiple times).
+关闭文件（幂等，可以多次调用）。
 
 ```hemlock
 let f = open("data.txt", "r");
-// ... use file
+// ... 使用文件
 f.close();
-f.close();  // Safe - no error on second close
+f.close();  // 安全 - 第二次关闭不报错
 ```
 
-**Important notes:**
-- Always close files when done to avoid file descriptor leaks
-- Closing is idempotent - can call multiple times safely
-- After closing, all other operations will error
-- Use `finally` blocks to ensure files are closed even on errors
+**重要说明：**
+- 始终在使用完后关闭文件以避免文件描述符泄漏
+- 关闭是幂等的 - 可以安全地多次调用
+- 关闭后，所有其他操作将报错
+- 使用 `finally` 块确保即使出错也能关闭文件
 
-## File Properties
+## 文件属性
 
-File objects have three read-only properties:
+文件对象有三个只读属性：
 
 ### path: string
 
-The file path used to open the file.
+用于打开文件的文件路径。
 
 ```hemlock
 let f = open("/path/to/file.txt", "r");
@@ -337,7 +292,7 @@ f.close();
 
 ### mode: string
 
-The mode the file was opened with.
+文件打开时使用的模式。
 
 ```hemlock
 let f = open("data.txt", "r");
@@ -351,7 +306,7 @@ f2.close();
 
 ### closed: bool
 
-Whether the file is closed.
+文件是否已关闭。
 
 ```hemlock
 let f = open("data.txt", "r");
@@ -361,13 +316,13 @@ f.close();
 print(f.closed);  // true
 ```
 
-**Example - Checking if file is open:**
+**示例 - 检查文件是否打开：**
 ```hemlock
 let f = open("data.txt", "r");
 
 if (!f.closed) {
     let content = f.read();
-    // ... process content
+    // ... 处理内容
 }
 
 f.close();
@@ -377,41 +332,41 @@ if (f.closed) {
 }
 ```
 
-## Error Handling
+## 错误处理
 
-All file operations include proper error messages with context.
+所有文件操作都包含带上下文的适当错误消息。
 
-### Common Errors
+### 常见错误
 
-**File not found:**
+**文件未找到：**
 ```hemlock
 let f = open("missing.txt", "r");
-// Error: Failed to open 'missing.txt': No such file or directory
+// 错误：Failed to open 'missing.txt': No such file or directory
 ```
 
-**Reading from closed file:**
+**从已关闭的文件读取：**
 ```hemlock
 let f = open("data.txt", "r");
 f.close();
 f.read();
-// Error: Cannot read from closed file 'data.txt'
+// 错误：Cannot read from closed file 'data.txt'
 ```
 
-**Writing to read-only file:**
+**向只读文件写入：**
 ```hemlock
 let f = open("readonly.txt", "r");
 f.write("data");
-// Error: Cannot write to file 'readonly.txt' opened in read-only mode
+// 错误：Cannot write to file 'readonly.txt' opened in read-only mode
 ```
 
-**Reading from write-only file:**
+**从只写文件读取：**
 ```hemlock
 let f = open("output.txt", "w");
 f.read();
-// Error: Cannot read from file 'output.txt' opened in write-only mode
+// 错误：Cannot read from file 'output.txt' opened in write-only mode
 ```
 
-### Using try/catch
+### 使用 try/catch
 
 ```hemlock
 try {
@@ -424,11 +379,11 @@ try {
 }
 ```
 
-## Resource Management
+## 资源管理
 
-### Basic Pattern
+### 基本模式
 
-Always close files explicitly:
+始终显式关闭文件：
 
 ```hemlock
 let f = open("data.txt", "r");
@@ -436,9 +391,9 @@ let content = f.read();
 f.close();
 ```
 
-### With Error Handling (Recommended)
+### 带错误处理（推荐）
 
-Use `finally` to ensure files are closed even on errors:
+使用 `finally` 确保即使出错也能关闭文件：
 
 ```hemlock
 let f = open("data.txt", "r");
@@ -446,11 +401,11 @@ try {
     let content = f.read();
     process(content);
 } finally {
-    f.close();  // Always close, even on error
+    f.close();  // 始终关闭，即使出错
 }
 ```
 
-### Multiple Files
+### 多个文件
 
 ```hemlock
 let src = null;
@@ -468,7 +423,7 @@ try {
 }
 ```
 
-### Helper Function Pattern
+### 辅助函数模式
 
 ```hemlock
 fn with_file(path: string, mode: string, callback) {
@@ -480,43 +435,43 @@ fn with_file(path: string, mode: string, callback) {
     }
 }
 
-// Usage:
+// 使用：
 with_file("data.txt", "r", fn(f) {
     return f.read();
 });
 ```
 
-## Complete API Reference
+## 完整 API 参考
 
-### Functions
+### 函数
 
-| Function | Parameters | Returns | Description |
-|----------|-----------|---------|-------------|
-| `open(path, mode?)` | path: string, mode?: string | File | Open file (mode defaults to "r") |
+| 函数 | 参数 | 返回 | 描述 |
+|------|------|------|------|
+| `open(path, mode?)` | path: string, mode?: string | File | 打开文件（模式默认为 "r"） |
 
-### Methods
+### 方法
 
-| Method | Parameters | Returns | Description |
-|--------|-----------|---------|-------------|
-| `read(size?)` | size?: i32 | string | Read text (all or specific bytes) |
-| `read_bytes(size)` | size: i32 | buffer | Read binary data |
-| `write(data)` | data: string | i32 | Write text, returns bytes written |
-| `write_bytes(data)` | data: buffer | i32 | Write binary data, returns bytes written |
-| `seek(position)` | position: i32 | i32 | Seek to position, returns new position |
-| `tell()` | - | i32 | Get current position |
-| `close()` | - | null | Close file (idempotent) |
+| 方法 | 参数 | 返回 | 描述 |
+|------|------|------|------|
+| `read(size?)` | size?: i32 | string | 读取文本（全部或指定字节） |
+| `read_bytes(size)` | size: i32 | buffer | 读取二进制数据 |
+| `write(data)` | data: string | i32 | 写入文本，返回写入的字节数 |
+| `write_bytes(data)` | data: buffer | i32 | 写入二进制数据，返回写入的字节数 |
+| `seek(position)` | position: i32 | i32 | 定位到位置，返回新位置 |
+| `tell()` | - | i32 | 获取当前位置 |
+| `close()` | - | null | 关闭文件（幂等） |
 
-### Properties (read-only)
+### 属性（只读）
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `path` | string | File path |
-| `mode` | string | Open mode |
-| `closed` | bool | Whether file is closed |
+| 属性 | 类型 | 描述 |
+|------|------|------|
+| `path` | string | 文件路径 |
+| `mode` | string | 打开模式 |
+| `closed` | bool | 文件是否已关闭 |
 
-## Common Patterns
+## 常见模式
 
-### Reading Entire File
+### 读取整个文件
 
 ```hemlock
 fn read_file(path: string): string {
@@ -531,7 +486,7 @@ fn read_file(path: string): string {
 let content = read_file("config.json");
 ```
 
-### Writing Entire File
+### 写入整个文件
 
 ```hemlock
 fn write_file(path: string, content: string) {
@@ -546,7 +501,7 @@ fn write_file(path: string, content: string) {
 write_file("output.txt", "Hello, World!");
 ```
 
-### Appending to File
+### 追加到文件
 
 ```hemlock
 fn append_file(path: string, content: string) {
@@ -561,7 +516,7 @@ fn append_file(path: string, content: string) {
 append_file("log.txt", "[INFO] Event occurred\n");
 ```
 
-### Reading Lines
+### 读取行
 
 ```hemlock
 fn read_lines(path: string) {
@@ -582,17 +537,17 @@ while (i < lines.length) {
 }
 ```
 
-### Processing Large Files in Chunks
+### 分块处理大文件
 
 ```hemlock
 fn process_large_file(path: string) {
     let f = open(path, "r");
     try {
         while (true) {
-            let chunk = f.read(4096);  // 4KB chunks
+            let chunk = f.read(4096);  // 4KB 块
             if (chunk == "") { break; }
 
-            // Process chunk
+            // 处理块
             process_chunk(chunk);
         }
     } finally {
@@ -601,7 +556,7 @@ fn process_large_file(path: string) {
 }
 ```
 
-### Binary File Copy
+### 二进制文件复制
 
 ```hemlock
 fn copy_file(src_path: string, dst_path: string) {
@@ -627,18 +582,18 @@ fn copy_file(src_path: string, dst_path: string) {
 copy_file("input.dat", "output.dat");
 ```
 
-### File Truncation
+### 文件截断
 
 ```hemlock
 fn truncate_file(path: string) {
-    let f = open(path, "w");  // "w" mode truncates
+    let f = open(path, "w");  // "w" 模式截断
     f.close();
 }
 
 truncate_file("empty_me.txt");
 ```
 
-### Random Access Read
+### 随机访问读取
 
 ```hemlock
 fn read_at_offset(path: string, offset: i32, size: i32): string {
@@ -654,49 +609,12 @@ fn read_at_offset(path: string, offset: i32, size: i32): string {
 let data = read_at_offset("records.dat", 1000, 100);
 ```
 
-### File Size
+## 最佳实践
+
+### 1. 始终使用 try/finally
 
 ```hemlock
-fn file_size(path: string): i32 {
-    let f = open(path, "r");
-    try {
-        // Seek to end
-        let end = f.seek(999999999);  // Large number
-        f.seek(0);  // Reset
-        return end;
-    } finally {
-        f.close();
-    }
-}
-
-let size = file_size("data.txt");
-print("File size: " + typeof(size) + " bytes");
-```
-
-### Conditional Read/Write
-
-```hemlock
-fn update_file(path: string, condition, new_content: string) {
-    let f = open(path, "r+");
-    try {
-        let content = f.read();
-
-        if (condition(content)) {
-            f.seek(0);  // Reset to beginning
-            f.write(new_content);
-        }
-    } finally {
-        f.close();
-    }
-}
-```
-
-## Best Practices
-
-### 1. Always Use try/finally
-
-```hemlock
-// Good
+// 好
 let f = open("data.txt", "r");
 try {
     let content = f.read();
@@ -705,40 +623,40 @@ try {
     f.close();
 }
 
-// Bad - file might not close on error
+// 不好 - 出错时文件可能不关闭
 let f = open("data.txt", "r");
 let content = f.read();
-process(content);  // If this throws, file leaks
+process(content);  // 如果这里抛出异常，文件泄漏
 f.close();
 ```
 
-### 2. Check File State Before Operations
+### 2. 操作前检查文件状态
 
 ```hemlock
 let f = open("data.txt", "r");
 
 if (!f.closed) {
     let content = f.read();
-    // ... use content
+    // ... 使用内容
 }
 
 f.close();
 ```
 
-### 3. Use Appropriate Modes
+### 3. 使用适当的模式
 
 ```hemlock
-// Reading only? Use "r"
+// 只读？使用 "r"
 let f = open("config.json", "r");
 
-// Completely replacing? Use "w"
+// 完全替换？使用 "w"
 let f = open("output.txt", "w");
 
-// Adding to end? Use "a"
+// 添加到末尾？使用 "a"
 let f = open("log.txt", "a");
 ```
 
-### 4. Handle Errors Gracefully
+### 4. 优雅地处理错误
 
 ```hemlock
 fn safe_read_file(path: string): string {
@@ -756,7 +674,7 @@ fn safe_read_file(path: string): string {
 }
 ```
 
-### 5. Close Files in Reverse Order of Opening
+### 5. 按打开的相反顺序关闭文件
 
 ```hemlock
 let f1 = null;
@@ -768,24 +686,24 @@ try {
     f2 = open("file2.txt", "r");
     f3 = open("file3.txt", "r");
 
-    // ... use files
+    // ... 使用文件
 } finally {
-    // Close in reverse order
+    // 按相反顺序关闭
     if (f3 != null) { f3.close(); }
     if (f2 != null) { f2.close(); }
     if (f1 != null) { f1.close(); }
 }
 ```
 
-### 6. Avoid Reading Large Files Entirely
+### 6. 避免完全读取大文件
 
 ```hemlock
-// Bad for large files
+// 对大文件不好
 let f = open("huge.log", "r");
-let content = f.read();  // Loads entire file into memory
+let content = f.read();  // 将整个文件加载到内存
 f.close();
 
-// Good - process in chunks
+// 好 - 分块处理
 let f = open("huge.log", "r");
 try {
     while (true) {
@@ -798,19 +716,19 @@ try {
 }
 ```
 
-## Summary
+## 总结
 
-Hemlock's File I/O API provides:
+Hemlock 的文件 I/O API 提供：
 
-- ✅ Simple, explicit file operations
-- ✅ Text and binary support
-- ✅ Random access with seek/tell
-- ✅ Clear error messages with context
-- ✅ Idempotent close operation
+- 简单、显式的文件操作
+- 文本和二进制支持
+- 使用 seek/tell 的随机访问
+- 带上下文的清晰错误消息
+- 幂等的关闭操作
 
-Remember:
-- Always close files manually
-- Use try/finally for resource safety
-- Choose appropriate open modes
-- Handle errors gracefully
-- Process large files in chunks
+请记住：
+- 始终手动关闭文件
+- 使用 try/finally 确保资源安全
+- 选择适当的打开模式
+- 优雅地处理错误
+- 分块处理大文件

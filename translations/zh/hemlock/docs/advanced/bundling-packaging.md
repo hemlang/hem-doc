@@ -1,61 +1,61 @@
-# Bundling & Packaging
+# 打包与分发
 
-Hemlock provides built-in tools to bundle multi-file projects into single distributable files and create self-contained executables.
+Hemlock 提供内置工具，可将多文件项目打包成单个可分发文件并创建独立的可执行文件。
 
-## Overview
+## 概述
 
-| Command | Output | Use Case |
-|---------|--------|----------|
-| `--bundle` | `.hmlc` or `.hmlb` | Distribute bytecode (requires Hemlock to run) |
-| `--package` | Executable | Standalone binary (no dependencies) |
-| `--compile` | `.hmlc` | Compile single file (no import resolution) |
+| 命令 | 输出 | 用例 |
+|------|------|------|
+| `--bundle` | `.hmlc` 或 `.hmlb` | 分发字节码（需要 Hemlock 运行） |
+| `--package` | 可执行文件 | 独立二进制文件（无依赖） |
+| `--compile` | `.hmlc` | 编译单个文件（无导入解析） |
 
-## Bundling
+## 打包
 
-The bundler resolves all `import` statements from an entry point and flattens them into a single file.
+打包器从入口点解析所有 `import` 语句，并将它们展平为单个文件。
 
-### Basic Usage
+### 基本用法
 
 ```bash
-# Bundle app.hml and all its imports into app.hmlc
+# 将 app.hml 及其所有导入打包成 app.hmlc
 hemlock --bundle app.hml
 
-# Specify output path
+# 指定输出路径
 hemlock --bundle app.hml -o dist/app.hmlc
 
-# Create compressed bundle (.hmlb) - smaller file size
+# 创建压缩包（.hmlb）- 更小的文件大小
 hemlock --bundle app.hml --compress -o app.hmlb
 
-# Verbose output (shows resolved modules)
+# 详细输出（显示解析的模块）
 hemlock --bundle app.hml --verbose
 ```
 
-### Output Formats
+### 输出格式
 
-**`.hmlc` (Uncompressed)**
-- Serialized AST format
-- Fast to load and execute
-- Default output format
+**`.hmlc`（未压缩）**
+- 序列化的 AST 格式
+- 加载和执行速度快
+- 默认输出格式
 
-**`.hmlb` (Compressed)**
-- zlib-compressed `.hmlc`
-- Smaller file size (typically 50-70% reduction)
-- Slightly slower startup due to decompression
+**`.hmlb`（压缩）**
+- zlib 压缩的 `.hmlc`
+- 文件大小更小（通常减少 50-70%）
+- 由于解压缩，启动稍慢
 
-### Running Bundled Files
+### 运行打包文件
 
 ```bash
-# Run uncompressed bundle
+# 运行未压缩包
 hemlock app.hmlc
 
-# Run compressed bundle
+# 运行压缩包
 hemlock app.hmlb
 
-# Pass arguments
+# 传递参数
 hemlock app.hmlc arg1 arg2
 ```
 
-### Example: Multi-Module Project
+### 示例：多模块项目
 
 ```
 myapp/
@@ -78,81 +78,81 @@ print(add(2, 3));
 
 ```bash
 hemlock --bundle myapp/main.hml -o myapp.hmlc
-hemlock myapp.hmlc  # Runs with all dependencies bundled
+hemlock myapp.hmlc  # 运行时所有依赖都已打包
 ```
 
-### stdlib Imports
+### stdlib 导入
 
-The bundler automatically resolves `@stdlib/` imports:
+打包器自动解析 `@stdlib/` 导入：
 
 ```hemlock
 import { HashMap } from "@stdlib/collections";
 import { now } from "@stdlib/time";
 ```
 
-When bundled, stdlib modules are included in the output.
+打包时，stdlib 模块会包含在输出中。
 
-## Packaging
+## 封装
 
-Packaging creates a self-contained executable by embedding the bundled bytecode into a copy of the Hemlock interpreter.
+封装通过将打包的字节码嵌入 Hemlock 解释器副本来创建独立的可执行文件。
 
-### Basic Usage
+### 基本用法
 
 ```bash
-# Create executable from app.hml
+# 从 app.hml 创建可执行文件
 hemlock --package app.hml
 
-# Specify output name
+# 指定输出名称
 hemlock --package app.hml -o myapp
 
-# Skip compression (faster startup, larger file)
+# 跳过压缩（启动更快，文件更大）
 hemlock --package app.hml --no-compress
 
-# Verbose output
+# 详细输出
 hemlock --package app.hml --verbose
 ```
 
-### Running Packaged Executables
+### 运行封装的可执行文件
 
 ```bash
-# The packaged executable runs directly
+# 封装的可执行文件直接运行
 ./myapp
 
-# Arguments are passed to the script
+# 参数传递给脚本
 ./myapp arg1 arg2
 ```
 
-### Package Format
+### 封装格式
 
-Packaged executables use the HMLP format:
+封装的可执行文件使用 HMLP 格式：
 
 ```
-[hemlock binary][HMLB/HMLC payload][payload_size:u64][HMLP magic:u32]
+[hemlock 二进制文件][HMLB/HMLC 载荷][payload_size:u64][HMLP 魔数:u32]
 ```
 
-When a packaged executable runs:
-1. It checks for an embedded payload at the end of the file
-2. If found, it decompresses and executes the payload
-3. If not found, it behaves as a normal Hemlock interpreter
+当封装的可执行文件运行时：
+1. 检查文件末尾是否有嵌入的载荷
+2. 如果找到，解压缩并执行载荷
+3. 如果未找到，作为普通 Hemlock 解释器运行
 
-### Compression Options
+### 压缩选项
 
-| Flag | Format | Startup | Size |
-|------|--------|---------|------|
-| (default) | HMLB | Normal | Smaller |
-| `--no-compress` | HMLC | Faster | Larger |
+| 标志 | 格式 | 启动 | 大小 |
+|------|------|------|------|
+| （默认） | HMLB | 正常 | 较小 |
+| `--no-compress` | HMLC | 更快 | 较大 |
 
-For CLI tools where startup time matters, use `--no-compress`.
+对于启动时间重要的 CLI 工具，使用 `--no-compress`。
 
-## Inspecting Bundles
+## 检查包
 
-Use `--info` to inspect bundled or compiled files:
+使用 `--info` 检查打包或编译的文件：
 
 ```bash
 hemlock --info app.hmlc
 ```
 
-Output:
+输出：
 ```
 === File Info: app.hmlc ===
 Size: 12847 bytes
@@ -167,7 +167,7 @@ Statements: 156
 hemlock --info app.hmlb
 ```
 
-Output:
+输出：
 ```
 === File Info: app.hmlb ===
 Size: 5234 bytes
@@ -178,79 +178,79 @@ Compressed: 5224 bytes
 Ratio: 59.3% reduction
 ```
 
-## Native Compilation
+## 原生编译
 
-For true native executables (no interpreter), use the Hemlock compiler:
+要获得真正的原生可执行文件（无解释器），使用 Hemlock 编译器：
 
 ```bash
-# Compile to native executable via C
+# 通过 C 编译为原生可执行文件
 hemlockc app.hml -o app
 
-# Keep generated C code
+# 保留生成的 C 代码
 hemlockc app.hml -o app --keep-c
 
-# Emit C only (don't compile)
+# 仅生成 C（不编译）
 hemlockc app.hml -c -o app.c
 
-# Optimization level
+# 优化级别
 hemlockc app.hml -o app -O2
 ```
 
-The compiler generates C code and invokes GCC to produce a native binary. This requires:
-- The Hemlock runtime library (`libhemlock_runtime`)
-- A C compiler (GCC by default)
+编译器生成 C 代码并调用 GCC 产生原生二进制文件。这需要：
+- Hemlock 运行时库（`libhemlock_runtime`）
+- C 编译器（默认 GCC）
 
-### Compiler Options
+### 编译器选项
 
-| Option | Description |
-|--------|-------------|
-| `-o <file>` | Output executable name |
-| `-c` | Emit C code only |
-| `--emit-c <file>` | Write C to specified file |
-| `-k, --keep-c` | Keep generated C after compilation |
-| `-O<level>` | Optimization level (0-3) |
-| `--cc <path>` | C compiler to use |
-| `--runtime <path>` | Path to runtime library |
-| `-v, --verbose` | Verbose output |
+| 选项 | 描述 |
+|------|------|
+| `-o <file>` | 输出可执行文件名 |
+| `-c` | 仅生成 C 代码 |
+| `--emit-c <file>` | 将 C 写入指定文件 |
+| `-k, --keep-c` | 编译后保留生成的 C |
+| `-O<level>` | 优化级别（0-3） |
+| `--cc <path>` | 使用的 C 编译器 |
+| `--runtime <path>` | 运行时库路径 |
+| `-v, --verbose` | 详细输出 |
 
-## Comparison
+## 比较
 
-| Approach | Portability | Startup | Size | Dependencies |
-|----------|-------------|---------|------|--------------|
-| `.hml` | Source only | Parse time | Smallest | Hemlock |
-| `.hmlc` | Hemlock-only | Fast | Small | Hemlock |
-| `.hmlb` | Hemlock-only | Fast | Smaller | Hemlock |
-| `--package` | Standalone | Fast | Larger | None |
-| `hemlockc` | Native | Fastest | Varies | Runtime libs |
+| 方法 | 可移植性 | 启动 | 大小 | 依赖 |
+|------|----------|------|------|------|
+| `.hml` | 仅源码 | 解析时间 | 最小 | Hemlock |
+| `.hmlc` | 仅 Hemlock | 快 | 小 | Hemlock |
+| `.hmlb` | 仅 Hemlock | 快 | 更小 | Hemlock |
+| `--package` | 独立 | 快 | 较大 | 无 |
+| `hemlockc` | 原生 | 最快 | 不定 | 运行时库 |
 
-## Best Practices
+## 最佳实践
 
-1. **Development**: Run `.hml` files directly for fast iteration
-2. **Distribution (with Hemlock)**: Bundle with `--compress` for smaller files
-3. **Distribution (standalone)**: Package for zero-dependency deployment
-4. **Performance-critical**: Use `hemlockc` for native compilation
+1. **开发**：直接运行 `.hml` 文件以快速迭代
+2. **分发（有 Hemlock）**：使用 `--compress` 打包以获得更小的文件
+3. **分发（独立）**：封装以实现零依赖部署
+4. **性能关键**：使用 `hemlockc` 进行原生编译
 
-## Troubleshooting
+## 故障排除
 
 ### "Cannot find stdlib"
 
-The bundler looks for stdlib in:
-1. `./stdlib` (relative to executable)
-2. `../stdlib` (relative to executable)
+打包器在以下位置查找 stdlib：
+1. `./stdlib`（相对于可执行文件）
+2. `../stdlib`（相对于可执行文件）
 3. `/usr/local/lib/hemlock/stdlib`
 
-Ensure Hemlock is properly installed or run from the source directory.
+确保 Hemlock 已正确安装或从源目录运行。
 
-### Circular Dependencies
+### 循环依赖
 
 ```
 Error: Circular dependency detected when loading 'path/to/module.hml'
 ```
 
-Refactor your imports to break the cycle. Consider using a shared module for common types.
+重构你的导入以打破循环。考虑使用共享模块存放公共类型。
 
-### Large Package Size
+### 封装大小过大
 
-- Use default compression (don't use `--no-compress`)
-- The packaged size includes the full interpreter (~500KB-1MB base)
-- For minimal size, use `hemlockc` for native compilation
+- 使用默认压缩（不要使用 `--no-compress`）
+- 封装大小包含完整解释器（基础约 500KB-1MB）
+- 要获得最小大小，使用 `hemlockc` 进行原生编译

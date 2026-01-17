@@ -1,15 +1,15 @@
-# Objects
+# 对象
 
-Hemlock implements JavaScript-style objects with heap allocation, dynamic fields, methods, and duck typing. Objects are flexible data structures that combine data and behavior.
+Hemlock 实现了 JavaScript 风格的对象，具有堆分配、动态字段、方法和鸭子类型。对象是结合数据和行为的灵活数据结构。
 
-## Overview
+## 概述
 
 ```hemlock
-// Anonymous object
+// 匿名对象
 let person = { name: "Alice", age: 30, city: "NYC" };
 print(person.name);  // "Alice"
 
-// Object with methods
+// 带方法的对象
 let counter = {
     count: 0,
     increment: fn() {
@@ -21,9 +21,9 @@ counter.increment();
 print(counter.count);  // 1
 ```
 
-## Object Literals
+## 对象字面量
 
-### Basic Syntax
+### 基本语法
 
 ```hemlock
 let person = {
@@ -33,23 +33,23 @@ let person = {
 };
 ```
 
-**Syntax:**
-- Curly braces `{}` enclose the object
-- Key-value pairs separated by commas
-- Keys are identifiers (no quotes needed)
-- Values can be any type
+**语法：**
+- 花括号 `{}` 包围对象
+- 键值对用逗号分隔
+- 键是标识符（不需要引号）
+- 值可以是任何类型
 
-### Empty Objects
+### 空对象
 
 ```hemlock
-let obj = {};  // Empty object
+let obj = {};  // 空对象
 
-// Add fields later
+// 稍后添加字段
 obj.name = "Alice";
 obj.age = 30;
 ```
 
-### Nested Objects
+### 嵌套对象
 
 ```hemlock
 let user = {
@@ -68,7 +68,7 @@ print(user.info.name);           // "Bob"
 print(user.settings.theme);      // "dark"
 ```
 
-### Mixed Value Types
+### 混合值类型
 
 ```hemlock
 let mixed = {
@@ -81,16 +81,16 @@ let mixed = {
 };
 ```
 
-### Shorthand Property Syntax
+### 简写属性语法
 
-When a variable name matches the property name, use shorthand syntax:
+当变量名与属性名匹配时，使用简写语法：
 
 ```hemlock
 let name = "Alice";
 let age = 30;
 let active = true;
 
-// Shorthand: { name } is equivalent to { name: name }
+// 简写：{ name } 等同于 { name: name }
 let person = { name, age, active };
 
 print(person.name);   // "Alice"
@@ -98,15 +98,15 @@ print(person.age);    // 30
 print(person.active); // true
 ```
 
-**Mix shorthand with regular properties:**
+**混合简写和常规属性：**
 ```hemlock
 let city = "NYC";
 let obj = { name, age, city, role: "admin" };
 ```
 
-### Spread Operator
+### 展开运算符
 
-The spread operator (`...`) copies all fields from one object into another:
+展开运算符（`...`）将一个对象的所有字段复制到另一个对象中：
 
 ```hemlock
 let base = { x: 1, y: 2 };
@@ -117,17 +117,17 @@ print(extended.y);  // 2
 print(extended.z);  // 3
 ```
 
-**Override values with spread:**
+**使用展开覆盖值：**
 ```hemlock
 let defaults = { theme: "light", size: "medium", debug: false };
 let custom = { ...defaults, theme: "dark" };
 
-print(custom.theme);  // "dark" (overridden)
-print(custom.size);   // "medium" (from defaults)
-print(custom.debug);  // false (from defaults)
+print(custom.theme);  // "dark"（被覆盖）
+print(custom.size);   // "medium"（来自 defaults）
+print(custom.debug);  // false（来自 defaults）
 ```
 
-**Multiple spreads (later spreads override earlier):**
+**多个展开（后面的覆盖前面的）：**
 ```hemlock
 let a = { x: 1 };
 let b = { y: 2 };
@@ -137,14 +137,14 @@ print(merged.x);  // 1
 print(merged.y);  // 2
 print(merged.z);  // 3
 
-// Later spread overrides earlier
+// 后面的展开覆盖前面的
 let first = { val: "first" };
 let second = { val: "second" };
 let combined = { ...first, ...second };
 print(combined.val);  // "second"
 ```
 
-**Combine shorthand and spread:**
+**结合简写和展开：**
 ```hemlock
 let status = "active";
 let data = { id: 1, name: "Item" };
@@ -155,7 +155,7 @@ print(full.name);    // "Item"
 print(full.status);  // "active"
 ```
 
-**Configuration override pattern:**
+**配置覆盖模式：**
 ```hemlock
 let defaultConfig = {
     debug: false,
@@ -170,62 +170,62 @@ print(prodConfig.timeout);  // 60
 print(devConfig.debug);     // true
 ```
 
-**Note:** Spread performs a shallow copy. Nested objects share references:
+**注意：** 展开执行浅拷贝。嵌套对象共享引用：
 ```hemlock
 let nested = { inner: { val: 42 } };
 let copied = { ...nested };
-print(copied.inner.val);  // 42 (same reference as nested.inner)
+print(copied.inner.val);  // 42（与 nested.inner 相同的引用）
 ```
 
-## Field Access
+## 字段访问
 
-### Dot Notation
+### 点语法
 
 ```hemlock
 let person = { name: "Alice", age: 30 };
 
-// Read field
+// 读取字段
 let name = person.name;      // "Alice"
 let age = person.age;        // 30
 
-// Modify field
+// 修改字段
 person.age = 31;
 print(person.age);           // 31
 ```
 
-### Dynamic Field Addition
+### 动态字段添加
 
-Add new fields at runtime:
+在运行时添加新字段：
 
 ```hemlock
 let person = { name: "Alice" };
 
-// Add new field
+// 添加新字段
 person.email = "alice@example.com";
 person.phone = "555-1234";
 
 print(person.email);  // "alice@example.com"
 ```
 
-### Field Deletion
+### 字段删除
 
-**Note:** Field deletion is not currently supported. Set to `null` instead:
+**注意：** 目前不支持字段删除。改为设置为 `null`：
 
 ```hemlock
 let obj = { x: 10, y: 20 };
 
-// Cannot delete fields (not supported)
-// obj.x = undefined;  // No 'undefined' in Hemlock
+// 无法删除字段（不支持）
+// obj.x = undefined;  // Hemlock 中没有 'undefined'
 
-// Workaround: Set to null
+// 变通方法：设置为 null
 obj.x = null;
 ```
 
-## Methods and `self`
+## 方法和 `self`
 
-### Defining Methods
+### 定义方法
 
-Methods are functions stored in object fields:
+方法是存储在对象字段中的函数：
 
 ```hemlock
 let counter = {
@@ -242,28 +242,28 @@ let counter = {
 };
 ```
 
-### The `self` Keyword
+### `self` 关键字
 
-When a function is called as a method, `self` is automatically bound to the object:
+当函数作为方法调用时，`self` 自动绑定到对象：
 
 ```hemlock
 let counter = {
     count: 0,
     increment: fn() {
-        self.count = self.count + 1;  // self refers to counter
+        self.count = self.count + 1;  // self 指向 counter
     }
 };
 
-counter.increment();  // self is bound to counter
+counter.increment();  // self 绑定到 counter
 print(counter.count);  // 1
 ```
 
-**How it works:**
-- Method calls are detected by checking if function expression is property access
-- `self` is automatically bound to the object at call time
-- `self` is read-only (cannot reassign `self` itself)
+**工作原理：**
+- 通过检查函数表达式是否为属性访问来检测方法调用
+- `self` 在调用时自动绑定到对象
+- `self` 是只读的（无法重新赋值 `self` 本身）
 
-### Method Call Detection
+### 方法调用检测
 
 ```hemlock
 let obj = {
@@ -273,15 +273,15 @@ let obj = {
     }
 };
 
-// Called as method - self is bound
+// 作为方法调用 - self 被绑定
 print(obj.method());  // 10
 
-// Called as function - self is null (error)
+// 作为函数调用 - self 为 null（错误）
 let f = obj.method;
-print(f());  // ERROR: self is not defined
+print(f());  // 错误：self 未定义
 ```
 
-### Methods with Parameters
+### 带参数的方法
 
 ```hemlock
 let calculator = {
@@ -302,11 +302,11 @@ calculator.multiply(2);
 print(calculator.get());  // 10
 ```
 
-## Type Definitions with `define`
+## 使用 `define` 进行类型定义
 
-### Basic Type Definition
+### 基本类型定义
 
-Define object shapes with `define`:
+使用 `define` 定义对象结构：
 
 ```hemlock
 define Person {
@@ -315,21 +315,21 @@ define Person {
     active: bool,
 }
 
-// Create object and assign to typed variable
+// 创建对象并赋值给类型化变量
 let p = { name: "Alice", age: 30, active: true };
-let typed_p: Person = p;  // Duck typing validates structure
+let typed_p: Person = p;  // 鸭子类型验证结构
 
 print(typeof(typed_p));  // "Person"
 ```
 
-**What `define` does:**
-- Declares a type with required fields
-- Enables duck typing validation
-- Sets the object's type name for `typeof()`
+**`define` 的作用：**
+- 声明具有必需字段的类型
+- 启用鸭子类型验证
+- 为 `typeof()` 设置对象的类型名称
 
-### Duck Typing
+### 鸭子类型
 
-Objects are validated against `define` using **structural compatibility**:
+使用**结构兼容性**验证对象是否符合 `define`：
 
 ```hemlock
 define Person {
@@ -337,10 +337,10 @@ define Person {
     age: i32,
 }
 
-// ✅ OK: Has all required fields
+// 正确：具有所有必需字段
 let p1: Person = { name: "Alice", age: 30 };
 
-// ✅ OK: Extra fields are allowed
+// 正确：允许额外字段
 let p2: Person = {
     name: "Bob",
     age: 25,
@@ -348,49 +348,49 @@ let p2: Person = {
     active: true
 };
 
-// ❌ ERROR: Missing required field 'age'
+// 错误：缺少必需字段 'age'
 let p3: Person = { name: "Carol" };
 
-// ❌ ERROR: Wrong type for 'age'
+// 错误：'age' 类型错误
 let p4: Person = { name: "Dave", age: "thirty" };
 ```
 
-**Duck typing rules:**
-- All required fields must be present
-- Field types must match
-- Extra fields are allowed and preserved
-- Validation happens at assignment time
+**鸭子类型规则：**
+- 所有必需字段必须存在
+- 字段类型必须匹配
+- 允许额外字段并保留
+- 验证发生在赋值时
 
-### Optional Fields
+### 可选字段
 
-Fields can be optional with default values:
+字段可以是可选的，带有默认值：
 
 ```hemlock
 define Person {
     name: string,
     age: i32,
-    active?: true,       // Optional with default value
-    nickname?: string,   // Optional, defaults to null
+    active?: true,       // 可选，带默认值
+    nickname?: string,   // 可选，默认为 null
 }
 
-// Object with only required fields
+// 只有必需字段的对象
 let p = { name: "Alice", age: 30 };
 let typed_p: Person = p;
 
-print(typed_p.active);    // true (default applied)
-print(typed_p.nickname);  // null (no default)
+print(typed_p.active);    // true（应用默认值）
+print(typed_p.nickname);  // null（无默认值）
 
-// Can override optional fields
+// 可以覆盖可选字段
 let p2: Person = { name: "Bob", age: 25, active: false };
-print(p2.active);  // false (overridden)
+print(p2.active);  // false（被覆盖）
 ```
 
-**Optional field syntax:**
-- `field?: default_value` - Optional with default
-- `field?: type` - Optional with type annotation, defaults to null
-- Optional fields are added during duck typing if missing
+**可选字段语法：**
+- `field?: default_value` - 可选，带默认值
+- `field?: type` - 可选，带类型注解，默认为 null
+- 如果缺少可选字段，在鸭子类型检查时添加
 
-### Type Checking
+### 类型检查
 
 ```hemlock
 define Point {
@@ -399,57 +399,57 @@ define Point {
 }
 
 let p = { x: 10, y: 20 };
-let point: Point = p;  // Type checking happens here
+let point: Point = p;  // 类型检查发生在这里
 
 print(typeof(point));  // "Point"
-print(typeof(p));      // "object" (original is still anonymous)
+print(typeof(p));      // "object"（原始对象仍是匿名的）
 ```
 
-**When type checking happens:**
-- At assignment time to typed variable
-- Validates all required fields are present
-- Validates field types match (with implicit conversions)
-- Sets the object's type name
+**类型检查发生的时机：**
+- 赋值给类型化变量时
+- 验证所有必需字段存在
+- 验证字段类型匹配（带隐式转换）
+- 设置对象的类型名称
 
-## Method Signatures in Define
+## Define 中的方法签名
 
-Define blocks can specify method signatures, creating interface-like contracts:
+Define 块可以指定方法签名，创建类似接口的契约：
 
-### Required Methods
+### 必需方法
 
 ```hemlock
 define Comparable {
     value: i32,
-    fn compare(other: Self): i32;  // Required method signature
+    fn compare(other: Self): i32;  // 必需方法签名
 }
 
-// Objects must provide the required method
+// 对象必须提供必需方法
 let a: Comparable = {
     value: 10,
     compare: fn(other) { return self.value - other.value; }
 };
 ```
 
-### Optional Methods
+### 可选方法
 
 ```hemlock
 define Serializable {
-    fn serialize(): string;       // Required
-    fn pretty?(): string;         // Optional method (may be absent)
+    fn serialize(): string;       // 必需
+    fn pretty?(): string;         // 可选方法（可能不存在）
 }
 ```
 
-### The `Self` Type
+### `Self` 类型
 
-`Self` refers to the type being defined, enabling recursive type definitions:
+`Self` 指向正在定义的类型，支持递归类型定义：
 
 ```hemlock
 define Cloneable {
-    fn clone(): Self;  // Returns same type as the object
+    fn clone(): Self;  // 返回与对象相同的类型
 }
 
 define Comparable {
-    fn compare(other: Self): i32;  // Takes same type as parameter
+    fn compare(other: Self): i32;  // 接受相同类型作为参数
     fn equals(other: Self): bool;
 }
 
@@ -461,7 +461,7 @@ let item: Cloneable = {
 };
 ```
 
-### Mixed Fields and Methods
+### 混合字段和方法
 
 ```hemlock
 define Entity {
@@ -479,31 +479,31 @@ let user: Entity = {
 };
 ```
 
-## Compound Types (Intersection Types)
+## 复合类型（交叉类型）
 
-Compound types use `&` to require an object to satisfy multiple type definitions:
+复合类型使用 `&` 要求对象满足多个类型定义：
 
-### Basic Compound Types
+### 基本复合类型
 
 ```hemlock
 define HasName { name: string }
 define HasAge { age: i32 }
 
-// Compound type: object must satisfy ALL types
+// 复合类型：对象必须满足所有类型
 let person: HasName & HasAge = { name: "Alice", age: 30 };
 ```
 
-### Function Parameters with Compound Types
+### 带复合类型的函数参数
 
 ```hemlock
 fn greet(p: HasName & HasAge) {
     print(p.name + " is " + p.age);
 }
 
-greet({ name: "Bob", age: 25, city: "NYC" });  // Extra fields OK
+greet({ name: "Bob", age: 25, city: "NYC" });  // 允许额外字段
 ```
 
-### Three or More Types
+### 三个或更多类型
 
 ```hemlock
 define HasEmail { email: string }
@@ -513,10 +513,10 @@ fn describe(p: HasName & HasAge & HasEmail) {
 }
 ```
 
-### Type Aliases for Compound Types
+### 复合类型的类型别名
 
 ```hemlock
-// Create a named alias for a compound type
+// 为复合类型创建命名别名
 type Person = HasName & HasAge;
 type Employee = HasName & HasAge & HasEmail;
 
@@ -527,31 +527,31 @@ let emp: Employee = {
 };
 ```
 
-**Duck typing with compounds:** Extra fields are always allowed - the object just needs to have at least the fields required by all component types.
+**复合类型的鸭子类型：** 始终允许额外字段 - 对象只需要至少具有所有组成类型要求的字段。
 
-## JSON Serialization
+## JSON 序列化
 
-### Serialize to JSON
+### 序列化为 JSON
 
-Convert objects to JSON strings:
+将对象转换为 JSON 字符串：
 
 ```hemlock
-// obj.serialize() - Convert object to JSON string
+// obj.serialize() - 将对象转换为 JSON 字符串
 let obj = { x: 10, y: 20, name: "test" };
 let json = obj.serialize();
 print(json);  // {"x":10,"y":20,"name":"test"}
 
-// Nested objects
+// 嵌套对象
 let nested = { inner: { a: 1, b: 2 }, outer: 3 };
 print(nested.serialize());  // {"inner":{"a":1,"b":2},"outer":3}
 ```
 
-### Deserialize from JSON
+### 从 JSON 反序列化
 
-Parse JSON strings back to objects:
+将 JSON 字符串解析回对象：
 
 ```hemlock
-// json.deserialize() - Parse JSON string to object
+// json.deserialize() - 将 JSON 字符串解析为对象
 let json_str = '{"x":10,"y":20,"name":"test"}';
 let obj = json_str.deserialize();
 
@@ -559,46 +559,46 @@ print(obj.name);   // "test"
 print(obj.x);      // 10
 ```
 
-### Cycle Detection
+### 循环引用检测
 
-Circular references are detected and cause errors:
+循环引用会被检测到并导致错误：
 
 ```hemlock
 let obj = { x: 10 };
-obj.me = obj;  // Create circular reference
+obj.me = obj;  // 创建循环引用
 
-obj.serialize();  // ERROR: serialize() detected circular reference
+obj.serialize();  // 错误：serialize() 检测到循环引用
 ```
 
-### Supported Types
+### 支持的类型
 
-JSON serialization supports:
+JSON 序列化支持：
 
-- **Numbers**: i8-i32, u8-u32, f32, f64
-- **Booleans**: true, false
-- **Strings**: With escape sequences
-- **Null**: null value
-- **Objects**: Nested objects
-- **Arrays**: Nested arrays
+- **数字**：i8-i32, u8-u32, f32, f64
+- **布尔值**：true, false
+- **字符串**：带转义序列
+- **Null**：null 值
+- **对象**：嵌套对象
+- **数组**：嵌套数组
 
-**Not supported:**
-- Functions (silently omitted)
-- Pointers (error)
-- Buffers (error)
+**不支持：**
+- 函数（静默省略）
+- 指针（错误）
+- Buffer（错误）
 
-### Error Handling
+### 错误处理
 
-Serialization and deserialization can throw errors:
+序列化和反序列化可能抛出错误：
 
 ```hemlock
-// Invalid JSON throws an error
+// 无效 JSON 抛出错误
 try {
     let bad = "not valid json".deserialize();
 } catch (e) {
     print("Parse error:", e);
 }
 
-// Pointers cannot be serialized
+// 指针无法序列化
 let obj = { ptr: alloc(10) };
 try {
     obj.serialize();
@@ -607,9 +607,9 @@ try {
 }
 ```
 
-### Round-Trip Example
+### 往返示例
 
-Complete example of serializing and deserializing:
+序列化和反序列化的完整示例：
 
 ```hemlock
 define Config {
@@ -618,7 +618,7 @@ define Config {
     debug: bool
 }
 
-// Create and serialize
+// 创建并序列化
 let config: Config = {
     host: "localhost",
     port: 8080,
@@ -627,17 +627,17 @@ let config: Config = {
 let json = config.serialize();
 print(json);  // {"host":"localhost","port":8080,"debug":true}
 
-// Deserialize back
+// 反序列化
 let restored = json.deserialize();
 print(restored.host);  // "localhost"
 print(restored.port);  // 8080
 ```
 
-## Built-in Functions
+## 内置函数
 
 ### `typeof(value)`
 
-Returns the type name as a string:
+返回类型名称作为字符串：
 
 ```hemlock
 let obj = { x: 10 };
@@ -648,32 +648,32 @@ let p: Person = { name: "Alice", age: 30 };
 print(typeof(p));    // "Person"
 ```
 
-**Return values:**
-- Anonymous objects: `"object"`
-- Typed objects: Custom type name (e.g., `"Person"`)
+**返回值：**
+- 匿名对象：`"object"`
+- 类型化对象：自定义类型名称（例如 `"Person"`）
 
-## Implementation Details
+## 实现细节
 
-### Memory Model
+### 内存模型
 
-- **Heap-allocated** - All objects are allocated on the heap
-- **Shallow copy** - Assignment copies the reference, not the object
-- **Dynamic fields** - Stored as dynamic arrays of name/value pairs
-- **Refcounted** - Objects are automatically freed when scope exits
+- **堆分配** - 所有对象都在堆上分配
+- **浅拷贝** - 赋值复制引用，而非对象
+- **动态字段** - 存储为名称/值对的动态数组
+- **引用计数** - 作用域退出时对象自动释放
 
-### Reference Semantics
+### 引用语义
 
 ```hemlock
 let obj1 = { x: 10 };
-let obj2 = obj1;  // Shallow copy (same reference)
+let obj2 = obj1;  // 浅拷贝（相同引用）
 
 obj2.x = 20;
-print(obj1.x);  // 20 (both refer to same object)
+print(obj1.x);  // 20（两者指向相同对象）
 ```
 
-### Method Storage
+### 方法存储
 
-Methods are just functions stored in fields:
+方法只是存储在字段中的函数：
 
 ```hemlock
 let obj = {
@@ -681,13 +681,13 @@ let obj = {
     method: fn() { return self.value; }
 };
 
-// method is a function stored in obj.method
+// method 是存储在 obj.method 中的函数
 print(typeof(obj.method));  // "function"
 ```
 
-## Common Patterns
+## 常见模式
 
-### Pattern: Constructor Function
+### 模式：构造函数
 
 ```hemlock
 fn createPerson(name: string, age: i32) {
@@ -704,7 +704,7 @@ let person = createPerson("Alice", 30);
 print(person.greet());  // "Hi, I'm Alice"
 ```
 
-### Pattern: Object Builder
+### 模式：对象构建器
 
 ```hemlock
 fn PersonBuilder() {
@@ -714,7 +714,7 @@ fn PersonBuilder() {
 
         setName: fn(n) {
             self.name = n;
-            return self;  // Enable chaining
+            return self;  // 支持链式调用
         },
 
         setAge: fn(a) {
@@ -734,7 +734,7 @@ let person = PersonBuilder()
     .build();
 ```
 
-### Pattern: State Object
+### 模式：状态对象
 
 ```hemlock
 let state = {
@@ -758,7 +758,7 @@ let state = {
 };
 ```
 
-### Pattern: Configuration Object
+### 模式：配置对象
 
 ```hemlock
 let config = {
@@ -781,32 +781,32 @@ let config = {
 };
 ```
 
-## Best Practices
+## 最佳实践
 
-1. **Use `define` for structure** - Document expected object shapes
-2. **Prefer factory functions** - Create objects with constructors
-3. **Keep objects simple** - Don't nest too deeply
-4. **Document `self` usage** - Make method behavior clear
-5. **Validate on assignment** - Use duck typing to catch errors early
-6. **Avoid circular references** - Will cause serialization errors
-7. **Use optional fields** - Provide sensible defaults
+1. **使用 `define` 定义结构** - 记录预期的对象形状
+2. **优先使用工厂函数** - 使用构造函数创建对象
+3. **保持对象简单** - 不要嵌套太深
+4. **记录 `self` 用法** - 明确方法行为
+5. **在赋值时验证** - 使用鸭子类型尽早捕获错误
+6. **避免循环引用** - 会导致序列化错误
+7. **使用可选字段** - 提供合理的默认值
 
-## Common Pitfalls
+## 常见陷阱
 
-### Pitfall: Reference vs. Value
+### 陷阱：引用与值
 
 ```hemlock
 let obj1 = { x: 10 };
-let obj2 = obj1;  // Shallow copy
+let obj2 = obj1;  // 浅拷贝
 
 obj2.x = 20;
-print(obj1.x);  // 20 (surprise! both changed)
+print(obj1.x);  // 20（意外！两者都改变了）
 
-// To avoid: Create new object
-let obj3 = { x: obj1.x };  // Deep copy (manual)
+// 避免方法：创建新对象
+let obj3 = { x: obj1.x };  // 深拷贝（手动）
 ```
 
-### Pitfall: `self` in Non-Method Calls
+### 陷阱：非方法调用中的 `self`
 
 ```hemlock
 let obj = {
@@ -814,45 +814,45 @@ let obj = {
     method: fn() { return self.value; }
 };
 
-// Works: Called as method
+// 有效：作为方法调用
 print(obj.method());  // 10
 
-// ERROR: Called as function
+// 错误：作为函数调用
 let f = obj.method;
-print(f());  // ERROR: self is not defined
+print(f());  // 错误：self 未定义
 ```
 
-### Pitfall: Raw Pointers in Objects
+### 陷阱：对象中的原始指针
 
 ```hemlock
-// Objects are auto-freed, but raw pointers inside are NOT
+// 对象会自动释放，但其中的原始指针不会
 fn create_objects() {
-    let obj = { data: alloc(1000) };  // raw ptr needs manual free
-    // obj is auto-freed when scope exits, but obj.data leaks!
+    let obj = { data: alloc(1000) };  // 原始指针需要手动释放
+    // 作用域退出时 obj 自动释放，但 obj.data 泄漏！
 }
 
-// Solution: Free raw pointers before scope exits
+// 解决方案：在作用域退出前释放原始指针
 fn safe_create() {
     let obj = { data: alloc(1000) };
-    // ... use obj.data ...
-    free(obj.data);  // Free the raw pointer explicitly
-}  // obj itself is auto-freed
+    // ... 使用 obj.data ...
+    free(obj.data);  // 显式释放原始指针
+}  // obj 本身自动释放
 ```
 
-### Pitfall: Type Confusion
+### 陷阱：类型混淆
 
 ```hemlock
 let obj = { x: 10 };
 
 define Point { x: i32, y: i32 }
 
-// ERROR: Missing required field 'y'
+// 错误：缺少必需字段 'y'
 let p: Point = obj;
 ```
 
-## Examples
+## 示例
 
-### Example: Vector Math
+### 示例：向量数学
 
 ```hemlock
 fn createVector(x, y) {
@@ -884,7 +884,7 @@ let v3 = v1.add(v2);
 print(v3.toString());  // "(4, 6)"
 ```
 
-### Example: Simple Database
+### 示例：简单数据库
 
 ```hemlock
 fn createDatabase() {
@@ -922,7 +922,7 @@ let record = db.find(id);
 print(record.data.name);  // "Alice"
 ```
 
-### Example: Event Emitter
+### 示例：事件发射器
 
 ```hemlock
 fn createEventEmitter() {
@@ -957,27 +957,27 @@ emitter.on("message", fn(data) {
 emitter.emit("message", "Hello!");
 ```
 
-## Limitations
+## 限制
 
-Current limitations:
+当前限制：
 
-- **No deep copy** - Must manually copy nested objects (spread is shallow)
-- **No pass-by-value** - Objects always passed by reference
-- **No computed properties** - No `{[key]: value}` syntax
-- **`self` is read-only** - Cannot reassign `self` in methods
-- **No property deletion** - Cannot remove fields once added
+- **无深拷贝** - 必须手动复制嵌套对象（展开是浅拷贝）
+- **无按值传递** - 对象始终按引用传递
+- **无计算属性** - 不支持 `{[key]: value}` 语法
+- **`self` 是只读的** - 无法在方法中重新赋值 `self`
+- **无属性删除** - 一旦添加字段无法删除
 
-**Note:** Objects are refcounted and automatically freed when scope exits. See [Memory Management](memory.md#internal-reference-counting) for details.
+**注意：** 对象使用引用计数，作用域退出时自动释放。详见 [内存管理](memory.md#internal-reference-counting)。
 
-## Related Topics
+## 相关主题
 
-- [Functions](functions.md) - Methods are functions stored in objects
-- [Arrays](arrays.md) - Arrays are also object-like
-- [Types](types.md) - Duck typing and type definitions
-- [Error Handling](error-handling.md) - Throwing error objects
+- [函数](functions.md) - 方法是存储在对象中的函数
+- [数组](arrays.md) - 数组也是类对象的
+- [类型](types.md) - 鸭子类型和类型定义
+- [错误处理](error-handling.md) - 抛出错误对象
 
-## See Also
+## 另请参阅
 
-- **Duck Typing**: See CLAUDE.md section "Objects" for duck typing details
-- **JSON**: See CLAUDE.md for JSON serialization details
-- **Memory**: See [Memory](memory.md) for object allocation
+- **鸭子类型**：参见 CLAUDE.md 中的 "Objects" 部分了解鸭子类型详情
+- **JSON**：参见 CLAUDE.md 了解 JSON 序列化详情
+- **内存**：参见 [内存](memory.md) 了解对象分配

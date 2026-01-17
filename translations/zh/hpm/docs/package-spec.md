@@ -1,12 +1,12 @@
-# Package Specification
+# 包规范
 
-Complete reference for the `package.json` file format.
+`package.json` 文件格式的完整参考。
 
-## Overview
+## 概述
 
-Every hpm package requires a `package.json` file in the project root. This file defines package metadata, dependencies, and scripts.
+每个 hpm 包都需要在项目根目录中有一个 `package.json` 文件。此文件定义包元数据、依赖项和脚本。
 
-## Minimal Example
+## 最小示例
 
 ```json
 {
@@ -15,7 +15,7 @@ Every hpm package requires a `package.json` file in the project root. This file 
 }
 ```
 
-## Complete Example
+## 完整示例
 
 ```json
 {
@@ -52,11 +52,11 @@ Every hpm package requires a `package.json` file in the project root. This file 
 }
 ```
 
-## Field Reference
+## 字段参考
 
-### name (required)
+### name（必需）
 
-The package name in `owner/repo` format.
+`owner/repo` 格式的包名称。
 
 ```json
 {
@@ -64,14 +64,14 @@ The package name in `owner/repo` format.
 }
 ```
 
-**Requirements:**
-- Must be in `owner/repo` format
-- `owner` should be your GitHub username or organization
-- `repo` should be the repository name
-- Use lowercase letters, numbers, and hyphens
-- Maximum 214 characters total
+**要求：**
+- 必须是 `owner/repo` 格式
+- `owner` 应该是你的 GitHub 用户名或组织
+- `repo` 应该是仓库名称
+- 使用小写字母、数字和连字符
+- 总共最多 214 个字符
 
-**Valid names:**
+**有效名称：**
 ```
 hemlang/sprout
 alice/http-client
@@ -79,16 +79,16 @@ myorg/json-utils
 bob123/my-lib
 ```
 
-**Invalid names:**
+**无效名称：**
 ```
-my-package          # Missing owner
-hemlang/My_Package  # Uppercase and underscore
-hemlang             # Missing repo
+my-package          # 缺少 owner
+hemlang/My_Package  # 大写和下划线
+hemlang             # 缺少 repo
 ```
 
-### version (required)
+### version（必需）
 
-The package version following [Semantic Versioning](https://semver.org/).
+遵循[语义化版本](https://semver.org/)的包版本。
 
 ```json
 {
@@ -96,9 +96,9 @@ The package version following [Semantic Versioning](https://semver.org/).
 }
 ```
 
-**Format:** `MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`
+**格式：** `MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`
 
-**Valid versions:**
+**有效版本：**
 ```
 1.0.0
 2.1.3
@@ -110,7 +110,7 @@ The package version following [Semantic Versioning](https://semver.org/).
 
 ### description
 
-Short description of the package.
+包的简短描述。
 
 ```json
 {
@@ -118,12 +118,12 @@ Short description of the package.
 }
 ```
 
-- Keep it under 200 characters
-- Describe what the package does, not how
+- 保持在 200 个字符以内
+- 描述包做什么，而不是怎么做
 
 ### author
 
-Package author information.
+包作者信息。
 
 ```json
 {
@@ -131,7 +131,7 @@ Package author information.
 }
 ```
 
-**Formats accepted:**
+**接受的格式：**
 ```json
 "author": "Your Name"
 "author": "Your Name <email@example.com>"
@@ -140,7 +140,7 @@ Package author information.
 
 ### license
 
-The license identifier.
+许可证标识符。
 
 ```json
 {
@@ -148,19 +148,19 @@ The license identifier.
 }
 ```
 
-**Common licenses:**
-- `MIT` - MIT License
-- `Apache-2.0` - Apache License 2.0
-- `GPL-3.0` - GNU General Public License v3.0
-- `BSD-3-Clause` - BSD 3-Clause License
-- `ISC` - ISC License
-- `UNLICENSED` - Proprietary/private
+**常见许可证：**
+- `MIT` - MIT 许可证
+- `Apache-2.0` - Apache 许可证 2.0
+- `GPL-3.0` - GNU 通用公共许可证 v3.0
+- `BSD-3-Clause` - BSD 3-Clause 许可证
+- `ISC` - ISC 许可证
+- `UNLICENSED` - 专有/私有
 
-Use [SPDX identifiers](https://spdx.org/licenses/) when possible.
+尽可能使用 [SPDX 标识符](https://spdx.org/licenses/)。
 
 ### repository
 
-Link to the source repository.
+源仓库链接。
 
 ```json
 {
@@ -170,7 +170,7 @@ Link to the source repository.
 
 ### homepage
 
-Project homepage URL.
+项目主页 URL。
 
 ```json
 {
@@ -180,7 +180,7 @@ Project homepage URL.
 
 ### bugs
 
-Issue tracker URL.
+问题跟踪器 URL。
 
 ```json
 {
@@ -190,7 +190,7 @@ Issue tracker URL.
 
 ### main
 
-Entry point file for the package.
+包的入口点文件。
 
 ```json
 {
@@ -198,23 +198,23 @@ Entry point file for the package.
 }
 ```
 
-**Default:** `src/index.hml`
+**默认值：** `src/index.hml`
 
-When users import your package:
+当用户导入你的包时：
 ```hemlock
 import { x } from "owner/repo";
 ```
 
-hpm loads the file specified in `main`.
+hpm 加载 `main` 中指定的文件。
 
-**Resolution order for imports:**
-1. Exact path: `src/index.hml`
-2. With .hml extension: `src/index` → `src/index.hml`
-3. Index file: `src/index/` → `src/index/index.hml`
+**导入的解析顺序：**
+1. 精确路径：`src/index.hml`
+2. 带 .hml 扩展名：`src/index` → `src/index.hml`
+3. 索引文件：`src/index/` → `src/index/index.hml`
 
 ### keywords
 
-Array of keywords for discoverability.
+用于可发现性的关键词数组。
 
 ```json
 {
@@ -222,13 +222,13 @@ Array of keywords for discoverability.
 }
 ```
 
-- Use lowercase
-- Be specific and relevant
-- Include language ("hemlock") if appropriate
+- 使用小写
+- 具体且相关
+- 如果适当，包含语言（"hemlock"）
 
 ### dependencies
 
-Runtime dependencies required for the package to work.
+包工作所需的运行时依赖。
 
 ```json
 {
@@ -240,23 +240,23 @@ Runtime dependencies required for the package to work.
 }
 ```
 
-**Key:** Package name (`owner/repo`)
-**Value:** Version constraint
+**键：** 包名称（`owner/repo`）
+**值：** 版本约束
 
-**Version constraint syntax:**
+**版本约束语法：**
 
-| Constraint | Meaning |
+| 约束 | 含义 |
 |------------|---------|
-| `1.2.3` | Exact version |
+| `1.2.3` | 精确版本 |
 | `^1.2.3` | >=1.2.3 <2.0.0 |
 | `~1.2.3` | >=1.2.3 <1.3.0 |
-| `>=1.0.0` | At least 1.0.0 |
-| `>=1.0.0 <2.0.0` | Range |
-| `*` | Any version |
+| `>=1.0.0` | 至少 1.0.0 |
+| `>=1.0.0 <2.0.0` | 范围 |
+| `*` | 任意版本 |
 
 ### devDependencies
 
-Development-only dependencies (testing, building, etc.).
+仅用于开发的依赖（测试、构建等）。
 
 ```json
 {
@@ -267,14 +267,14 @@ Development-only dependencies (testing, building, etc.).
 }
 ```
 
-Dev dependencies are:
-- Installed during development
-- Not installed when package is used as a dependency
-- Used for testing, building, linting, etc.
+开发依赖是：
+- 在开发期间安装
+- 当包作为依赖使用时不安装
+- 用于测试、构建、检查等
 
 ### scripts
 
-Named commands that can be run with `hpm run`.
+可以使用 `hpm run` 运行的命名命令。
 
 ```json
 {
@@ -292,33 +292,33 @@ Named commands that can be run with `hpm run`.
 }
 ```
 
-**Running scripts:**
+**运行脚本：**
 ```bash
 hpm run start
 hpm run build
-hpm test        # Shorthand for 'hpm run test'
+hpm test        # 'hpm run test' 的简写
 ```
 
-**Passing arguments:**
+**传递参数：**
 ```bash
 hpm run test -- --verbose --filter=unit
 ```
 
-**Common scripts:**
+**常见脚本：**
 
-| Script | Purpose |
+| 脚本 | 用途 |
 |--------|---------|
-| `start` | Start the application |
-| `dev` | Development mode with hot reload |
-| `test` | Run tests |
-| `build` | Build for production |
-| `clean` | Remove build artifacts |
-| `lint` | Check code style |
-| `format` | Format code |
+| `start` | 启动应用程序 |
+| `dev` | 带热重载的开发模式 |
+| `test` | 运行测试 |
+| `build` | 为生产环境构建 |
+| `clean` | 移除构建产物 |
+| `lint` | 检查代码风格 |
+| `format` | 格式化代码 |
 
 ### files
 
-Files and directories to include when the package is installed.
+安装包时要包含的文件和目录。
 
 ```json
 {
@@ -331,18 +331,18 @@ Files and directories to include when the package is installed.
 }
 ```
 
-**Default behavior:** If not specified, includes:
-- All files in the repository
-- Excludes `.git/`, `node_modules/`, `hem_modules/`
+**默认行为：** 如果未指定，包含：
+- 仓库中的所有文件
+- 排除 `.git/`、`node_modules/`、`hem_modules/`
 
-**Use to:**
-- Reduce package size
-- Exclude test files from distribution
-- Include only necessary files
+**用于：**
+- 减少包大小
+- 从分发中排除测试文件
+- 仅包含必要文件
 
 ### native
 
-Native library requirements.
+原生库要求。
 
 ```json
 {
@@ -352,61 +352,61 @@ Native library requirements.
 }
 ```
 
-Documents native dependencies that must be installed on the system.
+记录必须在系统上安装的原生依赖。
 
-## Validation
+## 验证
 
-hpm validates package.json on various operations. Common validation errors:
+hpm 在各种操作中验证 package.json。常见验证错误：
 
-### Missing required fields
+### 缺少必需字段
 
 ```
 Error: package.json missing required field: name
 ```
 
-**Fix:** Add the required field.
+**修复：** 添加必需字段。
 
-### Invalid name format
+### 无效的名称格式
 
 ```
 Error: Invalid package name. Must be in owner/repo format.
 ```
 
-**Fix:** Use `owner/repo` format.
+**修复：** 使用 `owner/repo` 格式。
 
-### Invalid version
+### 无效的版本
 
 ```
 Error: Invalid version "1.0". Must be semver format (X.Y.Z).
 ```
 
-**Fix:** Use full semver format (`1.0.0`).
+**修复：** 使用完整的 semver 格式（`1.0.0`）。
 
-### Invalid JSON
+### 无效的 JSON
 
 ```
 Error: package.json is not valid JSON
 ```
 
-**Fix:** Check JSON syntax (commas, quotes, brackets).
+**修复：** 检查 JSON 语法（逗号、引号、括号）。
 
-## Creating package.json
+## 创建 package.json
 
-### Interactive
+### 交互式
 
 ```bash
 hpm init
 ```
 
-Prompts for each field interactively.
+交互式提示每个字段。
 
-### With Defaults
+### 使用默认值
 
 ```bash
 hpm init --yes
 ```
 
-Creates with default values:
+使用默认值创建：
 ```json
 {
   "name": "directory-name/directory-name",
@@ -423,9 +423,9 @@ Creates with default values:
 }
 ```
 
-### Manual
+### 手动
 
-Create the file manually:
+手动创建文件：
 
 ```bash
 cat > package.json << 'EOF'
@@ -442,18 +442,18 @@ cat > package.json << 'EOF'
 EOF
 ```
 
-## Best Practices
+## 最佳实践
 
-1. **Always specify main** - Don't rely on default
-2. **Use caret ranges** - `^1.0.0` for most dependencies
-3. **Separate dev dependencies** - Keep test/build deps in devDependencies
-4. **Include keywords** - Help users find your package
-5. **Document scripts** - Name scripts clearly
-6. **Specify license** - Required for open source
-7. **Add description** - Help users understand purpose
+1. **始终指定 main** - 不要依赖默认值
+2. **使用插入符范围** - 大多数依赖使用 `^1.0.0`
+3. **分离开发依赖** - 将测试/构建依赖放在 devDependencies 中
+4. **包含关键词** - 帮助用户找到你的包
+5. **记录脚本** - 清晰命名脚本
+6. **指定许可证** - 开源项目必需
+7. **添加描述** - 帮助用户理解用途
 
-## See Also
+## 另请参阅
 
-- [Creating Packages](creating-packages.md) - Publishing guide
-- [Versioning](versioning.md) - Version constraints
-- [Project Setup](project-setup.md) - Project structure
+- [创建包](creating-packages.md) - 发布指南
+- [版本控制](versioning.md) - 版本约束
+- [项目设置](project-setup.md) - 项目结构

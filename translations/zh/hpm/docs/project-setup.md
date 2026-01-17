@@ -1,32 +1,32 @@
-# Project Setup
+# 项目设置
 
-Complete guide for setting up Hemlock projects with hpm.
+使用 hpm 设置 Hemlock 项目的完整指南。
 
-## Starting a New Project
+## 创建新项目
 
-### Basic Setup
+### 基本设置
 
-Create a new project from scratch:
+从头创建新项目：
 
 ```bash
-# Create project directory
+# 创建项目目录
 mkdir my-project
 cd my-project
 
-# Initialize package.json
+# 初始化 package.json
 hpm init
 
-# Create directory structure
+# 创建目录结构
 mkdir -p src test
 ```
 
-### Project Templates
+### 项目模板
 
-Here are common project structures for different use cases:
+以下是不同用例的常见项目结构：
 
-#### Library Package
+#### 库包
 
-For reusable libraries:
+用于可复用的库：
 
 ```
 my-library/
@@ -34,14 +34,14 @@ my-library/
 ├── README.md
 ├── LICENSE
 ├── src/
-│   ├── index.hml          # Main entry, exports public API
-│   ├── core.hml           # Core functionality
-│   ├── utils.hml          # Utility functions
-│   └── types.hml          # Type definitions
+│   ├── index.hml          # 主入口，导出公共 API
+│   ├── core.hml           # 核心功能
+│   ├── utils.hml          # 工具函数
+│   └── types.hml          # 类型定义
 └── test/
-    ├── framework.hml      # Test framework
-    ├── run.hml            # Test runner
-    └── test_core.hml      # Tests
+    ├── framework.hml      # 测试框架
+    ├── run.hml            # 测试运行器
+    └── test_core.hml      # 测试
 ```
 
 **package.json:**
@@ -60,25 +60,25 @@ my-library/
 }
 ```
 
-#### Application
+#### 应用程序
 
-For standalone applications:
+用于独立应用程序：
 
 ```
 my-app/
 ├── package.json
 ├── README.md
 ├── src/
-│   ├── main.hml           # Application entry point
-│   ├── config.hml         # Configuration
-│   ├── commands/          # CLI commands
+│   ├── main.hml           # 应用程序入口点
+│   ├── config.hml         # 配置
+│   ├── commands/          # CLI 命令
 │   │   ├── index.hml
 │   │   └── run.hml
-│   └── lib/               # Internal libraries
+│   └── lib/               # 内部库
 │       └── utils.hml
 ├── test/
 │   └── run.hml
-└── data/                  # Data files
+└── data/                  # 数据文件
 ```
 
 **package.json:**
@@ -102,33 +102,33 @@ my-app/
 }
 ```
 
-#### Web Application
+#### Web 应用程序
 
-For web servers:
+用于 Web 服务器：
 
 ```
 my-web-app/
 ├── package.json
 ├── README.md
 ├── src/
-│   ├── main.hml           # Server entry point
-│   ├── routes/            # Route handlers
+│   ├── main.hml           # 服务器入口点
+│   ├── routes/            # 路由处理器
 │   │   ├── index.hml
 │   │   ├── api.hml
 │   │   └── auth.hml
-│   ├── middleware/        # Middleware
+│   ├── middleware/        # 中间件
 │   │   ├── index.hml
 │   │   └── auth.hml
-│   ├── models/            # Data models
+│   ├── models/            # 数据模型
 │   │   └── user.hml
-│   └── services/          # Business logic
+│   └── services/          # 业务逻辑
 │       └── user.hml
 ├── test/
 │   └── run.hml
-├── static/                # Static files
+├── static/                # 静态文件
 │   ├── css/
 │   └── js/
-└── views/                 # Templates
+└── views/                 # 模板
     └── index.hml
 ```
 
@@ -155,9 +155,9 @@ my-web-app/
 }
 ```
 
-## The package.json File
+## package.json 文件
 
-### Required Fields
+### 必需字段
 
 ```json
 {
@@ -166,7 +166,7 @@ my-web-app/
 }
 ```
 
-### All Fields
+### 所有字段
 
 ```json
 {
@@ -202,29 +202,29 @@ my-web-app/
 }
 ```
 
-### Field Reference
+### 字段参考
 
-| Field | Type | Description |
+| 字段 | 类型 | 描述 |
 |-------|------|-------------|
-| `name` | string | Package name in owner/repo format (required) |
-| `version` | string | Semantic version (required) |
-| `description` | string | Short description |
-| `author` | string | Author name and email |
-| `license` | string | License identifier (MIT, Apache-2.0, etc.) |
-| `repository` | string | Repository URL |
-| `homepage` | string | Project homepage |
-| `bugs` | string | Issue tracker URL |
-| `main` | string | Entry point file (default: src/index.hml) |
-| `keywords` | array | Search keywords |
-| `dependencies` | object | Runtime dependencies |
-| `devDependencies` | object | Development dependencies |
-| `scripts` | object | Named scripts |
-| `files` | array | Files to include when publishing |
-| `native` | object | Native library requirements |
+| `name` | string | owner/repo 格式的包名称（必需） |
+| `version` | string | 语义化版本（必需） |
+| `description` | string | 简短描述 |
+| `author` | string | 作者姓名和邮箱 |
+| `license` | string | 许可证标识符（MIT、Apache-2.0 等） |
+| `repository` | string | 仓库 URL |
+| `homepage` | string | 项目主页 |
+| `bugs` | string | 问题跟踪器 URL |
+| `main` | string | 入口点文件（默认：src/index.hml） |
+| `keywords` | array | 搜索关键词 |
+| `dependencies` | object | 运行时依赖 |
+| `devDependencies` | object | 开发依赖 |
+| `scripts` | object | 命名脚本 |
+| `files` | array | 发布时包含的文件 |
+| `native` | object | 原生库要求 |
 
-## The package-lock.json File
+## package-lock.json 文件
 
-The lock file is automatically generated and should be committed to version control. It ensures reproducible installs.
+锁定文件自动生成，应提交到版本控制。它确保可重现的安装。
 
 ```json
 {
@@ -249,20 +249,20 @@ The lock file is automatically generated and should be committed to version cont
 }
 ```
 
-### Lock File Best Practices
+### 锁定文件最佳实践
 
-- **Commit** package-lock.json to version control
-- **Don't edit** manually - it's auto-generated
-- **Run `hpm install`** after pulling changes
-- **Delete and regenerate** if corrupted:
+- **提交** package-lock.json 到版本控制
+- **不要手动编辑** - 它是自动生成的
+- **拉取更改后运行 `hpm install`**
+- **如果损坏则删除并重新生成**：
   ```bash
   rm package-lock.json
   hpm install
   ```
 
-## The hem_modules Directory
+## hem_modules 目录
 
-Installed packages are stored in `hem_modules/`:
+已安装的包存储在 `hem_modules/` 中：
 
 ```
 hem_modules/
@@ -279,11 +279,11 @@ hem_modules/
         └── src/
 ```
 
-### hem_modules Best Practices
+### hem_modules 最佳实践
 
-- **Add to .gitignore** - don't commit dependencies
-- **Don't modify** - changes will be overwritten
-- **Delete to reinstall fresh**:
+- **添加到 .gitignore** - 不要提交依赖
+- **不要修改** - 更改会被覆盖
+- **删除以重新安装**：
   ```bash
   rm -rf hem_modules
   hpm install
@@ -291,7 +291,7 @@ hem_modules/
 
 ## .gitignore
 
-Recommended .gitignore for Hemlock projects:
+Hemlock 项目推荐的 .gitignore：
 
 ```gitignore
 # Dependencies
@@ -323,22 +323,22 @@ logs/
 coverage/
 ```
 
-## Working with Dependencies
+## 使用依赖
 
-### Adding Dependencies
+### 添加依赖
 
 ```bash
-# Add runtime dependency
+# 添加运行时依赖
 hpm install hemlang/json
 
-# Add with version constraint
+# 使用版本约束添加
 hpm install hemlang/sprout@^2.0.0
 
-# Add dev dependency
+# 添加开发依赖
 hpm install hemlang/test-utils --dev
 ```
 
-### Importing Dependencies
+### 导入依赖
 
 ```hemlock
 // Import from package (uses "main" entry)
@@ -352,23 +352,23 @@ import { HashMap } from "@stdlib/collections";
 import { readFile, writeFile } from "@stdlib/fs";
 ```
 
-### Import Resolution
+### 导入解析
 
-hpm resolves imports in this order:
+hpm 按以下顺序解析导入：
 
-1. **Standard library**: `@stdlib/*` imports built-in modules
-2. **Package root**: `owner/repo` uses the `main` field
-3. **Subpath**: `owner/repo/path` checks:
+1. **标准库**：`@stdlib/*` 导入内置模块
+2. **包根目录**：`owner/repo` 使用 `main` 字段
+3. **子路径**：`owner/repo/path` 检查：
    - `hem_modules/owner/repo/path.hml`
    - `hem_modules/owner/repo/path/index.hml`
    - `hem_modules/owner/repo/src/path.hml`
    - `hem_modules/owner/repo/src/path/index.hml`
 
-## Scripts
+## 脚本
 
-### Defining Scripts
+### 定义脚本
 
-Add scripts to package.json:
+在 package.json 中添加脚本：
 
 ```json
 {
@@ -386,94 +386,94 @@ Add scripts to package.json:
 }
 ```
 
-### Running Scripts
+### 运行脚本
 
 ```bash
 hpm run start
 hpm run dev
 hpm run build
 
-# Shorthand for test
+# test 的简写
 hpm test
 
-# Pass arguments
+# 传递参数
 hpm run test -- --verbose --filter=unit
 ```
 
-### Script Naming Conventions
+### 脚本命名约定
 
-| Script | Purpose |
+| 脚本 | 用途 |
 |--------|---------|
-| `start` | Run the application |
-| `dev` | Run in development mode |
-| `test` | Run all tests |
-| `build` | Build for production |
-| `clean` | Remove generated files |
-| `lint` | Check code style |
-| `format` | Format code |
+| `start` | 运行应用程序 |
+| `dev` | 以开发模式运行 |
+| `test` | 运行所有测试 |
+| `build` | 为生产环境构建 |
+| `clean` | 移除生成的文件 |
+| `lint` | 检查代码风格 |
+| `format` | 格式化代码 |
 
-## Development Workflow
+## 开发工作流
 
-### Initial Setup
+### 初始设置
 
 ```bash
-# Clone project
+# 克隆项目
 git clone https://github.com/yourusername/my-project.git
 cd my-project
 
-# Install dependencies
+# 安装依赖
 hpm install
 
-# Run tests
+# 运行测试
 hpm test
 
-# Start development
+# 开始开发
 hpm run dev
 ```
 
-### Daily Workflow
+### 日常工作流
 
 ```bash
-# Pull latest changes
+# 拉取最新更改
 git pull
 
-# Install any new dependencies
+# 安装任何新依赖
 hpm install
 
-# Make changes...
+# 进行更改...
 
-# Run tests
+# 运行测试
 hpm test
 
-# Commit
+# 提交
 git add .
 git commit -m "Add feature"
 git push
 ```
 
-### Adding a New Feature
+### 添加新功能
 
 ```bash
-# Create feature branch
+# 创建功能分支
 git checkout -b feature/new-feature
 
-# Add new dependency if needed
+# 如果需要，添加新依赖
 hpm install hemlang/new-lib
 
-# Implement feature...
+# 实现功能...
 
-# Test
+# 测试
 hpm test
 
-# Commit and push
+# 提交并推送
 git add .
 git commit -m "Add new feature"
 git push -u origin feature/new-feature
 ```
 
-## Environment-Specific Configuration
+## 环境特定配置
 
-### Using Environment Variables
+### 使用环境变量
 
 ```hemlock
 import { getenv } from "@stdlib/env";
@@ -486,7 +486,7 @@ if api_key == "" {
 }
 ```
 
-### Configuration File
+### 配置文件
 
 **config.hml:**
 
@@ -511,9 +511,9 @@ export fn is_production(): bool {
 }
 ```
 
-## See Also
+## 另请参阅
 
-- [Quick Start](quick-start.md) - Get started quickly
-- [Commands](commands.md) - Command reference
-- [Creating Packages](creating-packages.md) - Publishing packages
-- [Configuration](configuration.md) - hpm configuration
+- [快速开始](quick-start.md) - 快速入门
+- [命令](commands.md) - 命令参考
+- [创建包](creating-packages.md) - 发布包
+- [配置](configuration.md) - hpm 配置

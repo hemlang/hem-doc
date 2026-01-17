@@ -1,27 +1,27 @@
-# Arrays
+# 数组
 
-Hemlock provides **dynamic arrays** with comprehensive methods for data manipulation and processing. Arrays can hold mixed types and grow automatically as needed.
+Hemlock 提供**动态数组**，具有全面的数据操作和处理方法。数组可以存储混合类型，并根据需要自动增长。
 
-## Overview
+## 概述
 
 ```hemlock
-// Array literals
+// 数组字面量
 let arr = [1, 2, 3, 4, 5];
 print(arr[0]);         // 1
 print(arr.length);     // 5
 
-// Mixed types allowed
+// 允许混合类型
 let mixed = [1, "hello", true, null];
 
-// Dynamic sizing
-arr.push(6);           // Grows automatically
+// 动态大小调整
+arr.push(6);           // 自动增长
 arr.push(7);
 print(arr.length);     // 7
 ```
 
-## Array Literals
+## 数组字面量
 
-### Basic Syntax
+### 基本语法
 
 ```hemlock
 let numbers = [1, 2, 3, 4, 5];
@@ -29,20 +29,20 @@ let strings = ["apple", "banana", "cherry"];
 let booleans = [true, false, true];
 ```
 
-### Empty Arrays
+### 空数组
 
 ```hemlock
-let arr = [];  // Empty array
+let arr = [];  // 空数组
 
-// Add elements later
+// 稍后添加元素
 arr.push(1);
 arr.push(2);
 arr.push(3);
 ```
 
-### Mixed Types
+### 混合类型
 
-Arrays can contain different types:
+数组可以包含不同类型：
 
 ```hemlock
 let mixed = [
@@ -56,10 +56,10 @@ let mixed = [
 
 print(mixed[0]);  // 42
 print(mixed[1]);  // "hello"
-print(mixed[4]);  // [1, 2, 3] (nested array)
+print(mixed[4]);  // [1, 2, 3]（嵌套数组）
 ```
 
-### Nested Arrays
+### 嵌套数组
 
 ```hemlock
 let matrix = [
@@ -73,99 +73,99 @@ print(matrix[1][2]);  // 6
 print(matrix[2][1]);  // 8
 ```
 
-### Typed Arrays
+### 类型化数组
 
-Arrays can have type annotations to enforce element types:
+数组可以使用类型注解来强制元素类型：
 
 ```hemlock
-// Typed array syntax
+// 类型化数组语法
 let nums: array<i32> = [1, 2, 3, 4, 5];
 let names: array<string> = ["Alice", "Bob", "Carol"];
 let flags: array<bool> = [true, false, true];
 
-// Type checking at runtime
-let valid: array<i32> = [1, 2, 3];       // OK
-let invalid: array<i32> = [1, "two", 3]; // Runtime error: type mismatch
+// 运行时类型检查
+let valid: array<i32> = [1, 2, 3];       // 正确
+let invalid: array<i32> = [1, "two", 3]; // 运行时错误：类型不匹配
 
-// Nested typed arrays
+// 嵌套类型化数组
 let matrix: array<array<i32>> = [
     [1, 2, 3],
     [4, 5, 6]
 ];
 ```
 
-**Type annotation behavior:**
-- Elements are type-checked when added to the array
-- Type mismatches cause runtime errors
-- Without type annotation, arrays accept mixed types
+**类型注解行为：**
+- 元素在添加到数组时进行类型检查
+- 类型不匹配会导致运行时错误
+- 没有类型注解时，数组接受混合类型
 
-## Indexing
+## 索引
 
-### Reading Elements
+### 读取元素
 
-Zero-indexed access:
+从零开始的索引访问：
 
 ```hemlock
 let arr = [10, 20, 30, 40, 50];
 
-print(arr[0]);  // 10 (first element)
-print(arr[4]);  // 50 (last element)
+print(arr[0]);  // 10（第一个元素）
+print(arr[4]);  // 50（最后一个元素）
 
-// Out of bounds returns null (no error)
+// 越界访问返回 null（不报错）
 print(arr[10]);  // null
 ```
 
-### Writing Elements
+### 写入元素
 
 ```hemlock
 let arr = [1, 2, 3];
 
-arr[0] = 10;    // Modify existing
+arr[0] = 10;    // 修改现有元素
 arr[1] = 20;
 print(arr);     // [10, 20, 3]
 
-// Can assign beyond current length (grows array)
-arr[5] = 60;    // Creates [10, 20, 3, null, null, 60]
+// 可以在超出当前长度的位置赋值（数组会增长）
+arr[5] = 60;    // 创建 [10, 20, 3, null, null, 60]
 ```
 
-### Negative Indices
+### 负数索引
 
-**Not supported** - Use positive indices only:
+**不支持** - 只能使用正数索引：
 
 ```hemlock
 let arr = [1, 2, 3];
-print(arr[-1]);  // ERROR or undefined behavior
+print(arr[-1]);  // 错误或未定义行为
 
-// Use length for last element
+// 使用 length 获取最后一个元素
 print(arr[arr.length - 1]);  // 3
 ```
 
-## Properties
+## 属性
 
-### `.length` Property
+### `.length` 属性
 
-Returns the number of elements:
+返回元素数量：
 
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
 print(arr.length);  // 5
 
-// Empty array
+// 空数组
 let empty = [];
 print(empty.length);  // 0
 
-// After modifications
+// 修改后
 arr.push(6);
 print(arr.length);  // 6
 ```
 
-## Array Methods
+## 数组方法
 
-Hemlock provides 18 array methods for comprehensive manipulation.
+Hemlock 提供 18 个数组方法用于全面的操作。
 
-### Stack Operations
+### 栈操作
 
-**`push(value)`** - Add element to end:
+**`push(value)`** - 在末尾添加元素：
 ```hemlock
 let arr = [1, 2, 3];
 arr.push(4);           // [1, 2, 3, 4]
@@ -174,109 +174,109 @@ arr.push(5);           // [1, 2, 3, 4, 5]
 print(arr.length);     // 5
 ```
 
-**`pop()`** - Remove and return last element:
+**`pop()`** - 移除并返回最后一个元素：
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
-let last = arr.pop();  // Returns 5, arr is now [1, 2, 3, 4]
+let last = arr.pop();  // 返回 5，arr 现在是 [1, 2, 3, 4]
 
 print(last);           // 5
 print(arr.length);     // 4
 ```
 
-### Queue Operations
+### 队列操作
 
-**`shift()`** - Remove and return first element:
+**`shift()`** - 移除并返回第一个元素：
 ```hemlock
 let arr = [1, 2, 3];
-let first = arr.shift();   // Returns 1, arr is now [2, 3]
+let first = arr.shift();   // 返回 1，arr 现在是 [2, 3]
 
 print(first);              // 1
 print(arr);                // [2, 3]
 ```
 
-**`unshift(value)`** - Add element to beginning:
+**`unshift(value)`** - 在开头添加元素：
 ```hemlock
 let arr = [2, 3];
 arr.unshift(1);            // [1, 2, 3]
 arr.unshift(0);            // [0, 1, 2, 3]
 ```
 
-### Insertion and Removal
+### 插入和删除
 
-**`insert(index, value)`** - Insert element at index:
+**`insert(index, value)`** - 在指定索引处插入元素：
 ```hemlock
 let arr = [1, 2, 4, 5];
-arr.insert(2, 3);      // Insert 3 at index 2: [1, 2, 3, 4, 5]
+arr.insert(2, 3);      // 在索引 2 处插入 3：[1, 2, 3, 4, 5]
 
-arr.insert(0, 0);      // Insert at beginning: [0, 1, 2, 3, 4, 5]
+arr.insert(0, 0);      // 在开头插入：[0, 1, 2, 3, 4, 5]
 ```
 
-**`remove(index)`** - Remove and return element at index:
+**`remove(index)`** - 移除并返回指定索引处的元素：
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
-let removed = arr.remove(2);  // Returns 3, arr is now [1, 2, 4, 5]
+let removed = arr.remove(2);  // 返回 3，arr 现在是 [1, 2, 4, 5]
 
 print(removed);               // 3
 print(arr);                   // [1, 2, 4, 5]
 ```
 
-### Search Operations
+### 搜索操作
 
-**`find(value)`** - Find first occurrence:
+**`find(value)`** - 查找首次出现的位置：
 ```hemlock
 let arr = [10, 20, 30, 40];
-let idx = arr.find(30);      // 2 (index of first occurrence)
-let idx2 = arr.find(99);     // -1 (not found)
+let idx = arr.find(30);      // 2（首次出现的索引）
+let idx2 = arr.find(99);     // -1（未找到）
 
-// Works with any type
+// 适用于任何类型
 let words = ["apple", "banana", "cherry"];
 let idx3 = words.find("banana");  // 1
 ```
 
-**`contains(value)`** - Check if array contains value:
+**`contains(value)`** - 检查数组是否包含某值：
 ```hemlock
 let arr = [10, 20, 30, 40];
 let has = arr.contains(20);  // true
 let has2 = arr.contains(99); // false
 ```
 
-### Extraction Operations
+### 提取操作
 
-**`slice(start, end)`** - Extract subarray (end exclusive):
+**`slice(start, end)`** - 提取子数组（end 不包含在内）：
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
-let sub = arr.slice(1, 4);   // [2, 3, 4] (indices 1, 2, 3)
+let sub = arr.slice(1, 4);   // [2, 3, 4]（索引 1, 2, 3）
 let first = arr.slice(0, 2); // [1, 2]
 
-// Original unchanged
+// 原数组不变
 print(arr);                  // [1, 2, 3, 4, 5]
 ```
 
-**`first()`** - Get first element (without removing):
+**`first()`** - 获取第一个元素（不移除）：
 ```hemlock
 let arr = [1, 2, 3];
-let f = arr.first();         // 1 (without removing)
-print(arr);                  // [1, 2, 3] (unchanged)
+let f = arr.first();         // 1（不移除）
+print(arr);                  // [1, 2, 3]（不变）
 ```
 
-**`last()`** - Get last element (without removing):
+**`last()`** - 获取最后一个元素（不移除）：
 ```hemlock
 let arr = [1, 2, 3];
-let l = arr.last();          // 3 (without removing)
-print(arr);                  // [1, 2, 3] (unchanged)
+let l = arr.last();          // 3（不移除）
+print(arr);                  // [1, 2, 3]（不变）
 ```
 
-### Transformation Operations
+### 转换操作
 
-**`reverse()`** - Reverse array in-place:
+**`reverse()`** - 原地反转数组：
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
 arr.reverse();               // [5, 4, 3, 2, 1]
 
-print(arr);                  // [5, 4, 3, 2, 1] (modified)
+print(arr);                  // [5, 4, 3, 2, 1]（已修改）
 ```
 
-**`join(delimiter)`** - Join elements into string:
+**`join(delimiter)`** - 将元素连接成字符串：
 ```hemlock
 let words = ["hello", "world", "foo"];
 let joined = words.join(" ");  // "hello world foo"
@@ -284,25 +284,25 @@ let joined = words.join(" ");  // "hello world foo"
 let numbers = [1, 2, 3];
 let csv = numbers.join(",");   // "1,2,3"
 
-// Works with mixed types
+// 适用于混合类型
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
 ```
 
-**`concat(other)`** - Concatenate with another array:
+**`concat(other)`** - 与另一个数组连接：
 ```hemlock
 let a = [1, 2, 3];
 let b = [4, 5, 6];
-let combined = a.concat(b);  // [1, 2, 3, 4, 5, 6] (new array)
+let combined = a.concat(b);  // [1, 2, 3, 4, 5, 6]（新数组）
 
-// Originals unchanged
+// 原数组不变
 print(a);                    // [1, 2, 3]
 print(b);                    // [4, 5, 6]
 ```
 
-### Utility Operations
+### 实用操作
 
-**`clear()`** - Remove all elements:
+**`clear()`** - 移除所有元素：
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
 arr.clear();                 // []
@@ -311,9 +311,9 @@ print(arr.length);           // 0
 print(arr);                  // []
 ```
 
-## Method Chaining
+## 方法链式调用
 
-Methods that return arrays or values enable chaining:
+返回数组或值的方法可以进行链式调用：
 
 ```hemlock
 let result = [1, 2, 3]
@@ -329,200 +329,200 @@ let numbers = [5, 3, 8, 1, 9]
     .concat([10, 11]);  // [3, 8, 1, 10, 11]
 ```
 
-## Complete Method Reference
+## 完整方法参考
 
-| Method | Parameters | Returns | Mutates | Description |
+| 方法 | 参数 | 返回值 | 是否修改原数组 | 描述 |
 |--------|-----------|---------|---------|-------------|
-| `push(value)` | any | void | Yes | Add element to end |
-| `pop()` | - | any | Yes | Remove and return last |
-| `shift()` | - | any | Yes | Remove and return first |
-| `unshift(value)` | any | void | Yes | Add element to beginning |
-| `insert(index, value)` | i32, any | void | Yes | Insert at index |
-| `remove(index)` | i32 | any | Yes | Remove and return at index |
-| `find(value)` | any | i32 | No | Find first occurrence (-1 if not found) |
-| `contains(value)` | any | bool | No | Check if contains value |
-| `slice(start, end)` | i32, i32 | array | No | Extract subarray (new array) |
-| `join(delimiter)` | string | string | No | Join into string |
-| `concat(other)` | array | array | No | Concatenate (new array) |
-| `reverse()` | - | void | Yes | Reverse in-place |
-| `first()` | - | any | No | Get first element |
-| `last()` | - | any | No | Get last element |
-| `clear()` | - | void | Yes | Remove all elements |
-| `map(callback)` | fn | array | No | Transform each element |
-| `filter(predicate)` | fn | array | No | Select matching elements |
-| `reduce(callback, initial)` | fn, any | any | No | Reduce to single value |
+| `push(value)` | any | void | 是 | 在末尾添加元素 |
+| `pop()` | - | any | 是 | 移除并返回最后一个元素 |
+| `shift()` | - | any | 是 | 移除并返回第一个元素 |
+| `unshift(value)` | any | void | 是 | 在开头添加元素 |
+| `insert(index, value)` | i32, any | void | 是 | 在指定索引处插入 |
+| `remove(index)` | i32 | any | 是 | 移除并返回指定索引处的元素 |
+| `find(value)` | any | i32 | 否 | 查找首次出现的位置（未找到返回 -1） |
+| `contains(value)` | any | bool | 否 | 检查是否包含某值 |
+| `slice(start, end)` | i32, i32 | array | 否 | 提取子数组（新数组） |
+| `join(delimiter)` | string | string | 否 | 连接成字符串 |
+| `concat(other)` | array | array | 否 | 连接数组（新数组） |
+| `reverse()` | - | void | 是 | 原地反转 |
+| `first()` | - | any | 否 | 获取第一个元素 |
+| `last()` | - | any | 否 | 获取最后一个元素 |
+| `clear()` | - | void | 是 | 移除所有元素 |
+| `map(callback)` | fn | array | 否 | 转换每个元素 |
+| `filter(predicate)` | fn | array | 否 | 选择匹配的元素 |
+| `reduce(callback, initial)` | fn, any | any | 否 | 归约为单个值 |
 
-## Implementation Details
+## 实现细节
 
-### Memory Model
+### 内存模型
 
-- **Heap-allocated** - Dynamic capacity
-- **Automatic growth** - Doubles capacity when exceeded
-- **No automatic shrinking** - Capacity doesn't decrease
-- **No bounds checking on indexing** - Use methods for safety
+- **堆分配** - 动态容量
+- **自动增长** - 超出容量时翻倍
+- **不自动收缩** - 容量不会减少
+- **索引无边界检查** - 使用方法以确保安全
 
-### Capacity Management
+### 容量管理
 
 ```hemlock
-let arr = [];  // Initial capacity: 0
+let arr = [];  // 初始容量：0
 
-arr.push(1);   // Grows to capacity 1
-arr.push(2);   // Grows to capacity 2
-arr.push(3);   // Grows to capacity 4 (doubles)
-arr.push(4);   // Still capacity 4
-arr.push(5);   // Grows to capacity 8 (doubles)
+arr.push(1);   // 增长到容量 1
+arr.push(2);   // 增长到容量 2
+arr.push(3);   // 增长到容量 4（翻倍）
+arr.push(4);   // 仍然是容量 4
+arr.push(5);   // 增长到容量 8（翻倍）
 ```
 
-### Value Comparison
+### 值比较
 
-`find()` and `contains()` use value equality:
+`find()` 和 `contains()` 使用值相等比较：
 
 ```hemlock
-// Primitives: compare by value
+// 基本类型：按值比较
 let arr = [1, 2, 3];
 arr.contains(2);  // true
 
-// Strings: compare by value
+// 字符串：按值比较
 let words = ["hello", "world"];
 words.contains("hello");  // true
 
-// Objects: compare by reference
+// 对象：按引用比较
 let obj1 = { x: 10 };
 let obj2 = { x: 10 };
 let arr2 = [obj1];
-arr2.contains(obj1);  // true (same reference)
-arr2.contains(obj2);  // false (different reference)
+arr2.contains(obj1);  // true（相同引用）
+arr2.contains(obj2);  // false（不同引用）
 ```
 
-## Common Patterns
+## 常见模式
 
-### Functional Operations (map/filter/reduce)
+### 函数式操作（map/filter/reduce）
 
-Arrays have built-in `map`, `filter`, and `reduce` methods:
+数组内置 `map`、`filter` 和 `reduce` 方法：
 
 ```hemlock
-// map - transform each element
+// map - 转换每个元素
 let numbers = [1, 2, 3, 4, 5];
 let doubled = numbers.map(fn(x) { return x * 2; });
 print(doubled);  // [2, 4, 6, 8, 10]
 
-// filter - select matching elements
+// filter - 选择匹配的元素
 let evens = numbers.filter(fn(x) { return x % 2 == 0; });
 print(evens);  // [2, 4]
 
-// reduce - accumulate to single value
+// reduce - 归约为单个值
 let sum = numbers.reduce(fn(acc, x) { return acc + x; }, 0);
 print(sum);  // 15
 
-// Chaining functional operations
+// 链式调用函数式操作
 let result = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     .filter(fn(x) { return x % 2 == 0; })  // [2, 4, 6, 8, 10]
     .map(fn(x) { return x * x; })          // [4, 16, 36, 64, 100]
     .reduce(fn(acc, x) { return acc + x; }, 0);  // 220
 ```
 
-### Pattern: Array as Stack
+### 模式：数组作为栈
 
 ```hemlock
 let stack = [];
 
-// Push onto stack
+// 压入栈
 stack.push(1);
 stack.push(2);
 stack.push(3);
 
-// Pop from stack
+// 弹出栈
 let top = stack.pop();    // 3
 let next = stack.pop();   // 2
 ```
 
-### Pattern: Array as Queue
+### 模式：数组作为队列
 
 ```hemlock
 let queue = [];
 
-// Enqueue (add to end)
+// 入队（添加到末尾）
 queue.push(1);
 queue.push(2);
 queue.push(3);
 
-// Dequeue (remove from front)
+// 出队（从前面移除）
 let first = queue.shift();   // 1
 let second = queue.shift();  // 2
 ```
 
-## Best Practices
+## 最佳实践
 
-1. **Use methods over direct indexing** - Bounds checking and clarity
-2. **Check bounds** - Direct indexing doesn't bounds-check
-3. **Prefer immutable operations** - Use `slice()` and `concat()` over mutation
-4. **Initialize with capacity** - If you know the size (not currently supported)
-5. **Use `contains()` for membership** - Clearer than manual loops
-6. **Chain methods** - More readable than nested calls
+1. **使用方法而非直接索引** - 边界检查和代码清晰度
+2. **检查边界** - 直接索引不进行边界检查
+3. **优先使用不可变操作** - 使用 `slice()` 和 `concat()` 而非修改原数组
+4. **预先初始化容量** - 如果知道大小（目前不支持）
+5. **使用 `contains()` 检查成员** - 比手动循环更清晰
+6. **链式调用方法** - 比嵌套调用更易读
 
-## Common Pitfalls
+## 常见陷阱
 
-### Pitfall: Direct Index Out of Bounds
+### 陷阱：直接索引越界
 
 ```hemlock
 let arr = [1, 2, 3];
 
-// No bounds checking!
-arr[10] = 99;  // Creates sparse array with nulls
-print(arr.length);  // 11 (not 3!)
+// 无边界检查！
+arr[10] = 99;  // 创建带有 null 的稀疏数组
+print(arr.length);  // 11（不是 3！）
 
-// Better: Use push() or check length
+// 更好的做法：使用 push() 或检查长度
 if (arr.length <= 10) {
     arr.push(99);
 }
 ```
 
-### Pitfall: Mutation vs. New Array
+### 陷阱：修改与新建数组
 
 ```hemlock
 let arr = [1, 2, 3];
 
-// Mutates original
+// 修改原数组
 arr.reverse();
 print(arr);  // [3, 2, 1]
 
-// Returns new array
+// 返回新数组
 let sub = arr.slice(0, 2);
-print(arr);  // [3, 2, 1] (unchanged)
+print(arr);  // [3, 2, 1]（不变）
 print(sub);  // [3, 2]
 ```
 
-### Pitfall: Reference Equality
+### 陷阱：引用相等
 
 ```hemlock
 let obj = { x: 10 };
 let arr = [obj];
 
-// Same reference: true
+// 相同引用：true
 arr.contains(obj);  // true
 
-// Different reference: false
-arr.contains({ x: 10 });  // false (different object)
+// 不同引用：false
+arr.contains({ x: 10 });  // false（不同对象）
 ```
 
-### Pitfall: Long-lived Arrays
+### 陷阱：长期存活的数组
 
 ```hemlock
-// Arrays in local scope are auto-freed, but global/long-lived arrays need attention
-let global_cache = [];  // Module-level, persists until program exit
+// 局部作用域中的数组会自动释放，但全局/长期存活的数组需要注意
+let global_cache = [];  // 模块级别，持续到程序退出
 
 fn add_to_cache(item) {
-    global_cache.push(item);  // Grows indefinitely
+    global_cache.push(item);  // 无限增长
 }
 
-// For long-lived data, consider:
-// - Clearing the array periodically: global_cache.clear();
-// - Freeing early when done: free(global_cache);
+// 对于长期存活的数据，考虑：
+// - 定期清空数组：global_cache.clear();
+// - 提前释放：free(global_cache);
 ```
 
-## Examples
+## 示例
 
-### Example: Array Statistics
+### 示例：数组统计
 
 ```hemlock
 fn mean(arr) {
@@ -556,7 +556,7 @@ print(mean(numbers));  // 4.4
 print(max(numbers));   // 9
 ```
 
-### Example: Array Deduplication
+### 示例：数组去重
 
 ```hemlock
 fn unique(arr) {
@@ -575,7 +575,7 @@ let numbers = [1, 2, 2, 3, 1, 4, 3, 5];
 let uniq = unique(numbers);  // [1, 2, 3, 4, 5]
 ```
 
-### Example: Array Chunking
+### 示例：数组分块
 
 ```hemlock
 fn chunk(arr, size) {
@@ -596,7 +596,7 @@ let chunks = chunk(numbers, 3);
 // [[1, 2, 3], [4, 5, 6], [7, 8]]
 ```
 
-### Example: Array Flattening
+### 示例：数组扁平化
 
 ```hemlock
 fn flatten(arr) {
@@ -605,7 +605,7 @@ fn flatten(arr) {
 
     while (i < arr.length) {
         if (typeof(arr[i]) == "array") {
-            // Nested array - flatten it
+            // 嵌套数组 - 扁平化它
             let nested = flatten(arr[i]);
             let j = 0;
             while (j < nested.length) {
@@ -625,7 +625,7 @@ let nested = [1, [2, 3], [4, [5, 6]], 7];
 let flat = flatten(nested);  // [1, 2, 3, 4, 5, 6, 7]
 ```
 
-### Example: Sorting (Bubble Sort)
+### 示例：排序（冒泡排序）
 
 ```hemlock
 fn sort(arr) {
@@ -636,7 +636,7 @@ fn sort(arr) {
         let j = 0;
         while (j < n - i - 1) {
             if (arr[j] > arr[j + 1]) {
-                // Swap
+                // 交换
                 let temp = arr[j];
                 arr[j] = arr[j + 1];
                 arr[j + 1] = temp;
@@ -648,30 +648,30 @@ fn sort(arr) {
 }
 
 let numbers = [5, 2, 8, 1, 9];
-sort(numbers);  // Modifies in-place
+sort(numbers);  // 原地修改
 print(numbers);  // [1, 2, 5, 8, 9]
 ```
 
-## Limitations
+## 限制
 
-Current limitations:
+当前限制：
 
-- **No bounds checking on indexing** - Direct access is unchecked
-- **Reference equality for objects** - `find()` and `contains()` use reference comparison
-- **No array destructuring** - No `let [a, b] = arr` syntax
-- **No spread operator** - No `[...arr1, ...arr2]` syntax
+- **索引无边界检查** - 直接访问不检查边界
+- **对象使用引用相等** - `find()` 和 `contains()` 使用引用比较
+- **无数组解构** - 不支持 `let [a, b] = arr` 语法
+- **无展开运算符** - 不支持 `[...arr1, ...arr2]` 语法
 
-**Note:** Arrays are refcounted and automatically freed when scope exits. See [Memory Management](memory.md#internal-reference-counting) for details.
+**注意：** 数组使用引用计数，作用域退出时自动释放。详见 [内存管理](memory.md#internal-reference-counting)。
 
-## Related Topics
+## 相关主题
 
-- [Strings](strings.md) - String methods similar to array methods
-- [Objects](objects.md) - Arrays are also object-like
-- [Functions](functions.md) - Higher-order functions with arrays
-- [Control Flow](control-flow.md) - Iterating over arrays
+- [字符串](strings.md) - 字符串方法与数组方法类似
+- [对象](objects.md) - 数组也是类对象的
+- [函数](functions.md) - 数组与高阶函数
+- [控制流](control-flow.md) - 遍历数组
 
-## See Also
+## 另请参阅
 
-- **Dynamic Sizing**: Arrays grow automatically with capacity doubling
-- **Methods**: 18 comprehensive methods for manipulation including map/filter/reduce
-- **Memory**: See [Memory](memory.md) for array allocation details
+- **动态大小**：数组通过容量翻倍自动增长
+- **方法**：18 个全面的操作方法，包括 map/filter/reduce
+- **内存**：详见 [内存](memory.md) 了解数组分配细节

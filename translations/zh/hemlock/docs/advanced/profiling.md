@@ -1,58 +1,58 @@
-# Profiling
+# 性能分析
 
-Hemlock includes a built-in profiler for **CPU time analysis**, **memory tracking**, and **leak detection**. The profiler helps identify performance bottlenecks and memory issues in your programs.
+Hemlock 包含一个内置的性能分析器，用于 **CPU 时间分析**、**内存跟踪**和**泄漏检测**。分析器帮助识别程序中的性能瓶颈和内存问题。
 
-## Table of Contents
+## 目录
 
-- [Overview](#overview)
-- [Quick Start](#quick-start)
-- [Profiling Modes](#profiling-modes)
-- [Output Formats](#output-formats)
-- [Leak Detection](#leak-detection)
-- [Understanding Reports](#understanding-reports)
-- [Flamegraph Generation](#flamegraph-generation)
-- [Best Practices](#best-practices)
+- [概述](#概述)
+- [快速开始](#快速开始)
+- [分析模式](#分析模式)
+- [输出格式](#输出格式)
+- [泄漏检测](#泄漏检测)
+- [理解报告](#理解报告)
+- [火焰图生成](#火焰图生成)
+- [最佳实践](#最佳实践)
 
 ---
 
-## Overview
+## 概述
 
-The profiler is accessed via the `profile` subcommand:
+通过 `profile` 子命令访问分析器：
 
 ```bash
 hemlock profile [OPTIONS] <FILE>
 ```
 
-**Key features:**
-- **CPU profiling** - Measure time spent in each function (self-time and total-time)
-- **Memory profiling** - Track all allocations with source locations
-- **Leak detection** - Identify memory that was never freed
-- **Multiple output formats** - Text, JSON, and flamegraph-compatible output
-- **Per-function memory stats** - See which functions allocate the most memory
+**主要特性：**
+- **CPU 分析** - 测量每个函数花费的时间（自身时间和总时间）
+- **内存分析** - 跟踪所有分配及其源位置
+- **泄漏检测** - 识别从未释放的内存
+- **多种输出格式** - 文本、JSON 和火焰图兼容的输出
+- **每函数内存统计** - 查看哪些函数分配最多内存
 
 ---
 
-## Quick Start
+## 快速开始
 
-### Profile CPU time (default)
+### 分析 CPU 时间（默认）
 
 ```bash
 hemlock profile script.hml
 ```
 
-### Profile memory allocations
+### 分析内存分配
 
 ```bash
 hemlock profile --memory script.hml
 ```
 
-### Detect memory leaks
+### 检测内存泄漏
 
 ```bash
 hemlock profile --leaks script.hml
 ```
 
-### Generate flamegraph data
+### 生成火焰图数据
 
 ```bash
 hemlock profile --flamegraph script.hml > profile.folded
@@ -61,20 +61,20 @@ flamegraph.pl profile.folded > profile.svg
 
 ---
 
-## Profiling Modes
+## 分析模式
 
-### CPU Profiling (default)
+### CPU 分析（默认）
 
-Measures time spent in each function, distinguishing between:
-- **Self time** - Time spent executing the function's own code
-- **Total time** - Self time plus time spent in called functions
+测量每个函数花费的时间，区分：
+- **自身时间** - 执行函数自身代码花费的时间
+- **总时间** - 自身时间加上调用的函数花费的时间
 
 ```bash
 hemlock profile script.hml
-hemlock profile --cpu script.hml  # Explicit
+hemlock profile --cpu script.hml  # 显式指定
 ```
 
-**Example output:**
+**示例输出：**
 ```
 === Hemlock Profiler Report ===
 
@@ -93,15 +93,15 @@ main                        0.041ms    1.234ms       1  (3.3%)
 
 ---
 
-### Memory Profiling
+### 内存分析
 
-Tracks all memory allocations (`alloc`, `buffer`, `talloc`, `realloc`) with source locations.
+跟踪所有内存分配（`alloc`、`buffer`、`talloc`、`realloc`）及其源位置。
 
 ```bash
 hemlock profile --memory script.hml
 ```
 
-**Example output:**
+**示例输出：**
 ```
 === Hemlock Profiler Report ===
 
@@ -128,9 +128,9 @@ src/main.hml:15                               512B         1
 
 ---
 
-### Call Count Mode
+### 调用计数模式
 
-Minimal overhead mode that only counts function calls (no timing).
+最小开销模式，仅计算函数调用（无计时）。
 
 ```bash
 hemlock profile --calls script.hml
@@ -138,11 +138,11 @@ hemlock profile --calls script.hml
 
 ---
 
-## Output Formats
+## 输出格式
 
-### Text (default)
+### 文本（默认）
 
-Human-readable summary with tables.
+带表格的人类可读摘要。
 
 ```bash
 hemlock profile script.hml
@@ -152,13 +152,13 @@ hemlock profile script.hml
 
 ### JSON
 
-Machine-readable format for integration with other tools.
+机器可读格式，用于与其他工具集成。
 
 ```bash
 hemlock profile --json script.hml
 ```
 
-**Example output:**
+**示例输出：**
 ```json
 {
   "total_time_ns": 1234567,
@@ -191,18 +191,18 @@ hemlock profile --json script.hml
 
 ---
 
-### Flamegraph
+### 火焰图
 
-Generates collapsed stack format compatible with [flamegraph.pl](https://github.com/brendangregg/FlameGraph).
+生成与 [flamegraph.pl](https://github.com/brendangregg/FlameGraph) 兼容的折叠栈格式。
 
 ```bash
 hemlock profile --flamegraph script.hml > profile.folded
 
-# Generate SVG with flamegraph.pl
+# 使用 flamegraph.pl 生成 SVG
 flamegraph.pl profile.folded > profile.svg
 ```
 
-**Example folded output:**
+**折叠输出示例：**
 ```
 main;process_data;expensive_calc 892
 main;process_data;helper 67
@@ -212,32 +212,32 @@ main 41
 
 ---
 
-## Leak Detection
+## 泄漏检测
 
-The `--leaks` flag shows only allocations that were never freed, making it easy to identify memory leaks.
+`--leaks` 标志仅显示从未释放的分配，使内存泄漏的识别变得容易。
 
 ```bash
 hemlock profile --leaks script.hml
 ```
 
-**Example program with leaks:**
+**有泄漏的示例程序：**
 ```hemlock
 fn leaky() {
-    let p1 = alloc(100);    // Leak - never freed
-    let p2 = alloc(200);    // OK - freed below
+    let p1 = alloc(100);    // 泄漏 - 从未释放
+    let p2 = alloc(200);    // OK - 下面释放了
     free(p2);
 }
 
 fn clean() {
     let b = buffer(64);
-    free(b);                // Properly freed
+    free(b);                // 正确释放
 }
 
 leaky();
 clean();
 ```
 
-**Output with --leaks:**
+**带 --leaks 的输出：**
 ```
 === Hemlock Profiler Report ===
 
@@ -259,142 +259,142 @@ Location                                     Leaked      Total    Count
 script.hml:2                                   100B       100B        1
 ```
 
-The leak report shows:
-- **Leaked** - Bytes currently unfreed at program exit
-- **Total** - Total bytes ever allocated at this site
-- **Count** - Number of allocations at this site
+泄漏报告显示：
+- **Leaked** - 程序退出时当前未释放的字节
+- **Total** - 在此位置曾经分配的总字节
+- **Count** - 在此位置的分配次数
 
 ---
 
-## Understanding Reports
+## 理解报告
 
-### Function Statistics
+### 函数统计
 
-| Column | Description |
-|--------|-------------|
-| Function | Function name |
-| Self | Time in function excluding callees |
-| Total | Time including all called functions |
-| Calls | Number of times function was called |
-| Alloc | Total bytes allocated by this function |
-| Count | Number of allocations by this function |
-| (%) | Percentage of total program time |
+| 列 | 描述 |
+|------|------|
+| Function | 函数名 |
+| Self | 函数中花费的时间（不包括被调用者） |
+| Total | 包括所有被调用函数的时间 |
+| Calls | 函数被调用的次数 |
+| Alloc | 此函数分配的总字节数 |
+| Count | 此函数的分配次数 |
+| (%) | 占程序总时间的百分比 |
 
-### Allocation Sites
+### 分配位置
 
-| Column | Description |
-|--------|-------------|
-| Location | Source file and line number |
-| Total | Total bytes allocated at this location |
-| Count | Number of allocations |
-| Leaked | Bytes still allocated at program exit (--leaks only) |
+| 列 | 描述 |
+|------|------|
+| Location | 源文件和行号 |
+| Total | 在此位置分配的总字节数 |
+| Count | 分配次数 |
+| Leaked | 程序退出时仍分配的字节（仅 --leaks） |
 
-### Time Units
+### 时间单位
 
-The profiler automatically selects appropriate units:
-- `ns` - Nanoseconds (< 1us)
-- `us` - Microseconds (< 1ms)
-- `ms` - Milliseconds (< 1s)
-- `s` - Seconds
+分析器自动选择适当的单位：
+- `ns` - 纳秒（< 1微秒）
+- `us` - 微秒（< 1毫秒）
+- `ms` - 毫秒（< 1秒）
+- `s` - 秒
 
 ---
 
-## Command Reference
+## 命令参考
 
 ```
 hemlock profile [OPTIONS] <FILE>
 
 OPTIONS:
-    --cpu           CPU/time profiling (default)
-    --memory        Memory allocation profiling
-    --calls         Call count only (minimal overhead)
-    --leaks         Show only unfreed allocations (implies --memory)
-    --json          Output in JSON format
-    --flamegraph    Output in flamegraph-compatible format
-    --top N         Show top N entries (default: 20)
+    --cpu           CPU/时间分析（默认）
+    --memory        内存分配分析
+    --calls         仅调用计数（最小开销）
+    --leaks         仅显示未释放的分配（隐含 --memory）
+    --json          以 JSON 格式输出
+    --flamegraph    以火焰图兼容格式输出
+    --top N         显示前 N 条记录（默认：20）
 ```
 
 ---
 
-## Flamegraph Generation
+## 火焰图生成
 
-Flamegraphs visualize where your program spends time, with wider bars indicating more time spent.
+火焰图可视化程序花费时间的位置，较宽的条表示花费更多时间。
 
-### Generate a Flamegraph
+### 生成火焰图
 
-1. Install flamegraph.pl:
+1. 安装 flamegraph.pl：
    ```bash
    git clone https://github.com/brendangregg/FlameGraph
    ```
 
-2. Profile your program:
+2. 分析你的程序：
    ```bash
    hemlock profile --flamegraph script.hml > profile.folded
    ```
 
-3. Generate SVG:
+3. 生成 SVG：
    ```bash
    ./FlameGraph/flamegraph.pl profile.folded > profile.svg
    ```
 
-4. Open `profile.svg` in a browser for an interactive visualization.
+4. 在浏览器中打开 `profile.svg` 获得交互式可视化。
 
-### Reading Flamegraphs
+### 阅读火焰图
 
-- **X-axis**: Percentage of total time (width = time proportion)
-- **Y-axis**: Call stack depth (bottom = entry point, top = leaf functions)
-- **Color**: Random, for visual distinction only
-- **Click**: Zoom into a function to see its callees
+- **X 轴**：总时间的百分比（宽度 = 时间比例）
+- **Y 轴**：调用栈深度（底部 = 入口点，顶部 = 叶函数）
+- **颜色**：随机，仅用于视觉区分
+- **点击**：放大一个函数以查看其被调用者
 
 ---
 
-## Best Practices
+## 最佳实践
 
-### 1. Profile Representative Workloads
+### 1. 分析代表性工作负载
 
-Profile with realistic data and usage patterns. Small test cases may not reveal real bottlenecks.
+使用真实数据和使用模式进行分析。小的测试用例可能无法揭示真正的瓶颈。
 
 ```bash
-# Good: Profile with production-like data
+# 好：使用类似生产的数据进行分析
 hemlock profile --memory process_large_file.hml large_input.txt
 
-# Less useful: Tiny test case
+# 不太有用：微小的测试用例
 hemlock profile quick_test.hml
 ```
 
-### 2. Use --leaks During Development
+### 2. 在开发过程中使用 --leaks
 
-Run leak detection regularly to catch memory leaks early:
+定期运行泄漏检测以尽早发现内存泄漏：
 
 ```bash
 hemlock profile --leaks my_program.hml
 ```
 
-### 3. Compare Before and After
+### 3. 优化前后对比
 
-Profile before and after optimizations to measure impact:
+在优化前后进行分析以测量影响：
 
 ```bash
-# Before optimization
+# 优化前
 hemlock profile --json script.hml > before.json
 
-# After optimization
+# 优化后
 hemlock profile --json script.hml > after.json
 
-# Compare results
+# 比较结果
 ```
 
-### 4. Use --top for Large Programs
+### 4. 对大型程序使用 --top
 
-Limit output to focus on the most significant functions:
+限制输出以关注最重要的函数：
 
 ```bash
 hemlock profile --top 10 large_program.hml
 ```
 
-### 5. Combine with Flamegraphs
+### 5. 结合火焰图使用
 
-For complex call patterns, flamegraphs provide better visualization than text output:
+对于复杂的调用模式，火焰图提供比文本输出更好的可视化：
 
 ```bash
 hemlock profile --flamegraph complex_app.hml > app.folded
@@ -403,22 +403,22 @@ flamegraph.pl app.folded > app.svg
 
 ---
 
-## Profiler Overhead
+## 分析器开销
 
-The profiler adds some overhead to program execution:
+分析器会给程序执行增加一些开销：
 
-| Mode | Overhead | Use Case |
-|------|----------|----------|
-| `--calls` | Minimal | Just counting function calls |
-| `--cpu` | Low | General performance profiling |
-| `--memory` | Moderate | Memory analysis and leak detection |
+| 模式 | 开销 | 用例 |
+|------|------|------|
+| `--calls` | 最小 | 仅计算函数调用 |
+| `--cpu` | 低 | 一般性能分析 |
+| `--memory` | 中等 | 内存分析和泄漏检测 |
 
-For the most accurate results, profile multiple times and look for consistent patterns.
+为了获得最准确的结果，多次分析并寻找一致的模式。
 
 ---
 
-## See Also
+## 另请参阅
 
-- [Memory Management](../language-guide/memory.md) - Pointers and buffers
-- [Memory API](../reference/memory-api.md) - alloc, free, buffer functions
-- [Async/Concurrency](async-concurrency.md) - Profiling async code
+- [内存管理](../language-guide/memory.md) - 指针和缓冲区
+- [内存 API](../reference/memory-api.md) - alloc、free、buffer 函数
+- [异步/并发](async-concurrency.md) - 分析异步代码

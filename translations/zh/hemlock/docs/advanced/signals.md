@@ -1,43 +1,43 @@
-# Signal Handling in Hemlock
+# Hemlock 信号处理
 
-Hemlock provides **POSIX signal handling** for managing system signals like SIGINT (Ctrl+C), SIGTERM, and custom signals. This enables low-level process control and inter-process communication.
+Hemlock 提供 **POSIX 信号处理**，用于管理系统信号如 SIGINT（Ctrl+C）、SIGTERM 和自定义信号。这使得底层进程控制和进程间通信成为可能。
 
-## Table of Contents
+## 目录
 
-- [Overview](#overview)
-- [Signal API](#signal-api)
-- [Signal Constants](#signal-constants)
-- [Basic Signal Handling](#basic-signal-handling)
-- [Advanced Patterns](#advanced-patterns)
-- [Signal Handler Behavior](#signal-handler-behavior)
-- [Safety Considerations](#safety-considerations)
-- [Common Use Cases](#common-use-cases)
-- [Complete Examples](#complete-examples)
+- [概述](#概述)
+- [信号 API](#信号-api)
+- [信号常量](#信号常量)
+- [基本信号处理](#基本信号处理)
+- [高级模式](#高级模式)
+- [信号处理器行为](#信号处理器行为)
+- [安全考虑](#安全考虑)
+- [常见用例](#常见用例)
+- [完整示例](#完整示例)
 
-## Overview
+## 概述
 
-Signal handling allows programs to:
-- Respond to user interrupts (Ctrl+C, Ctrl+Z)
-- Implement graceful shutdown
-- Handle termination requests
-- Use custom signals for inter-process communication
-- Create alarm/timer mechanisms
+信号处理允许程序：
+- 响应用户中断（Ctrl+C、Ctrl+Z）
+- 实现优雅关闭
+- 处理终止请求
+- 使用自定义信号进行进程间通信
+- 创建警报/定时器机制
 
-**Important:** Signal handling is **inherently unsafe** in Hemlock's philosophy. Handlers can be called at any time, interrupting normal execution. The user is responsible for proper synchronization.
+**重要：** 按照 Hemlock 的哲学，信号处理**本质上是不安全的**。处理器可以在任何时候被调用，中断正常执行。用户负责适当的同步。
 
-## Signal API
+## 信号 API
 
 ### signal(signum, handler_fn)
 
-Register a signal handler function.
+注册信号处理函数。
 
-**Parameters:**
-- `signum` (i32) - Signal number (constant like SIGINT, SIGTERM)
-- `handler_fn` (function or null) - Function to call when signal is received, or `null` to reset to default
+**参数：**
+- `signum` (i32) - 信号编号（如 SIGINT、SIGTERM 常量）
+- `handler_fn` (function 或 null) - 接收到信号时调用的函数，或 `null` 重置为默认
 
-**Returns:** The previous handler function (or `null` if none)
+**返回：** 之前的处理函数（如果没有则返回 `null`）
 
-**Example:**
+**示例：**
 ```hemlock
 fn my_handler(sig) {
     print("Caught signal: " + typeof(sig));
@@ -46,92 +46,92 @@ fn my_handler(sig) {
 let old_handler = signal(SIGINT, my_handler);
 ```
 
-**Resetting to default:**
+**重置为默认：**
 ```hemlock
-signal(SIGINT, null);  // Reset SIGINT to default behavior
+signal(SIGINT, null);  // 将 SIGINT 重置为默认行为
 ```
 
 ### raise(signum)
 
-Send a signal to the current process.
+向当前进程发送信号。
 
-**Parameters:**
-- `signum` (i32) - Signal number to send
+**参数：**
+- `signum` (i32) - 要发送的信号编号
 
-**Returns:** `null`
+**返回：** `null`
 
-**Example:**
+**示例：**
 ```hemlock
-raise(SIGUSR1);  // Trigger SIGUSR1 handler
+raise(SIGUSR1);  // 触发 SIGUSR1 处理器
 ```
 
-## Signal Constants
+## 信号常量
 
-Hemlock provides standard POSIX signal constants as i32 values.
+Hemlock 提供标准 POSIX 信号常量作为 i32 值。
 
-### Interrupt & Termination
+### 中断和终止
 
-| Constant | Value | Description | Common Trigger |
-|----------|-------|-------------|----------------|
-| `SIGINT` | 2 | Interrupt from keyboard | Ctrl+C |
-| `SIGTERM` | 15 | Termination request | `kill` command |
-| `SIGQUIT` | 3 | Quit from keyboard | Ctrl+\ |
-| `SIGHUP` | 1 | Hangup detected | Terminal closed |
-| `SIGABRT` | 6 | Abort signal | `abort()` function |
+| 常量 | 值 | 描述 | 常见触发 |
+|------|------|------|----------|
+| `SIGINT` | 2 | 键盘中断 | Ctrl+C |
+| `SIGTERM` | 15 | 终止请求 | `kill` 命令 |
+| `SIGQUIT` | 3 | 键盘退出 | Ctrl+\ |
+| `SIGHUP` | 1 | 检测到挂断 | 终端关闭 |
+| `SIGABRT` | 6 | 中止信号 | `abort()` 函数 |
 
-**Examples:**
+**示例：**
 ```hemlock
 signal(SIGINT, handle_interrupt);   // Ctrl+C
-signal(SIGTERM, handle_terminate);  // kill command
-signal(SIGHUP, handle_hangup);      // Terminal closes
+signal(SIGTERM, handle_terminate);  // kill 命令
+signal(SIGHUP, handle_hangup);      // 终端关闭
 ```
 
-### User-Defined Signals
+### 用户定义信号
 
-| Constant | Value | Description | Use Case |
-|----------|-------|-------------|----------|
-| `SIGUSR1` | 10 | User-defined signal 1 | Custom IPC |
-| `SIGUSR2` | 12 | User-defined signal 2 | Custom IPC |
+| 常量 | 值 | 描述 | 用例 |
+|------|------|------|------|
+| `SIGUSR1` | 10 | 用户定义信号 1 | 自定义 IPC |
+| `SIGUSR2` | 12 | 用户定义信号 2 | 自定义 IPC |
 
-**Examples:**
+**示例：**
 ```hemlock
-// Use for custom communication
+// 用于自定义通信
 signal(SIGUSR1, reload_config);
 signal(SIGUSR2, rotate_logs);
 ```
 
-### Process Control
+### 进程控制
 
-| Constant | Value | Description | Notes |
-|----------|-------|-------------|-------|
-| `SIGALRM` | 14 | Alarm clock timer | After `alarm()` |
-| `SIGCHLD` | 17 | Child process status change | Process management |
-| `SIGCONT` | 18 | Continue if stopped | Resume after SIGSTOP |
-| `SIGSTOP` | 19 | Stop process | **Cannot be caught** |
-| `SIGTSTP` | 20 | Terminal stop | Ctrl+Z |
+| 常量 | 值 | 描述 | 说明 |
+|------|------|------|------|
+| `SIGALRM` | 14 | 警报时钟定时器 | `alarm()` 后 |
+| `SIGCHLD` | 17 | 子进程状态改变 | 进程管理 |
+| `SIGCONT` | 18 | 如果停止则继续 | 在 SIGSTOP 后恢复 |
+| `SIGSTOP` | 19 | 停止进程 | **无法捕获** |
+| `SIGTSTP` | 20 | 终端停止 | Ctrl+Z |
 
-**Examples:**
+**示例：**
 ```hemlock
 signal(SIGALRM, handle_timeout);
 signal(SIGCHLD, handle_child_exit);
 ```
 
-### I/O Signals
+### I/O 信号
 
-| Constant | Value | Description | When Sent |
-|----------|-------|-------------|-----------|
-| `SIGPIPE` | 13 | Broken pipe | Write to closed pipe |
-| `SIGTTIN` | 21 | Background read from terminal | BG process reads TTY |
-| `SIGTTOU` | 22 | Background write to terminal | BG process writes TTY |
+| 常量 | 值 | 描述 | 何时发送 |
+|------|------|------|----------|
+| `SIGPIPE` | 13 | 管道断开 | 写入已关闭的管道 |
+| `SIGTTIN` | 21 | 后台从终端读取 | 后台进程读取 TTY |
+| `SIGTTOU` | 22 | 后台写入终端 | 后台进程写入 TTY |
 
-**Examples:**
+**示例：**
 ```hemlock
 signal(SIGPIPE, handle_broken_pipe);
 ```
 
-## Basic Signal Handling
+## 基本信号处理
 
-### Catching Ctrl+C
+### 捕获 Ctrl+C
 
 ```hemlock
 let interrupted = false;
@@ -143,24 +143,24 @@ fn handle_interrupt(sig) {
 
 signal(SIGINT, handle_interrupt);
 
-// Program continues running...
-// User presses Ctrl+C -> handle_interrupt() is called
+// 程序继续运行...
+// 用户按 Ctrl+C -> 调用 handle_interrupt()
 
 while (!interrupted) {
-    // Do work...
+    // 做工作...
 }
 
 print("Exiting due to interrupt");
 ```
 
-### Handler Function Signature
+### 处理函数签名
 
-Signal handlers receive one argument: the signal number (i32)
+信号处理器接收一个参数：信号编号 (i32)
 
 ```hemlock
 fn my_handler(signum) {
     print("Received signal: " + typeof(signum));
-    // signum contains the signal number (e.g., 2 for SIGINT)
+    // signum 包含信号编号（如 SIGINT 为 2）
 
     if (signum == SIGINT) {
         print("This is SIGINT");
@@ -168,12 +168,12 @@ fn my_handler(signum) {
 }
 
 signal(SIGINT, my_handler);
-signal(SIGTERM, my_handler);  // Same handler for multiple signals
+signal(SIGTERM, my_handler);  // 多个信号使用同一处理器
 ```
 
-### Multiple Signal Handlers
+### 多个信号处理器
 
-Different handlers for different signals:
+不同信号使用不同处理器：
 
 ```hemlock
 fn handle_int(sig) {
@@ -193,21 +193,21 @@ signal(SIGTERM, handle_term);
 signal(SIGUSR1, handle_usr1);
 ```
 
-### Resetting to Default Behavior
+### 重置为默认行为
 
-Pass `null` as the handler to reset to default behavior:
+传递 `null` 作为处理器以重置为默认行为：
 
 ```hemlock
-// Register custom handler
+// 注册自定义处理器
 signal(SIGINT, my_handler);
 
-// Later, reset to default (terminate on SIGINT)
+// 稍后，重置为默认（SIGINT 时终止）
 signal(SIGINT, null);
 ```
 
-### Raising Signals Manually
+### 手动触发信号
 
-Send signals to your own process:
+向自己的进程发送信号：
 
 ```hemlock
 let count = 0;
@@ -218,18 +218,18 @@ fn increment(sig) {
 
 signal(SIGUSR1, increment);
 
-// Trigger handler manually
+// 手动触发处理器
 raise(SIGUSR1);
 raise(SIGUSR1);
 
 print(count);  // 2
 ```
 
-## Advanced Patterns
+## 高级模式
 
-### Graceful Shutdown Pattern
+### 优雅关闭模式
 
-Common pattern for cleanup on termination:
+终止时清理的常见模式：
 
 ```hemlock
 let should_exit = false;
@@ -242,18 +242,18 @@ fn handle_shutdown(sig) {
 signal(SIGINT, handle_shutdown);
 signal(SIGTERM, handle_shutdown);
 
-// Main loop
+// 主循环
 while (!should_exit) {
-    // Do work...
-    // Check should_exit flag periodically
+    // 做工作...
+    // 定期检查 should_exit 标志
 }
 
 print("Cleanup complete");
 ```
 
-### Signal Counter
+### 信号计数器
 
-Track number of signals received:
+跟踪接收的信号数量：
 
 ```hemlock
 let signal_count = 0;
@@ -265,11 +265,11 @@ fn count_signals(sig) {
 
 signal(SIGUSR1, count_signals);
 
-// Later...
+// 稍后...
 print("Total signals: " + typeof(signal_count));
 ```
 
-### Configuration Reload on Signal
+### 信号重新加载配置
 
 ```hemlock
 let config = load_config();
@@ -280,13 +280,13 @@ fn reload_config(sig) {
     print("Configuration reloaded");
 }
 
-signal(SIGHUP, reload_config);  // Reload on SIGHUP
+signal(SIGHUP, reload_config);  // 收到 SIGHUP 时重新加载
 
-// Send SIGHUP to process to reload config
-// From shell: kill -HUP <pid>
+// 从 shell 发送 SIGHUP 到进程以重新加载配置
+// kill -HUP <pid>
 ```
 
-### Timeout Using SIGALRM
+### 使用 SIGALRM 的超时
 
 ```hemlock
 let timed_out = false;
@@ -298,15 +298,15 @@ fn handle_alarm(sig) {
 
 signal(SIGALRM, handle_alarm);
 
-// Set alarm (not yet implemented in Hemlock, example only)
-// alarm(5);  // 5 second timeout
+// 设置警报（Hemlock 中尚未实现，仅示例）
+// alarm(5);  // 5 秒超时
 
 while (!timed_out) {
-    // Do work with timeout
+    // 带超时的工作
 }
 ```
 
-### Signal-Based State Machine
+### 基于信号的状态机
 
 ```hemlock
 let state = 0;
@@ -321,154 +321,154 @@ fn prev_state(sig) {
     print("State: " + typeof(state));
 }
 
-signal(SIGUSR1, next_state);  // Advance state
-signal(SIGUSR2, prev_state);  // Go back
+signal(SIGUSR1, next_state);  // 前进状态
+signal(SIGUSR2, prev_state);  // 后退状态
 
-// Control state machine:
-// kill -USR1 <pid>  # Next state
-// kill -USR2 <pid>  # Previous state
+// 控制状态机：
+// kill -USR1 <pid>  # 下一状态
+// kill -USR2 <pid>  # 上一状态
 ```
 
-## Signal Handler Behavior
+## 信号处理器行为
 
-### Important Notes
+### 重要说明
 
-**Handler Execution:**
-- Handlers are called **synchronously** when the signal is received
-- Handlers execute in the current process context
-- Signal handlers share the closure environment of the function they're defined in
-- Handlers can access and modify outer scope variables (like globals or captured variables)
+**处理器执行：**
+- 处理器在接收到信号时**同步**调用
+- 处理器在当前进程上下文中执行
+- 信号处理器共享定义它们的函数的闭包环境
+- 处理器可以访问和修改外部作用域变量（如全局变量或捕获的变量）
 
-**Best Practices:**
-- Keep handlers simple and quick - avoid long-running operations
-- Set flags rather than performing complex logic
-- Avoid calling functions that might take locks
-- Be aware that handlers can interrupt any operation
+**最佳实践：**
+- 保持处理器简单快速 - 避免长时间运行的操作
+- 设置标志而不是执行复杂逻辑
+- 避免调用可能获取锁的函数
+- 注意处理器可以中断任何操作
 
-### What Signals Can Be Caught
+### 哪些信号可以捕获
 
-**Can catch and handle:**
-- SIGINT, SIGTERM, SIGUSR1, SIGUSR2, SIGHUP, SIGQUIT
-- SIGALRM, SIGCHLD, SIGCONT, SIGTSTP
-- SIGPIPE, SIGTTIN, SIGTTOU
-- SIGABRT (but program will abort after handler returns)
+**可以捕获和处理：**
+- SIGINT、SIGTERM、SIGUSR1、SIGUSR2、SIGHUP、SIGQUIT
+- SIGALRM、SIGCHLD、SIGCONT、SIGTSTP
+- SIGPIPE、SIGTTIN、SIGTTOU
+- SIGABRT（但处理器返回后程序将中止）
 
-**Cannot catch:**
-- `SIGKILL` (9) - Always terminates process
-- `SIGSTOP` (19) - Always stops process
+**无法捕获：**
+- `SIGKILL` (9) - 始终终止进程
+- `SIGSTOP` (19) - 始终停止进程
 
-**System-dependent:**
-- Some signals have default behaviors that may differ by system
-- Check your platform's signal documentation for specifics
+**系统相关：**
+- 某些信号的默认行为可能因系统而异
+- 查看您平台的信号文档了解详情
 
-### Handler Limitations
+### 处理器限制
 
 ```hemlock
 fn complex_handler(sig) {
-    // Avoid these in signal handlers:
+    // 在信号处理器中避免这些：
 
-    // ❌ Long-running operations
+    // ❌ 长时间运行的操作
     // process_large_file();
 
-    // ❌ Blocking I/O
+    // ❌ 阻塞 I/O
     // let f = open("log.txt", "a");
     // f.write("Signal received\n");
 
-    // ❌ Complex state changes
+    // ❌ 复杂的状态更改
     // rebuild_entire_data_structure();
 
-    // ✅ Simple flag setting is safe
+    // ✅ 简单的标志设置是安全的
     let should_stop = true;
 
-    // ✅ Simple counter updates are usually safe
+    // ✅ 简单的计数器更新通常是安全的
     let signal_count = signal_count + 1;
 }
 ```
 
-## Safety Considerations
+## 安全考虑
 
-Signal handling is **inherently unsafe** in Hemlock's philosophy.
+按照 Hemlock 的哲学，信号处理**本质上是不安全的**。
 
-### Race Conditions
+### 竞争条件
 
-Handlers can be called at any time, interrupting normal execution:
+处理器可以在任何时候被调用，中断正常执行：
 
 ```hemlock
 let counter = 0;
 
 fn increment(sig) {
-    counter = counter + 1;  // Race condition if called during counter update
+    counter = counter + 1;  // 如果在 counter 更新期间调用会有竞争条件
 }
 
 signal(SIGUSR1, increment);
 
-// Main code also modifies counter
-counter = counter + 1;  // Could be interrupted by signal handler
+// 主代码也修改 counter
+counter = counter + 1;  // 可能被信号处理器中断
 ```
 
-**Problem:** If signal arrives while main code is updating `counter`, the result is unpredictable.
+**问题：** 如果信号在主代码更新 `counter` 时到达，结果是不可预测的。
 
-### Async-Signal-Safety
+### 异步信号安全
 
-Hemlock does **not** guarantee async-signal-safety:
-- Handlers can call any Hemlock code (unlike C's restricted async-signal-safe functions)
-- This provides flexibility but requires user caution
-- Race conditions are possible if handler modifies shared state
+Hemlock **不**保证异步信号安全：
+- 处理器可以调用任何 Hemlock 代码（不像 C 的受限异步信号安全函数）
+- 这提供了灵活性但需要用户谨慎
+- 如果处理器修改共享状态，可能出现竞争条件
 
-### Best Practices for Safe Signal Handling
+### 安全信号处理的最佳实践
 
-**1. Use Atomic Flags**
+**1. 使用原子标志**
 
-Simple boolean assignments are generally safe:
+简单的布尔赋值通常是安全的：
 
 ```hemlock
 let should_exit = false;
 
 fn handler(sig) {
-    should_exit = true;  // Simple assignment is safe
+    should_exit = true;  // 简单赋值是安全的
 }
 
 signal(SIGINT, handler);
 
 while (!should_exit) {
-    // work...
+    // 工作...
 }
 ```
 
-**2. Minimize Shared State**
+**2. 最小化共享状态**
 
 ```hemlock
 let interrupt_count = 0;
 
 fn handler(sig) {
-    // Only modify this one variable
+    // 只修改这一个变量
     interrupt_count = interrupt_count + 1;
 }
 ```
 
-**3. Defer Complex Operations**
+**3. 延迟复杂操作**
 
 ```hemlock
 let pending_reload = false;
 
 fn signal_reload(sig) {
-    pending_reload = true;  // Just set flag
+    pending_reload = true;  // 只设置标志
 }
 
 signal(SIGHUP, signal_reload);
 
-// In main loop:
+// 在主循环中：
 while (true) {
     if (pending_reload) {
-        reload_config();  // Do complex work here
+        reload_config();  // 在这里执行复杂工作
         pending_reload = false;
     }
 
-    // Normal work...
+    // 正常工作...
 }
 ```
 
-**4. Avoid Re-entrancy Issues**
+**4. 避免重入问题**
 
 ```hemlock
 let in_critical_section = false;
@@ -476,16 +476,16 @@ let data = [];
 
 fn careful_handler(sig) {
     if (in_critical_section) {
-        // Don't modify data while main code is using it
+        // 主代码使用数据时不要修改它
         return;
     }
-    // Safe to proceed
+    // 可以安全继续
 }
 ```
 
-## Common Use Cases
+## 常见用例
 
-### 1. Graceful Server Shutdown
+### 1. 优雅的服务器关闭
 
 ```hemlock
 let running = true;
@@ -498,7 +498,7 @@ fn shutdown(sig) {
 signal(SIGINT, shutdown);
 signal(SIGTERM, shutdown);
 
-// Server main loop
+// 服务器主循环
 while (running) {
     handle_client_request();
 }
@@ -507,7 +507,7 @@ cleanup_resources();
 print("Server stopped");
 ```
 
-### 2. Configuration Reload (Without Restart)
+### 2. 配置重新加载（无需重启）
 
 ```hemlock
 let config = load_config("app.conf");
@@ -526,11 +526,11 @@ while (true) {
         reload_needed = false;
     }
 
-    // Use config...
+    // 使用配置...
 }
 ```
 
-### 3. Log Rotation
+### 3. 日志轮转
 
 ```hemlock
 let log_file = open("app.log", "a");
@@ -545,18 +545,18 @@ signal(SIGUSR1, trigger_rotate);
 while (true) {
     if (rotate_needed) {
         log_file.close();
-        // Rename old log, open new one
+        // 重命名旧日志，打开新的
         exec("mv app.log app.log.old");
         log_file = open("app.log", "a");
         rotate_needed = false;
     }
 
-    // Normal logging...
+    // 正常日志记录...
     log_file.write("Log entry\n");
 }
 ```
 
-### 4. Status Reporting
+### 4. 状态报告
 
 ```hemlock
 let requests_handled = 0;
@@ -572,10 +572,10 @@ while (true) {
     requests_handled = requests_handled + 1;
 }
 
-// From shell: kill -USR1 <pid>
+// 从 shell：kill -USR1 <pid>
 ```
 
-### 5. Debug Mode Toggle
+### 5. 调试模式切换
 
 ```hemlock
 let debug_mode = false;
@@ -591,12 +591,12 @@ fn toggle_debug(sig) {
 
 signal(SIGUSR2, toggle_debug);
 
-// From shell: kill -USR2 <pid> to toggle
+// 从 shell：kill -USR2 <pid> 切换
 ```
 
-## Complete Examples
+## 完整示例
 
-### Example 1: Interrupt Handler with Cleanup
+### 示例 1：带清理的中断处理器
 
 ```hemlock
 let running = true;
@@ -615,16 +615,16 @@ fn handle_signal(signum) {
     }
 }
 
-// Register handlers
+// 注册处理器
 signal(SIGINT, handle_signal);
 signal(SIGUSR1, handle_signal);
 
-// Simulate some work
+// 模拟一些工作
 let i = 0;
 while (running && i < 100) {
     print("Working... " + typeof(i));
 
-    // Trigger SIGUSR1 every 10 iterations
+    // 每 10 次迭代触发 SIGUSR1
     if (i == 10 || i == 20) {
         raise(SIGUSR1);
     }
@@ -635,7 +635,7 @@ while (running && i < 100) {
 print("Total signals received: " + typeof(signal_count));
 ```
 
-### Example 2: Multi-Signal State Machine
+### 示例 2：多信号状态机
 
 ```hemlock
 let state = "idle";
@@ -662,15 +662,15 @@ signal(SIGHUP, report_stats);
 
 while (true) {
     if (state == "processing") {
-        // Do work
+        // 做工作
         request_count = request_count + 1;
     }
 
-    // Check every iteration...
+    // 每次迭代检查...
 }
 ```
 
-### Example 3: Worker Pool Controller
+### 示例 3：工作池控制器
 
 ```hemlock
 let worker_count = 4;
@@ -698,65 +698,29 @@ signal(SIGUSR2, decrease_workers);
 signal(SIGINT, shutdown);
 signal(SIGTERM, shutdown);
 
-// Main loop adjusts worker pool based on worker_count
+// 主循环根据 worker_count 调整工作池
 while (!should_exit) {
-    // Manage workers based on worker_count
+    // 根据 worker_count 管理工作者
     // ...
 }
 ```
 
-### Example 4: Timeout Pattern
+## 调试信号处理器
 
-```hemlock
-let operation_complete = false;
-let timed_out = false;
-
-fn timeout_handler(sig) {
-    timed_out = true;
-}
-
-signal(SIGALRM, timeout_handler);
-
-// Start long operation
-async fn long_operation() {
-    // ... work
-    operation_complete = true;
-}
-
-let task = spawn(long_operation);
-
-// Wait with timeout (manual check)
-let elapsed = 0;
-while (!operation_complete && elapsed < 1000) {
-    // Sleep or check
-    elapsed = elapsed + 1;
-}
-
-if (!operation_complete) {
-    print("Operation timed out");
-    detach(task);  // Give up waiting
-} else {
-    join(task);
-    print("Operation completed");
-}
-```
-
-## Debugging Signal Handlers
-
-### Add Diagnostic Prints
+### 添加诊断打印
 
 ```hemlock
 fn debug_handler(sig) {
     print("Handler called for signal: " + typeof(sig));
     print("Stack: (not yet available)");
 
-    // Your handler logic...
+    // 你的处理器逻辑...
 }
 
 signal(SIGINT, debug_handler);
 ```
 
-### Count Signal Calls
+### 计数信号调用
 
 ```hemlock
 let handler_calls = 0;
@@ -765,11 +729,11 @@ fn counting_handler(sig) {
     handler_calls = handler_calls + 1;
     print("Handler call #" + typeof(handler_calls));
 
-    // Your handler logic...
+    // 你的处理器逻辑...
 }
 ```
 
-### Test with raise()
+### 使用 raise() 测试
 
 ```hemlock
 fn test_handler(sig) {
@@ -778,32 +742,32 @@ fn test_handler(sig) {
 
 signal(SIGUSR1, test_handler);
 
-// Test by manually raising
+// 通过手动触发测试
 raise(SIGUSR1);
 print("Handler should have been called");
 ```
 
-## Summary
+## 总结
 
-Hemlock's signal handling provides:
+Hemlock 的信号处理提供：
 
-- ✅ POSIX signal handling for low-level process control
-- ✅ 15 standard signal constants
-- ✅ Simple signal() and raise() API
-- ✅ Flexible handler functions with closure support
-- ✅ Multiple signals can share handlers
+- 用于底层进程控制的 POSIX 信号处理
+- 15 个标准信号常量
+- 简单的 signal() 和 raise() API
+- 灵活的处理函数，支持闭包
+- 多个信号可以共享处理器
 
-Remember:
-- Signal handling is inherently unsafe - use with caution
-- Keep handlers simple and fast
-- Use flags for state changes, not complex operations
-- Handlers can interrupt execution at any time
-- Cannot catch SIGKILL or SIGSTOP
-- Test handlers thoroughly with raise()
+请记住：
+- 信号处理本质上是不安全的 - 谨慎使用
+- 保持处理器简单快速
+- 使用标志进行状态更改，而不是复杂操作
+- 处理器可以在任何时候中断执行
+- 无法捕获 SIGKILL 或 SIGSTOP
+- 使用 raise() 彻底测试处理器
 
-Common patterns:
-- Graceful shutdown (SIGINT, SIGTERM)
-- Configuration reload (SIGHUP)
-- Log rotation (SIGUSR1)
-- Status reporting (SIGUSR1/SIGUSR2)
-- Debug mode toggle (SIGUSR2)
+常见模式：
+- 优雅关闭（SIGINT、SIGTERM）
+- 配置重新加载（SIGHUP）
+- 日志轮转（SIGUSR1）
+- 状态报告（SIGUSR1/SIGUSR2）
+- 调试模式切换（SIGUSR2）

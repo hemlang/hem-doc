@@ -1,54 +1,54 @@
-# Async/Concurrency in Hemlock
+# Hemlock 异步/并发编程
 
-Hemlock provides **structured concurrency** with async/await syntax, task spawning, and channels for communication. The implementation uses POSIX threads (pthreads) for **TRUE multi-threaded parallelism**.
+Hemlock 提供**结构化并发**，支持 async/await 语法、任务生成和通道通信。实现基于 POSIX 线程（pthreads），实现**真正的多线程并行**。
 
-## Table of Contents
+## 目录
 
-- [Overview](#overview)
-- [Threading Model](#threading-model)
-- [Async Functions](#async-functions)
-- [Task Spawning](#task-spawning)
-- [Channels](#channels)
-- [Exception Propagation](#exception-propagation)
-- [Implementation Details](#implementation-details)
-- [Best Practices](#best-practices)
-- [Performance Characteristics](#performance-characteristics)
-- [Current Limitations](#current-limitations)
+- [概述](#概述)
+- [线程模型](#线程模型)
+- [异步函数](#异步函数)
+- [任务生成](#任务生成)
+- [通道](#通道)
+- [异常传播](#异常传播)
+- [实现细节](#实现细节)
+- [最佳实践](#最佳实践)
+- [性能特性](#性能特性)
+- [当前限制](#当前限制)
 
-## Overview
+## 概述
 
-**What this means:**
-- ✅ **Real OS threads** - Each spawned task runs on a separate pthread (POSIX thread)
-- ✅ **True parallelism** - Tasks execute simultaneously on multiple CPU cores
-- ✅ **Kernel-scheduled** - The OS scheduler distributes tasks across available cores
-- ✅ **Thread-safe channels** - Uses pthread mutexes and condition variables for synchronization
+**这意味着：**
+- 真正的操作系统线程 - 每个生成的任务运行在独立的 pthread（POSIX 线程）上
+- 真正的并行 - 任务在多个 CPU 核心上同时执行
+- 内核调度 - 操作系统调度器将任务分配到可用的核心上
+- 线程安全的通道 - 使用 pthread 互斥锁和条件变量进行同步
 
-**What this is NOT:**
-- ❌ **NOT green threads** - Not user-space cooperative multitasking
-- ❌ **NOT async/await coroutines** - Not single-threaded event loop like JavaScript/Python asyncio
-- ❌ **NOT emulated concurrency** - Not simulated parallelism
+**这不是：**
+- 不是绿色线程 - 不是用户空间的协作式多任务
+- 不是 async/await 协程 - 不是像 JavaScript/Python asyncio 那样的单线程事件循环
+- 不是模拟并发 - 不是模拟的并行
 
-This is the **same threading model as C, C++, and Rust** when using OS threads. You get actual parallel execution across multiple cores.
+这与 **C、C++ 和 Rust** 使用操作系统线程时的**线程模型相同**。你可以获得跨多个核心的真正并行执行。
 
-## Threading Model
+## 线程模型
 
-### 1:1 Threading
+### 1:1 线程模型
 
-Hemlock uses a **1:1 threading model**, where:
-- Each spawned task creates a dedicated OS thread via `pthread_create()`
-- The OS kernel schedules threads across available CPU cores
-- Pre-emptive multitasking - the OS can interrupt and switch between threads
-- **No GIL** - Unlike Python, there's no Global Interpreter Lock limiting parallelism
+Hemlock 使用 **1:1 线程模型**，其中：
+- 每个生成的任务通过 `pthread_create()` 创建专用的操作系统线程
+- 操作系统内核在可用的 CPU 核心间调度线程
+- 抢占式多任务 - 操作系统可以中断并在线程之间切换
+- **无 GIL** - 不像 Python，没有全局解释器锁限制并行性
 
-### Synchronization Mechanisms
+### 同步机制
 
-- **Mutexes** - Channels use `pthread_mutex_t` for thread-safe access
-- **Condition variables** - Blocking send/recv use `pthread_cond_t` for efficient waiting
-- **Lock-free operations** - Task state transitions are atomic
+- **互斥锁** - 通道使用 `pthread_mutex_t` 实现线程安全访问
+- **条件变量** - 阻塞的发送/接收使用 `pthread_cond_t` 实现高效等待
+- **无锁操作** - 任务状态转换是原子的
 
-## Async Functions
+## 异步函数
 
-Functions can be declared as `async` to indicate they're designed for concurrent execution:
+函数可以声明为 `async`，表示它们设计用于并发执行：
 
 ```hemlock
 async fn compute(n: i32): i32 {
@@ -62,15 +62,15 @@ async fn compute(n: i32): i32 {
 }
 ```
 
-### Key Points
+### 要点
 
-- `async fn` declares an asynchronous function
-- Async functions can be spawned as concurrent tasks using `spawn()`
-- Async functions can also be called directly (runs synchronously in current thread)
-- When spawned, each task runs on its **own OS thread** (not a coroutine!)
-- `await` keyword is reserved for future use
+- `async fn` 声明异步函数
+- 异步函数可以使用 `spawn()` 作为并发任务生成
+- 异步函数也可以直接调用（在当前线程同步运行）
+- 生成时，每个任务运行在**自己的操作系统线程**上（不是协程！）
+- `await` 关键字保留供将来使用
 
-### Example: Direct Call vs Spawn
+### 示例：直接调用 vs 生成
 
 ```hemlock
 async fn factorial(n: i32): i32 {
@@ -78,17 +78,17 @@ async fn factorial(n: i32): i32 {
     return n * factorial(n - 1);
 }
 
-// Direct call - runs synchronously
+// 直接调用 - 同步运行
 let result1 = factorial(5);  // 120
 
-// Spawned task - runs on separate thread
+// 生成任务 - 在独立线程上运行
 let task = spawn(factorial, 5);
 let result2 = join(task);  // 120
 ```
 
-## Task Spawning
+## 任务生成
 
-Use `spawn()` to run async functions **in parallel on separate OS threads**:
+使用 `spawn()` 在**独立的操作系统线程上并行**运行异步函数：
 
 ```hemlock
 async fn factorial(n: i32): i32 {
@@ -96,35 +96,35 @@ async fn factorial(n: i32): i32 {
     return n * factorial(n - 1);
 }
 
-// Spawn multiple tasks - these run in PARALLEL on different CPU cores!
-let t1 = spawn(factorial, 5);  // Thread 1
-let t2 = spawn(factorial, 6);  // Thread 2
-let t3 = spawn(factorial, 7);  // Thread 3
+// 生成多个任务 - 这些在不同的 CPU 核心上并行运行！
+let t1 = spawn(factorial, 5);  // 线程 1
+let t2 = spawn(factorial, 6);  // 线程 2
+let t3 = spawn(factorial, 7);  // 线程 3
 
-// All three are computing simultaneously right now!
+// 三个任务现在正在同时计算！
 
-// Wait for results
+// 等待结果
 let f5 = join(t1);  // 120
 let f6 = join(t2);  // 720
 let f7 = join(t3);  // 5040
 ```
 
-### Built-in Functions
+### 内置函数
 
 #### spawn(async_fn, arg1, arg2, ...)
 
-Creates a new task on a new pthread, returns task handle.
+在新的 pthread 上创建新任务，返回任务句柄。
 
-**Parameters:**
-- `async_fn` - The async function to execute
-- `arg1, arg2, ...` - Arguments to pass to the function
+**参数：**
+- `async_fn` - 要执行的异步函数
+- `arg1, arg2, ...` - 传递给函数的参数
 
-**Returns:** Task handle (opaque value used with `join()` or `detach()`)
+**返回：** 任务句柄（与 `join()` 或 `detach()` 一起使用的不透明值）
 
-**Example:**
+**示例：**
 ```hemlock
 async fn process(data: string, count: i32): i32 {
-    // ... processing logic
+    // ... 处理逻辑
     return count * 2;
 }
 
@@ -133,64 +133,64 @@ let task = spawn(process, "test", 42);
 
 #### join(task)
 
-Wait for task completion (blocks until thread finishes), returns result.
+等待任务完成（阻塞直到线程结束），返回结果。
 
-**Parameters:**
-- `task` - Task handle returned from `spawn()`
+**参数：**
+- `task` - 从 `spawn()` 返回的任务句柄
 
-**Returns:** The value returned by the async function
+**返回：** 异步函数返回的值
 
-**Example:**
+**示例：**
 ```hemlock
 let task = spawn(compute, 1000);
-let result = join(task);  // Blocks until compute() finishes
+let result = join(task);  // 阻塞直到 compute() 完成
 print(result);
 ```
 
-**Important:** Each task can only be joined once. Subsequent joins will error.
+**重要：** 每个任务只能 join 一次。后续的 join 将会报错。
 
 #### detach(task)
 
-Fire-and-forget execution (thread runs independently, no join allowed).
+即发即忘执行（线程独立运行，不允许 join）。
 
-**Parameters:**
-- `task` - Task handle returned from `spawn()`
+**参数：**
+- `task` - 从 `spawn()` 返回的任务句柄
 
-**Returns:** `null`
+**返回：** `null`
 
-**Example:**
+**示例：**
 ```hemlock
 async fn background_work() {
-    // Long-running background task
+    // 长时间运行的后台任务
     // ...
 }
 
 let task = spawn(background_work);
-detach(task);  // Task runs independently, cannot join
+detach(task);  // 任务独立运行，无法 join
 ```
 
-**Important:** Detached tasks cannot be joined. Both the pthread and Task struct are automatically cleaned up when the task completes.
+**重要：** 分离的任务无法 join。当任务完成时，pthread 和 Task 结构都会自动清理。
 
-## Channels
+## 通道
 
-Channels provide thread-safe communication between tasks using a bounded buffer with blocking semantics.
+通道使用有界缓冲区和阻塞语义，提供任务间的线程安全通信。
 
-### Creating Channels
+### 创建通道
 
 ```hemlock
-let ch = channel(10);  // Create channel with buffer size of 10
+let ch = channel(10);  // 创建缓冲区大小为 10 的通道
 ```
 
-**Parameters:**
-- `capacity` (i32) - Maximum number of values the channel can hold
+**参数：**
+- `capacity` (i32) - 通道可容纳的最大值数量
 
-**Returns:** Channel object
+**返回：** 通道对象
 
-### Channel Methods
+### 通道方法
 
 #### send(value)
 
-Send value to channel (blocks if full).
+向通道发送值（如果已满则阻塞）。
 
 ```hemlock
 async fn producer(ch, count: i32) {
@@ -207,14 +207,14 @@ let ch = channel(10);
 let task = spawn(producer, ch, 5);
 ```
 
-**Behavior:**
-- If channel has space, value is added immediately
-- If channel is full, sender blocks until space becomes available
-- If channel is closed, throws exception
+**行为：**
+- 如果通道有空间，值会立即添加
+- 如果通道已满，发送者阻塞直到有空间可用
+- 如果通道已关闭，抛出异常
 
 #### recv()
 
-Receive value from channel (blocks if empty).
+从通道接收值（如果为空则阻塞）。
 
 ```hemlock
 async fn consumer(ch, count: i32): i32 {
@@ -232,47 +232,47 @@ let ch = channel(10);
 let task = spawn(consumer, ch, 5);
 ```
 
-**Behavior:**
-- If channel has values, returns next value immediately
-- If channel is empty, receiver blocks until value available
-- If channel is closed and empty, returns `null`
+**行为：**
+- 如果通道有值，立即返回下一个值
+- 如果通道为空，接收者阻塞直到有值可用
+- 如果通道已关闭且为空，返回 `null`
 
 #### close()
 
-Close channel (recv on closed channel returns null).
+关闭通道（在已关闭的通道上 recv 返回 null）。
 
 ```hemlock
 ch.close();
 ```
 
-**Behavior:**
-- Prevents further `send()` operations (will throw exception)
-- Allows pending `recv()` operations to complete
-- Once empty, `recv()` returns `null`
+**行为：**
+- 阻止进一步的 `send()` 操作（将抛出异常）
+- 允许挂起的 `recv()` 操作完成
+- 一旦为空，`recv()` 返回 `null`
 
-### Multiplexing with select()
+### 使用 select() 多路复用
 
-The `select()` function allows waiting on multiple channels simultaneously, returning when any channel has data available.
+`select()` 函数允许同时等待多个通道，当任何通道有数据可用时返回。
 
-**Signature:**
+**签名：**
 ```hemlock
 select(channels: array, timeout_ms?: i32): object | null
 ```
 
-**Parameters:**
-- `channels` - Array of channel values
-- `timeout_ms` (optional) - Timeout in milliseconds (-1 or omit for infinite wait)
+**参数：**
+- `channels` - 通道值数组
+- `timeout_ms`（可选）- 超时毫秒数（-1 或省略表示无限等待）
 
-**Returns:**
-- `{ channel, value }` - Object with the channel that had data and the received value
-- `null` - On timeout (if timeout was specified)
+**返回：**
+- `{ channel, value }` - 包含有数据的通道和接收到的值的对象
+- `null` - 超时时（如果指定了超时）
 
-**Example:**
+**示例：**
 ```hemlock
 let ch1 = channel(1);
 let ch2 = channel(1);
 
-// Producer tasks
+// 生产者任务
 spawn(fn() {
     sleep(100);
     ch1.send("from channel 1");
@@ -283,39 +283,39 @@ spawn(fn() {
     ch2.send("from channel 2");
 });
 
-// Wait for first result (ch2 should be faster)
+// 等待第一个结果（ch2 应该更快）
 let result = select([ch1, ch2]);
 print(result.value);  // "from channel 2"
 
-// Wait for second result
+// 等待第二个结果
 let result2 = select([ch1, ch2]);
 print(result2.value);  // "from channel 1"
 ```
 
-**With timeout:**
+**带超时：**
 ```hemlock
 let ch = channel(1);
 
-// No sender, will timeout
-let result = select([ch], 100);  // 100ms timeout
+// 没有发送者，将超时
+let result = select([ch], 100);  // 100ms 超时
 if (result == null) {
     print("Timed out!");
 }
 ```
 
-**Use cases:**
-- Waiting for the fastest of multiple data sources
-- Implementing timeouts on channel operations
-- Event loop patterns with multiple event sources
-- Fan-in: merging multiple channels into one
+**使用场景：**
+- 等待多个数据源中最快的一个
+- 在通道操作上实现超时
+- 具有多个事件源的事件循环模式
+- 扇入：将多个通道合并为一个
 
-**Fan-in pattern:**
+**扇入模式：**
 ```hemlock
 fn fan_in(channels: array, output: channel) {
     while (true) {
         let result = select(channels);
         if (result == null) {
-            break;  // All channels closed
+            break;  // 所有通道已关闭
         }
         output.send(result.value);
     }
@@ -323,7 +323,7 @@ fn fan_in(channels: array, output: channel) {
 }
 ```
 
-### Complete Producer-Consumer Example
+### 完整的生产者-消费者示例
 
 ```hemlock
 async fn producer(ch, count: i32) {
@@ -347,22 +347,22 @@ async fn consumer(ch, count: i32): i32 {
     return sum;
 }
 
-// Create channel with buffer size
+// 创建带缓冲区大小的通道
 let ch = channel(10);
 
-// Spawn producer and consumer
+// 生成生产者和消费者
 let p = spawn(producer, ch, 5);
 let c = spawn(consumer, ch, 5);
 
-// Wait for completion
+// 等待完成
 join(p);
 let total = join(c);  // 100 (0+10+20+30+40)
 print(total);
 ```
 
-### Multi-Producer, Multi-Consumer
+### 多生产者，多消费者
 
-Channels can be safely shared between multiple producers and consumers:
+通道可以在多个生产者和消费者之间安全共享：
 
 ```hemlock
 async fn producer(id: i32, ch, count: i32) {
@@ -386,15 +386,15 @@ async fn consumer(id: i32, ch, count: i32): i32 {
 
 let ch = channel(20);
 
-// Multiple producers
+// 多个生产者
 let p1 = spawn(producer, 1, ch, 5);
 let p2 = spawn(producer, 2, ch, 5);
 
-// Multiple consumers
+// 多个消费者
 let c1 = spawn(consumer, 1, ch, 5);
 let c2 = spawn(consumer, 2, ch, 5);
 
-// Wait for all
+// 等待所有
 join(p1);
 join(p2);
 let sum1 = join(c1);
@@ -402,9 +402,9 @@ let sum2 = join(c2);
 print(sum1 + sum2);
 ```
 
-## Exception Propagation
+## 异常传播
 
-Exceptions thrown in spawned tasks are propagated when joined:
+在生成的任务中抛出的异常会在 join 时传播：
 
 ```hemlock
 async fn risky_operation(should_fail: i32): i32 {
@@ -422,13 +422,13 @@ try {
 }
 ```
 
-### Exception Handling Patterns
+### 异常处理模式
 
-**Pattern 1: Handle in task**
+**模式 1：在任务中处理**
 ```hemlock
 async fn safe_task() {
     try {
-        // risky operation
+        // 有风险的操作
     } catch (e) {
         print("Error in task: " + e);
         return null;
@@ -436,10 +436,10 @@ async fn safe_task() {
 }
 
 let task = spawn(safe_task);
-join(task);  // No exception propagated
+join(task);  // 没有异常传播
 ```
 
-**Pattern 2: Propagate to caller**
+**模式 2：传播给调用者**
 ```hemlock
 async fn task_that_throws() {
     throw "error";
@@ -453,81 +453,81 @@ try {
 }
 ```
 
-**Pattern 3: Detached tasks with exceptions**
+**模式 3：带异常的分离任务**
 ```hemlock
 async fn detached_task() {
     try {
-        // work
+        // 工作
     } catch (e) {
-        // Must handle internally - cannot propagate
+        // 必须在内部处理 - 无法传播
         print("Error: " + e);
     }
 }
 
 let task = spawn(detached_task);
-detach(task);  // Cannot catch exceptions from detached tasks
+detach(task);  // 无法从分离的任务捕获异常
 ```
 
-## Implementation Details
+## 实现细节
 
-### Threading Architecture
+### 线程架构
 
-- **1:1 threading** - Each spawned task creates a dedicated OS thread via `pthread_create()`
-- **Kernel-scheduled** - The OS kernel schedules threads across available CPU cores
-- **Pre-emptive multitasking** - The OS can interrupt and switch between threads
-- **No GIL** - Unlike Python, there's no Global Interpreter Lock limiting parallelism
+- **1:1 线程** - 每个生成的任务通过 `pthread_create()` 创建专用的操作系统线程
+- **内核调度** - 操作系统内核在可用的 CPU 核心间调度线程
+- **抢占式多任务** - 操作系统可以中断并在线程之间切换
+- **无 GIL** - 不像 Python，没有全局解释器锁限制并行性
 
-### Channel Implementation
+### 通道实现
 
-Channels use a circular buffer with pthread synchronization:
+通道使用带 pthread 同步的循环缓冲区：
 
 ```
-Channel Structure:
-- buffer[] - Fixed-size array of Values
-- capacity - Maximum number of elements
-- size - Current number of elements
-- head - Read position
-- tail - Write position
-- mutex - pthread_mutex_t for thread-safe access
-- not_empty - pthread_cond_t for blocking recv
-- not_full - pthread_cond_t for blocking send
-- closed - Boolean flag
-- refcount - Reference count for cleanup
+通道结构：
+- buffer[] - 固定大小的 Values 数组
+- capacity - 最大元素数
+- size - 当前元素数
+- head - 读取位置
+- tail - 写入位置
+- mutex - pthread_mutex_t 用于线程安全访问
+- not_empty - pthread_cond_t 用于阻塞 recv
+- not_full - pthread_cond_t 用于阻塞 send
+- closed - 布尔标志
+- refcount - 用于清理的引用计数
 ```
 
-**Blocking behavior:**
-- `send()` on full channel: waits on `not_full` condition variable
-- `recv()` on empty channel: waits on `not_empty` condition variable
-- Both are signaled when appropriate by the opposite operation
+**阻塞行为：**
+- 在满通道上 `send()`：等待 `not_full` 条件变量
+- 在空通道上 `recv()`：等待 `not_empty` 条件变量
+- 两者都由相反的操作在适当时发出信号
 
-### Memory & Cleanup
+### 内存和清理
 
-- **Joined tasks:** Automatically cleaned up after `join()` returns
-- **Detached tasks:** Automatically cleaned up when the task completes
-- **Channels:** Reference-counted and freed when no longer used
+- **已 join 的任务：** 在 `join()` 返回后自动清理
+- **分离的任务：** 在任务完成时自动清理
+- **通道：** 引用计数，不再使用时释放
 
-## Best Practices
+## 最佳实践
 
-### 1. Always Close Channels
+### 1. 始终关闭通道
 
 ```hemlock
 async fn producer(ch) {
-    // ... send values
-    ch.close();  // Important: signal no more values
+    // ... 发送值
+    ch.close();  // 重要：表示没有更多的值
 }
 ```
 
-### 2. Use Structured Concurrency
+### 2. 使用结构化并发
 
-Spawn tasks and join them in the same scope:
+在同一作用域中生成任务并 join 它们：
 
 ```hemlock
 fn process_data(data) {
-    // Spawn tasks
+    // 生成任务
     let t1 = spawn(worker, data);
     let t2 = spawn(worker, data);
 
-    // Always join before returning
+    // 返回前始终 join
     let r1 = join(t1);
     let r2 = join(t2);
 
@@ -535,85 +535,85 @@ fn process_data(data) {
 }
 ```
 
-### 3. Handle Exceptions Appropriately
+### 3. 适当处理异常
 
 ```hemlock
 async fn task() {
     try {
-        // risky operation
+        // 有风险的操作
     } catch (e) {
-        // Log error
-        throw e;  // Re-throw if caller should know
+        // 记录错误
+        throw e;  // 如果调用者需要知道则重新抛出
     }
 }
 ```
 
-### 4. Use Appropriate Channel Capacity
+### 4. 使用适当的通道容量
 
-- **Small capacity (1-10):** For coordination/signaling
-- **Medium capacity (10-100):** For general producer-consumer
-- **Large capacity (100+):** For high-throughput scenarios
+- **小容量（1-10）：** 用于协调/信号
+- **中等容量（10-100）：** 用于一般生产者-消费者
+- **大容量（100+）：** 用于高吞吐量场景
 
 ```hemlock
-let signal_ch = channel(1);      // Coordination
-let work_ch = channel(50);       // Work queue
-let buffer_ch = channel(1000);   // High throughput
+let signal_ch = channel(1);      // 协调
+let work_ch = channel(50);       // 工作队列
+let buffer_ch = channel(1000);   // 高吞吐量
 ```
 
-### 5. Detach Only When Necessary
+### 5. 仅在必要时分离
 
-Prefer `join()` over `detach()` for better resource management:
+优先使用 `join()` 而不是 `detach()` 以更好地管理资源：
 
 ```hemlock
-// Good: Join and get result
+// 好：Join 并获取结果
 let task = spawn(work);
 let result = join(task);
 
-// Use detach only for true fire-and-forget
+// 仅对真正的即发即忘使用 detach
 let bg_task = spawn(background_logging);
-detach(bg_task);  // Will run independently
+detach(bg_task);  // 将独立运行
 ```
 
-## Performance Characteristics
+## 性能特性
 
-### True Parallelism
+### 真正的并行
 
-- **N spawned tasks can utilize N CPU cores simultaneously**
-- Proven speedup - stress tests show 8-9x CPU time vs wall time (multiple cores working)
-- Linear scaling with number of cores (up to thread count)
+- **N 个生成的任务可以同时利用 N 个 CPU 核心**
+- 经验证的加速 - 压力测试显示 CPU 时间 vs 墙钟时间为 8-9 倍（多核工作）
+- 随核心数线性扩展（直到线程数）
 
-### Thread Overhead
+### 线程开销
 
-- Each task has ~8KB stack + pthread overhead
-- Thread creation cost: ~10-20μs
-- Context switch cost: ~1-5μs
+- 每个任务有约 8KB 栈 + pthread 开销
+- 线程创建成本：约 10-20 微秒
+- 上下文切换成本：约 1-5 微秒
 
-### When to Use Async
+### 何时使用异步
 
-**Good use cases:**
-- CPU-intensive computations that can be parallelized
-- I/O-bound operations (though I/O is still blocking)
-- Concurrent processing of independent data
-- Pipeline architectures with channels
+**好的使用场景：**
+- 可并行化的 CPU 密集型计算
+- I/O 密集型操作（尽管 I/O 仍然是阻塞的）
+- 独立数据的并发处理
+- 使用通道的流水线架构
 
-**Not ideal for:**
-- Very short tasks (thread overhead dominates)
-- Tasks with heavy synchronization (contention overhead)
-- Single-core systems (no parallelism benefit)
+**不理想的场景：**
+- 非常短的任务（线程开销占主导）
+- 有大量同步的任务（竞争开销）
+- 单核系统（没有并行性收益）
 
-### Blocking I/O Safe
+### 阻塞 I/O 安全
 
-Blocking operations in one task don't block others:
+一个任务中的阻塞操作不会阻塞其他任务：
 
 ```hemlock
 async fn reader(filename: string) {
-    let f = open(filename, "r");  // Blocks this thread only
-    let content = f.read();       // Blocks this thread only
+    let f = open(filename, "r");  // 只阻塞此线程
+    let content = f.read();       // 只阻塞此线程
     f.close();
     return content;
 }
 
-// Both read concurrently (on different threads)
+// 两者并发读取（在不同线程上）
 let t1 = spawn(reader, "file1.txt");
 let t2 = spawn(reader, "file2.txt");
 
@@ -621,17 +621,17 @@ let c1 = join(t1);
 let c2 = join(t2);
 ```
 
-## Thread Safety Model
+## 线程安全模型
 
-Hemlock uses a **message-passing** concurrency model where tasks communicate via channels rather than shared mutable state.
+Hemlock 使用**消息传递**并发模型，任务通过通道而不是共享可变状态进行通信。
 
-### Argument Isolation
+### 参数隔离
 
-When you spawn a task, **arguments are deep-copied** to prevent data races:
+当你生成任务时，**参数会深拷贝**以防止数据竞争：
 
 ```hemlock
 async fn modify_array(arr: array): array {
-    arr.push(999);    // Modifies the COPY, not original
+    arr.push(999);    // 修改的是副本，不是原始数组
     arr[0] = -1;
     return arr;
 }
@@ -640,37 +640,37 @@ let original = [1, 2, 3];
 let task = spawn(modify_array, original);
 let modified = join(task);
 
-print(original.length);  // 3 - unchanged!
-print(modified.length);  // 4 - has new element
+print(original.length);  // 3 - 未改变！
+print(modified.length);  // 4 - 有新元素
 ```
 
-**What gets deep-copied:**
-- Arrays (and all elements recursively)
-- Objects (and all fields recursively)
-- Strings
-- Buffers
+**会深拷贝的：**
+- 数组（及所有元素递归）
+- 对象（及所有字段递归）
+- 字符串
+- 缓冲区
 
-**What gets shared (reference retained):**
-- Channels (the communication mechanism - intentionally shared)
-- Task handles (for coordination)
-- Functions (code is immutable)
-- File handles (OS manages concurrent access)
-- Socket handles (OS manages concurrent access)
+**会共享的（保留引用）：**
+- 通道（通信机制 - 故意共享）
+- 任务句柄（用于协调）
+- 函数（代码是不可变的）
+- 文件句柄（操作系统管理并发访问）
+- 套接字句柄（操作系统管理并发访问）
 
-**What cannot be passed:**
-- Raw pointers (`ptr`) - use `buffer` instead
+**不能传递的：**
+- 原始指针（`ptr`）- 改用 `buffer`
 
-### Why Message-Passing?
+### 为什么使用消息传递？
 
-This follows Hemlock's "explicit over implicit" philosophy:
+这遵循 Hemlock 的"显式优于隐式"哲学：
 
 ```hemlock
-// BAD: Shared mutable state (would cause data races)
+// 不好：共享可变状态（会导致数据竞争）
 let counter = { value: 0 };
-let t1 = spawn(fn() { counter.value = counter.value + 1; });  // Race!
-let t2 = spawn(fn() { counter.value = counter.value + 1; });  // Race!
+let t1 = spawn(fn() { counter.value = counter.value + 1; });  // 竞争！
+let t2 = spawn(fn() { counter.value = counter.value + 1; });  // 竞争！
 
-// GOOD: Message-passing via channels
+// 好：通过通道的消息传递
 async fn increment(ch) {
     let val = ch.recv();
     ch.send(val + 1);
@@ -680,92 +680,88 @@ let ch = channel(1);
 ch.send(0);
 let t1 = spawn(increment, ch);
 join(t1);
-let result = ch.recv();  // 1 - no race condition
+let result = ch.recv();  // 1 - 没有竞争条件
 ```
 
-### Reference Counting Thread Safety
+### 引用计数线程安全
 
-All reference counting operations use **atomic operations** to prevent use-after-free bugs:
-- `string_retain/release` - atomic
-- `array_retain/release` - atomic
-- `object_retain/release` - atomic
-- `buffer_retain/release` - atomic
-- `function_retain/release` - atomic
-- `channel_retain/release` - atomic
-- `task_retain/release` - atomic
+所有引用计数操作使用**原子操作**以防止释放后使用错误：
+- `string_retain/release` - 原子
+- `array_retain/release` - 原子
+- `object_retain/release` - 原子
+- `buffer_retain/release` - 原子
+- `function_retain/release` - 原子
+- `channel_retain/release` - 原子
+- `task_retain/release` - 原子
 
-This ensures safe memory management even when values are shared across threads.
+这确保即使值跨线程共享也能安全地进行内存管理。
 
-### Closure Environment Access
+### 闭包环境访问
 
-Tasks have access to the closure environment for:
-- Built-in functions (`print`, `len`, etc.)
-- Global function definitions
-- Constants and variables
+任务可以访问闭包环境：
+- 内置函数（`print`、`len` 等）
+- 全局函数定义
+- 常量和变量
 
-The closure environment is protected by a per-environment mutex, making
-concurrent reads and writes thread-safe:
+闭包环境由每个环境的互斥锁保护，使并发读写线程安全：
 
 ```hemlock
 let x = 10;
 
 async fn read_closure(): i32 {
-    return x;  // OK: reading closure variable (thread-safe)
+    return x;  // OK：读取闭包变量（线程安全）
 }
 
 async fn modify_closure() {
-    x = 20;  // OK: writing closure variable (synchronized with mutex)
+    x = 20;  // OK：写入闭包变量（与互斥锁同步）
 }
 ```
 
-**Note:** While concurrent access is synchronized, modifying shared state from
-multiple tasks can still lead to logical race conditions (non-deterministic
-ordering). For predictable behavior, use channels for task communication or
-return values from tasks.
+**注意：** 虽然并发访问是同步的，但从多个任务修改共享状态仍可能导致逻辑竞争条件（非确定性顺序）。为了可预测的行为，使用通道进行任务通信或使用任务返回值。
 
-If you need to return data from a task, use the return value or channels.
+如果需要从任务返回数据，使用返回值或通道。
 
-## Current Limitations
+## 当前限制
 
-### 1. No Work-Stealing Scheduler
+### 1. 没有工作窃取调度器
 
-Uses 1 thread per task, which can be inefficient for many short tasks.
+每个任务使用 1 个线程，对于许多短任务可能效率不高。
 
-**Current:** 1000 tasks = 1000 threads (heavy overhead)
+**当前：** 1000 个任务 = 1000 个线程（开销大）
 
-**Planned:** Thread pool with work stealing for better efficiency
+**计划中：** 带工作窃取的线程池以提高效率
 
-### 3. No Async I/O Integration
+### 3. 没有异步 I/O 集成
 
-File/network operations still block the thread:
+文件/网络操作仍然阻塞线程：
 
 ```hemlock
 async fn read_file(path: string) {
     let f = open(path, "r");
-    let content = f.read();  // Blocks the thread
+    let content = f.read();  // 阻塞线程
     f.close();
     return content;
 }
 ```
 
-**Workaround:** Use multiple threads for concurrent I/O operations
+**变通方法：** 使用多线程进行并发 I/O 操作
 
-### 4. Fixed Channel Capacity
+### 4. 固定通道容量
 
-Channel capacity is set at creation and cannot be resized:
+通道容量在创建时设置，无法调整大小：
 
 ```hemlock
 let ch = channel(10);
-// Cannot dynamically resize to 20
+// 无法动态调整到 20
 ```
 
-### 5. Channel Size is Fixed
+### 5. 通道大小固定
 
-Channel buffer size cannot be changed after creation.
+通道缓冲区大小在创建后无法更改。
 
-## Common Patterns
+## 常见模式
 
-### Parallel Map
+### 并行 Map
 
 ```hemlock
 async fn map_worker(ch_in, ch_out, fn_transform) {
@@ -783,7 +779,7 @@ fn parallel_map(data, fn_transform, workers: i32) {
     let ch_in = channel(100);
     let ch_out = channel(100);
 
-    // Spawn workers
+    // 生成工作者
     let tasks = [];
     let i = 0;
     while (i < workers) {
@@ -791,7 +787,7 @@ fn parallel_map(data, fn_transform, workers: i32) {
         i = i + 1;
     }
 
-    // Send data
+    // 发送数据
     let i = 0;
     while (i < data.length) {
         ch_in.send(data[i]);
@@ -799,7 +795,7 @@ fn parallel_map(data, fn_transform, workers: i32) {
     }
     ch_in.close();
 
-    // Collect results
+    // 收集结果
     let results = [];
     let i = 0;
     while (i < data.length) {
@@ -807,7 +803,7 @@ fn parallel_map(data, fn_transform, workers: i32) {
         i = i + 1;
     }
 
-    // Wait for workers
+    // 等待工作者
     let i = 0;
     while (i < tasks.length) {
         join(tasks[i]);
@@ -818,7 +814,7 @@ fn parallel_map(data, fn_transform, workers: i32) {
 }
 ```
 
-### Pipeline Architecture
+### 流水线架构
 
 ```hemlock
 async fn stage1(input_ch, output_ch) {
@@ -839,7 +835,7 @@ async fn stage2(input_ch, output_ch) {
     output_ch.close();
 }
 
-// Create pipeline
+// 创建流水线
 let ch1 = channel(10);
 let ch2 = channel(10);
 let ch3 = channel(10);
@@ -847,13 +843,13 @@ let ch3 = channel(10);
 let s1 = spawn(stage1, ch1, ch2);
 let s2 = spawn(stage2, ch2, ch3);
 
-// Feed input
+// 输入数据
 ch1.send(1);
 ch1.send(2);
 ch1.send(3);
 ch1.close();
 
-// Collect output
+// 收集输出
 print(ch3.recv());  // 12 (1 * 2 + 10)
 print(ch3.recv());  // 14 (2 * 2 + 10)
 print(ch3.recv());  // 16 (3 * 2 + 10)
@@ -862,7 +858,7 @@ join(s1);
 join(s2);
 ```
 
-### Fan-Out, Fan-In
+### 扇出，扇入
 
 ```hemlock
 async fn worker(id: i32, input_ch, output_ch) {
@@ -870,7 +866,7 @@ async fn worker(id: i32, input_ch, output_ch) {
         let val = input_ch.recv();
         if (val == null) { break; }
 
-        // Process value
+        // 处理值
         let result = val * id;
         output_ch.send(result);
     }
@@ -879,7 +875,7 @@ async fn worker(id: i32, input_ch, output_ch) {
 let input = channel(10);
 let output = channel(10);
 
-// Fan-out: Multiple workers
+// 扇出：多个工作者
 let workers = 4;
 let tasks = [];
 let i = 0;
@@ -888,7 +884,7 @@ while (i < workers) {
     i = i + 1;
 }
 
-// Send work
+// 发送工作
 let i = 0;
 while (i < 10) {
     input.send(i);
@@ -896,7 +892,7 @@ while (i < 10) {
 }
 input.close();
 
-// Fan-in: Collect all results
+// 扇入：收集所有结果
 let results = [];
 let i = 0;
 while (i < 10) {
@@ -904,7 +900,7 @@ while (i < 10) {
     i = i + 1;
 }
 
-// Wait for all workers
+// 等待所有工作者
 let i = 0;
 while (i < tasks.length) {
     join(tasks[i]);
@@ -912,26 +908,26 @@ while (i < tasks.length) {
 }
 ```
 
-## Summary
+## 总结
 
-Hemlock's async/concurrency model provides:
+Hemlock 的异步/并发模型提供：
 
-- ✅ True multi-threaded parallelism using OS threads
-- ✅ Simple, structured concurrency primitives
-- ✅ Thread-safe channels for communication
-- ✅ Exception propagation across tasks
-- ✅ Proven performance on multi-core systems
-- ✅ **Argument isolation** - deep copy prevents data races
-- ✅ **Atomic reference counting** - safe memory management across threads
+- 使用操作系统线程的真正多线程并行
+- 简单的结构化并发原语
+- 线程安全的通道通信
+- 跨任务的异常传播
+- 在多核系统上经验证的性能
+- **参数隔离** - 深拷贝防止数据竞争
+- **原子引用计数** - 跨线程安全的内存管理
 
-This makes Hemlock suitable for:
-- Parallel computations
-- Concurrent I/O operations
-- Pipeline architectures
-- Producer-consumer patterns
+这使 Hemlock 适用于：
+- 并行计算
+- 并发 I/O 操作
+- 流水线架构
+- 生产者-消费者模式
 
-While avoiding the complexity of:
-- Manual thread management
-- Low-level synchronization primitives
-- Deadlock-prone lock-based designs
-- Shared mutable state bugs
+同时避免以下复杂性：
+- 手动线程管理
+- 低级同步原语
+- 容易死锁的基于锁的设计
+- 共享可变状态错误

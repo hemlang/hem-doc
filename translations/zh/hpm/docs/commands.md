@@ -1,44 +1,44 @@
-# Command Reference
+# 命令参考
 
-Complete reference for all hpm commands.
+所有 hpm 命令的完整参考。
 
-## Global Options
+## 全局选项
 
-These options work with any command:
+这些选项适用于任何命令：
 
-| Option | Description |
+| 选项 | 描述 |
 |--------|-------------|
-| `--help`, `-h` | Show help message |
-| `--version`, `-v` | Show hpm version |
-| `--verbose` | Show detailed output |
+| `--help`, `-h` | 显示帮助信息 |
+| `--version`, `-v` | 显示 hpm 版本 |
+| `--verbose` | 显示详细输出 |
 
-## Commands
+## 命令
 
 ### hpm init
 
-Create a new `package.json` file.
+创建新的 `package.json` 文件。
 
 ```bash
-hpm init        # Interactive mode
-hpm init --yes  # Accept all defaults
-hpm init -y     # Short form
+hpm init        # 交互模式
+hpm init --yes  # 接受所有默认值
+hpm init -y     # 简写形式
 ```
 
-**Options:**
+**选项：**
 
-| Option | Description |
+| 选项 | 描述 |
 |--------|-------------|
-| `--yes`, `-y` | Accept default values for all prompts |
+| `--yes`, `-y` | 对所有提示接受默认值 |
 
-**Interactive prompts:**
-- Package name (owner/repo format)
-- Version (default: 1.0.0)
-- Description
-- Author
-- License (default: MIT)
-- Main file (default: src/index.hml)
+**交互提示：**
+- 包名称（owner/repo 格式）
+- 版本（默认：1.0.0）
+- 描述
+- 作者
+- 许可证（默认：MIT）
+- 主文件（默认：src/index.hml）
 
-**Example:**
+**示例：**
 
 ```bash
 $ hpm init
@@ -56,62 +56,62 @@ Created package.json
 
 ### hpm install
 
-Install dependencies or add new packages.
+安装依赖或添加新包。
 
 ```bash
-hpm install                           # Install all from package.json
-hpm install owner/repo                # Add and install package
-hpm install owner/repo@^1.0.0        # With version constraint
-hpm install owner/repo --dev         # As dev dependency
-hpm i owner/repo                      # Short form
+hpm install                           # 从 package.json 安装所有依赖
+hpm install owner/repo                # 添加并安装包
+hpm install owner/repo@^1.0.0        # 使用版本约束
+hpm install owner/repo --dev         # 作为开发依赖
+hpm i owner/repo                      # 简写形式
 ```
 
-**Options:**
+**选项：**
 
-| Option | Description |
+| 选项 | 描述 |
 |--------|-------------|
-| `--dev`, `-D` | Add to devDependencies |
-| `--verbose` | Show detailed progress |
-| `--dry-run` | Preview without installing |
-| `--offline` | Install from cache only (no network) |
-| `--parallel` | Enable parallel downloads (experimental) |
+| `--dev`, `-D` | 添加到 devDependencies |
+| `--verbose` | 显示详细进度 |
+| `--dry-run` | 预览而不安装 |
+| `--offline` | 仅从缓存安装（无网络） |
+| `--parallel` | 启用并行下载（实验性） |
 
-**Version constraint syntax:**
+**版本约束语法：**
 
-| Syntax | Example | Meaning |
+| 语法 | 示例 | 含义 |
 |--------|---------|---------|
-| (none) | `owner/repo` | Latest version |
-| Exact | `owner/repo@1.2.3` | Exactly 1.2.3 |
-| Caret | `owner/repo@^1.2.3` | >=1.2.3 <2.0.0 |
-| Tilde | `owner/repo@~1.2.3` | >=1.2.3 <1.3.0 |
-| Range | `owner/repo@>=1.0.0` | At least 1.0.0 |
+| （无） | `owner/repo` | 最新版本 |
+| 精确 | `owner/repo@1.2.3` | 正好是 1.2.3 |
+| 插入符 | `owner/repo@^1.2.3` | >=1.2.3 <2.0.0 |
+| 波浪号 | `owner/repo@~1.2.3` | >=1.2.3 <1.3.0 |
+| 范围 | `owner/repo@>=1.0.0` | 至少 1.0.0 |
 
-**Examples:**
+**示例：**
 
 ```bash
-# Install all dependencies
+# 安装所有依赖
 hpm install
 
-# Install specific package
+# 安装特定包
 hpm install hemlang/json
 
-# Install with version constraint
+# 使用版本约束安装
 hpm install hemlang/sprout@^2.0.0
 
-# Install as dev dependency
+# 安装为开发依赖
 hpm install hemlang/test-utils --dev
 
-# Preview what would be installed
+# 预览将要安装的内容
 hpm install hemlang/sprout --dry-run
 
-# Verbose output
+# 详细输出
 hpm install --verbose
 
-# Install from cache only (offline)
+# 仅从缓存安装（离线）
 hpm install --offline
 ```
 
-**Output:**
+**输出：**
 
 ```
 Installing dependencies...
@@ -125,21 +125,21 @@ Installed 2 packages in 1.2s
 
 ### hpm uninstall
 
-Remove a package.
+移除一个包。
 
 ```bash
 hpm uninstall owner/repo
-hpm rm owner/repo          # Short form
-hpm remove owner/repo      # Alternative
+hpm rm owner/repo          # 简写形式
+hpm remove owner/repo      # 替代形式
 ```
 
-**Examples:**
+**示例：**
 
 ```bash
 hpm uninstall hemlang/sprout
 ```
 
-**Output:**
+**输出：**
 
 ```
 Removed hemlang/sprout@2.1.0
@@ -151,35 +151,35 @@ Updated package-lock.json
 
 ### hpm update
 
-Update packages to latest versions within constraints.
+将包更新到约束范围内的最新版本。
 
 ```bash
-hpm update              # Update all packages
-hpm update owner/repo   # Update specific package
-hpm up owner/repo       # Short form
+hpm update              # 更新所有包
+hpm update owner/repo   # 更新特定包
+hpm up owner/repo       # 简写形式
 ```
 
-**Options:**
+**选项：**
 
-| Option | Description |
+| 选项 | 描述 |
 |--------|-------------|
-| `--verbose` | Show detailed progress |
-| `--dry-run` | Preview without updating |
+| `--verbose` | 显示详细进度 |
+| `--dry-run` | 预览而不更新 |
 
-**Examples:**
+**示例：**
 
 ```bash
-# Update all packages
+# 更新所有包
 hpm update
 
-# Update specific package
+# 更新特定包
 hpm update hemlang/sprout
 
-# Preview updates
+# 预览更新
 hpm update --dry-run
 ```
 
-**Output:**
+**输出：**
 
 ```
 Updating dependencies...
@@ -193,22 +193,22 @@ Updated 2 packages
 
 ### hpm list
 
-Show installed packages.
+显示已安装的包。
 
 ```bash
-hpm list              # Show full dependency tree
-hpm list --depth=0    # Direct dependencies only
-hpm list --depth=1    # One level of transitive deps
-hpm ls                # Short form
+hpm list              # 显示完整依赖树
+hpm list --depth=0    # 仅直接依赖
+hpm list --depth=1    # 一级传递依赖
+hpm ls                # 简写形式
 ```
 
-**Options:**
+**选项：**
 
-| Option | Description |
+| 选项 | 描述 |
 |--------|-------------|
-| `--depth=N` | Limit tree depth (default: all) |
+| `--depth=N` | 限制树深度（默认：全部） |
 
-**Examples:**
+**示例：**
 
 ```bash
 $ hpm list
@@ -230,13 +230,13 @@ my-project@1.0.0
 
 ### hpm outdated
 
-Show packages with newer versions available.
+显示有更新版本的包。
 
 ```bash
 hpm outdated
 ```
 
-**Output:**
+**输出：**
 
 ```
 Package            Current  Wanted  Latest
@@ -244,24 +244,24 @@ hemlang/sprout     2.0.0    2.0.5   2.1.0
 hemlang/router     1.4.0    1.4.2   1.5.0
 ```
 
-- **Current**: Installed version
-- **Wanted**: Highest version matching constraint
-- **Latest**: Latest available version
+- **Current**：已安装版本
+- **Wanted**：符合约束的最高版本
+- **Latest**：最新可用版本
 
 ---
 
 ### hpm run
 
-Execute a script from package.json.
+执行 package.json 中的脚本。
 
 ```bash
 hpm run <script>
 hpm run <script> -- <args>
 ```
 
-**Examples:**
+**示例：**
 
-Given this package.json:
+给定以下 package.json：
 
 ```json
 {
@@ -273,14 +273,14 @@ Given this package.json:
 }
 ```
 
-Run scripts:
+运行脚本：
 
 ```bash
 hpm run start
 hpm run test
 hpm run build
 
-# Pass arguments to script
+# 向脚本传递参数
 hpm run test -- --verbose
 ```
 
@@ -288,14 +288,14 @@ hpm run test -- --verbose
 
 ### hpm test
 
-Shorthand for `hpm run test`.
+`hpm run test` 的简写。
 
 ```bash
 hpm test
 hpm test -- --verbose
 ```
 
-Equivalent to:
+等同于：
 
 ```bash
 hpm run test
@@ -305,13 +305,13 @@ hpm run test
 
 ### hpm why
 
-Explain why a package is installed (show dependency chain).
+解释为什么安装了某个包（显示依赖链）。
 
 ```bash
 hpm why owner/repo
 ```
 
-**Example:**
+**示例：**
 
 ```bash
 $ hpm why hemlang/router
@@ -327,21 +327,21 @@ my-project@1.0.0
 
 ### hpm cache
 
-Manage the global package cache.
+管理全局包缓存。
 
 ```bash
-hpm cache list    # List cached packages
-hpm cache clean   # Clear all cached packages
+hpm cache list    # 列出缓存的包
+hpm cache clean   # 清除所有缓存的包
 ```
 
-**Subcommands:**
+**子命令：**
 
-| Subcommand | Description |
+| 子命令 | 描述 |
 |------------|-------------|
-| `list` | Show all cached packages and sizes |
-| `clean` | Remove all cached packages |
+| `list` | 显示所有缓存的包及大小 |
+| `clean` | 移除所有缓存的包 |
 
-**Examples:**
+**示例：**
 
 ```bash
 $ hpm cache list
@@ -361,18 +361,18 @@ Cleared cache (2.95 MB freed)
 
 ---
 
-## Command Shortcuts
+## 命令快捷方式
 
-For convenience, several commands have short aliases:
+为方便起见，多个命令有简短别名：
 
-| Command | Shortcuts |
+| 命令 | 快捷方式 |
 |---------|-----------|
 | `install` | `i` |
 | `uninstall` | `rm`, `remove` |
 | `list` | `ls` |
 | `update` | `up` |
 
-**Examples:**
+**示例：**
 
 ```bash
 hpm i hemlang/sprout        # hpm install hemlang/sprout
@@ -383,23 +383,23 @@ hpm up                      # hpm update
 
 ---
 
-## Exit Codes
+## 退出码
 
-hpm uses specific exit codes to indicate different error conditions:
+hpm 使用特定的退出码来指示不同的错误条件：
 
-| Code | Meaning |
+| 代码 | 含义 |
 |------|---------|
-| 0 | Success |
-| 1 | Dependency conflict |
-| 2 | Package not found |
-| 3 | Version not found |
-| 4 | Network error |
-| 5 | Invalid package.json |
-| 6 | Integrity check failed |
-| 7 | GitHub rate limit exceeded |
-| 8 | Circular dependency |
+| 0 | 成功 |
+| 1 | 依赖冲突 |
+| 2 | 包未找到 |
+| 3 | 版本未找到 |
+| 4 | 网络错误 |
+| 5 | 无效的 package.json |
+| 6 | 完整性检查失败 |
+| 7 | 超出 GitHub 速率限制 |
+| 8 | 循环依赖 |
 
-Use exit codes in scripts:
+在脚本中使用退出码：
 
 ```bash
 hpm install
@@ -411,32 +411,32 @@ fi
 
 ---
 
-## Environment Variables
+## 环境变量
 
-hpm respects these environment variables:
+hpm 支持以下环境变量：
 
-| Variable | Description |
+| 变量 | 描述 |
 |----------|-------------|
-| `GITHUB_TOKEN` | GitHub API token for authentication |
-| `HPM_CACHE_DIR` | Override cache directory location |
-| `HOME` | User home directory (for config/cache) |
+| `GITHUB_TOKEN` | GitHub API token 用于认证 |
+| `HPM_CACHE_DIR` | 覆盖缓存目录位置 |
+| `HOME` | 用户主目录（用于配置/缓存） |
 
-**Examples:**
+**示例：**
 
 ```bash
-# Use GitHub token for higher rate limits
+# 使用 GitHub token 获得更高的速率限制
 export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 hpm install
 
-# Use custom cache directory
+# 使用自定义缓存目录
 export HPM_CACHE_DIR=/tmp/hpm-cache
 hpm install
 ```
 
 ---
 
-## See Also
+## 另请参阅
 
-- [Configuration](configuration.md) - Configuration files
-- [Package Specification](package-spec.md) - package.json format
-- [Troubleshooting](troubleshooting.md) - Common issues
+- [配置](configuration.md) - 配置文件
+- [包规范](package-spec.md) - package.json 格式
+- [故障排除](troubleshooting.md) - 常见问题

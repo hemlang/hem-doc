@@ -1,8 +1,8 @@
-# Pattern Matching
+# 模式匹配
 
-Hemlock provides powerful pattern matching through `match` expressions, offering a concise way to destructure values, check types, and handle multiple cases.
+Hemlock 通过 `match` 表达式提供强大的模式匹配功能，提供了一种简洁的方式来解构值、检查类型和处理多种情况。
 
-## Basic Syntax
+## 基本语法
 
 ```hemlock
 let result = match (value) {
@@ -12,13 +12,13 @@ let result = match (value) {
 };
 ```
 
-Match expressions evaluate `value` against each pattern in order, returning the result of the first matching arm's expression.
+match 表达式按顺序将 `value` 与每个模式进行匹配，返回第一个匹配分支的表达式结果。
 
-## Pattern Types
+## 模式类型
 
-### Literal Patterns
+### 字面量模式
 
-Match against exact values:
+匹配精确值：
 
 ```hemlock
 let x = 42;
@@ -31,16 +31,16 @@ let msg = match (x) {
 print(msg);  // "the answer"
 ```
 
-Supported literals:
-- **Integers**: `0`, `42`, `-5`
-- **Floats**: `3.14`, `-0.5`
-- **Strings**: `"hello"`, `"world"`
-- **Booleans**: `true`, `false`
-- **Null**: `null`
+支持的字面量：
+- **整数**：`0`、`42`、`-5`
+- **浮点数**：`3.14`、`-0.5`
+- **字符串**：`"hello"`、`"world"`
+- **布尔值**：`true`、`false`
+- **空值**：`null`
 
-### Wildcard Pattern (`_`)
+### 通配符模式（`_`）
 
-Matches any value without binding:
+匹配任何值但不绑定：
 
 ```hemlock
 let x = "anything";
@@ -50,22 +50,22 @@ let result = match (x) {
 };
 ```
 
-### Variable Binding Patterns
+### 变量绑定模式
 
-Bind the matched value to a variable:
+将匹配的值绑定到变量：
 
 ```hemlock
 let x = 100;
 let result = match (x) {
     0 => "zero",
-    n => "value is " + n  // n binds to 100
+    n => "value is " + n  // n 绑定到 100
 };
 print(result);  // "value is 100"
 ```
 
-### OR Patterns (`|`)
+### OR 模式（`|`）
 
-Match multiple alternatives:
+匹配多个替代项：
 
 ```hemlock
 let x = 2;
@@ -75,7 +75,7 @@ let size = match (x) {
     _ => "large"
 };
 
-// Works with strings too
+// 也适用于字符串
 let cmd = "quit";
 let action = match (cmd) {
     "exit" | "quit" | "q" => "exiting",
@@ -84,9 +84,9 @@ let action = match (cmd) {
 };
 ```
 
-### Guard Expressions (`if`)
+### 守卫表达式（`if`）
 
-Add conditions to patterns:
+为模式添加条件：
 
 ```hemlock
 let x = 15;
@@ -99,7 +99,7 @@ let category = match (x) {
 };
 print(category);  // "medium"
 
-// Complex guards
+// 复杂守卫
 let y = 12;
 let result = match (y) {
     n if n % 2 == 0 && n > 10 => "even and greater than 10",
@@ -108,9 +108,9 @@ let result = match (y) {
 };
 ```
 
-### Type Patterns
+### 类型模式
 
-Check and bind based on type:
+基于类型检查和绑定：
 
 ```hemlock
 let val = 42;
@@ -123,13 +123,13 @@ let desc = match (val) {
 print(desc);  // "integer: 42"
 ```
 
-Supported types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `bool`, `string`, `array`, `object`
+支持的类型：`i8`、`i16`、`i32`、`i64`、`u8`、`u16`、`u32`、`u64`、`f32`、`f64`、`bool`、`string`、`array`、`object`
 
-## Destructuring Patterns
+## 解构模式
 
-### Object Destructuring
+### 对象解构
 
-Extract fields from objects:
+从对象中提取字段：
 
 ```hemlock
 let point = { x: 10, y: 20 };
@@ -138,7 +138,7 @@ let result = match (point) {
 };
 print(result);  // "point at 10,20"
 
-// With literal field values
+// 带字面量字段值
 let origin = { x: 0, y: 0 };
 let name = match (origin) {
     { x: 0, y: 0 } => "origin",
@@ -149,9 +149,9 @@ let name = match (origin) {
 print(name);  // "origin"
 ```
 
-### Array Destructuring
+### 数组解构
 
-Match array structure and elements:
+匹配数组结构和元素：
 
 ```hemlock
 let arr = [1, 2, 3];
@@ -164,7 +164,7 @@ let desc = match (arr) {
 };
 print(desc);  // "triple: 1,2,3"
 
-// With literal values
+// 带字面量值
 let pair = [1, 2];
 let result = match (pair) {
     [0, 0] => "both zero",
@@ -175,21 +175,21 @@ let result = match (pair) {
 print(result);  // "starts with 1, second is 2"
 ```
 
-### Array Rest Patterns (`...`)
+### 数组剩余模式（`...`）
 
-Capture remaining elements:
+捕获剩余元素：
 
 ```hemlock
 let nums = [1, 2, 3, 4, 5];
 
-// Head and tail
+// 头部和尾部
 let result = match (nums) {
     [first, ...rest] => "first: " + first,
     [] => "empty"
 };
 print(result);  // "first: 1"
 
-// First two elements
+// 前两个元素
 let result2 = match (nums) {
     [a, b, ...rest] => "first two: " + a + "," + b,
     _ => "too short"
@@ -197,9 +197,9 @@ let result2 = match (nums) {
 print(result2);  // "first two: 1,2"
 ```
 
-### Nested Destructuring
+### 嵌套解构
 
-Combine patterns for complex data:
+组合模式处理复杂数据：
 
 ```hemlock
 let user = {
@@ -213,7 +213,7 @@ let result = match (user) {
 };
 print(result);  // "Alice lives in NYC"
 
-// Object containing array
+// 包含数组的对象
 let data = { items: [1, 2, 3], count: 3 };
 let result2 = match (data) {
     { items: [first, ...rest], count } => "first: " + first + ", total: " + count,
@@ -222,12 +222,12 @@ let result2 = match (data) {
 print(result2);  // "first: 1, total: 3"
 ```
 
-## Match as Expression
+## Match 作为表达式
 
-Match is an expression that returns a value:
+Match 是一个返回值的表达式：
 
 ```hemlock
-// Direct assignment
+// 直接赋值
 let grade = 85;
 let letter = match (grade) {
     n if n >= 90 => "A",
@@ -237,13 +237,13 @@ let letter = match (grade) {
     _ => "F"
 };
 
-// In string concatenation
+// 在字符串连接中
 let msg = "Grade: " + match (grade) {
     n if n >= 70 => "passing",
     _ => "failing"
 };
 
-// In function return
+// 在函数返回中
 fn classify(n: i32): string {
     return match (n) {
         0 => "zero",
@@ -253,43 +253,43 @@ fn classify(n: i32): string {
 }
 ```
 
-## Pattern Matching Best Practices
+## 模式匹配最佳实践
 
-1. **Order matters**: Patterns are checked top-to-bottom; put specific patterns before general ones
-2. **Use wildcards for exhaustiveness**: Always include a `_` fallback unless you're certain all cases are covered
-3. **Prefer guards over nested conditions**: Guards make intent clearer
-4. **Use destructuring over manual field access**: More concise and safer
+1. **顺序很重要**：模式从上到下检查；将特定模式放在通用模式之前
+2. **使用通配符确保完整性**：除非确定所有情况都已覆盖，否则始终包含 `_` 回退
+3. **优先使用守卫而非嵌套条件**：守卫使意图更清晰
+4. **使用解构而非手动字段访问**：更简洁且更安全
 
 ```hemlock
-// Good: Guards for range checking
+// 好：使用守卫进行范围检查
 match (score) {
     n if n >= 90 => "A",
     n if n >= 80 => "B",
     _ => "below B"
 }
 
-// Good: Destructure instead of accessing fields
+// 好：解构而非访问字段
 match (point) {
     { x: 0, y: 0 } => "origin",
     { x, y } => "at " + x + "," + y
 }
 
-// Avoid: Overly complex nested patterns
-// Instead, consider breaking into multiple matches or using guards
+// 避免：过于复杂的嵌套模式
+// 考虑拆分为多个 match 或使用守卫
 ```
 
-## Comparison with Other Languages
+## 与其他语言的比较
 
-| Feature | Hemlock | Rust | JavaScript |
+| 特性 | Hemlock | Rust | JavaScript |
 |---------|---------|------|------------|
-| Basic matching | `match (x) { ... }` | `match x { ... }` | `switch (x) { ... }` |
-| Destructuring | Yes | Yes | Partial (switch doesn't destructure) |
-| Guards | `n if n > 0 =>` | `n if n > 0 =>` | N/A |
-| OR patterns | `1 \| 2 \| 3 =>` | `1 \| 2 \| 3 =>` | `case 1: case 2: case 3:` |
-| Rest patterns | `[a, ...rest]` | `[a, rest @ ..]` | N/A |
-| Type patterns | `n: i32` | Type via `match` arm | N/A |
-| Returns value | Yes | Yes | No (statement) |
+| 基本匹配 | `match (x) { ... }` | `match x { ... }` | `switch (x) { ... }` |
+| 解构 | 是 | 是 | 部分（switch 不解构） |
+| 守卫 | `n if n > 0 =>` | `n if n > 0 =>` | 不适用 |
+| OR 模式 | `1 \| 2 \| 3 =>` | `1 \| 2 \| 3 =>` | `case 1: case 2: case 3:` |
+| 剩余模式 | `[a, ...rest]` | `[a, rest @ ..]` | 不适用 |
+| 类型模式 | `n: i32` | 通过 `match` 分支的类型 | 不适用 |
+| 返回值 | 是 | 是 | 否（语句） |
 
-## Implementation Notes
+## 实现说明
 
-Pattern matching is implemented in both the interpreter and compiler backends with full parity - both produce identical results for the same input. The feature is available in Hemlock v1.8.0+.
+模式匹配在解释器和编译器后端都实现了完全一致性 - 两者对相同输入产生相同的结果。该功能在 Hemlock v1.8.0+ 中可用。

@@ -1,205 +1,205 @@
-# Type System
+# 类型系统
 
-Hemlock features a **dynamic type system** with optional type annotations and runtime type checking.
+Hemlock 具有**动态类型系统**，支持可选的类型注解和运行时类型检查。
 
 ---
 
-## Type Selection Guide: What Type Should I Use?
+## 类型选择指南：我应该使用什么类型？
 
-**New to types?** Start here. If you're familiar with type systems, skip to [Philosophy](#philosophy).
+**类型新手？** 从这里开始。如果你熟悉类型系统，可以跳到[设计理念](#设计理念)。
 
-### The Short Answer
+### 简短答案
 
-**Just let Hemlock figure it out:**
+**让 Hemlock 自动判断：**
 
 ```hemlock
-let count = 42;        // Hemlock knows this is an integer
-let price = 19.99;     // Hemlock knows this is a decimal
-let name = "Alice";    // Hemlock knows this is text
-let active = true;     // Hemlock knows this is yes/no
+let count = 42;        // Hemlock 知道这是整数
+let price = 19.99;     // Hemlock 知道这是小数
+let name = "Alice";    // Hemlock 知道这是文本
+let active = true;     // Hemlock 知道这是布尔值
 ```
 
-Hemlock automatically picks the right type for your values. You don't *need* to specify types.
+Hemlock 会自动为你的值选择正确的类型。你*不需要*指定类型。
 
-### When to Add Type Annotations
+### 何时添加类型注解
 
-Add types when you want to:
+在以下情况下添加类型：
 
-1. **Be specific about size** - `i8` vs `i64` matters for memory or FFI
-2. **Document your code** - Types show what a function expects
-3. **Catch mistakes early** - Hemlock checks types at runtime
+1. **需要指定大小** - `i8` 与 `i64` 对于内存或 FFI 很重要
+2. **记录代码** - 类型显示函数期望什么
+3. **尽早发现错误** - Hemlock 在运行时检查类型
 
 ```hemlock
-// Without types (works fine):
+// 无类型（正常工作）：
 fn add(a, b) {
     return a + b;
 }
 
-// With types (more explicit):
+// 有类型（更明确）：
 fn add(a: i32, b: i32): i32 {
     return a + b;
 }
 ```
 
-### Quick Reference: Choosing Number Types
+### 快速参考：选择数字类型
 
-| What you're storing | Suggested type | Example |
-|---------------------|----------------|---------|
-| Regular whole numbers | `i32` (default) | `let count = 42;` |
-| Very large numbers | `i64` | `let population = 8000000000;` |
-| Never-negative counts | `u32` | `let items: u32 = 100;` |
-| Bytes (0-255) | `u8` | `let pixel: u8 = 255;` |
-| Decimals/fractions | `f64` (default) | `let price = 19.99;` |
-| Performance-critical decimals | `f32` | `let x: f32 = 1.5;` |
+| 存储内容 | 建议类型 | 示例 |
+|---------|---------|------|
+| 普通整数 | `i32`（默认） | `let count = 42;` |
+| 非常大的数字 | `i64` | `let population = 8000000000;` |
+| 永不为负的计数 | `u32` | `let items: u32 = 100;` |
+| 字节 (0-255) | `u8` | `let pixel: u8 = 255;` |
+| 小数/分数 | `f64`（默认） | `let price = 19.99;` |
+| 性能关键的小数 | `f32` | `let x: f32 = 1.5;` |
 
-### Quick Reference: All Types
+### 快速参考：所有类型
 
-| Category | Types | When to use |
-|----------|-------|-------------|
-| **Whole numbers** | `i8`, `i16`, `i32`, `i64` | Counting, IDs, ages, etc. |
-| **Positive-only numbers** | `u8`, `u16`, `u32`, `u64` | Bytes, sizes, array lengths |
-| **Decimals** | `f32`, `f64` | Money, measurements, math |
-| **Yes/No** | `bool` | Flags, conditions |
-| **Text** | `string` | Names, messages, any text |
-| **Single character** | `rune` | Individual letters, emoji |
-| **Lists** | `array` | Collections of values |
-| **Named fields** | `object` | Grouping related data |
-| **Raw memory** | `ptr`, `buffer` | Low-level programming |
-| **Nothing** | `null` | Absence of a value |
+| 类别 | 类型 | 何时使用 |
+|-----|------|---------|
+| **整数** | `i8`, `i16`, `i32`, `i64` | 计数、ID、年龄等 |
+| **仅正数** | `u8`, `u16`, `u32`, `u64` | 字节、大小、数组长度 |
+| **小数** | `f32`, `f64` | 金额、测量值、数学计算 |
+| **是/否** | `bool` | 标志、条件 |
+| **文本** | `string` | 名称、消息、任何文本 |
+| **单个字符** | `rune` | 单个字母、表情符号 |
+| **列表** | `array` | 值的集合 |
+| **命名字段** | `object` | 分组相关数据 |
+| **原始内存** | `ptr`, `buffer` | 低级编程 |
+| **空值** | `null` | 表示没有值 |
 
-### Common Scenarios
+### 常见场景
 
-**"I just need a number"**
+**"我只需要一个数字"**
 ```hemlock
-let x = 42;  // Done! Hemlock picks i32
+let x = 42;  // 完成！Hemlock 选择 i32
 ```
 
-**"I need decimals"**
+**"我需要小数"**
 ```hemlock
-let price = 19.99;  // Done! Hemlock picks f64
+let price = 19.99;  // 完成！Hemlock 选择 f64
 ```
 
-**"I'm working with bytes (files, network)"**
+**"我在处理字节（文件、网络）"**
 ```hemlock
-let byte: u8 = 255;  // 0-255 range
+let byte: u8 = 255;  // 0-255 范围
 ```
 
-**"I need really big numbers"**
+**"我需要非常大的数字"**
 ```hemlock
-let big = 9000000000000;  // Hemlock auto-picks i64 (> i32 max)
-// Or be explicit:
+let big = 9000000000000;  // Hemlock 自动选择 i64（> i32 最大值）
+// 或者明确指定：
 let big: i64 = 9000000000000;
 ```
 
-**"I'm storing money"**
+**"我在存储金额"**
 ```hemlock
-// Option 1: Float (simple, but has precision limits)
+// 选项 1：浮点数（简单，但有精度限制）
 let price: f64 = 19.99;
 
-// Option 2: Store as cents (more precise)
-let price_cents: i32 = 1999;  // $19.99 as integer cents
+// 选项 2：以分为单位存储（更精确）
+let price_cents: i32 = 1999;  // $19.99 作为整数分
 ```
 
-**"I'm passing data to C code (FFI)"**
+**"我在向 C 代码传递数据 (FFI)"**
 ```hemlock
-// Match C types exactly
+// 精确匹配 C 类型
 let c_int: i32 = 100;      // C 'int'
-let c_long: i64 = 100;     // C 'long' (on 64-bit)
+let c_long: i64 = 100;     // C 'long'（64 位系统）
 let c_char: u8 = 65;       // C 'char'
 let c_double: f64 = 3.14;  // C 'double'
 ```
 
-### What Happens When Types Mix?
+### 类型混合时会发生什么？
 
-When you combine different types, Hemlock promotes to the "bigger" type:
+当你组合不同类型时，Hemlock 会提升为"更大"的类型：
 
 ```hemlock
 let a: i32 = 10;
 let b: f64 = 2.5;
-let result = a + b;  // result is f64 (12.5)
-// The integer became a decimal automatically
+let result = a + b;  // result 是 f64 (12.5)
+// 整数自动变成了小数
 ```
 
-**Rule of thumb:** Floats always "win" - mixing any integer with a float gives you a float.
+**经验法则：** 浮点数总是"赢" - 任何整数与浮点数混合都会得到浮点数。
 
-### Type Errors
+### 类型错误
 
-If you try to use the wrong type, Hemlock tells you at runtime:
+如果你尝试使用错误的类型，Hemlock 会在运行时告诉你：
 
 ```hemlock
-let age: i32 = "thirty";  // ERROR: type mismatch - expected i32, got string
+let age: i32 = "thirty";  // 错误：类型不匹配 - 期望 i32，得到 string
 ```
 
-To convert types, use type constructor functions:
+要转换类型，使用类型构造函数：
 
 ```hemlock
 let text = "42";
-let number = i32(text);   // Parse string to integer: 42
-let back = text + "";     // Already a string
+let number = i32(text);   // 解析字符串为整数：42
+let back = text + "";     // 已经是字符串
 ```
 
 ---
 
-## Philosophy
+## 设计理念
 
-- **Dynamic by default** - Every value has a runtime type tag
-- **Typed by choice** - Optional type annotations enforce runtime checks
-- **Explicit conversions** - Implicit conversions follow clear promotion rules
-- **Honest about types** - `typeof()` always tells the truth
+- **默认动态** - 每个值都有运行时类型标签
+- **可选类型** - 可选的类型注解强制运行时检查
+- **显式转换** - 隐式转换遵循明确的提升规则
+- **类型诚实** - `typeof()` 始终说实话
 
-## Primitive Types
+## 原始类型
 
-### Integer Types
+### 整数类型
 
-**Signed integers:**
+**有符号整数：**
 ```hemlock
-let tiny: i8 = 127;              // 8-bit  (-128 to 127)
-let small: i16 = 32767;          // 16-bit (-32768 to 32767)
-let normal: i32 = 2147483647;    // 32-bit (default)
-let large: i64 = 9223372036854775807;  // 64-bit
+let tiny: i8 = 127;              // 8 位（-128 到 127）
+let small: i16 = 32767;          // 16 位（-32768 到 32767）
+let normal: i32 = 2147483647;    // 32 位（默认）
+let large: i64 = 9223372036854775807;  // 64 位
 ```
 
-**Unsigned integers:**
+**无符号整数：**
 ```hemlock
-let byte: u8 = 255;              // 8-bit  (0 to 255)
-let word: u16 = 65535;           // 16-bit (0 to 65535)
-let dword: u32 = 4294967295;     // 32-bit (0 to 4294967295)
-let qword: u64 = 18446744073709551615;  // 64-bit
+let byte: u8 = 255;              // 8 位（0 到 255）
+let word: u16 = 65535;           // 16 位（0 到 65535）
+let dword: u32 = 4294967295;     // 32 位（0 到 4294967295）
+let qword: u64 = 18446744073709551615;  // 64 位
 ```
 
-**Type aliases:**
+**类型别名：**
 ```hemlock
-let i: integer = 42;   // Alias for i32
-let b: byte = 255;     // Alias for u8
+let i: integer = 42;   // i32 的别名
+let b: byte = 255;     // u8 的别名
 ```
 
-### Floating-Point Types
+### 浮点类型
 
 ```hemlock
-let f: f32 = 3.14159;        // 32-bit float
-let d: f64 = 2.718281828;    // 64-bit float (default)
-let n: number = 1.618;       // Alias for f64
+let f: f32 = 3.14159;        // 32 位浮点数
+let d: f64 = 2.718281828;    // 64 位浮点数（默认）
+let n: number = 1.618;       // f64 的别名
 ```
 
-### Boolean Type
+### 布尔类型
 
 ```hemlock
 let flag: bool = true;
 let active: bool = false;
 ```
 
-### String Type
+### 字符串类型
 
 ```hemlock
 let text: string = "Hello, World!";
 let empty: string = "";
 ```
 
-Strings are **mutable**, **UTF-8 encoded**, and **heap-allocated**.
+字符串是**可变的**、**UTF-8 编码的**、**堆分配的**。
 
-See [Strings](strings.md) for full details.
+详见 [Strings](strings.md)。
 
-### Rune Type
+### Rune 类型
 
 ```hemlock
 let ch: rune = 'A';
@@ -208,63 +208,63 @@ let newline: rune = '\n';
 let unicode: rune = '\u{1F680}';
 ```
 
-Runes represent **Unicode codepoints** (U+0000 to U+10FFFF).
+Rune 表示 **Unicode 码点**（U+0000 到 U+10FFFF）。
 
-See [Runes](runes.md) for full details.
+详见 [Runes](runes.md)。
 
-### Null Type
+### Null 类型
 
 ```hemlock
 let nothing = null;
 let uninitialized: string = null;
 ```
 
-`null` is its own type with a single value.
+`null` 是具有单一值的独立类型。
 
-## Composite Types
+## 复合类型
 
-### Array Type
+### 数组类型
 
 ```hemlock
 let numbers: array = [1, 2, 3, 4, 5];
-let mixed = [1, "two", true, null];  // Mixed types allowed
+let mixed = [1, "two", true, null];  // 允许混合类型
 let empty: array = [];
 ```
 
-See [Arrays](arrays.md) for full details.
+详见 [Arrays](arrays.md)。
 
-### Object Type
+### 对象类型
 
 ```hemlock
 let obj: object = { x: 10, y: 20 };
 let person = { name: "Alice", age: 30 };
 ```
 
-See [Objects](objects.md) for full details.
+详见 [Objects](objects.md)。
 
-### Pointer Types
+### 指针类型
 
-**Raw pointer:**
+**原始指针：**
 ```hemlock
 let p: ptr = alloc(64);
-// No bounds checking, manual lifetime management
+// 无边界检查，手动生命周期管理
 free(p);
 ```
 
-**Safe buffer:**
+**安全缓冲区：**
 ```hemlock
 let buf: buffer = buffer(64);
-// Bounds-checked, tracks length and capacity
+// 有边界检查，跟踪长度和容量
 free(buf);
 ```
 
-See [Memory Management](memory.md) for full details.
+详见 [Memory Management](memory.md)。
 
-## Enum Types
+## 枚举类型
 
-Enums define a set of named constants:
+枚举定义一组命名常量：
 
-### Basic Enums
+### 基本枚举
 
 ```hemlock
 enum Color {
@@ -277,12 +277,12 @@ let c = Color.RED;
 print(c);              // 0
 print(typeof(c));      // "Color"
 
-// Comparison
+// 比较
 if (c == Color.RED) {
     print("It's red!");
 }
 
-// Switch on enum
+// 在枚举上使用 switch
 switch (c) {
     case Color.RED:
         print("Stop");
@@ -296,9 +296,9 @@ switch (c) {
 }
 ```
 
-### Enums with Values
+### 带值的枚举
 
-Enums can have explicit integer values:
+枚举可以有显式的整数值：
 
 ```hemlock
 enum Status {
@@ -320,9 +320,9 @@ let code = HttpCode.NOT_FOUND;
 print(code);           // 404
 ```
 
-### Auto-incrementing Values
+### 自动递增值
 
-Without explicit values, enums auto-increment from 0:
+没有显式值时，枚举从 0 自动递增：
 
 ```hemlock
 enum Priority {
@@ -332,7 +332,7 @@ enum Priority {
     CRITICAL   // 3
 }
 
-// Can mix explicit and auto values
+// 可以混合显式和自动值
 enum Level {
     DEBUG = 10,
     INFO,      // 11
@@ -342,10 +342,10 @@ enum Level {
 }
 ```
 
-### Enum Usage Patterns
+### 枚举使用模式
 
 ```hemlock
-// As function parameters
+// 作为函数参数
 fn set_priority(p: Priority) {
     if (p == Priority.CRITICAL) {
         print("Urgent!");
@@ -354,7 +354,7 @@ fn set_priority(p: Priority) {
 
 set_priority(Priority.HIGH);
 
-// In objects
+// 在对象中
 define Task {
     name: string,
     priority: Priority
@@ -366,18 +366,18 @@ let task: Task = {
 };
 ```
 
-## Special Types
+## 特殊类型
 
-### File Type
+### 文件类型
 
 ```hemlock
 let f: file = open("data.txt", "r");
 f.close();
 ```
 
-Represents an open file handle.
+表示打开的文件句柄。
 
-### Task Type
+### 任务类型
 
 ```hemlock
 async fn compute(): i32 { return 42; }
@@ -385,9 +385,9 @@ let task = spawn(compute);
 let result: i32 = join(task);
 ```
 
-Represents an async task handle.
+表示异步任务句柄。
 
-### Channel Type
+### 通道类型
 
 ```hemlock
 let ch: channel = channel(10);
@@ -395,57 +395,57 @@ ch.send(42);
 let value = ch.recv();
 ```
 
-Represents a communication channel between tasks.
+表示任务之间的通信通道。
 
-### Void Type
+### Void 类型
 
 ```hemlock
 extern fn exit(code: i32): void;
 ```
 
-Used for functions that don't return a value (FFI only).
+用于不返回值的函数（仅限 FFI）。
 
-## Type Inference
+## 类型推断
 
-### Integer Literal Inference
+### 整数字面量推断
 
-Hemlock infers integer types based on value range:
+Hemlock 根据值范围推断整数类型：
 
 ```hemlock
-let a = 42;              // i32 (fits in 32-bit)
-let b = 5000000000;      // i64 (> i32 max)
+let a = 42;              // i32（适合 32 位）
+let b = 5000000000;      // i64（> i32 最大值）
 let c = 128;             // i32
-let d: u8 = 128;         // u8 (explicit annotation)
+let d: u8 = 128;         // u8（显式注解）
 ```
 
-**Rules:**
-- Values in i32 range (-2147483648 to 2147483647): infer as `i32`
-- Values outside i32 range but within i64: infer as `i64`
-- Use explicit annotations for other types (i8, i16, u8, u16, u32, u64)
+**规则：**
+- i32 范围内的值（-2147483648 到 2147483647）：推断为 `i32`
+- 超出 i32 范围但在 i64 范围内的值：推断为 `i64`
+- 其他类型（i8、i16、u8、u16、u32、u64）使用显式注解
 
-### Float Literal Inference
+### 浮点字面量推断
 
 ```hemlock
-let x = 3.14;        // f64 (default)
-let y: f32 = 3.14;   // f32 (explicit)
+let x = 3.14;        // f64（默认）
+let y: f32 = 3.14;   // f32（显式）
 ```
 
-### Scientific Notation
+### 科学计数法
 
-Hemlock supports scientific notation for numeric literals:
+Hemlock 支持数字字面量的科学计数法：
 
 ```hemlock
 let a = 1e10;        // 10000000000.0 (f64)
 let b = 1e-12;       // 0.000000000001 (f64)
 let c = 3.14e2;      // 314.0 (f64)
 let d = 2.5e-3;      // 0.0025 (f64)
-let e = 1E10;        // Case insensitive
-let f = 1e+5;        // Explicit positive exponent
+let e = 1E10;        // 大小写不敏感
+let f = 1e+5;        // 显式正指数
 ```
 
-**Note:** Any literal using scientific notation is always inferred as `f64`.
+**注意：** 使用科学计数法的任何字面量始终推断为 `f64`。
 
-### Other Type Inference
+### 其他类型推断
 
 ```hemlock
 let s = "hello";     // string
@@ -456,9 +456,9 @@ let obj = { x: 10 }; // object
 let nothing = null;  // null
 ```
 
-## Type Annotations
+## 类型注解
 
-### Variable Annotations
+### 变量注解
 
 ```hemlock
 let age: i32 = 30;
@@ -466,7 +466,7 @@ let ratio: f64 = 1.618;
 let name: string = "Alice";
 ```
 
-### Function Parameter Annotations
+### 函数参数注解
 
 ```hemlock
 fn greet(name: string, age: i32) {
@@ -474,7 +474,7 @@ fn greet(name: string, age: i32) {
 }
 ```
 
-### Function Return Type Annotations
+### 函数返回类型注解
 
 ```hemlock
 fn add(a: i32, b: i32): i32 {
@@ -482,7 +482,7 @@ fn add(a: i32, b: i32): i32 {
 }
 ```
 
-### Object Type Annotations (Duck Typing)
+### 对象类型注解（鸭子类型）
 
 ```hemlock
 define Person {
@@ -493,27 +493,27 @@ define Person {
 let p: Person = { name: "Bob", age: 25 };
 ```
 
-## Type Checking
+## 类型检查
 
-### Runtime Type Checking
+### 运行时类型检查
 
-Type annotations are checked at **runtime**, not compile-time:
+类型注解在**运行时**检查，而不是编译时：
 
 ```hemlock
 let x: i32 = 42;     // OK
-let y: i32 = 3.14;   // Runtime error: type mismatch
+let y: i32 = 3.14;   // 运行时错误：类型不匹配
 
 fn add(a: i32, b: i32): i32 {
     return a + b;
 }
 
 add(5, 3);           // OK
-add(5, "hello");     // Runtime error: type mismatch
+add(5, "hello");     // 运行时错误：类型不匹配
 ```
 
-### Type Queries
+### 类型查询
 
-Use `typeof()` to check value types:
+使用 `typeof()` 检查值类型：
 
 ```hemlock
 print(typeof(42));         // "i32"
@@ -525,64 +525,63 @@ print(typeof([1, 2, 3]));  // "array"
 print(typeof({ x: 10 }));  // "object"
 ```
 
-## Type Conversions
+## 类型转换
 
-### Implicit Type Promotion
+### 隐式类型提升
 
-When mixing types in operations, Hemlock promotes to the "higher" type:
+当操作中混合类型时，Hemlock 提升为"更高"的类型：
 
-**Promotion Hierarchy (lowest to highest):**
+**提升层次（从低到高）：**
 ```
 i8 → i16 → i32 → u32 → i64 → u64 → f32 → f64
       ↑     ↑     ↑
      u8    u16
 ```
 
-**Float always wins:**
+**浮点数总是赢：**
 ```hemlock
 let x: i32 = 10;
 let y: f64 = 3.5;
-let result = x + y;  // result is f64 (13.5)
+let result = x + y;  // result 是 f64 (13.5)
 ```
 
-**Larger size wins:**
+**更大的尺寸赢：**
 ```hemlock
 let a: i32 = 100;
 let b: i64 = 200;
-let sum = a + b;     // sum is i64 (300)
+let sum = a + b;     // sum 是 i64 (300)
 ```
 
-**Precision preservation:** When mixing 64-bit integers with f32, Hemlock promotes
-to f64 to avoid precision loss (f32 has only 24-bit mantissa, insufficient for i64/u64):
+**精度保持：** 当 64 位整数与 f32 混合时，Hemlock 提升为 f64 以避免精度损失（f32 只有 24 位尾数，不足以表示 i64/u64）：
 ```hemlock
 let big: i64 = 9007199254740993;
 let small: f32 = 1.0;
-let result = big + small;  // result is f64, not f32!
+let result = big + small;  // result 是 f64，不是 f32！
 ```
 
-**Examples:**
+**示例：**
 ```hemlock
 u8 + i32  → i32
 i32 + i64 → i64
 u32 + u64 → u64
-i32 + f32 → f32    // f32 sufficient for i32
-i64 + f32 → f64    // f64 needed to preserve i64 precision
+i32 + f32 → f32    // f32 足以表示 i32
+i64 + f32 → f64    // 需要 f64 来保持 i64 精度
 i64 + f64 → f64
 i8 + f64  → f64
 ```
 
-### Explicit Type Conversion
+### 显式类型转换
 
-**Integer ↔ Float:**
+**整数与浮点数转换：**
 ```hemlock
 let i: i32 = 42;
 let f: f64 = i;      // i32 → f64 (42.0)
 
 let x: f64 = 3.14;
-let n: i32 = x;      // f64 → i32 (3, truncated)
+let n: i32 = x;      // f64 → i32 (3，截断)
 ```
 
-**Integer ↔ Rune:**
+**整数与 Rune 转换：**
 ```hemlock
 let code: i32 = 65;
 let ch: rune = code;  // i32 → rune ('A')
@@ -591,104 +590,104 @@ let r: rune = 'Z';
 let value: i32 = r;   // rune → i32 (90)
 ```
 
-**Rune → String:**
+**Rune 转字符串：**
 ```hemlock
 let ch: rune = '🚀';
 let s: string = ch;   // rune → string ("🚀")
 ```
 
-**u8 → Rune:**
+**u8 转 Rune：**
 ```hemlock
 let b: u8 = 65;
 let r: rune = b;      // u8 → rune ('A')
 ```
 
-### Type Constructor Functions
+### 类型构造函数
 
-Type names can be used as functions to convert or parse values:
+类型名称可以用作函数来转换或解析值：
 
-**Parsing strings to numbers:**
+**解析字符串为数字：**
 ```hemlock
-let n = i32("42");       // Parse string to i32: 42
-let f = f64("3.14159");  // Parse string to f64: 3.14159
-let b = bool("true");    // Parse string to bool: true
+let n = i32("42");       // 解析字符串为 i32：42
+let f = f64("3.14159");  // 解析字符串为 f64：3.14159
+let b = bool("true");    // 解析字符串为 bool：true
 
-// All numeric types supported
-let a = i8("-128");      // Parse to i8
-let c = u8("255");       // Parse to u8
-let d = i16("1000");     // Parse to i16
-let e = u16("50000");    // Parse to u16
-let g = i64("9000000000000"); // Parse to i64
-let h = u64("18000000000000"); // Parse to u64
-let j = f32("1.5");      // Parse to f32
+// 支持所有数字类型
+let a = i8("-128");      // 解析为 i8
+let c = u8("255");       // 解析为 u8
+let d = i16("1000");     // 解析为 i16
+let e = u16("50000");    // 解析为 u16
+let g = i64("9000000000000"); // 解析为 i64
+let h = u64("18000000000000"); // 解析为 u64
+let j = f32("1.5");      // 解析为 f32
 ```
 
-**Hex and negative numbers:**
+**十六进制和负数：**
 ```hemlock
 let hex = i32("0xFF");   // 255
 let neg = i32("-42");    // -42
-let bin = i32("0b1010"); // 10 (binary)
+let bin = i32("0b1010"); // 10（二进制）
 ```
 
-**Type aliases work too:**
+**类型别名也可以：**
 ```hemlock
-let x = integer("100");  // Same as i32("100")
-let y = number("1.5");   // Same as f64("1.5")
-let z = byte("200");     // Same as u8("200")
+let x = integer("100");  // 等同于 i32("100")
+let y = number("1.5");   // 等同于 f64("1.5")
+let z = byte("200");     // 等同于 u8("200")
 ```
 
-**Converting between numeric types:**
+**数字类型之间转换：**
 ```hemlock
-let big = i64(42);           // i32 to i64
-let truncated = i32(3.99);   // f64 to i32 (truncates to 3)
-let promoted = f64(100);     // i32 to f64 (100.0)
-let narrowed = i8(127);      // i32 to i8
+let big = i64(42);           // i32 转 i64
+let truncated = i32(3.99);   // f64 转 i32（截断为 3）
+let promoted = f64(100);     // i32 转 f64 (100.0)
+let narrowed = i8(127);      // i32 转 i8
 ```
 
-**Type annotations perform numeric coercion (but NOT string parsing):**
+**类型注解执行数字强制转换（但不解析字符串）：**
 ```hemlock
-let f: f64 = 100;        // i32 to f64 via annotation (OK)
-let s: string = 'A';     // Rune to string via annotation (OK)
-let code: i32 = 'A';     // Rune to i32 via annotation (gets codepoint, OK)
+let f: f64 = 100;        // 通过注解 i32 转 f64（OK）
+let s: string = 'A';     // 通过注解 Rune 转 string（OK）
+let code: i32 = 'A';     // 通过注解 Rune 转 i32（获取码点，OK）
 
-// String parsing requires explicit type constructors:
-let n = i32("42");       // Use type constructor for string parsing
-// let x: i32 = "42";    // ERROR - type annotations don't parse strings
+// 字符串解析需要显式类型构造函数：
+let n = i32("42");       // 使用类型构造函数解析字符串
+// let x: i32 = "42";    // 错误 - 类型注解不解析字符串
 ```
 
-**Error handling:**
+**错误处理：**
 ```hemlock
-// Invalid strings throw errors when using type constructors
-let bad = i32("hello");  // Runtime error: cannot parse "hello" as i32
-let overflow = u8("256"); // Runtime error: 256 out of range for u8
+// 使用类型构造函数时，无效字符串会抛出错误
+let bad = i32("hello");  // 运行时错误：无法将 "hello" 解析为 i32
+let overflow = u8("256"); // 运行时错误：256 超出 u8 范围
 ```
 
-**Boolean parsing:**
+**布尔解析：**
 ```hemlock
 let t = bool("true");    // true
 let f = bool("false");   // false
-let bad = bool("yes");   // Runtime error: must be "true" or "false"
+let bad = bool("yes");   // 运行时错误：必须是 "true" 或 "false"
 ```
 
-## Range Checking
+## 范围检查
 
-Type annotations enforce range checks at assignment:
+类型注解在赋值时强制范围检查：
 
 ```hemlock
 let x: u8 = 255;    // OK
-let y: u8 = 256;    // ERROR: out of range for u8
+let y: u8 = 256;    // 错误：超出 u8 范围
 
 let a: i8 = 127;    // OK
-let b: i8 = 128;    // ERROR: out of range for i8
+let b: i8 = 128;    // 错误：超出 i8 范围
 
 let c: i64 = 2147483647;   // OK
 let d: u64 = 4294967295;   // OK
-let e: u64 = -1;           // ERROR: u64 cannot be negative
+let e: u64 = -1;           // 错误：u64 不能为负
 ```
 
-## Type Promotion Examples
+## 类型提升示例
 
-### Mixed Integer Types
+### 混合整数类型
 
 ```hemlock
 let a: i8 = 10;
@@ -700,7 +699,7 @@ let d: u32 = 200;
 let total = c + d;   // u32 (300)
 ```
 
-### Integer + Float
+### 整数 + 浮点数
 
 ```hemlock
 let i: i32 = 5;
@@ -708,7 +707,7 @@ let f: f32 = 2.5;
 let result = i * f;  // f32 (12.5)
 ```
 
-### Complex Expressions
+### 复杂表达式
 
 ```hemlock
 let a: i8 = 10;
@@ -716,13 +715,13 @@ let b: i32 = 20;
 let c: f64 = 3.0;
 
 let result = a + b * c;  // f64 (70.0)
-// Evaluation: b * c → f64(60.0)
-//             a + f64(60.0) → f64(70.0)
+// 计算过程：b * c → f64(60.0)
+//           a + f64(60.0) → f64(70.0)
 ```
 
-## Duck Typing (Objects)
+## 鸭子类型（对象）
 
-Objects use **structural typing** (duck typing):
+对象使用**结构类型**（鸭子类型）：
 
 ```hemlock
 define Person {
@@ -730,76 +729,76 @@ define Person {
     age: i32,
 }
 
-// OK: Has all required fields
+// OK：有所有必需字段
 let p1: Person = { name: "Alice", age: 30 };
 
-// OK: Extra fields allowed
+// OK：允许额外字段
 let p2: Person = { name: "Bob", age: 25, city: "NYC" };
 
-// ERROR: Missing 'age' field
+// 错误：缺少 'age' 字段
 let p3: Person = { name: "Carol" };
 
-// ERROR: Wrong type for 'age'
+// 错误：'age' 类型错误
 let p4: Person = { name: "Dave", age: "thirty" };
 ```
 
-**Type checking happens at assignment:**
-- Validates all required fields present
-- Validates field types match
-- Extra fields are allowed and preserved
-- Sets object's type name for `typeof()`
+**类型检查在赋值时进行：**
+- 验证所有必需字段存在
+- 验证字段类型匹配
+- 允许并保留额外字段
+- 为 `typeof()` 设置对象的类型名称
 
-## Optional Fields
+## 可选字段
 
 ```hemlock
 define Config {
     host: string,
     port: i32,
-    debug?: false,     // Optional with default
-    timeout?: i32,     // Optional, defaults to null
+    debug?: false,     // 带默认值的可选字段
+    timeout?: i32,     // 可选，默认为 null
 }
 
 let cfg1: Config = { host: "localhost", port: 8080 };
-print(cfg1.debug);    // false (default)
+print(cfg1.debug);    // false（默认）
 print(cfg1.timeout);  // null
 
 let cfg2: Config = { host: "0.0.0.0", port: 80, debug: true };
-print(cfg2.debug);    // true (overridden)
+print(cfg2.debug);    // true（已覆盖）
 ```
 
-## Type Aliases
+## 类型别名
 
-Hemlock supports custom type aliases using the `type` keyword:
+Hemlock 使用 `type` 关键字支持自定义类型别名：
 
-### Basic Type Aliases
+### 基本类型别名
 
 ```hemlock
-// Simple type alias
+// 简单类型别名
 type Integer = i32;
 type Text = string;
 
-// Using the alias
+// 使用别名
 let x: Integer = 42;
 let msg: Text = "hello";
 ```
 
-### Function Type Aliases
+### 函数类型别名
 
 ```hemlock
-// Function type alias
+// 函数类型别名
 type Callback = fn(i32): void;
 type Predicate = fn(i32): bool;
 type AsyncHandler = async fn(string): i32;
 
-// Using function type aliases
+// 使用函数类型别名
 let cb: Callback = fn(n) { print(n); };
 let isEven: Predicate = fn(n) { return n % 2 == 0; };
 ```
 
-### Compound Type Aliases
+### 复合类型别名
 
 ```hemlock
-// Combine multiple defines into one type
+// 将多个 define 组合成一个类型
 define HasName { name: string }
 define HasAge { age: i32 }
 
@@ -808,67 +807,67 @@ type Person = HasName & HasAge;
 let p: Person = { name: "Alice", age: 30 };
 ```
 
-### Generic Type Aliases
+### 泛型类型别名
 
 ```hemlock
-// Generic type alias
+// 泛型类型别名
 type Pair<T> = { first: T, second: T };
 type Result<T, E> = { value: T?, error: E? };
 
-// Using generic aliases
+// 使用泛型别名
 let coords: Pair<f64> = { first: 3.14, second: 2.71 };
 ```
 
-**Note:** Type aliases are transparent - `typeof()` returns the underlying type name, not the alias.
+**注意：** 类型别名是透明的 - `typeof()` 返回底层类型名称，而不是别名。
 
-## Type System Limitations
+## 类型系统限制
 
-Current limitations:
+当前限制：
 
-- **No generics on functions** - Function type parameters not yet supported
-- **No union types** - Cannot express "A or B"
-- **No nullable types** - All types can be null (use `?` suffix for explicit nullability)
+- **函数无泛型** - 尚不支持函数类型参数
+- **无联合类型** - 无法表达 "A 或 B"
+- **无可空类型** - 所有类型都可以为 null（使用 `?` 后缀表示显式可空）
 
-**Note:** The compiler (`hemlockc`) provides compile-time type checking. The interpreter performs runtime type checking only. See the [compiler documentation](../design/implementation.md) for details.
+**注意：** 编译器（`hemlockc`）提供编译时类型检查。解释器仅执行运行时类型检查。详见[编译器文档](../design/implementation.md)。
 
-## Best Practices
+## 最佳实践
 
-### When to Use Type Annotations
+### 何时使用类型注解
 
-**DO use annotations when:**
-- Precise type matters (e.g., `u8` for byte values)
-- Documenting function interfaces
-- Enforcing constraints (e.g., range checks)
+**应该使用注解的情况：**
+- 精确类型很重要（例如，字节值使用 `u8`）
+- 记录函数接口
+- 强制约束（例如，范围检查）
 
 ```hemlock
 fn hash(data: buffer, length: u32): u64 {
-    // Implementation
+    // 实现
 }
 ```
 
-**DON'T use annotations when:**
-- Type is obvious from literal
-- Internal implementation details
-- Unnecessary ceremony
+**不需要使用注解的情况：**
+- 类型从字面量明显可知
+- 内部实现细节
+- 不必要的形式化
 
 ```hemlock
-// Unnecessary
+// 不必要
 let x: i32 = 42;
 
-// Better
+// 更好
 let x = 42;
 ```
 
-### Type Safety Patterns
+### 类型安全模式
 
-**Check before use:**
+**使用前检查：**
 ```hemlock
 if (typeof(value) == "i32") {
-    // Safe to use as i32
+    // 可以安全地作为 i32 使用
 }
 ```
 
-**Validate function arguments:**
+**验证函数参数：**
 ```hemlock
 fn divide(a, b) {
     if (typeof(a) != "i32" || typeof(b) != "i32") {
@@ -881,7 +880,7 @@ fn divide(a, b) {
 }
 ```
 
-**Use duck typing for flexibility:**
+**使用鸭子类型获得灵活性：**
 ```hemlock
 define Printable {
     toString: fn,
@@ -892,10 +891,10 @@ fn print_item(item: Printable) {
 }
 ```
 
-## Next Steps
+## 下一步
 
-- [Strings](strings.md) - UTF-8 string type and operations
-- [Runes](runes.md) - Unicode codepoint type
-- [Arrays](arrays.md) - Dynamic array type
-- [Objects](objects.md) - Object literals and duck typing
-- [Memory](memory.md) - Pointer and buffer types
+- [Strings](strings.md) - UTF-8 字符串类型和操作
+- [Runes](runes.md) - Unicode 码点类型
+- [Arrays](arrays.md) - 动态数组类型
+- [Objects](objects.md) - 对象字面量和鸭子类型
+- [Memory](memory.md) - 指针和缓冲区类型

@@ -1,26 +1,26 @@
-# Control Flow
+# 控制流
 
-Hemlock provides familiar C-style control flow with mandatory braces and explicit syntax. This guide covers conditionals, loops, switch statements, and operators.
+Hemlock 提供熟悉的 C 风格控制流，要求强制使用花括号和显式语法。本指南涵盖条件语句、循环、switch 语句和运算符。
 
-## Overview
+## 概述
 
-Available control flow features:
+可用的控制流特性：
 
-- `if`/`else`/`else if` - Conditional branches
-- `while` loops - Condition-based iteration
-- `for` loops - C-style and for-in iteration
-- `loop` - Infinite loops (cleaner than `while (true)`)
-- `switch` statements - Multi-way branching
-- `break`/`continue` - Loop control
-- Loop labels - Targeted break/continue for nested loops
-- `defer` - Deferred execution (cleanup)
-- Boolean operators: `&&`, `||`, `!`
-- Comparison operators: `==`, `!=`, `<`, `>`, `<=`, `>=`
-- Bitwise operators: `&`, `|`, `^`, `<<`, `>>`, `~`
+- `if`/`else`/`else if` - 条件分支
+- `while` 循环 - 基于条件的迭代
+- `for` 循环 - C 风格和 for-in 迭代
+- `loop` - 无限循环（比 `while (true)` 更清晰）
+- `switch` 语句 - 多路分支
+- `break`/`continue` - 循环控制
+- 循环标签 - 针对嵌套循环的定向 break/continue
+- `defer` - 延迟执行（清理）
+- 布尔运算符：`&&`、`||`、`!`
+- 比较运算符：`==`、`!=`、`<`、`>`、`<=`、`>=`
+- 位运算符：`&`、`|`、`^`、`<<`、`>>`、`~`
 
-## If Statements
+## If 语句
 
-### Basic If/Else
+### 基本 If/Else
 
 ```hemlock
 if (x > 10) {
@@ -30,21 +30,21 @@ if (x > 10) {
 }
 ```
 
-**Rules:**
-- Braces are **always required** for all branches
-- Conditions must be enclosed in parentheses
-- No optional braces (unlike C)
+**规则：**
+- 所有分支都**必须**使用花括号
+- 条件必须用括号包围
+- 不支持可选花括号（与 C 不同）
 
-### If Without Else
+### 无 Else 的 If
 
 ```hemlock
 if (x > 0) {
     print("positive");
 }
-// No else branch needed
+// 不需要 else 分支
 ```
 
-### Else-If Chains
+### Else-If 链
 
 ```hemlock
 if (x > 100) {
@@ -58,17 +58,17 @@ if (x > 100) {
 }
 ```
 
-**Note:** `else if` is syntactic sugar for nested if statements. These are equivalent:
+**注意：** `else if` 是嵌套 if 语句的语法糖。以下两种写法等价：
 
 ```hemlock
-// else if (syntactic sugar)
+// else if（语法糖）
 if (a) {
     foo();
 } else if (b) {
     bar();
 }
 
-// Equivalent nested if
+// 等价的嵌套 if
 if (a) {
     foo();
 } else {
@@ -78,7 +78,7 @@ if (a) {
 }
 ```
 
-### Nested If Statements
+### 嵌套 If 语句
 
 ```hemlock
 if (x > 0) {
@@ -92,9 +92,9 @@ if (x > 0) {
 }
 ```
 
-## While Loops
+## While 循环
 
-Condition-based iteration:
+基于条件的迭代：
 
 ```hemlock
 let i = 0;
@@ -104,34 +104,34 @@ while (i < 10) {
 }
 ```
 
-**Infinite loops (old style):**
+**无限循环（旧式）：**
 ```hemlock
 while (true) {
-    // ... do work
+    // ... 执行工作
     if (should_exit) {
         break;
     }
 }
 ```
 
-**Note:** For infinite loops, prefer the `loop` keyword (see below).
+**注意：** 对于无限循环，推荐使用 `loop` 关键字（见下文）。
 
-## Loop (Infinite Loop)
+## Loop（无限循环）
 
-The `loop` keyword provides a cleaner syntax for infinite loops:
+`loop` 关键字为无限循环提供更清晰的语法：
 
 ```hemlock
 loop {
-    // ... do work
+    // ... 执行工作
     if (should_exit) {
         break;
     }
 }
 ```
 
-**Equivalent to `while (true)` but more explicit about intent.**
+**等价于 `while (true)`，但意图更明确。**
 
-### Basic Loop with Break
+### 带 Break 的基本 Loop
 
 ```hemlock
 let i = 0;
@@ -142,10 +142,10 @@ loop {
     print(i);
     i = i + 1;
 }
-// Prints: 0, 1, 2, 3, 4
+// 输出：0, 1, 2, 3, 4
 ```
 
-### Loop with Continue
+### 带 Continue 的 Loop
 
 ```hemlock
 let i = 0;
@@ -155,14 +155,14 @@ loop {
         break;
     }
     if (i == 3) {
-        continue;  // Skip printing 3
+        continue;  // 跳过打印 3
     }
     print(i);
 }
-// Prints: 1, 2, 4, 5
+// 输出：1, 2, 4, 5
 ```
 
-### Nested Loops
+### 嵌套 Loop
 
 ```hemlock
 let x = 0;
@@ -176,20 +176,20 @@ loop {
     }
     x = x + 1;
 }
-// Prints: 0, 1, 2, 10, 11, 12
+// 输出：0, 1, 2, 10, 11, 12
 ```
 
-### When to Use Loop
+### 何时使用 Loop
 
-- **Use `loop`** for intentionally infinite loops that exit via `break`
-- **Use `while`** when there's a natural termination condition
-- **Use `for`** when iterating a known number of times or over a collection
+- **使用 `loop`** - 用于故意的无限循环，通过 `break` 退出
+- **使用 `while`** - 当有自然的终止条件时
+- **使用 `for`** - 当迭代已知次数或遍历集合时
 
-## For Loops
+## For 循环
 
-### C-Style For
+### C 风格 For
 
-Classic three-part for loop:
+经典的三段式 for 循环：
 
 ```hemlock
 for (let i = 0; i < 10; i = i + 1) {
@@ -197,31 +197,31 @@ for (let i = 0; i < 10; i = i + 1) {
 }
 ```
 
-**Components:**
-- **Initializer**: `let i = 0` - Runs once before loop
-- **Condition**: `i < 10` - Checked before each iteration
-- **Update**: `i = i + 1` - Runs after each iteration
+**组成部分：**
+- **初始化器**：`let i = 0` - 循环开始前运行一次
+- **条件**：`i < 10` - 每次迭代前检查
+- **更新**：`i = i + 1` - 每次迭代后运行
 
-**Scope:**
+**作用域：**
 ```hemlock
 for (let i = 0; i < 10; i = i + 1) {
     print(i);
 }
-// i not accessible here (loop-scoped)
+// i 在这里不可访问（循环作用域）
 ```
 
-### For-In Loops
+### For-In 循环
 
-Iterate over array elements:
+遍历数组元素：
 
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
 for (let item in arr) {
-    print(item);  // Prints each element
+    print(item);  // 打印每个元素
 }
 ```
 
-**With index and value:**
+**带索引和值：**
 ```hemlock
 let arr = ["a", "b", "c"];
 for (let i = 0; i < arr.length; i = i + 1) {
@@ -229,11 +229,11 @@ for (let i = 0; i < arr.length; i = i + 1) {
 }
 ```
 
-## Switch Statements
+## Switch 语句
 
-Multi-way branching based on value:
+基于值的多路分支：
 
-### Basic Switch
+### 基本 Switch
 
 ```hemlock
 let x = 2;
@@ -251,7 +251,7 @@ switch (x) {
 }
 ```
 
-### Switch with Default
+### 带 Default 的 Switch
 
 ```hemlock
 let color = "blue";
@@ -272,14 +272,14 @@ switch (color) {
 }
 ```
 
-**Rules:**
-- `default` matches when no other case matches
-- `default` can appear anywhere in the switch body
-- Only one default case allowed
+**规则：**
+- `default` 在没有其他 case 匹配时执行
+- `default` 可以出现在 switch 体的任何位置
+- 只允许一个 default case
 
-### Fall-Through Behavior
+### 贯穿行为
 
-Cases without `break` fall through to the next case (C-style behavior). This is **intentional** and can be used to group cases:
+没有 `break` 的 case 会贯穿到下一个 case（C 风格行为）。这是**有意的**，可用于分组 case：
 
 ```hemlock
 let grade = 85;
@@ -300,7 +300,7 @@ switch (grade) {
 }
 ```
 
-**Explicit fallthrough example:**
+**显式贯穿示例：**
 ```hemlock
 let day = 3;
 
@@ -319,11 +319,11 @@ switch (day) {
 }
 ```
 
-**Important:** Unlike some modern languages, Hemlock does NOT require an explicit `fallthrough` keyword. Cases automatically fall through unless terminated by `break`, `return`, or `throw`. Always use `break` to prevent unintended fallthrough.
+**重要：** 与一些现代语言不同，Hemlock 不需要显式的 `fallthrough` 关键字。除非用 `break`、`return` 或 `throw` 终止，否则 case 会自动贯穿。始终使用 `break` 防止意外贯穿。
 
-### Switch with Return
+### 带 Return 的 Switch
 
-In functions, `return` exits the switch immediately:
+在函数中，`return` 立即退出 switch：
 
 ```hemlock
 fn get_day_name(day: i32): string {
@@ -340,54 +340,54 @@ fn get_day_name(day: i32): string {
 }
 ```
 
-### Switch Value Types
+### Switch 值类型
 
-Switch works with any value type:
+Switch 适用于任何值类型：
 
 ```hemlock
-// Integers
+// 整数
 switch (count) {
     case 0: print("zero"); break;
     case 1: print("one"); break;
 }
 
-// Strings
+// 字符串
 switch (name) {
     case "Alice": print("A"); break;
     case "Bob": print("B"); break;
 }
 
-// Booleans
+// 布尔值
 switch (flag) {
     case true: print("on"); break;
     case false: print("off"); break;
 }
 ```
 
-**Note:** Cases are compared using value equality.
+**注意：** Case 使用值相等性进行比较。
 
-## Break and Continue
+## Break 和 Continue
 
 ### Break
 
-Exit the innermost loop or switch:
+退出最内层的循环或 switch：
 
 ```hemlock
-// In loops
+// 在循环中
 let i = 0;
 while (true) {
     if (i >= 10) {
-        break;  // Exit loop
+        break;  // 退出循环
     }
     print(i);
     i = i + 1;
 }
 
-// In switch
+// 在 switch 中
 switch (x) {
     case 1:
         print("one");
-        break;  // Exit switch
+        break;  // 退出 switch
     case 2:
         print("two");
         break;
@@ -396,47 +396,47 @@ switch (x) {
 
 ### Continue
 
-Skip to next iteration of loop:
+跳到循环的下一次迭代：
 
 ```hemlock
 for (let i = 0; i < 10; i = i + 1) {
     if (i == 5) {
-        continue;  // Skip iteration when i is 5
+        continue;  // 当 i 为 5 时跳过
     }
-    print(i);  // Prints 0,1,2,3,4,6,7,8,9
+    print(i);  // 打印 0,1,2,3,4,6,7,8,9
 }
 ```
 
-**Difference:**
-- `break` - Exits loop entirely
-- `continue` - Skips to next iteration
+**区别：**
+- `break` - 完全退出循环
+- `continue` - 跳到下一次迭代
 
-## Loop Labels
+## 循环标签
 
-Loop labels allow `break` and `continue` to target specific outer loops instead of just the innermost loop. This is useful for nested loops where you need to control an outer loop from an inner one.
+循环标签允许 `break` 和 `continue` 针对特定的外层循环，而不仅仅是最内层循环。这在需要从内层循环控制外层循环的嵌套循环中很有用。
 
-### Labeled Break
+### 带标签的 Break
 
-Exit an outer loop from an inner loop:
+从内层循环退出外层循环：
 
 ```hemlock
 outer: while (i < 3) {
     let j = 0;
     while (j < 3) {
         if (i == 1 && j == 1) {
-            break outer;  // Exit the outer while loop
+            break outer;  // 退出外层 while 循环
         }
         print(i * 10 + j);
         j = j + 1;
     }
     i = i + 1;
 }
-// Prints: 0, 1, 2, 10 (stops at i=1, j=1)
+// 输出：0, 1, 2, 10（在 i=1, j=1 处停止）
 ```
 
-### Labeled Continue
+### 带标签的 Continue
 
-Skip to the next iteration of an outer loop:
+跳到外层循环的下一次迭代：
 
 ```hemlock
 let i = 0;
@@ -446,17 +446,17 @@ outer: while (i < 3) {
     while (j < 3) {
         j = j + 1;
         if (i == 2 && j == 1) {
-            continue outer;  // Skip rest of inner loop, continue outer
+            continue outer;  // 跳过内层循环剩余部分，继续外层循环
         }
         print(i * 10 + j);
     }
 }
-// When i=2, j=1: skips to next outer iteration
+// 当 i=2, j=1 时：跳到外层循环的下一次迭代
 ```
 
-### Labels with For Loops
+### For 循环中的标签
 
-Labels work with all loop types:
+标签适用于所有循环类型：
 
 ```hemlock
 outer: for (let x = 0; x < 3; x = x + 1) {
@@ -469,7 +469,7 @@ outer: for (let x = 0; x < 3; x = x + 1) {
 }
 ```
 
-### Labels with For-In Loops
+### For-In 循环中的标签
 
 ```hemlock
 let arr1 = [1, 2, 3];
@@ -485,7 +485,7 @@ outer: for (let a in arr1) {
 }
 ```
 
-### Labels with Loop Keyword
+### Loop 关键字中的标签
 
 ```hemlock
 let x = 0;
@@ -504,19 +504,19 @@ outer: loop {
 }
 ```
 
-### Multiple Labels
+### 多重标签
 
-You can have labels at different nesting levels:
+可以在不同嵌套层级使用标签：
 
 ```hemlock
 outer: for (let a = 0; a < 2; a = a + 1) {
     inner: for (let b = 0; b < 3; b = b + 1) {
         for (let c = 0; c < 3; c = c + 1) {
             if (c == 1) {
-                continue inner;  // Skip to next iteration of middle loop
+                continue inner;  // 跳到中间循环的下一次迭代
             }
             if (a == 1 && b == 1) {
-                break outer;      // Exit outermost loop
+                break outer;      // 退出最外层循环
             }
             print(a * 100 + b * 10 + c);
         }
@@ -524,79 +524,79 @@ outer: for (let a = 0; a < 2; a = a + 1) {
 }
 ```
 
-### Unlabeled Break/Continue with Labeled Loops
+### 带标签循环中的无标签 Break/Continue
 
-Unlabeled `break` and `continue` still work normally (affecting the innermost loop), even when outer loops have labels:
+无标签的 `break` 和 `continue` 仍然正常工作（影响最内层循环），即使外层循环有标签：
 
 ```hemlock
 outer: for (let x = 0; x < 3; x = x + 1) {
     for (let y = 0; y < 5; y = y + 1) {
         if (y == 2) {
-            break;  // Only breaks inner loop
+            break;  // 只退出内层循环
         }
         print(x * 10 + y);
     }
 }
-// Prints: 0, 1, 10, 11, 20, 21
+// 输出：0, 1, 10, 11, 20, 21
 ```
 
-### Label Syntax
+### 标签语法
 
-- Labels are identifiers followed by a colon
-- Labels must immediately precede a loop statement (`while`, `for`, `loop`)
-- Label names follow identifier rules (letters, digits, underscores)
-- Common conventions: `outer`, `inner`, `row`, `col`, descriptive names
+- 标签是标识符后跟冒号
+- 标签必须紧接在循环语句之前（`while`、`for`、`loop`）
+- 标签名遵循标识符规则（字母、数字、下划线）
+- 常见约定：`outer`、`inner`、`row`、`col`、描述性名称
 
-## Defer Statement
+## Defer 语句
 
-The `defer` statement schedules code to execute when the current function returns. This is useful for cleanup operations like closing files, freeing resources, or releasing locks.
+`defer` 语句安排代码在当前函数返回时执行。这对于清理操作很有用，如关闭文件、释放资源或解锁。
 
-### Basic Defer
+### 基本 Defer
 
 ```hemlock
 fn example() {
     print("start");
-    defer print("cleanup");  // Runs when function returns
+    defer print("cleanup");  // 函数返回时运行
     print("end");
 }
 
 example();
-// Output:
+// 输出：
 // start
 // end
 // cleanup
 ```
 
-**Key behavior:**
-- Deferred statements execute **after** the function body completes
-- Deferred statements execute **before** the function returns to its caller
-- Deferred statements always execute, even if the function throws an exception
+**关键行为：**
+- 延迟语句在函数体完成**之后**执行
+- 延迟语句在函数返回给调用者**之前**执行
+- 即使函数抛出异常，延迟语句也总是执行
 
-### Multiple Defers (LIFO Order)
+### 多个 Defer（LIFO 顺序）
 
-When multiple `defer` statements are used, they execute in **reverse order** (Last-In-First-Out):
+当使用多个 `defer` 语句时，它们按**相反顺序**执行（后进先出）：
 
 ```hemlock
 fn example() {
-    defer print("first");   // Executes last
-    defer print("second");  // Executes second
-    defer print("third");   // Executes first
+    defer print("first");   // 最后执行
+    defer print("second");  // 第二个执行
+    defer print("third");   // 第一个执行
     print("body");
 }
 
 example();
-// Output:
+// 输出：
 // body
 // third
 // second
 // first
 ```
 
-This LIFO order is intentional - it matches the natural order for nested resource cleanup (close inner resources before outer ones).
+这种 LIFO 顺序是有意的 - 它符合嵌套资源清理的自然顺序（在外部资源之前关闭内部资源）。
 
-### Defer with Return
+### 带 Return 的 Defer
 
-Deferred statements execute before `return` transfers control:
+延迟语句在 `return` 转移控制之前执行：
 
 ```hemlock
 fn get_value(): i32 {
@@ -607,15 +607,15 @@ fn get_value(): i32 {
 
 let result = get_value();
 print("result:", result);
-// Output:
+// 输出：
 // before return
 // cleanup
 // result: 42
 ```
 
-### Defer with Exceptions
+### 带异常的 Defer
 
-Deferred statements execute even when an exception is thrown:
+即使抛出异常，延迟语句也会执行：
 
 ```hemlock
 fn risky() {
@@ -623,7 +623,7 @@ fn risky() {
     defer print("cleanup 2");
     print("before throw");
     throw "error!";
-    print("after throw");  // Never reached
+    print("after throw");  // 永远不会执行
 }
 
 try {
@@ -631,43 +631,43 @@ try {
 } catch (e) {
     print("Caught:", e);
 }
-// Output:
+// 输出：
 // before throw
 // cleanup 2
 // cleanup 1
 // Caught: error!
 ```
 
-### Resource Cleanup Pattern
+### 资源清理模式
 
-The primary use case for `defer` is ensuring resources are cleaned up:
+`defer` 的主要用例是确保资源被清理：
 
 ```hemlock
 fn process_file(filename: string) {
     let file = open(filename, "r");
-    defer file.close();  // Always closes, even on error
+    defer file.close();  // 即使出错也总是关闭
 
     let content = file.read();
-    // ... process content ...
+    // ... 处理内容 ...
 
-    // File automatically closed when function returns
+    // 函数返回时文件自动关闭
 }
 ```
 
-**Without defer (error-prone):**
+**不使用 defer（容易出错）：**
 ```hemlock
 fn process_file_bad(filename: string) {
     let file = open(filename, "r");
     let content = file.read();
-    // If this throws, file.close() is never called!
+    // 如果这里抛出异常，file.close() 永远不会被调用！
     process(content);
     file.close();
 }
 ```
 
-### Defer with Closures
+### 带闭包的 Defer
 
-Defer can use closures to capture state:
+Defer 可以使用闭包来捕获状态：
 
 ```hemlock
 fn example() {
@@ -675,34 +675,34 @@ fn example() {
     defer fn() {
         print("Releasing resource");
         release(resource);
-    }();  // Note: immediately-invoked function expression
+    }();  // 注意：立即调用的函数表达式
 
     use_resource(resource);
 }
 ```
 
-### When to Use Defer
+### 何时使用 Defer
 
-**Use defer for:**
-- Closing files and network connections
-- Freeing allocated memory
-- Releasing locks and mutexes
-- Cleanup in any function that acquires resources
+**使用 defer 的场景：**
+- 关闭文件和网络连接
+- 释放分配的内存
+- 释放锁和互斥量
+- 任何获取资源的函数中的清理
 
-**Defer vs Finally:**
-- `defer` is simpler for single-resource cleanup
-- `try/finally` is better for complex error handling with recovery
+**Defer vs Finally：**
+- `defer` 对于单资源清理更简单
+- `try/finally` 对于带恢复的复杂错误处理更好
 
-### Best Practices
+### 最佳实践
 
-1. **Place defer immediately after acquiring a resource:**
+1. **获取资源后立即使用 defer：**
    ```hemlock
    let file = open("data.txt", "r");
    defer file.close();
-   // ... use file ...
+   // ... 使用文件 ...
    ```
 
-2. **Use multiple defers for multiple resources:**
+2. **对多个资源使用多个 defer：**
    ```hemlock
    let file1 = open("input.txt", "r");
    defer file1.close();
@@ -710,10 +710,10 @@ fn example() {
    let file2 = open("output.txt", "w");
    defer file2.close();
 
-   // Both files will be closed in reverse order
+   // 两个文件将按相反顺序关闭
    ```
 
-3. **Remember LIFO order for dependent resources:**
+3. **记住 LIFO 顺序用于依赖资源：**
    ```hemlock
    let outer = acquire_outer();
    defer release_outer(outer);
@@ -721,14 +721,14 @@ fn example() {
    let inner = acquire_inner(outer);
    defer release_inner(inner);
 
-   // inner released before outer (correct dependency order)
+   // inner 在 outer 之前释放（正确的依赖顺序）
    ```
 
-## Boolean Operators
+## 布尔运算符
 
-### Logical AND (`&&`)
+### 逻辑与 (`&&`)
 
-Both conditions must be true:
+两个条件都必须为真：
 
 ```hemlock
 if (x > 0 && x < 10) {
@@ -736,16 +736,16 @@ if (x > 0 && x < 10) {
 }
 ```
 
-**Short-circuit evaluation:**
+**短路求值：**
 ```hemlock
 if (false && expensive_check()) {
-    // expensive_check() never called
+    // expensive_check() 永远不会被调用
 }
 ```
 
-### Logical OR (`||`)
+### 逻辑或 (`||`)
 
-At least one condition must be true:
+至少一个条件必须为真：
 
 ```hemlock
 if (x < 0 || x > 100) {
@@ -753,16 +753,16 @@ if (x < 0 || x > 100) {
 }
 ```
 
-**Short-circuit evaluation:**
+**短路求值：**
 ```hemlock
 if (true || expensive_check()) {
-    // expensive_check() never called
+    // expensive_check() 永远不会被调用
 }
 ```
 
-### Logical NOT (`!`)
+### 逻辑非 (`!`)
 
-Negates boolean value:
+取反布尔值：
 
 ```hemlock
 if (!is_valid) {
@@ -770,184 +770,184 @@ if (!is_valid) {
 }
 
 if (!(x > 10)) {
-    // Same as: if (x <= 10)
+    // 等同于：if (x <= 10)
 }
 ```
 
-## Comparison Operators
+## 比较运算符
 
-### Equality
+### 相等性
 
 ```hemlock
-if (x == 10) { }    // Equal
-if (x != 10) { }    // Not equal
+if (x == 10) { }    // 等于
+if (x != 10) { }    // 不等于
 ```
 
-Works with all types:
+适用于所有类型：
 ```hemlock
 "hello" == "hello"  // true
 true == false       // false
 null == null        // true
 ```
 
-### Relational
+### 关系运算符
 
 ```hemlock
-if (x < 10) { }     // Less than
-if (x > 10) { }     // Greater than
-if (x <= 10) { }    // Less than or equal
-if (x >= 10) { }    // Greater than or equal
+if (x < 10) { }     // 小于
+if (x > 10) { }     // 大于
+if (x <= 10) { }    // 小于等于
+if (x >= 10) { }    // 大于等于
 ```
 
-**Type promotion applies:**
+**类型提升适用：**
 ```hemlock
 let a: i32 = 10;
 let b: i64 = 10;
-if (a == b) { }     // true (i32 promoted to i64)
+if (a == b) { }     // true（i32 提升为 i64）
 ```
 
-## Bitwise Operators
+## 位运算符
 
-Hemlock provides bitwise operators for integer manipulation. These work **only with integer types** (i8-i64, u8-u64).
+Hemlock 提供用于整数操作的位运算符。这些**只能用于整数类型**（i8-i64、u8-u64）。
 
-### Binary Bitwise Operators
+### 二元位运算符
 
-**Bitwise AND (`&`)**
+**按位与 (`&`)**
 ```hemlock
-let a = 12;  // 1100 in binary
-let b = 10;  // 1010 in binary
+let a = 12;  // 二进制 1100
+let b = 10;  // 二进制 1010
 print(a & b);   // 8 (1000)
 ```
 
-**Bitwise OR (`|`)**
+**按位或 (`|`)**
 ```hemlock
 print(a | b);   // 14 (1110)
 ```
 
-**Bitwise XOR (`^`)**
+**按位异或 (`^`)**
 ```hemlock
 print(a ^ b);   // 6 (0110)
 ```
 
-**Left Shift (`<<`)**
+**左移 (`<<`)**
 ```hemlock
-print(a << 2);  // 48 (110000) - shift left by 2
+print(a << 2);  // 48 (110000) - 左移 2 位
 ```
 
-**Right Shift (`>>`)**
+**右移 (`>>`)**
 ```hemlock
-print(a >> 1);  // 6 (110) - shift right by 1
+print(a >> 1);  // 6 (110) - 右移 1 位
 ```
 
-### Unary Bitwise Operator
+### 一元位运算符
 
-**Bitwise NOT (`~`)**
+**按位取反 (`~`)**
 ```hemlock
 let a = 12;
-print(~a);      // -13 (two's complement)
+print(~a);      // -13（补码）
 
-let c: u8 = 15;   // 00001111 in binary
-print(~c);        // 240 (11110000) in u8
+let c: u8 = 15;   // 二进制 00001111
+print(~c);        // 240 (11110000)，u8 类型
 ```
 
-### Bitwise Examples
+### 位运算示例
 
-**With unsigned types:**
+**使用无符号类型：**
 ```hemlock
-let c: u8 = 15;   // 00001111 in binary
-let d: u8 = 7;    // 00000111 in binary
+let c: u8 = 15;   // 二进制 00001111
+let d: u8 = 7;    // 二进制 00000111
 
 print(c & d);     // 7  (00000111)
 print(c | d);     // 15 (00001111)
 print(c ^ d);     // 8  (00001000)
-print(~c);        // 240 (11110000) - in u8
+print(~c);        // 240 (11110000) - u8 类型
 ```
 
-**Type preservation:**
+**类型保持：**
 ```hemlock
-// Bitwise operations preserve the type of operands
+// 位运算保持操作数的类型
 let x: u8 = 255;
-let result = ~x;  // result is u8 with value 0
+let result = ~x;  // result 是 u8，值为 0
 
 let y: i32 = 100;
-let result2 = y << 2;  // result2 is i32 with value 400
+let result2 = y << 2;  // result2 是 i32，值为 400
 ```
 
-**Common patterns:**
+**常见模式：**
 ```hemlock
-// Check if bit is set
+// 检查位是否设置
 if (flags & 0x04) {
     print("bit 2 is set");
 }
 
-// Set a bit
+// 设置位
 flags = flags | 0x08;
 
-// Clear a bit
+// 清除位
 flags = flags & ~0x02;
 
-// Toggle a bit
+// 切换位
 flags = flags ^ 0x01;
 ```
 
-### Operator Precedence
+### 运算符优先级
 
-Bitwise operators follow C-style precedence:
+位运算符遵循 C 风格优先级：
 
-1. `~` (unary NOT) - highest, same level as `!` and `-`
-2. `<<`, `>>` (shifts) - higher than comparisons, lower than `+`/`-`
-3. `&` (bitwise AND) - higher than `^` and `|`
-4. `^` (bitwise XOR) - between `&` and `|`
-5. `|` (bitwise OR) - lower than `&` and `^`, higher than `&&`
-6. `&&`, `||` (logical) - lowest precedence
+1. `~`（一元取反）- 最高，与 `!` 和 `-` 同级
+2. `<<`、`>>`（位移）- 高于比较，低于 `+`/`-`
+3. `&`（按位与）- 高于 `^` 和 `|`
+4. `^`（按位异或）- 在 `&` 和 `|` 之间
+5. `|`（按位或）- 低于 `&` 和 `^`，高于 `&&`
+6. `&&`、`||`（逻辑）- 最低优先级
 
-**Examples:**
+**示例：**
 ```hemlock
-// & has higher precedence than |
+// & 优先级高于 |
 let result1 = 12 | 10 & 8;  // (10 & 8) | 12 = 8 | 12 = 12
 
-// Shift has higher precedence than bitwise operators
+// 位移优先级高于位运算符
 let result2 = 8 | 1 << 2;   // 8 | (1 << 2) = 8 | 4 = 12
 
-// Use parentheses for clarity
+// 使用括号提高清晰度
 let result3 = (5 & 3) | (2 << 1);  // 1 | 4 = 5
 ```
 
-**Important notes:**
-- Bitwise operators only work with integer types (not floats, strings, etc.)
-- Type promotion follows standard rules (smaller types promote to larger)
-- Right shift (`>>`) is arithmetic for signed types, logical for unsigned
-- Shift amounts are not range-checked (behavior is platform-dependent for large shifts)
+**重要注意事项：**
+- 位运算符只能用于整数类型（不能用于浮点数、字符串等）
+- 类型提升遵循标准规则（较小类型提升为较大类型）
+- 右移 (`>>`) 对有符号类型是算术移位，对无符号类型是逻辑移位
+- 移位量不进行范围检查（大移位量的行为取决于平台）
 
-## Operator Precedence (Complete)
+## 运算符优先级（完整）
 
-From highest to lowest precedence:
+从高到低优先级：
 
-1. **Unary**: `!`, `-`, `~`
-2. **Multiplicative**: `*`, `/`, `%`
-3. **Additive**: `+`, `-`
-4. **Shift**: `<<`, `>>`
-5. **Relational**: `<`, `>`, `<=`, `>=`
-6. **Equality**: `==`, `!=`
-7. **Bitwise AND**: `&`
-8. **Bitwise XOR**: `^`
-9. **Bitwise OR**: `|`
-10. **Logical AND**: `&&`
-11. **Logical OR**: `||`
+1. **一元**：`!`、`-`、`~`
+2. **乘除**：`*`、`/`、`%`
+3. **加减**：`+`、`-`
+4. **位移**：`<<`、`>>`
+5. **关系**：`<`、`>`、`<=`、`>=`
+6. **相等**：`==`、`!=`
+7. **按位与**：`&`
+8. **按位异或**：`^`
+9. **按位或**：`|`
+10. **逻辑与**：`&&`
+11. **逻辑或**：`||`
 
-**Use parentheses for clarity:**
+**使用括号提高清晰度：**
 ```hemlock
-// Unclear
+// 不清晰
 if (a || b && c) { }
 
-// Clear
+// 清晰
 if (a || (b && c)) { }
 if ((a || b) && c) { }
 ```
 
-## Common Patterns
+## 常见模式
 
-### Pattern: Input Validation
+### 模式：输入验证
 
 ```hemlock
 fn validate_age(age: i32): bool {
@@ -958,7 +958,7 @@ fn validate_age(age: i32): bool {
 }
 ```
 
-### Pattern: Range Checking
+### 模式：范围检查
 
 ```hemlock
 fn in_range(value: i32, min: i32, max: i32): bool {
@@ -970,7 +970,7 @@ if (in_range(score, 0, 100)) {
 }
 ```
 
-### Pattern: State Machine
+### 模式：状态机
 
 ```hemlock
 let state = "start";
@@ -1007,92 +1007,92 @@ while (true) {
 }
 ```
 
-### Pattern: Iteration with Filtering
+### 模式：带过滤的迭代
 
 ```hemlock
 let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-// Print only even numbers
+// 只打印偶数
 for (let i = 0; i < arr.length; i = i + 1) {
     if (arr[i] % 2 != 0) {
-        continue;  // Skip odd numbers
+        continue;  // 跳过奇数
     }
     print(arr[i]);
 }
 ```
 
-### Pattern: Early Exit
+### 模式：提前退出
 
 ```hemlock
 fn find_first_negative(arr: array): i32 {
     for (let i = 0; i < arr.length; i = i + 1) {
         if (arr[i] < 0) {
-            return i;  // Early exit
+            return i;  // 提前退出
         }
     }
-    return -1;  // Not found
+    return -1;  // 未找到
 }
 ```
 
-## Best Practices
+## 最佳实践
 
-1. **Always use braces** - Even for single-statement blocks (enforced by syntax)
-2. **Explicit conditions** - Use `x == 0` instead of `!x` for clarity
-3. **Avoid deep nesting** - Extract nested conditions into functions
-4. **Use early returns** - Reduce nesting with guard clauses
-5. **Break complex conditions** - Split into named boolean variables
-6. **Default in switch** - Always include a default case
-7. **Comment fall-through** - Make intentional fall-through explicit
+1. **始终使用花括号** - 即使是单语句块也要（语法强制）
+2. **显式条件** - 使用 `x == 0` 而不是 `!x` 以提高清晰度
+3. **避免深层嵌套** - 将嵌套条件提取到函数中
+4. **使用提前返回** - 用守卫子句减少嵌套
+5. **分解复杂条件** - 拆分为命名的布尔变量
+6. **switch 中使用 default** - 始终包含 default case
+7. **注释贯穿** - 使有意的贯穿明确
 
-## Common Pitfalls
+## 常见陷阱
 
-### Pitfall: Assignment in Condition
+### 陷阱：条件中的赋值
 
 ```hemlock
-// This is NOT allowed (no assignment in conditions)
-if (x = 10) { }  // ERROR: Syntax error
+// 这是不允许的（条件中不能赋值）
+if (x = 10) { }  // 错误：语法错误
 
-// Use comparison instead
+// 使用比较代替
 if (x == 10) { }  // OK
 ```
 
-### Pitfall: Missing Break in Switch
+### 陷阱：Switch 中缺少 Break
 
 ```hemlock
-// Unintentional fall-through
+// 意外贯穿
 switch (x) {
     case 1:
         print("one");
-        // Missing break - falls through!
+        // 缺少 break - 会贯穿！
     case 2:
-        print("two");  // Executes for both 1 and 2
+        print("two");  // 对 1 和 2 都执行
         break;
 }
 
-// Fix: Add break
+// 修复：添加 break
 switch (x) {
     case 1:
         print("one");
-        break;  // Now correct
+        break;  // 现在正确
     case 2:
         print("two");
         break;
 }
 ```
 
-### Pitfall: Loop Variable Scope
+### 陷阱：循环变量作用域
 
 ```hemlock
-// i is scoped to the loop
+// i 的作用域限于循环
 for (let i = 0; i < 10; i = i + 1) {
     print(i);
 }
-print(i);  // ERROR: i not defined here
+print(i);  // 错误：i 在这里未定义
 ```
 
-## Examples
+## 示例
 
-### Example: FizzBuzz
+### 示例：FizzBuzz
 
 ```hemlock
 for (let i = 1; i <= 100; i = i + 1) {
@@ -1108,7 +1108,7 @@ for (let i = 1; i <= 100; i = i + 1) {
 }
 ```
 
-### Example: Prime Checker
+### 示例：素数检查
 
 ```hemlock
 fn is_prime(n: i32): bool {
@@ -1128,7 +1128,7 @@ fn is_prime(n: i32): bool {
 }
 ```
 
-### Example: Menu System
+### 示例：菜单系统
 
 ```hemlock
 fn menu() {
@@ -1157,13 +1157,13 @@ fn menu() {
 }
 ```
 
-## Related Topics
+## 相关主题
 
-- [Functions](functions.md) - Control flow with function calls and returns
-- [Error Handling](error-handling.md) - Control flow with exceptions
-- [Types](types.md) - Type conversions in conditions
+- [Functions](functions.md) - 函数调用和返回的控制流
+- [Error Handling](error-handling.md) - 异常的控制流
+- [Types](types.md) - 条件中的类型转换
 
-## See Also
+## 另请参阅
 
-- **Syntax**: See [Syntax](syntax.md) for statement syntax details
-- **Operators**: See [Types](types.md) for type promotion in operations
+- **语法**：参见 [Syntax](syntax.md) 了解语句语法细节
+- **运算符**：参见 [Types](types.md) 了解运算中的类型提升

@@ -1,26 +1,26 @@
-# Exit Codes
+# 退出码
 
-Reference for hpm exit codes and their meanings.
+hpm 退出码及其含义的参考。
 
-## Exit Code Table
+## 退出码表
 
-| Code | Name | Description |
+| 代码 | 名称 | 描述 |
 |------|------|-------------|
-| 0 | SUCCESS | Command completed successfully |
-| 1 | CONFLICT | Dependency version conflict |
-| 2 | NOT_FOUND | Package not found |
-| 3 | VERSION_NOT_FOUND | Requested version not found |
-| 4 | NETWORK | Network error |
-| 5 | INVALID_MANIFEST | Invalid package.json |
-| 6 | INTEGRITY | Integrity check failed |
-| 7 | RATE_LIMIT | GitHub API rate limit exceeded |
-| 8 | CIRCULAR | Circular dependency detected |
+| 0 | SUCCESS | 命令成功完成 |
+| 1 | CONFLICT | 依赖版本冲突 |
+| 2 | NOT_FOUND | 包未找到 |
+| 3 | VERSION_NOT_FOUND | 请求的版本未找到 |
+| 4 | NETWORK | 网络错误 |
+| 5 | INVALID_MANIFEST | 无效的 package.json |
+| 6 | INTEGRITY | 完整性检查失败 |
+| 7 | RATE_LIMIT | 超出 GitHub API 速率限制 |
+| 8 | CIRCULAR | 检测到循环依赖 |
 
-## Detailed Descriptions
+## 详细描述
 
-### Exit Code 0: SUCCESS
+### 退出码 0: SUCCESS
 
-The command completed successfully.
+命令成功完成。
 
 ```bash
 $ hpm install
@@ -29,11 +29,11 @@ $ echo $?
 0
 ```
 
-### Exit Code 1: CONFLICT
+### 退出码 1: CONFLICT
 
-Two or more packages require incompatible versions of a dependency.
+两个或多个包需要不兼容版本的依赖。
 
-**Example:**
+**示例：**
 ```
 Error: Dependency conflict for hemlang/json
 
@@ -43,76 +43,76 @@ Error: Dependency conflict for hemlang/json
 No version satisfies all constraints.
 ```
 
-**Solutions:**
-1. Check which packages have the conflict:
+**解决方案：**
+1. 检查哪些包有冲突：
    ```bash
    hpm why hemlang/json
    ```
-2. Update the conflicting package:
+2. 更新冲突的包：
    ```bash
    hpm update package-a
    ```
-3. Relax version constraints in package.json
-4. Remove one of the conflicting packages
+3. 放宽 package.json 中的版本约束
+4. 移除冲突的包之一
 
-### Exit Code 2: NOT_FOUND
+### 退出码 2: NOT_FOUND
 
-The specified package does not exist on GitHub.
+指定的包在 GitHub 上不存在。
 
-**Example:**
+**示例：**
 ```
 Error: Package not found: hemlang/nonexistent
 
 The repository hemlang/nonexistent does not exist on GitHub.
 ```
 
-**Solutions:**
-1. Verify package name spelling
-2. Check if repository exists: `https://github.com/owner/repo`
-3. Verify you have access (for private repos, set GITHUB_TOKEN)
+**解决方案：**
+1. 验证包名称拼写
+2. 检查仓库是否存在：`https://github.com/owner/repo`
+3. 验证你有访问权限（对于私有仓库，设置 GITHUB_TOKEN）
 
-### Exit Code 3: VERSION_NOT_FOUND
+### 退出码 3: VERSION_NOT_FOUND
 
-No version matches the specified constraint.
+没有版本匹配指定的约束。
 
-**Example:**
+**示例：**
 ```
 Error: No version of hemlang/json matches constraint ^5.0.0
 
 Available versions: 1.0.0, 1.1.0, 1.2.0, 2.0.0
 ```
 
-**Solutions:**
-1. Check available versions on GitHub releases/tags
-2. Use a valid version constraint
-3. Version tags must start with 'v' (e.g., `v1.0.0`)
+**解决方案：**
+1. 在 GitHub releases/tags 上检查可用版本
+2. 使用有效的版本约束
+3. 版本标签必须以 'v' 开头（例如 `v1.0.0`）
 
-### Exit Code 4: NETWORK
+### 退出码 4: NETWORK
 
-Network-related error occurred.
+发生网络相关错误。
 
-**Example:**
+**示例：**
 ```
 Error: Network error: could not connect to api.github.com
 
 Please check your internet connection and try again.
 ```
 
-**Solutions:**
-1. Check internet connection
-2. Check if GitHub is accessible
-3. Verify proxy settings if behind firewall
-4. Use `--offline` if packages are cached:
+**解决方案：**
+1. 检查网络连接
+2. 检查 GitHub 是否可访问
+3. 如果在防火墙后面，验证代理设置
+4. 如果包已缓存，使用 `--offline`：
    ```bash
    hpm install --offline
    ```
-5. Wait and retry (hpm retries automatically)
+5. 等待并重试（hpm 会自动重试）
 
-### Exit Code 5: INVALID_MANIFEST
+### 退出码 5: INVALID_MANIFEST
 
-The package.json file is invalid or malformed.
+package.json 文件无效或格式错误。
 
-**Example:**
+**示例：**
 ```
 Error: Invalid package.json
 
@@ -120,23 +120,23 @@ Error: Invalid package.json
   - Invalid version format: "1.0"
 ```
 
-**Solutions:**
-1. Check JSON syntax (use a JSON validator)
-2. Ensure required fields exist (`name`, `version`)
-3. Verify field formats:
-   - name: `owner/repo` format
-   - version: `X.Y.Z` semver format
-4. Regenerate:
+**解决方案：**
+1. 检查 JSON 语法（使用 JSON 验证器）
+2. 确保必需字段存在（`name`、`version`）
+3. 验证字段格式：
+   - name：`owner/repo` 格式
+   - version：`X.Y.Z` semver 格式
+4. 重新生成：
    ```bash
    rm package.json
    hpm init
    ```
 
-### Exit Code 6: INTEGRITY
+### 退出码 6: INTEGRITY
 
-Package integrity verification failed.
+包完整性验证失败。
 
-**Example:**
+**示例：**
 ```
 Error: Integrity check failed for hemlang/json@1.0.0
 
@@ -146,20 +146,20 @@ Actual:   sha256-def456...
 The downloaded package may be corrupted.
 ```
 
-**Solutions:**
-1. Clear cache and reinstall:
+**解决方案：**
+1. 清除缓存并重新安装：
    ```bash
    hpm cache clean
    hpm install
    ```
-2. Check for network issues (partial downloads)
-3. Verify package wasn't tampered with
+2. 检查网络问题（部分下载）
+3. 验证包未被篡改
 
-### Exit Code 7: RATE_LIMIT
+### 退出码 7: RATE_LIMIT
 
-GitHub API rate limit has been exceeded.
+超出 GitHub API 速率限制。
 
-**Example:**
+**示例：**
 ```
 Error: GitHub API rate limit exceeded
 
@@ -169,23 +169,23 @@ Current usage: 60/60
 Rate limit resets at: 2024-01-15 10:30:00 UTC
 ```
 
-**Solutions:**
-1. **Authenticate with GitHub** (recommended):
+**解决方案：**
+1. **使用 GitHub 认证**（推荐）：
    ```bash
    export GITHUB_TOKEN=ghp_xxxxxxxxxxxx
    hpm install
    ```
-2. Wait for rate limit to reset (resets hourly)
-3. Use offline mode if packages are cached:
+2. 等待速率限制重置（每小时重置）
+3. 如果包已缓存，使用离线模式：
    ```bash
    hpm install --offline
    ```
 
-### Exit Code 8: CIRCULAR
+### 退出码 8: CIRCULAR
 
-Circular dependency detected in the dependency graph.
+在依赖图中检测到循环依赖。
 
-**Example:**
+**示例：**
 ```
 Error: Circular dependency detected
 
@@ -196,12 +196,12 @@ Error: Circular dependency detected
 Cannot resolve dependency tree.
 ```
 
-**Solutions:**
-1. This is usually a bug in the packages themselves
-2. Contact package maintainers
-3. Avoid using one of the circular packages
+**解决方案：**
+1. 这通常是包本身的 bug
+2. 联系包维护者
+3. 避免使用循环包之一
 
-## Using Exit Codes in Scripts
+## 在脚本中使用退出码
 
 ### Bash
 
@@ -263,23 +263,23 @@ test: install
 	@hpm test
 ```
 
-## Troubleshooting by Exit Code
+## 按退出码故障排除
 
-### Quick Reference
+### 快速参考
 
-| Code | First Thing to Check |
+| 代码 | 首先检查 |
 |------|---------------------|
-| 1 | Run `hpm why <package>` to see conflict |
-| 2 | Verify package name on GitHub |
-| 3 | Check available versions on GitHub tags |
-| 4 | Check internet connection |
-| 5 | Validate package.json syntax |
-| 6 | Run `hpm cache clean && hpm install` |
-| 7 | Set `GITHUB_TOKEN` environment variable |
-| 8 | Contact package maintainers |
+| 1 | 运行 `hpm why <package>` 查看冲突 |
+| 2 | 在 GitHub 上验证包名称 |
+| 3 | 在 GitHub 标签上检查可用版本 |
+| 4 | 检查网络连接 |
+| 5 | 验证 package.json 语法 |
+| 6 | 运行 `hpm cache clean && hpm install` |
+| 7 | 设置 `GITHUB_TOKEN` 环境变量 |
+| 8 | 联系包维护者 |
 
-## See Also
+## 另请参阅
 
-- [Troubleshooting](troubleshooting.md) - Detailed solutions
-- [Commands](commands.md) - Command reference
-- [Configuration](configuration.md) - Setting up GitHub token
+- [故障排除](troubleshooting.md) - 详细解决方案
+- [命令](commands.md) - 命令参考
+- [配置](configuration.md) - 设置 GitHub token

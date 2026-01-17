@@ -1,21 +1,21 @@
-# Functions
+# 函数
 
-Functions in Hemlock are **first-class values** that can be assigned to variables, passed as arguments, and returned from other functions. This guide covers function syntax, closures, recursion, and advanced patterns.
+Hemlock 中的函数是**一等公民**，可以赋值给变量、作为参数传递以及从其他函数返回。本指南涵盖函数语法、闭包、递归和高级模式。
 
-## Overview
+## 概述
 
 ```hemlock
-// Named function syntax
+// 命名函数语法
 fn add(a: i32, b: i32): i32 {
     return a + b;
 }
 
-// Anonymous function
+// 匿名函数
 let multiply = fn(x, y) {
     return x * y;
 };
 
-// Closures
+// 闭包
 fn makeAdder(x) {
     return fn(y) {
         return x + y;
@@ -26,9 +26,9 @@ let add5 = makeAdder(5);
 print(add5(3));  // 8
 ```
 
-## Function Declaration
+## 函数声明
 
-### Named Functions
+### 命名函数
 
 ```hemlock
 fn greet(name: string): string {
@@ -38,16 +38,16 @@ fn greet(name: string): string {
 let msg = greet("Alice");  // "Hello, Alice"
 ```
 
-**Components:**
-- `fn` - Function keyword
-- `greet` - Function name
-- `(name: string)` - Parameters with optional types
-- `: string` - Optional return type
-- `{ ... }` - Function body
+**组成部分：**
+- `fn` - 函数关键字
+- `greet` - 函数名
+- `(name: string)` - 带可选类型的参数
+- `: string` - 可选的返回类型
+- `{ ... }` - 函数体
 
-### Anonymous Functions
+### 匿名函数
 
-Functions without names, assigned to variables:
+没有名称的函数，赋值给变量：
 
 ```hemlock
 let square = fn(x) {
@@ -57,19 +57,19 @@ let square = fn(x) {
 print(square(5));  // 25
 ```
 
-**Named vs. Anonymous:**
+**命名函数 vs 匿名函数：**
 ```hemlock
-// These are equivalent:
+// 这两种方式等价：
 fn add(a, b) { return a + b; }
 
 let add = fn(a, b) { return a + b; };
 ```
 
-**Note:** Named functions desugar to variable assignments with anonymous functions.
+**注意：** 命名函数会被解语法糖为带匿名函数的变量赋值。
 
-## Parameters
+## 参数
 
-### Basic Parameters
+### 基本参数
 
 ```hemlock
 fn example(a, b, c) {
@@ -79,9 +79,9 @@ fn example(a, b, c) {
 let result = example(1, 2, 3);  // 6
 ```
 
-### Type Annotations
+### 类型注解
 
-Optional type annotations on parameters:
+参数的可选类型注解：
 
 ```hemlock
 fn add(a: i32, b: i32): i32 {
@@ -89,43 +89,43 @@ fn add(a: i32, b: i32): i32 {
 }
 
 add(5, 10);      // OK
-add(5, 10.5);    // Runtime type check promotes to f64
+add(5, 10.5);    // 运行时类型检查会提升为 f64
 ```
 
-**Type checking:**
-- Parameter types are checked at call time if annotated
-- Implicit type conversions follow standard promotion rules
-- Type mismatches cause runtime errors
+**类型检查：**
+- 如果有注解，参数类型在调用时检查
+- 隐式类型转换遵循标准提升规则
+- 类型不匹配会导致运行时错误
 
-### Pass-by-Value
+### 按值传递
 
-All arguments are **copied** (pass-by-value):
+所有参数都是**复制**的（按值传递）：
 
 ```hemlock
 fn modify(x) {
-    x = 100;  // Only modifies local copy
+    x = 100;  // 只修改本地副本
 }
 
 let a = 10;
 modify(a);
-print(a);  // Still 10 (unchanged)
+print(a);  // 仍然是 10（未改变）
 ```
 
-**Note:** Objects and arrays are passed by reference (the reference is copied), so their contents can be modified:
+**注意：** 对象和数组按引用传递（引用被复制），因此可以修改它们的内容：
 
 ```hemlock
 fn modify_array(arr) {
-    arr[0] = 99;  // Modifies original array
+    arr[0] = 99;  // 修改原始数组
 }
 
 let a = [1, 2, 3];
 modify_array(a);
-print(a[0]);  // 99 (modified)
+print(a[0]);  // 99（已修改）
 ```
 
-## Return Values
+## 返回值
 
-### Return Statement
+### Return 语句
 
 ```hemlock
 fn get_max(a: i32, b: i32): i32 {
@@ -137,9 +137,9 @@ fn get_max(a: i32, b: i32): i32 {
 }
 ```
 
-### Return Type Annotations
+### 返回类型注解
 
-Optional type annotation for return value:
+返回值的可选类型注解：
 
 ```hemlock
 fn calculate(): f64 {
@@ -151,66 +151,66 @@ fn get_name(): string {
 }
 ```
 
-**Type checking:**
-- Return types are checked when function returns (if annotated)
-- Type conversions follow standard promotion rules
+**类型检查：**
+- 如果有注解，返回类型在函数返回时检查
+- 类型转换遵循标准提升规则
 
-### Implicit Return
+### 隐式返回
 
-Functions without return type annotation implicitly return `null`:
+没有返回类型注解的函数隐式返回 `null`：
 
 ```hemlock
 fn print_message(msg) {
     print(msg);
-    // Implicitly returns null
+    // 隐式返回 null
 }
 
-let result = print_message("hello");  // result is null
+let result = print_message("hello");  // result 是 null
 ```
 
-### Early Return
+### 提前返回
 
 ```hemlock
 fn find_first_negative(arr) {
     for (let i = 0; i < arr.length; i = i + 1) {
         if (arr[i] < 0) {
-            return i;  // Early exit
+            return i;  // 提前退出
         }
     }
-    return -1;  // Not found
+    return -1;  // 未找到
 }
 ```
 
-### Return Without Value
+### 无值返回
 
-`return;` without a value returns `null`:
+`return;` 不带值返回 `null`：
 
 ```hemlock
 fn maybe_process(value) {
     if (value < 0) {
-        return;  // Returns null
+        return;  // 返回 null
     }
     return value * 2;
 }
 ```
 
-## First-Class Functions
+## 一等函数
 
-Functions can be assigned, passed, and returned like any other value.
+函数可以像其他值一样被赋值、传递和返回。
 
-### Functions as Variables
+### 函数作为变量
 
 ```hemlock
 let operation = fn(x, y) { return x + y; };
 
 print(operation(5, 3));  // 8
 
-// Reassign
+// 重新赋值
 operation = fn(x, y) { return x * y; };
 print(operation(5, 3));  // 15
 ```
 
-### Functions as Arguments
+### 函数作为参数
 
 ```hemlock
 fn apply(f, x) {
@@ -224,7 +224,7 @@ fn double(n) {
 let result = apply(double, 5);  // 10
 ```
 
-### Functions as Return Values
+### 函数作为返回值
 
 ```hemlock
 fn get_operation(op: string) {
@@ -241,11 +241,11 @@ let add = get_operation("add");
 print(add(5, 3));  // 8
 ```
 
-## Closures
+## 闭包
 
-Functions capture their defining environment (lexical scoping).
+函数捕获其定义环境（词法作用域）。
 
-### Basic Closures
+### 基本闭包
 
 ```hemlock
 fn makeCounter() {
@@ -262,12 +262,12 @@ print(counter());  // 2
 print(counter());  // 3
 ```
 
-**How it works:**
-- Inner function captures `count` from outer scope
-- `count` persists across calls to the returned function
-- Each call to `makeCounter()` creates a new closure with its own `count`
+**工作原理：**
+- 内部函数从外部作用域捕获 `count`
+- `count` 在返回函数的多次调用间持久化
+- 每次调用 `makeCounter()` 都会创建一个带有自己 `count` 的新闭包
 
-### Closure with Parameters
+### 带参数的闭包
 
 ```hemlock
 fn makeAdder(x) {
@@ -283,7 +283,7 @@ print(add5(3));   // 8
 print(add10(3));  // 13
 ```
 
-### Multiple Closures
+### 多个闭包
 
 ```hemlock
 fn makeOperations(x) {
@@ -298,9 +298,9 @@ print(ops.add(3));       // 8
 print(ops.multiply(3));  // 15
 ```
 
-### Lexical Scoping
+### 词法作用域
 
-Functions can access outer scope variables through lexical scoping:
+函数可以通过词法作用域访问外部作用域变量：
 
 ```hemlock
 let global = 10;
@@ -309,7 +309,7 @@ fn outer() {
     let outer_var = 20;
 
     fn inner() {
-        // Can read global and outer_var
+        // 可以读取 global 和 outer_var
         print(global);      // 10
         print(outer_var);   // 20
     }
@@ -320,13 +320,13 @@ fn outer() {
 outer();
 ```
 
-Closures capture variables by reference, allowing both reading and mutation of outer scope variables (as shown in the `makeCounter` example above).
+闭包通过引用捕获变量，允许读取和修改外部作用域变量（如上面的 `makeCounter` 示例所示）。
 
-## Recursion
+## 递归
 
-Functions can call themselves.
+函数可以调用自身。
 
-### Basic Recursion
+### 基本递归
 
 ```hemlock
 fn factorial(n: i32): i32 {
@@ -339,9 +339,9 @@ fn factorial(n: i32): i32 {
 print(factorial(5));  // 120
 ```
 
-### Mutual Recursion
+### 互递归
 
-Functions can call each other:
+函数可以互相调用：
 
 ```hemlock
 fn is_even(n: i32): bool {
@@ -362,7 +362,7 @@ print(is_even(4));  // true
 print(is_odd(4));   // false
 ```
 
-### Recursive Data Processing
+### 递归数据处理
 
 ```hemlock
 fn sum_array(arr: array, index: i32): i32 {
@@ -376,13 +376,13 @@ let numbers = [1, 2, 3, 4, 5];
 print(sum_array(numbers, 0));  // 15
 ```
 
-**Note:** No tail call optimization yet - deep recursion may cause stack overflow.
+**注意：** 尚无尾调用优化 - 深度递归可能导致栈溢出。
 
-## Higher-Order Functions
+## 高阶函数
 
-Functions that take or return other functions.
+接受或返回其他函数的函数。
 
-### Map Pattern
+### Map 模式
 
 ```hemlock
 fn map(arr, f) {
@@ -401,7 +401,7 @@ let numbers = [1, 2, 3, 4, 5];
 let doubled = map(numbers, double);  // [2, 4, 6, 8, 10]
 ```
 
-### Filter Pattern
+### Filter 模式
 
 ```hemlock
 fn filter(arr, predicate) {
@@ -422,7 +422,7 @@ let numbers = [1, 2, 3, 4, 5, 6];
 let evens = filter(numbers, is_even);  // [2, 4, 6]
 ```
 
-### Reduce Pattern
+### Reduce 模式
 
 ```hemlock
 fn reduce(arr, f, initial) {
@@ -441,7 +441,7 @@ let numbers = [1, 2, 3, 4, 5];
 let sum = reduce(numbers, add, 0);  // 15
 ```
 
-### Function Composition
+### 函数组合
 
 ```hemlock
 fn compose(f, g) {
@@ -457,9 +457,9 @@ let double_then_increment = compose(increment, double);
 print(double_then_increment(5));  // 11 (5*2 + 1)
 ```
 
-## Common Patterns
+## 常见模式
 
-### Pattern: Factory Functions
+### 模式：工厂函数
 
 ```hemlock
 fn createPerson(name: string, age: i32) {
@@ -476,11 +476,11 @@ let person = createPerson("Alice", 30);
 print(person.greet());  // "Hi, I'm Alice"
 ```
 
-### Pattern: Callback Functions
+### 模式：回调函数
 
 ```hemlock
 fn process_async(data, callback) {
-    // ... do processing
+    // ... 处理
     callback(data);
 }
 
@@ -489,7 +489,7 @@ process_async("test", fn(result) {
 });
 ```
 
-### Pattern: Partial Application
+### 模式：部分应用
 
 ```hemlock
 fn partial(f, x) {
@@ -509,7 +509,7 @@ print(double(5));  // 10
 print(triple(5));  // 15
 ```
 
-### Pattern: Memoization
+### 模式：记忆化
 
 ```hemlock
 fn memoize(f) {
@@ -532,18 +532,18 @@ fn expensive_fibonacci(n) {
 }
 
 let fast_fib = memoize(expensive_fibonacci);
-print(fast_fib(10));  // Much faster with caching
+print(fast_fib(10));  // 使用缓存会快很多
 ```
 
-## Function Semantics
+## 函数语义
 
-### Return Type Requirements
+### 返回类型要求
 
-Functions with return type annotation **must** return a value:
+带有返回类型注解的函数**必须**返回值：
 
 ```hemlock
 fn get_value(): i32 {
-    // ERROR: Missing return statement
+    // 错误：缺少 return 语句
 }
 
 fn get_value(): i32 {
@@ -551,7 +551,7 @@ fn get_value(): i32 {
 }
 ```
 
-### Type Checking
+### 类型检查
 
 ```hemlock
 fn add(a: i32, b: i32): i32 {
@@ -559,11 +559,11 @@ fn add(a: i32, b: i32): i32 {
 }
 
 add(5, 10);        // OK
-add(5.5, 10.5);    // Promotes to f64, returns f64
-add("a", "b");     // Runtime error: type mismatch
+add(5.5, 10.5);    // 提升为 f64，返回 f64
+add("a", "b");     // 运行时错误：类型不匹配
 ```
 
-### Scope Rules
+### 作用域规则
 
 ```hemlock
 let global = "global";
@@ -573,58 +573,58 @@ fn outer() {
 
     fn inner() {
         let inner_var = "inner";
-        // Can access: inner_var, outer_var, global
+        // 可以访问：inner_var、outer_var、global
     }
 
-    // Can access: outer_var, global
-    // Cannot access: inner_var
+    // 可以访问：outer_var、global
+    // 不能访问：inner_var
 }
 
-// Can access: global
-// Cannot access: outer_var, inner_var
+// 可以访问：global
+// 不能访问：outer_var、inner_var
 ```
 
-## Best Practices
+## 最佳实践
 
-1. **Use type annotations** - Helps catch errors and documents intent
-2. **Keep functions small** - Each function should do one thing
-3. **Prefer pure functions** - Avoid side effects when possible
-4. **Name functions clearly** - Use descriptive verb names
-5. **Return early** - Use guard clauses to reduce nesting
-6. **Document complex closures** - Make captured variables explicit
-7. **Avoid deep recursion** - No tail call optimization yet
+1. **使用类型注解** - 有助于发现错误并记录意图
+2. **保持函数小巧** - 每个函数应只做一件事
+3. **优先使用纯函数** - 尽可能避免副作用
+4. **命名要清晰** - 使用描述性的动词名称
+5. **提前返回** - 使用守卫子句减少嵌套
+6. **记录复杂闭包** - 明确捕获的变量
+7. **避免深度递归** - 尚无尾调用优化
 
-## Common Pitfalls
+## 常见陷阱
 
-### Pitfall: Recursion Depth
+### 陷阱：递归深度
 
 ```hemlock
-// Deep recursion may cause stack overflow
+// 深度递归可能导致栈溢出
 fn count_down(n) {
     if (n == 0) { return; }
     count_down(n - 1);
 }
 
-count_down(100000);  // May crash with stack overflow
+count_down(100000);  // 可能因栈溢出而崩溃
 ```
 
-### Pitfall: Modifying Captured Variables
+### 陷阱：修改捕获的变量
 
 ```hemlock
 fn make_counter() {
     let count = 0;
     return fn() {
-        count = count + 1;  // Can read and modify captured variables
+        count = count + 1;  // 可以读取和修改捕获的变量
         return count;
     };
 }
 ```
 
-**Note:** This works, but be aware that all closures share the same captured environment.
+**注意：** 这是可行的，但要注意所有闭包共享同一个捕获的环境。
 
-## Examples
+## 示例
 
-### Example: Function Pipeline
+### 示例：函数管道
 
 ```hemlock
 fn pipeline(value, ...functions) {
@@ -643,7 +643,7 @@ let result = pipeline(3, double, increment, square);
 print(result);  // 49 ((3*2+1)^2)
 ```
 
-### Example: Event Handler
+### 示例：事件处理器
 
 ```hemlock
 let handlers = [];
@@ -669,11 +669,11 @@ on_event("click", fn(data) {
 trigger_event("click", "button1");
 ```
 
-### Example: Sorting with Custom Comparator
+### 示例：自定义比较器排序
 
 ```hemlock
 fn sort(arr, compare) {
-    // Bubble sort with custom comparator
+    // 使用自定义比较器的冒泡排序
     let n = arr.length;
     let i = 0;
     while (i < n) {
@@ -701,9 +701,9 @@ sort(numbers, ascending);
 print(numbers);  // [1, 2, 5, 8, 9]
 ```
 
-## Optional Parameters (Default Arguments)
+## 可选参数（默认参数）
 
-Functions can have optional parameters with default values using the `?:` syntax:
+函数可以使用 `?:` 语法定义带默认值的可选参数：
 
 ```hemlock
 fn greet(name, greeting?: "Hello") {
@@ -722,14 +722,14 @@ print(add(1, 2));       // 103 (1 + 2 + 100)
 print(add(1, 2, 3));    // 6   (1 + 2 + 3)
 ```
 
-**Rules:**
-- Optional parameters must come after required parameters
-- Default values can be any expression
-- Omitted arguments use the default value
+**规则：**
+- 可选参数必须在必需参数之后
+- 默认值可以是任何表达式
+- 省略的参数使用默认值
 
-## Variadic Functions (Rest Parameters)
+## 可变参数函数（剩余参数）
 
-Functions can accept a variable number of arguments using rest parameters (`...`):
+函数可以使用剩余参数（`...`）接受可变数量的参数：
 
 ```hemlock
 fn sum(...args) {
@@ -756,19 +756,19 @@ log("INFO", "Starting", "Running", "Done");
 // INFO: Done
 ```
 
-**Rules:**
-- Rest parameter must be the last parameter
-- Rest parameter collects all remaining arguments into an array
-- Can be combined with regular and optional parameters
+**规则：**
+- 剩余参数必须是最后一个参数
+- 剩余参数将所有剩余参数收集到一个数组中
+- 可以与普通参数和可选参数组合使用
 
-## Function Type Annotations
+## 函数类型注解
 
-Function types allow you to specify the exact signature expected for function parameters and return values:
+函数类型允许你为函数参数和返回值指定精确的签名：
 
-### Basic Function Types
+### 基本函数类型
 
 ```hemlock
-// Function type syntax: fn(param_types): return_type
+// 函数类型语法：fn(param_types): return_type
 fn apply(f: fn(i32): i32, x: i32): i32 {
     return f(x);
 }
@@ -777,10 +777,10 @@ let double = fn(n) { return n * 2; };
 let result = apply(double, 5);  // 10
 ```
 
-### Higher-Order Function Types
+### 高阶函数类型
 
 ```hemlock
-// Function returning a function
+// 返回函数的函数
 fn make_adder(n: i32): fn(i32): i32 {
     return fn(x) { return x + n; };
 }
@@ -789,10 +789,10 @@ let add5 = make_adder(5);
 print(add5(10));  // 15
 ```
 
-### Async Function Types
+### 异步函数类型
 
 ```hemlock
-// Async function type
+// 异步函数类型
 fn run_task(handler: async fn(): void) {
     spawn(handler);
 }
@@ -802,10 +802,10 @@ run_task(async fn() {
 });
 ```
 
-### Function Type Aliases
+### 函数类型别名
 
 ```hemlock
-// Create named function types for clarity
+// 创建命名函数类型以提高清晰度
 type Callback = fn(i32): void;
 type Predicate = fn(any): bool;
 type BinaryOp = fn(i32, i32): i32;
@@ -815,17 +815,17 @@ fn filter_with(arr: array, pred: Predicate): array {
 }
 ```
 
-## Const Parameters
+## Const 参数
 
-The `const` modifier prevents a parameter from being mutated within the function:
+`const` 修饰符防止在函数内修改参数：
 
-### Basic Const Parameters
+### 基本 Const 参数
 
 ```hemlock
 fn print_all(const items: array) {
-    // items.push(4);  // ERROR: cannot mutate const parameter
+    // items.push(4);  // 错误：不能修改 const 参数
     for (item in items) {
-        print(item);   // OK: reading is allowed
+        print(item);   // OK：允许读取
     }
 }
 
@@ -833,82 +833,82 @@ let nums = [1, 2, 3];
 print_all(nums);
 ```
 
-### Deep Immutability
+### 深度不可变性
 
-Const parameters enforce deep immutability - no mutation through any path:
+Const 参数强制深度不可变性 - 不能通过任何路径进行修改：
 
 ```hemlock
 fn describe(const person: object) {
-    print(person.name);       // OK: reading is allowed
-    // person.name = "Bob";   // ERROR: cannot mutate
-    // person.address.city = "NYC";  // ERROR: deep const
+    print(person.name);       // OK：允许读取
+    // person.name = "Bob";   // 错误：不能修改
+    // person.address.city = "NYC";  // 错误：深度 const
 }
 ```
 
-### What Const Prevents
+### Const 阻止的操作
 
-| Type | Blocked by Const | Allowed |
-|------|-----------------|---------|
+| 类型 | 被 Const 阻止 | 允许的 |
+|------|--------------|-------|
 | array | push, pop, shift, unshift, insert, remove, clear, reverse | slice, concat, map, filter, find, contains |
-| object | field assignment | field read |
-| buffer | index assignment | index read |
-| string | index assignment | all methods (return new strings) |
+| object | 字段赋值 | 字段读取 |
+| buffer | 索引赋值 | 索引读取 |
+| string | 索引赋值 | 所有方法（返回新字符串） |
 
-## Named Arguments
+## 命名参数
 
-Functions can be called with named arguments for clarity and flexibility:
+函数可以使用命名参数调用以提高清晰度和灵活性：
 
-### Basic Named Arguments
+### 基本命名参数
 
 ```hemlock
 fn create_user(name: string, age?: 18, active?: true) {
     print(name + " is " + age + " years old");
 }
 
-// Positional arguments (traditional)
+// 位置参数（传统方式）
 create_user("Alice", 25, false);
 
-// Named arguments - can be in any order
+// 命名参数 - 可以任意顺序
 create_user(name: "Bob", age: 30);
 create_user(age: 25, name: "Charlie", active: false);
 ```
 
-### Mixing Positional and Named
+### 混合位置参数和命名参数
 
 ```hemlock
-// Skip optional parameters by naming what you need
-create_user("David", active: false);  // Uses default age=18
+// 通过命名来跳过可选参数
+create_user("David", active: false);  // 使用默认 age=18
 
-// Named arguments must come after positional
+// 命名参数必须在位置参数之后
 create_user("Eve", age: 21);          // OK
-// create_user(name: "Bad", 25);      // ERROR: positional after named
+// create_user(name: "Bad", 25);      // 错误：位置参数在命名参数之后
 ```
 
-### Rules for Named Arguments
+### 命名参数规则
 
-- Use `name: value` syntax for named arguments
-- Named arguments can appear in any order after positional arguments
-- Positional arguments cannot follow named arguments
-- Works with default/optional parameters
-- Unknown parameter names cause runtime errors
+- 使用 `name: value` 语法表示命名参数
+- 命名参数可以在位置参数之后以任意顺序出现
+- 位置参数不能跟在命名参数之后
+- 与默认/可选参数配合使用
+- 未知的参数名会导致运行时错误
 
-## Limitations
+## 限制
 
-Current limitations to be aware of:
+需要注意的当前限制：
 
-- **No pass-by-reference** - `ref` keyword parsed but not implemented
-- **No function overloading** - One function per name
-- **No tail call optimization** - Deep recursion limited by stack size
+- **无按引用传递** - `ref` 关键字已解析但未实现
+- **无函数重载** - 每个名称只能有一个函数
+- **无尾调用优化** - 深度递归受栈大小限制
 
-## Related Topics
+## 相关主题
 
-- [Control Flow](control-flow.md) - Using functions with control structures
-- [Objects](objects.md) - Methods are functions stored in objects
-- [Error Handling](error-handling.md) - Functions and exception handling
-- [Types](types.md) - Type annotations and conversions
+- [Control Flow](control-flow.md) - 函数与控制结构的配合使用
+- [Objects](objects.md) - 方法是存储在对象中的函数
+- [Error Handling](error-handling.md) - 函数和异常处理
+- [Types](types.md) - 类型注解和转换
 
-## See Also
+## 另请参阅
 
-- **Closures**: See CLAUDE.md section "Functions" for closure semantics
-- **First-Class Values**: Functions are values like any other
-- **Lexical Scoping**: Functions capture their defining environment
+- **闭包**：参见 CLAUDE.md 中的"Functions"部分了解闭包语义
+- **一等公民**：函数是与其他值一样的值
+- **词法作用域**：函数捕获其定义环境

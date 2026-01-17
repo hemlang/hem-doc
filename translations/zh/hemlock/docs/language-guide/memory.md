@@ -1,396 +1,396 @@
-# Memory Management
+# 内存管理
 
-Hemlock embraces **manual memory management** with explicit control over allocation and deallocation. This guide covers Hemlock's memory model, the two pointer types, and the complete memory API.
+Hemlock 采用**手动内存管理**，对分配和释放有显式控制。本指南涵盖 Hemlock 的内存模型、两种指针类型以及完整的内存 API。
 
 ---
 
-## Memory 101: The Basics
+## 内存基础 101
 
-**New to programming?** Start here. If you already understand memory management, skip to [Philosophy](#philosophy).
+**编程新手？** 从这里开始。如果你已经理解内存管理，可以跳到 [设计理念](#设计理念)。
 
-### What is Memory Management?
+### 什么是内存管理？
 
-When your program needs to store data (text, numbers, lists), it needs space to put it. That space comes from your computer's memory (RAM). Memory management is about:
+当你的程序需要存储数据（文本、数字、列表）时，它需要空间来放置这些数据。这个空间来自计算机的内存（RAM）。内存管理涉及：
 
-1. **Getting space** - asking for memory when you need it
-2. **Using space** - reading and writing your data
-3. **Giving it back** - returning memory when you're done
+1. **获取空间** - 需要时请求内存
+2. **使用空间** - 读写数据
+3. **归还空间** - 完成后返还内存
 
-### Why Does It Matter?
+### 为什么重要？
 
-Imagine a library with limited books:
-- If you keep checking out books and never return them, eventually there are none left
-- If you try to read a book you already returned, you'll get confused or cause problems
+想象一个书籍有限的图书馆：
+- 如果你不断借书却从不归还，最终就没有书可借了
+- 如果你试图阅读已经归还的书，会产生混乱或问题
 
-Memory works the same way. If you forget to return memory, your program slowly uses more and more (a "memory leak"). If you try to use memory after returning it, bad things happen.
+内存的工作方式相同。如果你忘记归还内存，程序会逐渐使用越来越多的内存（"内存泄漏"）。如果你在归还后尝试使用内存，会发生糟糕的事情。
 
-### The Good News
+### 好消息
 
-**Most of the time, you don't need to think about this!**
+**大多数时候，你不需要考虑这些！**
 
-Hemlock automatically cleans up most common types:
+Hemlock 自动清理大多数常见类型：
 
 ```hemlock
 fn example() {
-    let name = "Alice";       // Hemlock manages this
-    let numbers = [1, 2, 3];  // And this
-    let person = { age: 30 }; // And this too
+    let name = "Alice";       // Hemlock 管理这个
+    let numbers = [1, 2, 3];  // 还有这个
+    let person = { age: 30 }; // 还有这个
 
-    // When the function ends, all of this is cleaned up automatically!
+    // 函数结束时，所有这些都自动清理！
 }
 ```
 
-### When You DO Need to Think About It
+### 何时需要考虑
 
-You only need manual memory management when using:
+只有在使用以下情况时才需要手动内存管理：
 
-1. **`alloc()`** - raw memory allocation (returns `ptr`)
-2. **`buffer()`** - when you want to free early (optional - it auto-frees at scope end)
+1. **`alloc()`** - 原始内存分配（返回 `ptr`）
+2. **`buffer()`** - 当你想提前释放时（可选 - 作用域结束时自动释放）
 
 ```hemlock
-// This needs manual cleanup:
-let raw = alloc(100);   // Raw memory - YOU must free it
-// ... use raw ...
-free(raw);              // Required! Or you have a memory leak
+// 这需要手动清理：
+let raw = alloc(100);   // 原始内存 - 你必须释放它
+// ... 使用 raw ...
+free(raw);              // 必需！否则会有内存泄漏
 
-// This cleans up automatically (but you CAN free early):
-let buf = buffer(100);  // Safe buffer
-// ... use buf ...
-// free(buf);           // Optional - will auto-free when scope ends
+// 这自动清理（但你可以提前释放）：
+let buf = buffer(100);  // 安全 buffer
+// ... 使用 buf ...
+// free(buf);           // 可选 - 作用域结束时自动释放
 ```
 
-### The Simple Rule
+### 简单规则
 
-> **If you call `alloc()`, you must call `free()`.**
+> **如果你调用 `alloc()`，你必须调用 `free()`。**
 >
-> Everything else is handled for you.
+> 其他一切都会为你处理。
 
-### Which Should You Use?
+### 应该使用哪个？
 
-| Situation | Use This | Why |
+| 场景 | 使用这个 | 原因 |
 |-----------|----------|-----|
-| **Just starting out** | `buffer()` | Safe, bounds-checked, auto-cleanup |
-| **Need byte storage** | `buffer()` | Safe and easy |
-| **Working with C libraries (FFI)** | `alloc()` / `ptr` | Required for C interop |
-| **Maximum performance** | `alloc()` / `ptr` | No bounds checking overhead |
-| **Not sure** | `buffer()` | Always the safer choice |
+| **刚开始学习** | `buffer()` | 安全、有边界检查、自动清理 |
+| **需要字节存储** | `buffer()` | 安全且简单 |
+| **与 C 库交互（FFI）** | `alloc()` / `ptr` | C 互操作必需 |
+| **最大性能** | `alloc()` / `ptr` | 无边界检查开销 |
+| **不确定** | `buffer()` | 总是更安全的选择 |
 
-### Quick Example: Safe vs Raw
+### 快速示例：安全与原始
 
 ```hemlock
-// RECOMMENDED: Safe buffer
+// 推荐：安全 buffer
 fn safe_example() {
     let data = buffer(10);
-    data[0] = 65;           // OK
-    data[5] = 66;           // OK
-    // data[100] = 67;      // ERROR - Hemlock stops you (bounds check)
-    free(data);             // Clean up
+    data[0] = 65;           // 正确
+    data[5] = 66;           // 正确
+    // data[100] = 67;      // 错误 - Hemlock 阻止你（边界检查）
+    free(data);             // 清理
 }
 
-// ADVANCED: Raw pointer (only when you need it)
+// 高级：原始指针（仅在需要时使用）
 fn raw_example() {
     let data = alloc(10);
-    *data = 65;             // OK
-    *(data + 5) = 66;       // OK
-    *(data + 100) = 67;     // DANGER - No bounds check, corrupts memory!
-    free(data);             // Clean up
+    *data = 65;             // 正确
+    *(data + 5) = 66;       // 正确
+    *(data + 100) = 67;     // 危险 - 无边界检查，破坏内存！
+    free(data);             // 清理
 }
 ```
 
-**Start with `buffer()`. Only use `alloc()` when you specifically need raw pointers.**
+**从 `buffer()` 开始。只有在特别需要原始指针时才使用 `alloc()`。**
 
 ---
 
-## Philosophy
+## 设计理念
 
-Hemlock follows the principle of explicit memory management with sensible defaults:
-- No garbage collection (no unpredictable pauses)
-- Internal refcounting for common types (string, array, object, buffer)
-- Raw pointers (`ptr`) require manual `free()`
+Hemlock 遵循显式内存管理与合理默认值的原则：
+- 无垃圾回收（无不可预测的暂停）
+- 常见类型的内部引用计数（string, array, object, buffer）
+- 原始指针（`ptr`）需要手动 `free()`
 
-This hybrid approach gives you complete control when needed (raw pointers) while preventing common bugs for typical use cases (refcounted types auto-freed on scope exit).
+这种混合方法在需要时给你完全控制（原始指针），同时防止典型用例的常见错误（引用计数类型在作用域退出时自动释放）。
 
-## Internal Reference Counting
+## 内部引用计数
 
-The runtime uses **internal reference counting** to manage object lifetimes. For most local variables of refcounted types, cleanup is automatic and deterministic.
+运行时使用**内部引用计数**来管理对象生命周期。对于大多数引用计数类型的局部变量，清理是自动且确定性的。
 
-### What Reference Counting Handles
+### 引用计数处理什么
 
-The runtime automatically manages reference counts when:
+运行时在以下情况自动管理引用计数：
 
-1. **Variables are reassigned** - the old value is released:
+1. **变量重新赋值** - 旧值被释放：
    ```hemlock
    let x = "first";   // ref_count = 1
-   x = "second";      // "first" released internally, "second" ref_count = 1
+   x = "second";      // "first" 内部释放，"second" ref_count = 1
    ```
 
-2. **Scopes exit** - local variables are released:
+2. **作用域退出** - 局部变量被释放：
    ```hemlock
    fn example() {
        let arr = [1, 2, 3];  // ref_count = 1
-   }  // arr released when function returns
+   }  // 函数返回时 arr 被释放
    ```
 
-3. **Containers are freed** - elements are released:
+3. **容器被释放** - 元素被释放：
    ```hemlock
    let arr = [obj1, obj2];
-   free(arr);  // obj1 and obj2 get their ref_counts decremented
+   free(arr);  // obj1 和 obj2 的 ref_count 递减
    ```
 
-### When You Need `free()` vs When It's Automatic
+### 何时需要 `free()` vs 何时自动
 
-**Automatic (no `free()` needed):** Local variables of refcounted types are freed when scope exits:
+**自动（不需要 `free()`）：** 引用计数类型的局部变量在作用域退出时释放：
 
 ```hemlock
 fn process_data() {
     let arr = [1, 2, 3];
     let obj = { name: "test" };
     let buf = buffer(64);
-    // ... use them ...
-}  // All automatically freed when function returns - no free() needed
+    // ... 使用它们 ...
+}  // 函数返回时全部自动释放 - 不需要 free()
 ```
 
-**Manual `free()` required:**
+**需要手动 `free()`：**
 
-1. **Raw pointers** - `alloc()` has no refcounting:
+1. **原始指针** - `alloc()` 没有引用计数：
    ```hemlock
    let p = alloc(64);
-   // ... use p ...
-   free(p);  // Always required - will leak otherwise
+   // ... 使用 p ...
+   free(p);  // 总是需要 - 否则会泄漏
    ```
 
-2. **Early cleanup** - free before scope ends to release memory sooner:
+2. **提前清理** - 在作用域结束前释放以更早释放内存：
    ```hemlock
    fn long_running() {
        let big = buffer(10000000);  // 10MB
-       // ... done with big ...
-       free(big);  // Free now, don't wait for function to return
-       // ... more work that doesn't need big ...
+       // ... 用完 big ...
+       free(big);  // 现在释放，不等函数返回
+       // ... 更多不需要 big 的工作 ...
    }
    ```
 
-3. **Long-lived data** - globals or data stored in persistent structures:
+3. **长期存活的数据** - 全局数据或存储在持久结构中的数据：
    ```hemlock
-   let cache = {};  // Module-level, lives until program exit unless freed
+   let cache = {};  // 模块级别，除非释放否则存活到程序退出
 
    fn cleanup() {
-       free(cache);  // Manual cleanup for long-lived data
+       free(cache);  // 长期存活数据的手动清理
    }
    ```
 
-### Refcounting vs Garbage Collection
+### 引用计数 vs 垃圾回收
 
-| Aspect | Hemlock Refcounting | Garbage Collection |
+| 方面 | Hemlock 引用计数 | 垃圾回收 |
 |--------|---------------------|-------------------|
-| Cleanup timing | Deterministic (immediate when ref hits 0) | Non-deterministic (GC decides when) |
-| User responsibility | Must call `free()` | Fully automatic |
-| Runtime pauses | None | "Stop the world" pauses |
-| Visibility | Hidden implementation detail | Usually invisible |
-| Cycles | Handled with visited-set tracking | Handled by tracing |
+| 清理时机 | 确定性（ref 为 0 时立即清理） | 非确定性（GC 决定何时） |
+| 用户责任 | 必须调用 `free()` | 完全自动 |
+| 运行时暂停 | 无 | "停止世界"暂停 |
+| 可见性 | 隐藏的实现细节 | 通常不可见 |
+| 循环引用 | 通过 visited-set 跟踪处理 | 通过追踪处理 |
 
-### Which Types Have Refcounting
+### 哪些类型有引用计数
 
-| Type | Refcounted | Notes |
+| 类型 | 引用计数 | 备注 |
 |------|------------|-------|
-| `ptr` | ❌ No | Always requires manual `free()` |
-| `buffer` | ✅ Yes | Auto-freed on scope exit; manual `free()` for early cleanup |
-| `array` | ✅ Yes | Auto-freed on scope exit; manual `free()` for early cleanup |
-| `object` | ✅ Yes | Auto-freed on scope exit; manual `free()` for early cleanup |
-| `string` | ✅ Yes | Fully automatic, no `free()` needed |
-| `function` | ✅ Yes | Fully automatic (closure environments) |
-| `task` | ✅ Yes | Thread-safe atomic refcounting |
-| `channel` | ✅ Yes | Thread-safe atomic refcounting |
-| Primitives | ❌ No | Stack-allocated, no heap allocation |
+| `ptr` | 否 | 总是需要手动 `free()` |
+| `buffer` | 是 | 作用域退出时自动释放；手动 `free()` 用于提前清理 |
+| `array` | 是 | 作用域退出时自动释放；手动 `free()` 用于提前清理 |
+| `object` | 是 | 作用域退出时自动释放；手动 `free()` 用于提前清理 |
+| `string` | 是 | 完全自动，不需要 `free()` |
+| `function` | 是 | 完全自动（闭包环境） |
+| `task` | 是 | 线程安全的原子引用计数 |
+| `channel` | 是 | 线程安全的原子引用计数 |
+| 基本类型 | 否 | 栈分配，无堆分配 |
 
-### Why This Design?
+### 为什么这样设计？
 
-This hybrid approach gives you:
-- **Explicit control** - You decide when to deallocate
-- **Safety from scope bugs** - Reassignment doesn't leak
-- **Predictable performance** - No GC pauses
-- **Closure support** - Functions can safely capture variables
+这种混合方法给你：
+- **显式控制** - 你决定何时释放
+- **作用域错误安全** - 重新赋值不会泄漏
+- **可预测性能** - 无 GC 暂停
+- **闭包支持** - 函数可以安全捕获变量
 
-The philosophy remains: you're in control, but the runtime helps prevent common bugs like leaking on reassignment or double-freeing in containers.
+理念保持不变：你在控制，但运行时帮助防止常见错误，如重新赋值时的泄漏或容器中的双重释放。
 
-## The Two Pointer Types
+## 两种指针类型
 
-Hemlock provides two distinct pointer types, each with different safety characteristics:
+Hemlock 提供两种不同的指针类型，具有不同的安全特性：
 
-### `ptr` - Raw Pointer (Dangerous)
+### `ptr` - 原始指针（危险）
 
-Raw pointers are **just addresses** with minimal safety guarantees:
+原始指针**只是地址**，安全保证最少：
 
 ```hemlock
 let p: ptr = alloc(64);
 memset(p, 0, 64);
-free(p);  // You must remember to free
+free(p);  // 你必须记得释放
 ```
 
-**Characteristics:**
-- Just an 8-byte address
-- No bounds checking
-- No length tracking
-- User manages lifetime entirely
-- For experts and FFI
+**特性：**
+- 只是一个 8 字节地址
+- 无边界检查
+- 无长度跟踪
+- 用户完全管理生命周期
+- 适合专家和 FFI
 
-**Use cases:**
-- Low-level system programming
-- Foreign Function Interface (FFI)
-- Performance-critical code
-- When you need complete control
+**使用场景：**
+- 底层系统编程
+- 外部函数接口（FFI）
+- 性能关键代码
+- 需要完全控制时
 
-**Dangers:**
+**危险：**
 ```hemlock
 let p = alloc(10);
-let q = p + 100;  // Way past allocation - allowed but dangerous
+let q = p + 100;  // 远超分配范围 - 允许但危险
 free(p);
-let x = *p;       // Dangling pointer - undefined behavior
-free(p);          // Double-free - will crash
+let x = *p;       // 悬空指针 - 未定义行为
+free(p);          // 双重释放 - 会崩溃
 ```
 
-### `buffer` - Safe Wrapper (Recommended)
+### `buffer` - 安全包装（推荐）
 
-Buffers provide **bounds-checked access** while still requiring manual deallocation:
+Buffer 提供**边界检查访问**，同时仍需要手动释放：
 
 ```hemlock
 let b: buffer = buffer(64);
-b[0] = 65;              // bounds checked
+b[0] = 65;              // 边界检查
 print(b.length);        // 64
-free(b);                // still manual
+free(b);                // 仍然是手动的
 ```
 
-**Characteristics:**
-- Pointer + length + capacity
-- Bounds checked on access
-- Still requires manual `free()`
-- Better default for most code
+**特性：**
+- 指针 + 长度 + 容量
+- 访问时边界检查
+- 仍需要手动 `free()`
+- 大多数代码的更好默认选择
 
-**Properties:**
+**属性：**
 ```hemlock
 let buf = buffer(100);
-print(buf.length);      // 100 (current size)
-print(buf.capacity);    // 100 (allocated capacity)
+print(buf.length);      // 100（当前大小）
+print(buf.capacity);    // 100（分配的容量）
 ```
 
-**Bounds checking:**
+**边界检查：**
 ```hemlock
 let buf = buffer(10);
-buf[5] = 42;      // OK
-buf[100] = 42;    // ERROR: Index out of bounds
+buf[5] = 42;      // 正确
+buf[100] = 42;    // 错误：索引越界
 ```
 
-## Memory API
+## 内存 API
 
-### Core Allocation
+### 核心分配
 
-**`alloc(bytes)` - Allocate raw memory**
+**`alloc(bytes)` - 分配原始内存**
 ```hemlock
-let p = alloc(1024);  // Allocate 1KB, returns ptr
-// ... use memory
+let p = alloc(1024);  // 分配 1KB，返回 ptr
+// ... 使用内存
 free(p);
 ```
 
-**`buffer(size)` - Allocate safe buffer**
+**`buffer(size)` - 分配安全 buffer**
 ```hemlock
-let buf = buffer(256);  // Allocate 256-byte buffer
+let buf = buffer(256);  // 分配 256 字节 buffer
 buf[0] = 65;            // 'A'
 buf[1] = 66;            // 'B'
 free(buf);
 ```
 
-**`free(ptr)` - Free memory**
+**`free(ptr)` - 释放内存**
 ```hemlock
 let p = alloc(100);
-free(p);  // Must free to avoid memory leak
+free(p);  // 必须释放以避免内存泄漏
 
 let buf = buffer(100);
-free(buf);  // Works on both ptr and buffer
+free(buf);  // 对 ptr 和 buffer 都有效
 ```
 
-**Important:** `free()` works on both `ptr` and `buffer` types.
+**重要：** `free()` 对 `ptr` 和 `buffer` 类型都有效。
 
-### Memory Operations
+### 内存操作
 
-**`memset(ptr, byte, size)` - Fill memory**
+**`memset(ptr, byte, size)` - 填充内存**
 ```hemlock
 let p = alloc(100);
-memset(p, 0, 100);     // Zero out 100 bytes
-memset(p, 65, 10);     // Fill first 10 bytes with 'A'
+memset(p, 0, 100);     // 将 100 字节清零
+memset(p, 65, 10);     // 将前 10 字节填充为 'A'
 free(p);
 ```
 
-**`memcpy(dest, src, size)` - Copy memory**
+**`memcpy(dest, src, size)` - 复制内存**
 ```hemlock
 let src = alloc(50);
 let dst = alloc(50);
 memset(src, 42, 50);
-memcpy(dst, src, 50);  // Copy 50 bytes from src to dst
+memcpy(dst, src, 50);  // 从 src 复制 50 字节到 dst
 free(src);
 free(dst);
 ```
 
-**`realloc(ptr, size)` - Resize allocation**
+**`realloc(ptr, size)` - 调整分配大小**
 ```hemlock
 let p = alloc(100);
-// ... use 100 bytes
-p = realloc(p, 200);   // Resize to 200 bytes
-// ... use 200 bytes
+// ... 使用 100 字节
+p = realloc(p, 200);   // 调整为 200 字节
+// ... 使用 200 字节
 free(p);
 ```
 
-**Note:** After `realloc()`, the old pointer may be invalid. Always use the returned pointer.
+**注意：** `realloc()` 后，旧指针可能无效。始终使用返回的指针。
 
-### Typed Allocation
+### 类型化分配
 
-Hemlock provides typed allocation helpers for convenience:
+Hemlock 提供类型化分配辅助函数以方便使用：
 
 ```hemlock
-let arr = talloc(i32, 100);  // Allocate 100 i32 values (400 bytes)
-let size = sizeof(i32);      // Returns 4 (bytes)
+let arr = talloc(i32, 100);  // 分配 100 个 i32 值（400 字节）
+let size = sizeof(i32);      // 返回 4（字节）
 ```
 
-**`sizeof(type)`** returns the size in bytes of a type:
-- `sizeof(i8)` / `sizeof(u8)` → 1
-- `sizeof(i16)` / `sizeof(u16)` → 2
-- `sizeof(i32)` / `sizeof(u32)` / `sizeof(f32)` → 4
-- `sizeof(i64)` / `sizeof(u64)` / `sizeof(f64)` → 8
-- `sizeof(ptr)` → 8 (on 64-bit systems)
+**`sizeof(type)`** 返回类型的字节大小：
+- `sizeof(i8)` / `sizeof(u8)` -> 1
+- `sizeof(i16)` / `sizeof(u16)` -> 2
+- `sizeof(i32)` / `sizeof(u32)` / `sizeof(f32)` -> 4
+- `sizeof(i64)` / `sizeof(u64)` / `sizeof(f64)` -> 8
+- `sizeof(ptr)` -> 8（64 位系统）
 
-**`talloc(type, count)`** allocates `count` elements of `type`:
+**`talloc(type, count)`** 分配 `count` 个 `type` 类型的元素：
 
 ```hemlock
-let ints = talloc(i32, 10);   // 40 bytes for 10 i32 values
-let floats = talloc(f64, 5);  // 40 bytes for 5 f64 values
+let ints = talloc(i32, 10);   // 40 字节用于 10 个 i32 值
+let floats = talloc(f64, 5);  // 40 字节用于 5 个 f64 值
 free(ints);
 free(floats);
 ```
 
-## Common Patterns
+## 常见模式
 
-### Pattern: Allocate, Use, Free
+### 模式：分配、使用、释放
 
-The basic pattern for memory management:
+内存管理的基本模式：
 
 ```hemlock
-// 1. Allocate
+// 1. 分配
 let data = alloc(1024);
 
-// 2. Use
+// 2. 使用
 memset(data, 0, 1024);
-// ... do work
+// ... 做工作
 
-// 3. Free
+// 3. 释放
 free(data);
 ```
 
-### Pattern: Safe Buffer Usage
+### 模式：安全 Buffer 使用
 
-Prefer buffers for bounds-checked access:
+优先使用 buffer 进行边界检查访问：
 
 ```hemlock
 let buf = buffer(256);
 
-// Safe iteration
+// 安全迭代
 let i = 0;
 while (i < buf.length) {
     buf[i] = i;
@@ -400,105 +400,105 @@ while (i < buf.length) {
 free(buf);
 ```
 
-### Pattern: Resource Management with try/finally
+### 模式：使用 try/finally 管理资源
 
-Ensure cleanup even on errors:
+即使出错也确保清理：
 
 ```hemlock
 let data = alloc(1024);
 try {
-    // ... risky operations
+    // ... 风险操作
     process(data);
 } finally {
-    free(data);  // Always freed, even on error
+    free(data);  // 即使出错也会释放
 }
 ```
 
-## Memory Safety Considerations
+## 内存安全注意事项
 
-### Double-Free
+### 双重释放
 
-**Allowed but will crash:**
+**允许但会崩溃：**
 ```hemlock
 let p = alloc(100);
 free(p);
-free(p);  // CRASH: Double-free detected
+free(p);  // 崩溃：检测到双重释放
 ```
 
-**Prevention:**
+**预防：**
 ```hemlock
 let p = alloc(100);
 free(p);
-p = null;  // Set to null after freeing
+p = null;  // 释放后设为 null
 
 if (p != null) {
-    free(p);  // Won't execute
+    free(p);  // 不会执行
 }
 ```
 
-### Dangling Pointers
+### 悬空指针
 
-**Allowed but undefined behavior:**
+**允许但未定义行为：**
 ```hemlock
 let p = alloc(100);
-*p = 42;      // OK
+*p = 42;      // 正确
 free(p);
-let x = *p;   // UNDEFINED: Reading freed memory
+let x = *p;   // 未定义：读取已释放内存
 ```
 
-**Prevention:** Don't access memory after freeing.
+**预防：** 释放后不要访问内存。
 
-### Memory Leaks
+### 内存泄漏
 
-**Easy to create, hard to debug:**
+**容易创建，难以调试：**
 ```hemlock
 fn leak_memory() {
     let p = alloc(1000);
-    // Forgot to free!
-    return;  // Memory leaked
+    // 忘记释放！
+    return;  // 内存泄漏
 }
 ```
 
-**Prevention:** Always pair `alloc()` with `free()`:
+**预防：** 始终将 `alloc()` 与 `free()` 配对：
 ```hemlock
 fn safe_function() {
     let p = alloc(1000);
     try {
-        // ... use p
+        // ... 使用 p
     } finally {
-        free(p);  // Always freed
+        free(p);  // 总是释放
     }
 }
 ```
 
-### Pointer Arithmetic
+### 指针算术
 
-**Allowed but dangerous:**
+**允许但危险：**
 ```hemlock
 let p = alloc(10);
-let q = p + 100;  // Way past allocation boundary
-*q = 42;          // UNDEFINED: Out of bounds write
+let q = p + 100;  // 远超分配边界
+*q = 42;          // 未定义：越界写入
 free(p);
 ```
 
-**Use buffers for bounds checking:**
+**使用 buffer 进行边界检查：**
 ```hemlock
 let buf = buffer(10);
-buf[100] = 42;  // ERROR: Bounds check prevents overflow
+buf[100] = 42;  // 错误：边界检查阻止溢出
 ```
 
-## Best Practices
+## 最佳实践
 
-1. **Default to `buffer`** - Use `buffer` unless you specifically need raw `ptr`
-2. **Match alloc/free** - Every `alloc()` should have exactly one `free()`
-3. **Use try/finally** - Ensure cleanup with exception handling
-4. **Null after free** - Set pointers to `null` after freeing to catch use-after-free
-5. **Bounds check** - Use buffer indexing for automatic bounds checking
-6. **Document ownership** - Make clear which code owns and frees each allocation
+1. **默认使用 `buffer`** - 除非特别需要原始 `ptr` 否则使用 `buffer`
+2. **匹配 alloc/free** - 每个 `alloc()` 应该有且仅有一个 `free()`
+3. **使用 try/finally** - 使用异常处理确保清理
+4. **释放后置空** - 释放后将指针设为 `null` 以捕获释放后使用
+5. **边界检查** - 使用 buffer 索引进行自动边界检查
+6. **记录所有权** - 明确哪些代码拥有并释放每个分配
 
-## Examples
+## 示例
 
-### Example: Dynamic String Builder
+### 示例：动态字符串构建器
 
 ```hemlock
 fn build_message(count: i32): ptr {
@@ -511,44 +511,44 @@ fn build_message(count: i32): ptr {
         i = i + 1;
     }
 
-    return buf;  // Caller must free
+    return buf;  // 调用者必须释放
 }
 
 let msg = build_message(5);
-// ... use msg
+// ... 使用 msg
 free(msg);
 ```
 
-### Example: Safe Array Operations
+### 示例：安全数组操作
 
 ```hemlock
 fn process_array(size: i32) {
     let arr = buffer(size);
 
     try {
-        // Fill array
+        // 填充数组
         let i = 0;
         while (i < arr.length) {
             arr[i] = i * 2;
             i = i + 1;
         }
 
-        // Process
+        // 处理
         i = 0;
         while (i < arr.length) {
             print(arr[i]);
             i = i + 1;
         }
     } finally {
-        free(arr);  // Always cleanup
+        free(arr);  // 总是清理
     }
 }
 ```
 
-### Example: Memory Pool Pattern
+### 示例：内存池模式
 
 ```hemlock
-// Simple memory pool (simplified)
+// 简单内存池（简化版）
 let pool = alloc(10000);
 let pool_offset = 0;
 
@@ -562,32 +562,32 @@ fn pool_alloc(size: i32): ptr {
     return ptr;
 }
 
-// Use pool
+// 使用池
 let p1 = pool_alloc(100);
 let p2 = pool_alloc(200);
 
-// Free entire pool at once
+// 一次性释放整个池
 free(pool);
 ```
 
-## Limitations
+## 限制
 
-Current limitations to be aware of:
+需要注意的当前限制：
 
-- **Raw pointers require manual free** - `alloc()` returns `ptr` with no refcounting
-- **No custom allocators** - Only system malloc/free
+- **原始指针需要手动释放** - `alloc()` 返回没有引用计数的 `ptr`
+- **无自定义分配器** - 只有系统 malloc/free
 
-**Note:** Refcounted types (string, array, object, buffer) ARE automatically freed when scope exits. Only raw `ptr` from `alloc()` requires explicit `free()`.
+**注意：** 引用计数类型（string, array, object, buffer）在作用域退出时自动释放。只有来自 `alloc()` 的原始 `ptr` 需要显式 `free()`。
 
-## Related Topics
+## 相关主题
 
-- [Strings](strings.md) - String memory management and UTF-8 encoding
-- [Arrays](arrays.md) - Dynamic arrays and their memory characteristics
-- [Objects](objects.md) - Object allocation and lifetime
-- [Error Handling](error-handling.md) - Using try/finally for cleanup
+- [字符串](strings.md) - 字符串内存管理和 UTF-8 编码
+- [数组](arrays.md) - 动态数组及其内存特性
+- [对象](objects.md) - 对象分配和生命周期
+- [错误处理](error-handling.md) - 使用 try/finally 进行清理
 
-## See Also
+## 另请参阅
 
-- **Design Philosophy**: See CLAUDE.md section "Memory Management"
-- **Type System**: See [Types](types.md) for `ptr` and `buffer` type details
-- **FFI**: Raw pointers are essential for Foreign Function Interface
+- **设计理念**：参见 CLAUDE.md 中的 "Memory Management" 部分
+- **类型系统**：参见 [类型](types.md) 了解 `ptr` 和 `buffer` 类型详情
+- **FFI**：原始指针对外部函数接口至关重要

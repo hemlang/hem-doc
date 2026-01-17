@@ -1,18 +1,18 @@
-# Error Handling
+# 错误处理
 
-Hemlock supports exception-based error handling with `try`, `catch`, `finally`, `throw`, and `panic`. This guide covers recoverable errors with exceptions and unrecoverable errors with panic.
+Hemlock 通过 `try`、`catch`、`finally`、`throw` 和 `panic` 支持基于异常的错误处理。本指南涵盖了使用异常处理可恢复错误以及使用 panic 处理不可恢复错误的内容。
 
-## Overview
+## 概述
 
 ```hemlock
-// Basic error handling
+// 基本错误处理
 try {
     risky_operation();
 } catch (e) {
     print("Error: " + e);
 }
 
-// With cleanup
+// 带清理操作
 try {
     process_file();
 } catch (e) {
@@ -21,7 +21,7 @@ try {
     cleanup();
 }
 
-// Throwing errors
+// 抛出错误
 fn divide(a, b) {
     if (b == 0) {
         throw "division by zero";
@@ -32,98 +32,98 @@ fn divide(a, b) {
 
 ## Try-Catch-Finally
 
-### Syntax
+### 语法
 
-**Basic try/catch:**
+**基本 try/catch：**
 ```hemlock
 try {
-    // risky code
+    // 有风险的代码
 } catch (e) {
-    // handle error, e contains the thrown value
+    // 处理错误，e 包含抛出的值
 }
 ```
 
-**Try/finally:**
+**Try/finally：**
 ```hemlock
 try {
-    // risky code
+    // 有风险的代码
 } finally {
-    // always executes, even if exception thrown
+    // 始终执行，即使抛出异常
 }
 ```
 
-**Try/catch/finally:**
+**Try/catch/finally：**
 ```hemlock
 try {
-    // risky code
+    // 有风险的代码
 } catch (e) {
-    // handle error
+    // 处理错误
 } finally {
-    // cleanup code
+    // 清理代码
 }
 ```
 
-### Try Block
+### Try 块
 
-The try block executes statements sequentially:
+try 块按顺序执行语句：
 
 ```hemlock
 try {
     print("Starting...");
     risky_operation();
-    print("Success!");  // Only if no exception
+    print("Success!");  // 仅在没有异常时执行
 }
 ```
 
-**Behavior:**
-- Executes statements in order
-- If exception thrown: jumps to `catch` or `finally`
-- If no exception: executes `finally` (if present) then continues
+**行为：**
+- 按顺序执行语句
+- 如果抛出异常：跳转到 `catch` 或 `finally`
+- 如果没有异常：执行 `finally`（如果存在）然后继续
 
-### Catch Block
+### Catch 块
 
-The catch block receives the thrown value:
+catch 块接收抛出的值：
 
 ```hemlock
 try {
     throw "oops";
 } catch (error) {
     print("Caught: " + error);  // error = "oops"
-    // error only accessible here
+    // error 只能在这里访问
 }
-// error not accessible here
+// error 在这里无法访问
 ```
 
-**Catch parameter:**
-- Receives the thrown value (any type)
-- Scoped to the catch block
-- Can be named anything (conventionally `e`, `err`, or `error`)
+**Catch 参数：**
+- 接收抛出的值（任意类型）
+- 作用域仅限于 catch 块
+- 可以命名为任何名称（通常使用 `e`、`err` 或 `error`）
 
-**What you can do in catch:**
+**在 catch 中可以做的事情：**
 ```hemlock
 try {
     risky_operation();
 } catch (e) {
-    // Log the error
+    // 记录错误
     print("Error: " + e);
 
-    // Re-throw same error
+    // 重新抛出相同错误
     throw e;
 
-    // Throw different error
+    // 抛出不同错误
     throw "different error";
 
-    // Return a default value
+    // 返回默认值
     return null;
 
-    // Handle and continue
-    // (no re-throw)
+    // 处理并继续
+    // （不重新抛出）
 }
 ```
 
-### Finally Block
+### Finally 块
 
-The finally block **always executes**:
+finally 块**始终执行**：
 
 ```hemlock
 try {
@@ -132,26 +132,26 @@ try {
 } catch (e) {
     print("2: catch");
 } finally {
-    print("3: finally");  // Always runs
+    print("3: finally");  // 始终运行
 }
 print("4: after");
 
-// Output: 1: try, 2: catch, 3: finally, 4: after
+// 输出：1: try, 2: catch, 3: finally, 4: after
 ```
 
-**When finally runs:**
-- After try block (if no exception)
-- After catch block (if exception caught)
-- Even if try/catch contains `return`, `break`, or `continue`
-- Before control flow exits the try/catch
+**finally 何时运行：**
+- 在 try 块之后（如果没有异常）
+- 在 catch 块之后（如果捕获了异常）
+- 即使 try/catch 包含 `return`、`break` 或 `continue`
+- 在控制流退出 try/catch 之前
 
-**Finally with return:**
+**Finally 与 return：**
 ```hemlock
 fn example() {
     try {
-        return 1;  // ✅ Returns 1 after finally runs
+        return 1;  // 在 finally 运行后返回 1
     } finally {
-        print("cleanup");  // Runs before returning
+        print("cleanup");  // 在返回之前运行
     }
 }
 
@@ -159,17 +159,17 @@ fn example2() {
     try {
         return 1;
     } finally {
-        return 2;  // ⚠️ Finally return overrides - returns 2
+        return 2;  // finally 的 return 覆盖原值 - 返回 2
     }
 }
 ```
 
-**Finally with control flow:**
+**Finally 与控制流：**
 ```hemlock
 for (let i = 0; i < 10; i = i + 1) {
     try {
         if (i == 5) {
-            break;  // ✅ Breaks after finally runs
+            break;  // 在 finally 运行后 break
         }
     } finally {
         print("cleanup " + typeof(i));
@@ -177,11 +177,11 @@ for (let i = 0; i < 10; i = i + 1) {
 }
 ```
 
-## Throw Statement
+## Throw 语句
 
-### Basic Throw
+### 基本 Throw
 
-Throw any value as an exception:
+抛出任意值作为异常：
 
 ```hemlock
 throw "error message";
@@ -191,12 +191,12 @@ throw null;
 throw ["error", "details"];
 ```
 
-**Execution:**
-1. Evaluates the expression
-2. Immediately jumps to nearest enclosing `catch`
-3. If no `catch`, propagates up the call stack
+**执行过程：**
+1. 计算表达式
+2. 立即跳转到最近的 `catch`
+3. 如果没有 `catch`，向上传播调用栈
 
-### Throwing Errors
+### 抛出错误
 
 ```hemlock
 fn validate_age(age: i32) {
@@ -215,9 +215,9 @@ try {
 }
 ```
 
-### Throwing Error Objects
+### 抛出错误对象
 
-Create structured error information:
+创建结构化的错误信息：
 
 ```hemlock
 fn read_file(path: string) {
@@ -228,7 +228,7 @@ fn read_file(path: string) {
             message: "File does not exist"
         };
     }
-    // ... read file
+    // ... 读取文件
 }
 
 try {
@@ -240,9 +240,9 @@ try {
 }
 ```
 
-### Re-throwing
+### 重新抛出
 
-Catch and re-throw errors:
+捕获并重新抛出错误：
 
 ```hemlock
 fn wrapper() {
@@ -250,7 +250,7 @@ fn wrapper() {
         risky_operation();
     } catch (e) {
         print("Logging error: " + e);
-        throw e;  // Re-throw to caller
+        throw e;  // 重新抛给调用者
     }
 }
 
@@ -261,71 +261,71 @@ try {
 }
 ```
 
-## Uncaught Exceptions
+## 未捕获的异常
 
-If an exception propagates to the top of the call stack without being caught:
+如果异常传播到调用栈顶部而未被捕获：
 
 ```hemlock
 fn foo() {
     throw "uncaught!";
 }
 
-foo();  // Crashes with: Runtime error: uncaught!
+foo();  // 崩溃并显示：Runtime error: uncaught!
 ```
 
-**Behavior:**
-- Program crashes
-- Prints error message to stderr
-- Exits with non-zero status code
-- Stack trace to be added in future versions
+**行为：**
+- 程序崩溃
+- 向 stderr 打印错误消息
+- 以非零状态码退出
+- 堆栈跟踪将在未来版本中添加
 
-## Panic - Unrecoverable Errors
+## Panic - 不可恢复错误
 
-### What is Panic?
+### 什么是 Panic？
 
-`panic()` is for **unrecoverable errors** that should immediately terminate the program:
+`panic()` 用于**不可恢复的错误**，应立即终止程序：
 
 ```hemlock
-panic();                    // Default message: "panic!"
-panic("custom message");    // Custom message
-panic(42);                  // Non-string values are printed
+panic();                    // 默认消息："panic!"
+panic("custom message");    // 自定义消息
+panic(42);                  // 非字符串值会被打印
 ```
 
-**Semantics:**
-- **Immediately exits** the program with exit code 1
-- Prints error message to stderr: `panic: <message>`
-- **NOT catchable** with try/catch
-- Use for bugs and unrecoverable errors
+**语义：**
+- **立即退出**程序，退出码为 1
+- 向 stderr 打印错误消息：`panic: <message>`
+- **无法**通过 try/catch 捕获
+- 用于 bug 和不可恢复的错误
 
 ### Panic vs Throw
 
 ```hemlock
-// throw - Recoverable error (can be caught)
+// throw - 可恢复错误（可以被捕获）
 try {
     throw "recoverable error";
 } catch (e) {
-    print("Caught: " + e);  // ✅ Caught successfully
+    print("Caught: " + e);  // 成功捕获
 }
 
-// panic - Unrecoverable error (cannot be caught)
+// panic - 不可恢复错误（无法被捕获）
 try {
-    panic("unrecoverable error");  // ❌ Program exits immediately
+    panic("unrecoverable error");  // 程序立即退出
 } catch (e) {
-    print("This never runs");       // ❌ Never executes
+    print("This never runs");       // 永远不会执行
 }
 ```
 
-### When to Use Panic
+### 何时使用 Panic
 
-**Use panic for:**
-- **Bugs**: Unreachable code was reached
-- **Invalid state**: Data structure corruption detected
-- **Unrecoverable errors**: Critical resource unavailable
-- **Assertion failures**: When `assert()` isn't sufficient
+**使用 panic 的情况：**
+- **Bug**：到达了不应该到达的代码
+- **无效状态**：检测到数据结构损坏
+- **不可恢复错误**：关键资源不可用
+- **断言失败**：当 `assert()` 不够用时
 
-**Examples:**
+**示例：**
 ```hemlock
-// Unreachable code
+// 不可达代码
 fn process_state(state: i32) {
     if (state == 1) {
         return "ready";
@@ -334,11 +334,11 @@ fn process_state(state: i32) {
     } else if (state == 3) {
         return "stopped";
     } else {
-        panic("invalid state: " + typeof(state));  // Should never happen
+        panic("invalid state: " + typeof(state));  // 不应该发生
     }
 }
 
-// Critical resource check
+// 关键资源检查
 fn init_system() {
     let config = read_file("config.json");
     if (config == null) {
@@ -347,7 +347,7 @@ fn init_system() {
     // ...
 }
 
-// Data structure invariant
+// 数据结构不变量
 fn pop_stack(stack) {
     if (stack.length == 0) {
         panic("pop() called on empty stack");
@@ -356,40 +356,40 @@ fn pop_stack(stack) {
 }
 ```
 
-### When NOT to Use Panic
+### 何时不使用 Panic
 
-**Use throw instead for:**
-- User input validation
-- File not found
-- Network errors
-- Expected error conditions
+**以下情况使用 throw：**
+- 用户输入验证
+- 文件未找到
+- 网络错误
+- 预期的错误条件
 
 ```hemlock
-// BAD: Panic for expected errors
+// 不好：对预期错误使用 panic
 fn divide(a, b) {
     if (b == 0) {
-        panic("division by zero");  // ❌ Too harsh
+        panic("division by zero");  // 太严厉了
     }
     return a / b;
 }
 
-// GOOD: Throw for expected errors
+// 好：对预期错误使用 throw
 fn divide(a, b) {
     if (b == 0) {
-        throw "division by zero";  // ✅ Recoverable
+        throw "division by zero";  // 可恢复
     }
     return a / b;
 }
 ```
 
-## Control Flow Interactions
+## 控制流交互
 
-### Return Inside Try/Catch/Finally
+### Try/Catch/Finally 中的 Return
 
 ```hemlock
 fn example() {
     try {
-        return 1;  // ✅ Returns 1 after finally runs
+        return 1;  // 在 finally 运行后返回 1
     } finally {
         print("cleanup");
     }
@@ -399,49 +399,49 @@ fn example2() {
     try {
         return 1;
     } finally {
-        return 2;  // ⚠️ Finally return overrides try return - returns 2
+        return 2;  // finally 的 return 覆盖 try 的 return - 返回 2
     }
 }
 ```
 
-**Rule:** Finally block return values override try/catch return values.
+**规则：** finally 块的返回值会覆盖 try/catch 的返回值。
 
-### Break/Continue Inside Try/Catch/Finally
+### Try/Catch/Finally 中的 Break/Continue
 
 ```hemlock
 for (let i = 0; i < 10; i = i + 1) {
     try {
-        if (i == 5) { break; }  // ✅ Breaks after finally runs
+        if (i == 5) { break; }  // 在 finally 运行后 break
     } finally {
         print("cleanup " + typeof(i));
     }
 }
 ```
 
-**Rule:** Break/continue execute after finally block.
+**规则：** break/continue 在 finally 块之后执行。
 
-### Nested Try/Catch
+### 嵌套 Try/Catch
 
 ```hemlock
 try {
     try {
         throw "inner";
     } catch (e) {
-        print("Caught: " + e);  // Prints: Caught: inner
-        throw "outer";  // Re-throw different error
+        print("Caught: " + e);  // 打印：Caught: inner
+        throw "outer";  // 重新抛出不同错误
     }
 } catch (e) {
-    print("Caught: " + e);  // Prints: Caught: outer
+    print("Caught: " + e);  // 打印：Caught: outer
 }
 ```
 
-**Rule:** Nested try/catch blocks work as expected, inner catches happen first.
+**规则：** 嵌套的 try/catch 块按预期工作，内层 catch 先执行。
 
-## Common Patterns
+## 常见模式
 
-### Pattern: Resource Cleanup
+### 模式：资源清理
 
-Always use `finally` for cleanup:
+始终使用 `finally` 进行清理：
 
 ```hemlock
 fn process_file(filename) {
@@ -454,15 +454,15 @@ fn process_file(filename) {
         print("Error processing file: " + e);
     } finally {
         if (file != null) {
-            file.close();  // Always closes, even on error
+            file.close();  // 即使出错也会关闭
         }
     }
 }
 ```
 
-### Pattern: Error Wrapping
+### 模式：错误包装
 
-Wrap lower-level errors with context:
+用上下文包装底层错误：
 
 ```hemlock
 fn load_config(path) {
@@ -475,9 +475,9 @@ fn load_config(path) {
 }
 ```
 
-### Pattern: Error Recovery
+### 模式：错误恢复
 
-Provide fallback on error:
+出错时提供回退值：
 
 ```hemlock
 fn safe_divide(a, b) {
@@ -488,14 +488,14 @@ fn safe_divide(a, b) {
         return a / b;
     } catch (e) {
         print("Error: " + e);
-        return null;  // Fallback value
+        return null;  // 回退值
     }
 }
 ```
 
-### Pattern: Validation
+### 模式：验证
 
-Use exceptions for validation:
+使用异常进行验证：
 
 ```hemlock
 fn validate_user(user) {
@@ -517,9 +517,9 @@ try {
 }
 ```
 
-### Pattern: Multiple Error Types
+### 模式：多种错误类型
 
-Use error objects to distinguish error types:
+使用错误对象区分错误类型：
 
 ```hemlock
 fn process_data(data) {
@@ -535,7 +535,7 @@ fn process_data(data) {
         throw { type: "EmptyData", message: "Array is empty" };
     }
 
-    // ... process
+    // ... 处理
 }
 
 try {
@@ -551,70 +551,70 @@ try {
 }
 ```
 
-## Best Practices
+## 最佳实践
 
-1. **Use exceptions for exceptional cases** - Not for normal control flow
-2. **Throw meaningful errors** - Use strings or objects with context
-3. **Always use finally for cleanup** - Ensures resources are freed
-4. **Don't catch and ignore** - At least log the error
-5. **Re-throw when appropriate** - Let caller handle if you can't
-6. **Panic for bugs** - Use panic for unrecoverable errors
-7. **Document exceptions** - Make clear what functions can throw
+1. **对异常情况使用异常** - 不要用于正常控制流
+2. **抛出有意义的错误** - 使用带上下文的字符串或对象
+3. **始终使用 finally 进行清理** - 确保资源被释放
+4. **不要捕获后忽略** - 至少记录错误
+5. **适当时重新抛出** - 如果你无法处理，让调用者处理
+6. **对 bug 使用 panic** - 对不可恢复的错误使用 panic
+7. **文档化异常** - 明确说明哪些函数可能抛出异常
 
-## Common Pitfalls
+## 常见陷阱
 
-### Pitfall: Swallowing Errors
+### 陷阱：吞掉错误
 
 ```hemlock
-// BAD: Silent failure
+// 不好：静默失败
 try {
     risky_operation();
 } catch (e) {
-    // Error ignored - silent failure
+    // 错误被忽略 - 静默失败
 }
 
-// GOOD: Log or handle
+// 好：记录或处理
 try {
     risky_operation();
 } catch (e) {
     print("Operation failed: " + e);
-    // Handle appropriately
+    // 适当处理
 }
 ```
 
-### Pitfall: Finally Override
+### 陷阱：Finally 覆盖
 
 ```hemlock
-// BAD: Finally overrides return
+// 不好：finally 覆盖返回值
 fn get_value() {
     try {
         return 42;
     } finally {
-        return 0;  // ⚠️ Returns 0, not 42!
+        return 0;  // 返回 0，而不是 42！
     }
 }
 
-// GOOD: Don't return in finally
+// 好：不要在 finally 中返回
 fn get_value() {
     try {
         return 42;
     } finally {
-        cleanup();  // Just cleanup, no return
+        cleanup();  // 只做清理，不返回
     }
 }
 ```
 
-### Pitfall: Forgetting Cleanup
+### 陷阱：忘记清理
 
 ```hemlock
-// BAD: File may not be closed on error
+// 不好：出错时文件可能不会关闭
 fn process() {
     let file = open("data.txt");
-    let content = file.read();  // May throw
-    file.close();  // Never reached if error
+    let content = file.read();  // 可能抛出异常
+    file.close();  // 如果出错永远不会到达
 }
 
-// GOOD: Use finally
+// 好：使用 finally
 fn process() {
     let file = null;
     try {
@@ -628,29 +628,29 @@ fn process() {
 }
 ```
 
-### Pitfall: Using Panic for Expected Errors
+### 陷阱：对预期错误使用 Panic
 
 ```hemlock
-// BAD: Panic for expected error
+// 不好：对预期错误使用 panic
 fn read_config(path) {
     if (!file_exists(path)) {
-        panic("Config file not found");  // ❌ Too harsh
+        panic("Config file not found");  // 太严厉了
     }
     return read_file(path);
 }
 
-// GOOD: Throw for expected error
+// 好：对预期错误使用 throw
 fn read_config(path) {
     if (!file_exists(path)) {
-        throw "Config file not found: " + path;  // ✅ Recoverable
+        throw "Config file not found: " + path;  // 可恢复
     }
     return read_file(path);
 }
 ```
 
-## Examples
+## 示例
 
-### Example: Basic Error Handling
+### 示例：基本错误处理
 
 ```hemlock
 fn divide(a, b) {
@@ -663,11 +663,11 @@ fn divide(a, b) {
 try {
     print(divide(10, 0));
 } catch (e) {
-    print("Error: " + e);  // Prints: Error: division by zero
+    print("Error: " + e);  // 打印：Error: division by zero
 }
 ```
 
-### Example: Resource Management
+### 示例：资源管理
 
 ```hemlock
 fn copy_file(src, dst) {
@@ -684,7 +684,7 @@ fn copy_file(src, dst) {
         print("File copied successfully");
     } catch (e) {
         print("Failed to copy file: " + e);
-        throw e;  // Re-throw
+        throw e;  // 重新抛出
     } finally {
         if (src_file != null) { src_file.close(); }
         if (dst_file != null) { dst_file.close(); }
@@ -692,7 +692,7 @@ fn copy_file(src, dst) {
 }
 ```
 
-### Example: Nested Error Handling
+### 示例：嵌套错误处理
 
 ```hemlock
 fn process_users(users) {
@@ -716,7 +716,7 @@ fn process_users(users) {
 }
 ```
 
-### Example: Custom Error Types
+### 示例：自定义错误类型
 
 ```hemlock
 fn create_error(type, message, details) {
@@ -753,7 +753,7 @@ try {
 }
 ```
 
-### Example: Retry Logic
+### 示例：重试逻辑
 
 ```hemlock
 fn retry(operation, max_attempts) {
@@ -761,7 +761,7 @@ fn retry(operation, max_attempts) {
 
     while (attempt < max_attempts) {
         try {
-            return operation();  // Success!
+            return operation();  // 成功！
         } catch (e) {
             attempt = attempt + 1;
             if (attempt >= max_attempts) {
@@ -773,7 +773,7 @@ fn retry(operation, max_attempts) {
 }
 
 fn unreliable_operation() {
-    // Simulated unreliable operation
+    // 模拟不稳定的操作
     if (random() < 0.7) {
         throw "Operation failed";
     }
@@ -788,9 +788,9 @@ try {
 }
 ```
 
-## Execution Order
+## 执行顺序
 
-Understanding the execution order:
+理解执行顺序：
 
 ```hemlock
 try {
@@ -804,27 +804,27 @@ try {
 }
 print("5: after try/catch/finally");
 
-// Output:
+// 输出：
 // 1: try block start
 // 3: catch block
 // 4: finally block
 // 5: after try/catch/finally
 ```
 
-## Current Limitations
+## 当前限制
 
-- **No stack trace** - Uncaught exceptions don't show stack trace (planned)
-- **Some built-ins exit** - Some built-in functions still `exit()` instead of throwing (to be reviewed)
-- **No custom exception types** - Any value can be thrown, but no formal exception hierarchy
+- **没有堆栈跟踪** - 未捕获的异常不显示堆栈跟踪（已计划）
+- **某些内置函数会退出** - 某些内置函数仍然使用 `exit()` 而不是抛出异常（待审查）
+- **没有自定义异常类型** - 任何值都可以被抛出，但没有正式的异常层次结构
 
-## Related Topics
+## 相关主题
 
-- [Functions](functions.md) - Exceptions and function returns
-- [Control Flow](control-flow.md) - How exceptions affect control flow
-- [Memory](memory.md) - Using finally for memory cleanup
+- [函数](functions.md) - 异常和函数返回
+- [控制流](control-flow.md) - 异常如何影响控制流
+- [内存](memory.md) - 使用 finally 进行内存清理
 
-## See Also
+## 另请参阅
 
-- **Exception Semantics**: See CLAUDE.md section "Error Handling"
-- **Panic vs Throw**: Different use cases for different error types
-- **Finally Guarantee**: Always executes, even with return/break/continue
+- **异常语义**：参见 CLAUDE.md 中的"错误处理"部分
+- **Panic vs Throw**：不同错误类型的不同用例
+- **Finally 保证**：始终执行，即使有 return/break/continue

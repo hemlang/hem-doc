@@ -1,129 +1,129 @@
-# Installation
+# 安装
 
-This guide covers how to install hpm on your system.
+本指南介绍如何在你的系统上安装 hpm。
 
-## Quick Install (Recommended)
+## 快速安装（推荐）
 
-Install the latest release with a single command:
+使用单个命令安装最新版本：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/hemlang/hpm/main/install.sh | sh
 ```
 
-This automatically:
-- Detects your operating system (Linux, macOS)
-- Detects your architecture (x86_64, arm64)
-- Downloads the appropriate pre-built binary
-- Installs to `/usr/local/bin` (or uses sudo if needed)
+这会自动：
+- 检测你的操作系统（Linux、macOS）
+- 检测你的架构（x86_64、arm64）
+- 下载相应的预编译二进制文件
+- 安装到 `/usr/local/bin`（如需要会使用 sudo）
 
-### Install Options
+### 安装选项
 
 ```bash
-# Install to a custom location (no sudo required)
+# 安装到自定义位置（无需 sudo）
 curl -fsSL https://raw.githubusercontent.com/hemlang/hpm/main/install.sh | sh -s -- --prefix ~/.local
 
-# Install a specific version
+# 安装特定版本
 curl -fsSL https://raw.githubusercontent.com/hemlang/hpm/main/install.sh | sh -s -- --version 1.0.5
 
-# Combine options
+# 组合选项
 curl -fsSL https://raw.githubusercontent.com/hemlang/hpm/main/install.sh | sh -s -- --prefix ~/.local --version 1.0.5
 ```
 
-### Supported Platforms
+### 支持的平台
 
-| Platform | Architecture | Status |
+| 平台 | 架构 | 状态 |
 |----------|--------------|--------|
-| Linux    | x86_64       | ✓ Supported |
-| macOS    | x86_64       | ✓ Supported |
-| macOS    | arm64 (M1/M2/M3) | ✓ Supported |
-| Linux    | arm64        | Build from source |
+| Linux    | x86_64       | 支持 |
+| macOS    | x86_64       | 支持 |
+| macOS    | arm64 (M1/M2/M3) | 支持 |
+| Linux    | arm64        | 从源码构建 |
 
-## Building from Source
+## 从源码构建
 
-If you prefer to build from source or need a platform not covered by pre-built binaries, follow these instructions.
+如果你希望从源码构建，或需要预编译二进制文件未覆盖的平台，请按以下说明操作。
 
-### Prerequisites
+### 前提条件
 
-hpm requires [Hemlock](https://github.com/hemlang/hemlock) to be installed first. Follow the Hemlock installation instructions before proceeding.
+hpm 需要先安装 [Hemlock](https://github.com/hemlang/hemlock)。请先按照 Hemlock 安装说明进行操作。
 
-Verify Hemlock is installed:
+验证 Hemlock 是否已安装：
 
 ```bash
 hemlock --version
 ```
 
-## Installation Methods
+## 安装方法
 
-### Method 1: Make Install
+### 方法 1：Make Install
 
-Build from source and install.
+从源码构建并安装。
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/hemlang/hpm.git
 cd hpm
 
-# Install to /usr/local/bin (requires sudo)
+# 安装到 /usr/local/bin（需要 sudo）
 sudo make install
 ```
 
-After installation, verify it works:
+安装后，验证是否正常工作：
 
 ```bash
 hpm --version
 ```
 
-### Method 2: Custom Location
+### 方法 2：自定义位置
 
-Install to a custom directory (no sudo required):
+安装到自定义目录（无需 sudo）：
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/hemlang/hpm.git
 cd hpm
 
-# Install to ~/.local/bin
+# 安装到 ~/.local/bin
 make install PREFIX=$HOME/.local
 
-# Or any custom location
+# 或任何自定义位置
 make install PREFIX=/opt/hemlock
 ```
 
-Make sure your custom bin directory is in your PATH:
+确保你的自定义 bin 目录在 PATH 中：
 
 ```bash
-# Add to ~/.bashrc or ~/.zshrc
+# 添加到 ~/.bashrc 或 ~/.zshrc
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### Method 3: Run Without Installing
+### 方法 3：不安装直接运行
 
-You can run hpm directly without installing:
+你可以直接运行 hpm 而无需安装：
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/hemlang/hpm.git
 cd hpm
 
-# Create local wrapper script
+# 创建本地包装脚本
 make
 
-# Run from the hpm directory
+# 从 hpm 目录运行
 ./hpm --help
 
-# Or run via hemlock directly
+# 或直接通过 hemlock 运行
 hemlock src/main.hml --help
 ```
 
-### Method 4: Manual Installation
+### 方法 4：手动安装
 
-Create your own wrapper script:
+创建你自己的包装脚本：
 
 ```bash
-# Clone to a permanent location
+# 克隆到永久位置
 git clone https://github.com/hemlang/hpm.git ~/.hpm-source
 
-# Create wrapper script
+# 创建包装脚本
 cat > ~/.local/bin/hpm << 'EOF'
 #!/bin/sh
 exec hemlock "$HOME/.hpm-source/src/main.hml" "$@"
@@ -132,125 +132,125 @@ EOF
 chmod +x ~/.local/bin/hpm
 ```
 
-## Installation Variables
+## 安装变量
 
-The Makefile supports these variables:
+Makefile 支持以下变量：
 
-| Variable | Default | Description |
+| 变量 | 默认值 | 描述 |
 |----------|---------|-------------|
-| `PREFIX` | `/usr/local` | Installation prefix |
-| `BINDIR` | `$(PREFIX)/bin` | Binary directory |
-| `HEMLOCK` | `hemlock` | Path to hemlock interpreter |
+| `PREFIX` | `/usr/local` | 安装前缀 |
+| `BINDIR` | `$(PREFIX)/bin` | 二进制文件目录 |
+| `HEMLOCK` | `hemlock` | hemlock 解释器路径 |
 
-Example with custom variables:
+使用自定义变量的示例：
 
 ```bash
 make install PREFIX=/opt/hemlock BINDIR=/opt/hemlock/bin HEMLOCK=/usr/bin/hemlock
 ```
 
-## How It Works
+## 工作原理
 
-The installer creates a shell wrapper script that invokes the Hemlock interpreter with the hpm source code:
+安装程序创建一个 shell 包装脚本，使用 hpm 源代码调用 Hemlock 解释器：
 
 ```bash
 #!/bin/sh
 exec hemlock "/path/to/hpm/src/main.hml" "$@"
 ```
 
-This approach:
-- Requires no compilation
-- Always runs the latest source code
-- Works reliably across all platforms
+这种方法：
+- 无需编译
+- 始终运行最新源代码
+- 在所有平台上可靠运行
 
-## Updating hpm
+## 更新 hpm
 
-To update hpm to the latest version:
+要将 hpm 更新到最新版本：
 
 ```bash
 cd /path/to/hpm
 git pull origin main
 
-# Re-install if the path changed
+# 如果路径改变了，重新安装
 sudo make install
 ```
 
-## Uninstalling
+## 卸载
 
-Remove hpm from your system:
+从系统中移除 hpm：
 
 ```bash
 cd /path/to/hpm
 sudo make uninstall
 ```
 
-Or manually remove:
+或手动移除：
 
 ```bash
 sudo rm /usr/local/bin/hpm
 ```
 
-## Verifying Installation
+## 验证安装
 
-After installation, verify everything works:
+安装后，验证一切正常：
 
 ```bash
-# Check version
+# 检查版本
 hpm --version
 
-# View help
+# 查看帮助
 hpm --help
 
-# Test initialization (in an empty directory)
+# 测试初始化（在空目录中）
 mkdir test-project && cd test-project
 hpm init --yes
 cat package.json
 ```
 
-## Troubleshooting
+## 故障排除
 
 ### "hemlock: command not found"
 
-Hemlock is not installed or not in your PATH. Install Hemlock first:
+Hemlock 未安装或不在 PATH 中。请先安装 Hemlock：
 
 ```bash
-# Check if hemlock exists
+# 检查 hemlock 是否存在
 which hemlock
 
-# If not found, install Hemlock from https://github.com/hemlang/hemlock
+# 如果未找到，从 https://github.com/hemlang/hemlock 安装 Hemlock
 ```
 
 ### "Permission denied"
 
-Use sudo for system-wide installation, or install to a user directory:
+使用 sudo 进行系统范围安装，或安装到用户目录：
 
 ```bash
-# Option 1: Use sudo
+# 选项 1：使用 sudo
 sudo make install
 
-# Option 2: Install to user directory
+# 选项 2：安装到用户目录
 make install PREFIX=$HOME/.local
 ```
 
-### "hpm: command not found" after installation
+### 安装后 "hpm: command not found"
 
-Your PATH may not include the installation directory:
+你的 PATH 可能不包含安装目录：
 
 ```bash
-# Check where hpm was installed
+# 检查 hpm 安装位置
 ls -la /usr/local/bin/hpm
 
-# Add to PATH if using custom location
+# 如果使用自定义位置，添加到 PATH
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-## Platform-Specific Notes
+## 平台特定说明
 
 ### Linux
 
-Standard installation works on all Linux distributions. Some distributions may require:
+标准安装适用于所有 Linux 发行版。某些发行版可能需要：
 
 ```bash
-# Debian/Ubuntu: Ensure build essentials
+# Debian/Ubuntu：确保安装构建工具
 sudo apt-get install build-essential git
 
 # Fedora/RHEL
@@ -259,28 +259,28 @@ sudo dnf install make git
 
 ### macOS
 
-Standard installation works. If using Homebrew:
+标准安装可用。如果使用 Homebrew：
 
 ```bash
-# Ensure Xcode command line tools
+# 确保安装 Xcode 命令行工具
 xcode-select --install
 ```
 
 ### Windows (WSL)
 
-hpm works in Windows Subsystem for Linux:
+hpm 在 Windows Subsystem for Linux 中可用：
 
 ```bash
-# In WSL terminal
+# 在 WSL 终端中
 git clone https://github.com/hemlang/hpm.git
 cd hpm
 make install PREFIX=$HOME/.local
 ```
 
-## Next Steps
+## 后续步骤
 
-After installation:
+安装后：
 
-1. [Quick Start](quick-start.md) - Create your first project
-2. [Command Reference](commands.md) - Learn all commands
-3. [Configuration](configuration.md) - Configure hpm
+1. [快速开始](quick-start.md) - 创建你的第一个项目
+2. [命令参考](commands.md) - 学习所有命令
+3. [配置](configuration.md) - 配置 hpm

@@ -1,121 +1,121 @@
-# Quick Start
+# 快速入门
 
-Get up and running with Hemlock in minutes!
+几分钟内开始使用 Hemlock！
 
-## Your First Program
+## 您的第一个程序
 
-Create a file called `hello.hml`:
+创建一个名为 `hello.hml` 的文件：
 
 ```hemlock
 print("Hello, Hemlock!");
 ```
 
-Run with the interpreter:
+使用解释器运行：
 
 ```bash
 ./hemlock hello.hml
 ```
 
-Or compile to a native executable:
+或编译为原生可执行文件：
 
 ```bash
 ./hemlockc hello.hml -o hello
 ./hello
 ```
 
-Output:
+输出：
 ```
 Hello, Hemlock!
 ```
 
-### Interpreter vs Compiler
+### 解释器 vs 编译器
 
-Hemlock provides two ways to run programs:
+Hemlock 提供两种运行程序的方式：
 
-| Tool | Use Case | Type Checking |
-|------|----------|---------------|
-| `hemlock` | Quick scripts, REPL, development | Runtime only |
-| `hemlockc` | Production binaries, better performance | Compile-time (default) |
+| 工具 | 用例 | 类型检查 |
+|------|------|----------|
+| `hemlock` | 快速脚本、REPL、开发 | 仅运行时 |
+| `hemlockc` | 生产二进制文件、更好的性能 | 编译时（默认）|
 
-The compiler (`hemlockc`) type-checks your code before generating an executable, catching errors early.
+编译器（`hemlockc`）在生成可执行文件之前对代码进行类型检查，可以提前捕获错误。
 
-## Basic Syntax
+## 基本语法
 
-### Variables
+### 变量
 
 ```hemlock
-// Variables are declared with 'let'
+// 使用 'let' 声明变量
 let x = 42;
 let name = "Alice";
 let pi = 3.14159;
 
-// Type annotations are optional
+// 类型注解是可选的
 let count: i32 = 100;
 let ratio: f64 = 0.618;
 ```
 
-**Important**: Semicolons are **mandatory** in Hemlock!
+**重要**：分号在 Hemlock 中是**必需的**！
 
-### Types
+### 类型
 
-Hemlock has a rich type system:
+Hemlock 拥有丰富的类型系统：
 
 ```hemlock
-// Integers
-let small: i8 = 127;          // 8-bit signed
-let byte: u8 = 255;           // 8-bit unsigned
-let num: i32 = 2147483647;    // 32-bit signed (default)
-let big: i64 = 9223372036854775807;  // 64-bit signed
+// 整数
+let small: i8 = 127;          // 8位有符号
+let byte: u8 = 255;           // 8位无符号
+let num: i32 = 2147483647;    // 32位有符号（默认）
+let big: i64 = 9223372036854775807;  // 64位有符号
 
-// Floats
-let f: f32 = 3.14;            // 32-bit float
-let d: f64 = 2.71828;         // 64-bit float (default)
+// 浮点数
+let f: f32 = 3.14;            // 32位浮点
+let d: f64 = 2.71828;         // 64位浮点（默认）
 
-// Strings and characters
-let text: string = "Hello";   // UTF-8 string
-let emoji: rune = '🚀';       // Unicode codepoint
+// 字符串和字符
+let text: string = "Hello";   // UTF-8 字符串
+let emoji: rune = '🚀';       // Unicode 码点
 
-// Boolean and null
+// 布尔值和空值
 let flag: bool = true;
 let empty = null;
 ```
 
-### Control Flow
+### 控制流
 
 ```hemlock
-// If statements
+// if 语句
 if (x > 0) {
-    print("positive");
+    print("正数");
 } else if (x < 0) {
-    print("negative");
+    print("负数");
 } else {
-    print("zero");
+    print("零");
 }
 
-// While loops
+// while 循环
 let i = 0;
 while (i < 5) {
     print(i);
     i = i + 1;
 }
 
-// For loops
+// for 循环
 for (let j = 0; j < 10; j = j + 1) {
     print(j);
 }
 ```
 
-### Functions
+### 函数
 
 ```hemlock
-// Named function
+// 命名函数
 fn add(a: i32, b: i32): i32 {
     return a + b;
 }
 
 let result = add(5, 3);  // 8
 
-// Anonymous function
+// 匿名函数
 let multiply = fn(x, y) {
     return x * y;
 };
@@ -123,49 +123,49 @@ let multiply = fn(x, y) {
 print(multiply(4, 7));  // 28
 ```
 
-## Working with Strings
+## 字符串操作
 
-Strings in Hemlock are **mutable** and **UTF-8**:
+Hemlock 中的字符串是**可变的**和 **UTF-8** 编码的：
 
 ```hemlock
 let s = "hello";
-s[0] = 'H';              // Now "Hello"
+s[0] = 'H';              // 现在是 "Hello"
 print(s);
 
-// String methods
+// 字符串方法
 let upper = s.to_upper();     // "HELLO"
 let words = "a,b,c".split(","); // ["a", "b", "c"]
 let sub = s.substr(1, 3);     // "ell"
 
-// Concatenation
+// 连接
 let greeting = "Hello" + ", " + "World!";
 print(greeting);  // "Hello, World!"
 ```
 
-## Arrays
+## 数组
 
-Dynamic arrays with mixed types:
+支持混合类型的动态数组：
 
 ```hemlock
 let numbers = [1, 2, 3, 4, 5];
 print(numbers[0]);      // 1
 print(numbers.length);  // 5
 
-// Array methods
+// 数组方法
 numbers.push(6);        // [1, 2, 3, 4, 5, 6]
 let last = numbers.pop();  // 6
 let slice = numbers.slice(1, 4);  // [2, 3, 4]
 
-// Mixed types allowed
+// 允许混合类型
 let mixed = [1, "two", true, null];
 ```
 
-## Objects
+## 对象
 
-JavaScript-style objects:
+JavaScript 风格的对象：
 
 ```hemlock
-// Object literal
+// 对象字面量
 let person = {
     name: "Alice",
     age: 30,
@@ -173,9 +173,9 @@ let person = {
 };
 
 print(person.name);  // "Alice"
-person.age = 31;     // Modify field
+person.age = 31;     // 修改字段
 
-// Methods with 'self'
+// 使用 'self' 的方法
 let counter = {
     count: 0,
     increment: fn() {
@@ -187,31 +187,31 @@ counter.increment();
 print(counter.count);  // 1
 ```
 
-## Memory Management
+## 内存管理
 
-Hemlock uses **manual memory management**:
+Hemlock 使用**手动内存管理**：
 
 ```hemlock
-// Safe buffer (recommended)
-let buf = buffer(64);   // Allocate 64 bytes
-buf[0] = 65;            // Set first byte to 'A'
+// 安全缓冲区（推荐）
+let buf = buffer(64);   // 分配 64 字节
+buf[0] = 65;            // 将第一个字节设置为 'A'
 print(buf[0]);          // 65
-free(buf);              // Free memory
+free(buf);              // 释放内存
 
-// Raw pointer (advanced)
+// 原始指针（高级）
 let ptr = alloc(100);
-memset(ptr, 0, 100);    // Fill with zeros
+memset(ptr, 0, 100);    // 用零填充
 free(ptr);
 ```
 
-**Important**: You must `free()` what you `alloc()`!
+**重要**：您必须 `free()` 您 `alloc()` 的内存！
 
-## Error Handling
+## 错误处理
 
 ```hemlock
 fn divide(a, b) {
     if (b == 0) {
-        throw "division by zero";
+        throw "除零错误";
     }
     return a / b;
 }
@@ -220,109 +220,109 @@ try {
     let result = divide(10, 0);
     print(result);
 } catch (e) {
-    print("Error: " + e);
+    print("错误：" + e);
 } finally {
-    print("Done");
+    print("完成");
 }
 ```
 
-## Command-Line Arguments
+## 命令行参数
 
-Access program arguments via the `args` array:
+通过 `args` 数组访问程序参数：
 
 ```hemlock
 // script.hml
-print("Script:", args[0]);
-print(`Arguments: ${args.length - 1}`);
+print("脚本：", args[0]);
+print(`参数数量：${args.length - 1}`);
 
 let i = 1;
 while (i < args.length) {
-    print(`  arg ${i}: ${args[i]}`);
+    print(`  参数 ${i}：${args[i]}`);
     i = i + 1;
 }
 ```
 
-Run with:
+运行：
 ```bash
 ./hemlock script.hml hello world
 ```
 
-Output:
+输出：
 ```
-Script: script.hml
-Arguments: 2
-  arg 1: hello
-  arg 2: world
+脚本：script.hml
+参数数量：2
+  参数 1：hello
+  参数 2：world
 ```
 
-## File I/O
+## 文件 I/O
 
 ```hemlock
-// Write to file
+// 写入文件
 let f = open("data.txt", "w");
 f.write("Hello, File!");
 f.close();
 
-// Read from file
+// 读取文件
 let f2 = open("data.txt", "r");
 let content = f2.read();
 print(content);  // "Hello, File!"
 f2.close();
 ```
 
-## What's Next?
+## 接下来学什么？
 
-Now that you've seen the basics, explore more:
+现在您已经了解了基础知识，可以探索更多内容：
 
-- [Tutorial](tutorial.md) - Comprehensive step-by-step guide
-- [Language Guide](../language-guide/syntax.md) - Deep dive into all features
-- [Examples](../../examples/) - Real-world example programs
-- [API Reference](../reference/builtins.md) - Complete API documentation
+- [教程](tutorial.md) - 全面的分步指南
+- [语言指南](../language-guide/syntax.md) - 深入了解所有特性
+- [示例](../../examples/) - 真实世界的示例程序
+- [API 参考](../reference/builtins.md) - 完整的 API 文档
 
-## Common Pitfalls
+## 常见陷阱
 
-### Forgetting Semicolons
+### 忘记分号
 
 ```hemlock
-// ❌ ERROR: Missing semicolon
+// ❌ 错误：缺少分号
 let x = 42
 let y = 10
 
-// ✅ CORRECT
+// ✅ 正确
 let x = 42;
 let y = 10;
 ```
 
-### Forgetting to Free Memory
+### 忘记释放内存
 
 ```hemlock
-// ❌ MEMORY LEAK
+// ❌ 内存泄漏
 let buf = buffer(100);
-// ... use buf ...
-// Forgot to call free(buf)!
+// ... 使用 buf ...
+// 忘记调用 free(buf)！
 
-// ✅ CORRECT
+// ✅ 正确
 let buf = buffer(100);
-// ... use buf ...
+// ... 使用 buf ...
 free(buf);
 ```
 
-### Braces Are Required
+### 花括号是必需的
 
 ```hemlock
-// ❌ ERROR: Missing braces
+// ❌ 错误：缺少花括号
 if (x > 0)
-    print("positive");
+    print("正数");
 
-// ✅ CORRECT
+// ✅ 正确
 if (x > 0) {
-    print("positive");
+    print("正数");
 }
 ```
 
-## Getting Help
+## 获取帮助
 
-- Read the [full documentation](../README.md)
-- Check [examples directory](../../examples/)
-- Look at [test files](../../tests/) for usage patterns
-- Report issues on GitHub
+- 阅读[完整文档](../README.md)
+- 查看[示例目录](../../examples/)
+- 查看[测试文件](../../tests/)了解使用模式
+- 在 GitHub 上报告问题

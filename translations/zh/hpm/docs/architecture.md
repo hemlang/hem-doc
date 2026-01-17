@@ -1,49 +1,49 @@
-# Architecture
+# 架构
 
-Internal architecture and design of hpm. This document is for contributors and those interested in understanding how hpm works.
+hpm 的内部架构和设计。本文档面向贡献者和有兴趣了解 hpm 工作原理的人。
 
-## Overview
+## 概述
 
-hpm is written in Hemlock and consists of several modules that handle different aspects of package management:
+hpm 使用 Hemlock 编写，由多个模块组成，处理包管理的不同方面：
 
 ```
 src/
-├── main.hml        # CLI entry point and command routing
-├── manifest.hml    # package.json handling
-├── lockfile.hml    # package-lock.json handling
-├── semver.hml      # Semantic versioning
-├── resolver.hml    # Dependency resolution
-├── github.hml      # GitHub API client
-├── installer.hml   # Package downloading and extraction
-└── cache.hml       # Global cache management
+├── main.hml        # CLI 入口点和命令路由
+├── manifest.hml    # package.json 处理
+├── lockfile.hml    # package-lock.json 处理
+├── semver.hml      # 语义化版本
+├── resolver.hml    # 依赖解析
+├── github.hml      # GitHub API 客户端
+├── installer.hml   # 包下载和提取
+└── cache.hml       # 全局缓存管理
 ```
 
-## Module Responsibilities
+## 模块职责
 
 ### main.hml
 
-The entry point for the CLI application.
+CLI 应用程序的入口点。
 
-**Responsibilities:**
-- Parse command-line arguments
-- Route commands to appropriate handlers
-- Display help and version information
-- Handle global flags (--verbose, --dry-run, etc.)
-- Exit with appropriate codes
+**职责：**
+- 解析命令行参数
+- 将命令路由到适当的处理器
+- 显示帮助和版本信息
+- 处理全局标志（--verbose、--dry-run 等）
+- 以适当的代码退出
 
-**Key functions:**
-- `main()` - Entry point, parses args and dispatches commands
-- `cmd_init()` - Handle `hpm init`
-- `cmd_install()` - Handle `hpm install`
-- `cmd_uninstall()` - Handle `hpm uninstall`
-- `cmd_update()` - Handle `hpm update`
-- `cmd_list()` - Handle `hpm list`
-- `cmd_outdated()` - Handle `hpm outdated`
-- `cmd_run()` - Handle `hpm run`
-- `cmd_why()` - Handle `hpm why`
-- `cmd_cache()` - Handle `hpm cache`
+**关键函数：**
+- `main()` - 入口点，解析参数并分派命令
+- `cmd_init()` - 处理 `hpm init`
+- `cmd_install()` - 处理 `hpm install`
+- `cmd_uninstall()` - 处理 `hpm uninstall`
+- `cmd_update()` - 处理 `hpm update`
+- `cmd_list()` - 处理 `hpm list`
+- `cmd_outdated()` - 处理 `hpm outdated`
+- `cmd_run()` - 处理 `hpm run`
+- `cmd_why()` - 处理 `hpm why`
+- `cmd_cache()` - 处理 `hpm cache`
 
-**Command shortcuts:**
+**命令快捷方式：**
 ```hemlock
 let shortcuts = {
     "i": "install",
@@ -56,28 +56,28 @@ let shortcuts = {
 
 ### manifest.hml
 
-Handles reading and writing `package.json` files.
+处理 `package.json` 文件的读写。
 
-**Responsibilities:**
-- Read/write package.json
-- Validate package structure
-- Manage dependencies
-- Parse package specifiers (owner/repo@version)
+**职责：**
+- 读写 package.json
+- 验证包结构
+- 管理依赖
+- 解析包说明符（owner/repo@version）
 
-**Key functions:**
+**关键函数：**
 ```hemlock
-create_default(): Manifest           // Create empty manifest
-read_manifest(): Manifest            // Read from file
-write_manifest(m: Manifest)          // Write to file
-validate(m: Manifest): bool          // Validate structure
-get_all_dependencies(m): Map         // Get deps + devDeps
-add_dependency(m, pkg, ver, dev)     // Add dependency
-remove_dependency(m, pkg)            // Remove dependency
-parse_specifier(spec): (name, ver)   // Parse "owner/repo@^1.0.0"
-split_name(name): (owner, repo)      // Parse "owner/repo"
+create_default(): Manifest           // 创建空清单
+read_manifest(): Manifest            // 从文件读取
+write_manifest(m: Manifest)          // 写入文件
+validate(m: Manifest): bool          // 验证结构
+get_all_dependencies(m): Map         // 获取 deps + devDeps
+add_dependency(m, pkg, ver, dev)     // 添加依赖
+remove_dependency(m, pkg)            // 移除依赖
+parse_specifier(spec): (name, ver)   // 解析 "owner/repo@^1.0.0"
+split_name(name): (owner, repo)      // 解析 "owner/repo"
 ```
 
-**Manifest structure:**
+**Manifest 结构：**
 ```hemlock
 type Manifest = {
     name: string,
@@ -95,28 +95,28 @@ type Manifest = {
 
 ### lockfile.hml
 
-Manages the `package-lock.json` file for reproducible installs.
+管理 `package-lock.json` 文件以实现可重现的安装。
 
-**Responsibilities:**
-- Create/read/write lock files
-- Track exact resolved versions
-- Store download URLs and integrity hashes
-- Prune orphaned dependencies
+**职责：**
+- 创建/读取/写入锁定文件
+- 跟踪精确解析的版本
+- 存储下载 URL 和完整性哈希
+- 清理孤立的依赖
 
-**Key functions:**
+**关键函数：**
 ```hemlock
-create_empty(): Lockfile              // Create empty lockfile
-read_lockfile(): Lockfile             // Read from file
-write_lockfile(l: Lockfile)           // Write to file
-create_entry(ver, url, hash, deps)    // Create lock entry
-get_locked(l, pkg): LockEntry?        // Get locked version
-set_locked(l, pkg, entry)             // Set locked version
-remove_locked(l, pkg)                 // Remove entry
-prune(l, keep: Set)                   // Remove orphans
-needs_update(l, m): bool              // Check if out of sync
+create_empty(): Lockfile              // 创建空锁定文件
+read_lockfile(): Lockfile             // 从文件读取
+write_lockfile(l: Lockfile)           // 写入文件
+create_entry(ver, url, hash, deps)    // 创建锁定条目
+get_locked(l, pkg): LockEntry?        // 获取锁定版本
+set_locked(l, pkg, entry)             // 设置锁定版本
+remove_locked(l, pkg)                 // 移除条目
+prune(l, keep: Set)                   // 移除孤立项
+needs_update(l, m): bool              // 检查是否不同步
 ```
 
-**Lockfile structure:**
+**Lockfile 结构：**
 ```hemlock
 type Lockfile = {
     lockVersion: int,
@@ -126,104 +126,104 @@ type Lockfile = {
 
 type LockEntry = {
     version: string,
-    resolved: string,     // Download URL
-    integrity: string,    // SHA256 hash
+    resolved: string,     // 下载 URL
+    integrity: string,    // SHA256 哈希
     dependencies: Map<string, string>
 };
 ```
 
 ### semver.hml
 
-Full implementation of Semantic Versioning 2.0.0.
+语义化版本 2.0.0 的完整实现。
 
-**Responsibilities:**
-- Parse version strings
-- Compare versions
-- Parse and evaluate version constraints
-- Find versions satisfying constraints
+**职责：**
+- 解析版本字符串
+- 比较版本
+- 解析和评估版本约束
+- 查找满足约束的版本
 
-**Key functions:**
+**关键函数：**
 ```hemlock
-// Parsing
+// 解析
 parse(s: string): Version             // "1.2.3-beta+build" → Version
 stringify(v: Version): string         // Version → "1.2.3-beta+build"
 
-// Comparison
-compare(a, b: Version): int           // -1, 0, or 1
+// 比较
+compare(a, b: Version): int           // -1、0 或 1
 gt(a, b), gte(a, b), lt(a, b), lte(a, b), eq(a, b): bool
 
-// Constraints
+// 约束
 parse_constraint(s: string): Constraint    // "^1.2.3" → Constraint
-satisfies(v: Version, c: Constraint): bool // Check if v matches c
-max_satisfying(versions, c): Version?      // Find highest match
-sort(versions): [Version]                  // Sort ascending
+satisfies(v: Version, c: Constraint): bool // 检查 v 是否匹配 c
+max_satisfying(versions, c): Version?      // 查找最高匹配
+sort(versions): [Version]                  // 升序排序
 
-// Utilities
-constraints_overlap(a, b: Constraint): bool  // Check compatibility
+// 工具
+constraints_overlap(a, b: Constraint): bool  // 检查兼容性
 ```
 
-**Version structure:**
+**Version 结构：**
 ```hemlock
 type Version = {
     major: int,
     minor: int,
     patch: int,
-    prerelease: [string]?,  // e.g., ["beta", "1"]
-    build: string?          // e.g., "20230101"
+    prerelease: [string]?,  // 例如 ["beta", "1"]
+    build: string?          // 例如 "20230101"
 };
 ```
 
-**Constraint types:**
+**Constraint 类型：**
 ```hemlock
 type Constraint =
     | Exact(Version)           // "1.2.3"
     | Caret(Version)           // "^1.2.3" → >=1.2.3 <2.0.0
     | Tilde(Version)           // "~1.2.3" → >=1.2.3 <1.3.0
     | Range(op, Version)       // ">=1.0.0", "<2.0.0"
-    | And(Constraint, Constraint)  // Combined ranges
+    | And(Constraint, Constraint)  // 组合范围
     | Any;                     // "*"
 ```
 
 ### resolver.hml
 
-Implements npm-style dependency resolution.
+实现 npm 风格的依赖解析。
 
-**Responsibilities:**
-- Resolve dependency trees
-- Detect version conflicts
-- Detect circular dependencies
-- Build visualization trees
+**职责：**
+- 解析依赖树
+- 检测版本冲突
+- 检测循环依赖
+- 构建可视化树
 
-**Key functions:**
+**关键函数：**
 ```hemlock
 resolve(manifest, lockfile): ResolveResult
-    // Main resolver: returns flat map of all dependencies with resolved versions
+    // 主解析器：返回所有依赖及解析版本的扁平映射
 
 resolve_version(pkg, constraints: [string]): ResolvedPackage?
-    // Find version satisfying all constraints
+    // 查找满足所有约束的版本
 
 detect_cycles(deps: Map): [Cycle]?
-    // Find circular dependencies using DFS
+    // 使用 DFS 查找循环依赖
 
 build_tree(lockfile): Tree
-    // Create tree structure for display
+    // 创建用于显示的树结构
 
 find_why(pkg, lockfile): [Chain]
-    // Find dependency chains explaining why pkg is installed
+    // 查找解释为什么安装 pkg 的依赖链
 ```
 
-**Resolution algorithm:**
+**解析算法：**
 
-1. **Collect constraints**: Walk manifest and transitive dependencies
-2. **Resolve each package**: For each package:
-   - Get all version constraints from dependents
-   - Fetch available versions from GitHub
-   - Find highest version satisfying ALL constraints
-   - Error if no version satisfies all (conflict)
-3. **Detect cycles**: Run DFS to find circular dependencies
-4. **Return flat map**: Package name → resolved version info
+1. **收集约束**：遍历清单和传递依赖
+2. **解析每个包**：对于每个包：
+   - 从依赖方获取所有版本约束
+   - 从 GitHub 获取可用版本
+   - 查找满足所有约束的最高版本
+   - 如果没有版本满足所有约束则报错（冲突）
+3. **检测循环**：运行 DFS 查找循环依赖
+4. **返回扁平映射**：包名 → 解析的版本信息
 
-**ResolveResult structure:**
+**ResolveResult 结构：**
 ```hemlock
 type ResolveResult = {
     packages: Map<string, ResolvedPackage>,
@@ -241,45 +241,45 @@ type ResolvedPackage = {
 
 ### github.hml
 
-GitHub API client for package discovery and downloads.
+用于包发现和下载的 GitHub API 客户端。
 
-**Responsibilities:**
-- Fetch available versions (tags)
-- Download package.json from repositories
-- Download release tarballs
-- Handle authentication and rate limits
+**职责：**
+- 获取可用版本（标签）
+- 从仓库下载 package.json
+- 下载发布 tarball
+- 处理认证和速率限制
 
-**Key functions:**
+**关键函数：**
 ```hemlock
 get_token(): string?
-    // Get token from env or config
+    // 从环境或配置获取 token
 
 github_request(url, headers?): Response
-    // Make API request with retries
+    // 带重试的 API 请求
 
 get_tags(owner, repo): [string]
-    // Get version tags (v1.0.0, v1.1.0, etc.)
+    // 获取版本标签（v1.0.0、v1.1.0 等）
 
 get_package_json(owner, repo, ref): Manifest
-    // Fetch package.json at specific tag/commit
+    // 在特定标签/提交处获取 package.json
 
 download_tarball(owner, repo, tag): bytes
-    // Download release archive
+    // 下载发布归档
 
 repo_exists(owner, repo): bool
-    // Check if repository exists
+    // 检查仓库是否存在
 
 get_repo_info(owner, repo): RepoInfo
-    // Get repository metadata
+    // 获取仓库元数据
 ```
 
-**Retry logic:**
-- Exponential backoff: 1s, 2s, 4s, 8s
-- Retries on: 403 (rate limit), 5xx (server error), network errors
-- Max 4 retries
-- Reports rate limit errors clearly
+**重试逻辑：**
+- 指数退避：1秒、2秒、4秒、8秒
+- 重试条件：403（速率限制）、5xx（服务器错误）、网络错误
+- 最多 4 次重试
+- 清晰报告速率限制错误
 
-**API endpoints used:**
+**使用的 API 端点：**
 ```
 GET /repos/{owner}/{repo}/tags
 GET /repos/{owner}/{repo}/contents/package.json?ref={tag}
@@ -289,45 +289,45 @@ GET /repos/{owner}/{repo}
 
 ### installer.hml
 
-Handles downloading and extracting packages.
+处理包的下载和提取。
 
-**Responsibilities:**
-- Download packages from GitHub
-- Extract tarballs to hem_modules
-- Check/use cached packages
-- Install/uninstall packages
+**职责：**
+- 从 GitHub 下载包
+- 将 tarball 提取到 hem_modules
+- 检查/使用缓存的包
+- 安装/卸载包
 
-**Key functions:**
+**关键函数：**
 ```hemlock
 install_package(pkg: ResolvedPackage): bool
-    // Download and install single package
+    // 下载并安装单个包
 
 install_all(packages: Map, options): InstallResult
-    // Install all resolved packages
+    // 安装所有解析的包
 
 uninstall_package(name: string): bool
-    // Remove package from hem_modules
+    // 从 hem_modules 移除包
 
 get_installed(): Map<string, string>
-    // List currently installed packages
+    // 列出当前已安装的包
 
 verify_integrity(pkg): bool
-    // Verify package integrity
+    // 验证包完整性
 
 prefetch_packages(packages: Map): void
-    // Parallel download to cache (experimental)
+    // 并行下载到缓存（实验性）
 ```
 
-**Installation process:**
+**安装过程：**
 
-1. Check if already installed at correct version
-2. Check cache for tarball
-3. If not cached, download from GitHub
-4. Store in cache for future use
-5. Extract to `hem_modules/owner/repo/`
-6. Verify installation
+1. 检查是否已安装正确版本
+2. 检查缓存中的 tarball
+3. 如果未缓存，从 GitHub 下载
+4. 存储到缓存供将来使用
+5. 提取到 `hem_modules/owner/repo/`
+6. 验证安装
 
-**Directory structure created:**
+**创建的目录结构：**
 ```
 hem_modules/
 └── owner/
@@ -339,49 +339,49 @@ hem_modules/
 
 ### cache.hml
 
-Manages the global package cache.
+管理全局包缓存。
 
-**Responsibilities:**
-- Store downloaded tarballs
-- Retrieve cached packages
-- List cached packages
-- Clear cache
-- Manage configuration
+**职责：**
+- 存储下载的 tarball
+- 检索缓存的包
+- 列出缓存的包
+- 清除缓存
+- 管理配置
 
-**Key functions:**
+**关键函数：**
 ```hemlock
 get_cache_dir(): string
-    // Get cache directory (respects HPM_CACHE_DIR)
+    // 获取缓存目录（尊重 HPM_CACHE_DIR）
 
 get_config_dir(): string
-    // Get config directory (~/.hpm)
+    // 获取配置目录（~/.hpm）
 
 is_cached(owner, repo, version): bool
-    // Check if tarball is cached
+    // 检查 tarball 是否已缓存
 
 get_cached_path(owner, repo, version): string
-    // Get path to cached tarball
+    // 获取缓存 tarball 的路径
 
 store_tarball_file(owner, repo, version, data): void
-    // Save tarball to cache
+    // 将 tarball 保存到缓存
 
 list_cached(): [CachedPackage]
-    // List all cached packages
+    // 列出所有缓存的包
 
 clear_cache(): int
-    // Remove all cached packages, return bytes freed
+    // 移除所有缓存的包，返回释放的字节数
 
 get_cache_size(): int
-    // Calculate total cache size
+    // 计算缓存总大小
 
 read_config(): Config
-    // Read ~/.hpm/config.json
+    // 读取 ~/.hpm/config.json
 
 write_config(c: Config): void
-    // Write config file
+    // 写入配置文件
 ```
 
-**Cache structure:**
+**缓存结构：**
 ```
 ~/.hpm/
 ├── config.json
@@ -392,82 +392,82 @@ write_config(c: Config): void
             └── 1.1.0.tar.gz
 ```
 
-## Data Flow
+## 数据流
 
-### Install Command Flow
+### Install 命令流程
 
 ```
 hpm install owner/repo@^1.0.0
          │
          ▼
     ┌─────────┐
-    │ main.hml │ Parse args, call cmd_install
+    │ main.hml │ 解析参数，调用 cmd_install
     └────┬────┘
          │
          ▼
     ┌──────────┐
-    │manifest.hml│ Read package.json, add dependency
+    │manifest.hml│ 读取 package.json，添加依赖
     └────┬─────┘
          │
          ▼
     ┌──────────┐
-    │resolver.hml│ Resolve all dependencies
+    │resolver.hml│ 解析所有依赖
     └────┬─────┘
          │
          ├───────────────┐
          ▼               ▼
     ┌──────────┐    ┌─────────┐
-    │ github.hml│    │ semver.hml│ Get versions, find satisfying
+    │ github.hml│    │ semver.hml│ 获取版本，查找满足条件的版本
     └────┬─────┘    └─────────┘
          │
          ▼
     ┌───────────┐
-    │installer.hml│ Download and extract packages
+    │installer.hml│ 下载并提取包
     └────┬──────┘
          │
          ├───────────────┐
          ▼               ▼
     ┌──────────┐    ┌─────────┐
-    │ github.hml│    │ cache.hml│ Download or use cache
+    │ github.hml│    │ cache.hml│ 下载或使用缓存
     └──────────┘    └─────────┘
          │
          ▼
     ┌──────────┐
-    │lockfile.hml│ Update package-lock.json
+    │lockfile.hml│ 更新 package-lock.json
     └──────────┘
 ```
 
-### Resolution Algorithm Detail
+### 解析算法详情
 
 ```
-Input: manifest.dependencies, manifest.devDependencies, existing lockfile
+输入：manifest.dependencies、manifest.devDependencies、现有 lockfile
 
-1. Initialize:
+1. 初始化：
    - constraints = {} // Map<string, [Constraint]>
    - resolved = {}    // Map<string, ResolvedPackage>
-   - queue = [direct dependencies]
+   - queue = [直接依赖]
 
-2. While queue not empty:
+2. 当队列不为空时：
    a. pkg = queue.pop()
-   b. If pkg already resolved, skip
-   c. Get all constraints for pkg from dependents
-   d. Fetch available versions from GitHub (cached)
-   e. Find max version satisfying all constraints
-   f. If none found: CONFLICT
+   b. 如果 pkg 已解析，跳过
+   c. 从依赖方获取 pkg 的所有约束
+   d. 从 GitHub 获取可用版本（已缓存）
+   e. 查找满足所有约束的最高版本
+   f. 如果未找到：冲突
    g. resolved[pkg] = {version, url, deps}
-   h. Add pkg's dependencies to queue
+   h. 将 pkg 的依赖添加到队列
 
-3. Detect cycles in resolved graph
-   - If cycle found: ERROR
+3. 在解析图中检测循环
+   - 如果发现循环：错误
 
-4. Return resolved map
+4. 返回解析映射
 ```
 
-## Error Handling
+## 错误处理
 
-### Exit Codes
+### 退出码
 
-Defined in main.hml:
+在 main.hml 中定义：
 
 ```hemlock
 let EXIT_SUCCESS = 0;
@@ -481,22 +481,22 @@ let EXIT_RATE_LIMIT = 7;
 let EXIT_CIRCULAR = 8;
 ```
 
-### Error Propagation
+### 错误传播
 
-Errors bubble up through return values:
+错误通过返回值向上冒泡：
 
 ```hemlock
 fn resolve_version(pkg): Result<Version, ResolveError> {
-    let versions = github.get_tags(owner, repo)?;  // ? propagates
+    let versions = github.get_tags(owner, repo)?;  // ? 传播错误
     // ...
 }
 ```
 
-## Testing
+## 测试
 
-### Test Framework
+### 测试框架
 
-Custom test framework in `test/framework.hml`:
+`test/framework.hml` 中的自定义测试框架：
 
 ```hemlock
 fn suite(name: string, tests: fn()) {
@@ -521,61 +521,61 @@ fn assert_eq<T>(actual: T, expected: T) {
 }
 ```
 
-### Test Files
+### 测试文件
 
-- `test/test_semver.hml` - Version parsing, comparison, constraints
-- `test/test_manifest.hml` - Manifest reading/writing, validation
-- `test/test_lockfile.hml` - Lockfile operations
-- `test/test_cache.hml` - Cache management
+- `test/test_semver.hml` - 版本解析、比较、约束
+- `test/test_manifest.hml` - 清单读写、验证
+- `test/test_lockfile.hml` - 锁定文件操作
+- `test/test_cache.hml` - 缓存管理
 
-### Running Tests
+### 运行测试
 
 ```bash
-# All tests
+# 所有测试
 make test
 
-# Specific tests
+# 特定测试
 make test-semver
 make test-manifest
 make test-lockfile
 make test-cache
 ```
 
-## Future Improvements
+## 未来改进
 
-### Planned Features
+### 计划功能
 
-1. **Integrity verification** - Full SHA256 hash checking
-2. **Workspaces** - Monorepo support
-3. **Plugin system** - Extensible commands
-4. **Audit** - Security vulnerability checking
-5. **Private registry** - Self-hosted package hosting
+1. **完整性验证** - 完整的 SHA256 哈希检查
+2. **工作区** - Monorepo 支持
+3. **插件系统** - 可扩展命令
+4. **审计** - 安全漏洞检查
+5. **私有注册表** - 自托管包托管
 
-### Known Limitations
+### 已知限制
 
-1. **Bundler bug** - Can't create standalone executable
-2. **Parallel downloads** - Experimental, may have race conditions
-3. **Integrity** - SHA256 not fully implemented
+1. **打包器 bug** - 无法创建独立可执行文件
+2. **并行下载** - 实验性，可能有竞态条件
+3. **完整性** - SHA256 未完全实现
 
-## Contributing
+## 贡献
 
-### Code Style
+### 代码风格
 
-- Use 4-space indentation
-- Functions should do one thing
-- Comment complex logic
-- Write tests for new features
+- 使用 4 空格缩进
+- 函数应该只做一件事
+- 注释复杂逻辑
+- 为新功能编写测试
 
-### Adding a Command
+### 添加命令
 
-1. Add handler in `main.hml`:
+1. 在 `main.hml` 中添加处理器：
    ```hemlock
    fn cmd_newcmd(args: [string]) {
        // Implementation
    }
    ```
 
-2. Add to command dispatch:
+2. 添加到命令分派：
    ```hemlock
    match command {
        "newcmd" => cmd_newcmd(args),
@@ -583,17 +583,17 @@ make test-cache
    }
    ```
 
-3. Update help text
+3. 更新帮助文本
 
-### Adding a Module
+### 添加模块
 
-1. Create `src/newmodule.hml`
-2. Export public interface
-3. Import in modules that need it
-4. Add tests in `test/test_newmodule.hml`
+1. 创建 `src/newmodule.hml`
+2. 导出公共接口
+3. 在需要它的模块中导入
+4. 在 `test/test_newmodule.hml` 中添加测试
 
-## See Also
+## 另请参阅
 
-- [Commands](commands.md) - CLI reference
-- [Creating Packages](creating-packages.md) - Package development
-- [Versioning](versioning.md) - Semantic versioning
+- [命令](commands.md) - CLI 参考
+- [创建包](creating-packages.md) - 包开发
+- [版本控制](versioning.md) - 语义化版本

@@ -1,168 +1,161 @@
-# Foreign Function Interface (FFI) in Hemlock
+# Hemlock 外部函数接口（FFI）
 
-Hemlock provides **FFI (Foreign Function Interface)** to call C functions from shared libraries using libffi, enabling integration with existing C libraries and system APIs.
+Hemlock 提供 **FFI（外部函数接口）**，可使用 libffi 调用共享库中的 C 函数，实现与现有 C 库和系统 API 的集成。
 
-## Table of Contents
+## 目录
 
-- [Overview](#overview)
-- [Current Status](#current-status)
-- [Supported Types](#supported-types)
-- [Basic Concepts](#basic-concepts)
-- [Exporting FFI Functions](#exporting-ffi-functions)
-- [Use Cases](#use-cases)
-- [Future Development](#future-development)
-- [FFI Callbacks](#ffi-callbacks)
-- [FFI Structs](#ffi-structs)
-- [Exporting Struct Types](#exporting-struct-types)
-- [Current Limitations](#current-limitations)
-- [Best Practices](#best-practices)
+- [概述](#概述)
+- [当前状态](#当前状态)
+- [支持的类型](#支持的类型)
+- [基本概念](#基本概念)
+- [导出 FFI 函数](#导出-ffi-函数)
+- [用例](#用例)
+- [未来发展](#未来发展)
+- [FFI 回调](#ffi-回调)
+- [FFI 结构体](#ffi-结构体)
+- [当前限制](#当前限制)
+- [最佳实践](#最佳实践)
 
-## Overview
+## 概述
 
-The Foreign Function Interface (FFI) allows Hemlock programs to:
-- Call C functions from shared libraries (.so, .dylib, .dll)
-- Use existing C libraries without writing wrapper code
-- Access system APIs directly
-- Integrate with third-party native libraries
-- Bridge Hemlock with low-level system functionality
+外部函数接口（FFI）允许 Hemlock 程序：
+- 从共享库（.so、.dylib、.dll）调用 C 函数
+- 使用现有 C 库而无需编写包装代码
+- 直接访问系统 API
+- 与第三方原生库集成
+- 将 Hemlock 与底层系统功能桥接
 
-**Key capabilities:**
-- Dynamic library loading
-- C function binding
-- Automatic type conversion between Hemlock and C types
-- Support for all primitive types
-- libffi-based implementation for portability
+**关键能力：**
+- 动态库加载
+- C 函数绑定
+- Hemlock 和 C 类型之间的自动类型转换
+- 支持所有原始类型
+- 基于 libffi 的实现，具有可移植性
 
-## Current Status
+## 当前状态
 
-FFI support is available in Hemlock with the following features:
+Hemlock 中的 FFI 支持具有以下特性：
 
-**Implemented:**
-- ✅ Call C functions from shared libraries
-- ✅ Support for all primitive types (integers, floats, pointers)
-- ✅ Automatic type conversion
-- ✅ libffi-based implementation
-- ✅ Dynamic library loading
-- ✅ **Function pointer callbacks** - Pass Hemlock functions to C
-- ✅ **Export extern functions** - Share FFI bindings across modules
-- ✅ **Struct passing and return values** - Pass C-compatible structs by value
-- ✅ **Complete pointer helpers** - Read/write all types (i8-i64, u8-u64, f32, f64, ptr)
-- ✅ **Buffer/pointer conversion** - `buffer_ptr()`, `ptr_to_buffer()`
-- ✅ **FFI type sizes** - `ffi_sizeof()` for platform-aware type sizes
-- ✅ **Platform types** - `size_t`, `usize`, `isize`, `intptr_t` support
+**已实现：**
+- 从共享库调用 C 函数
+- 支持所有原始类型（整数、浮点数、指针）
+- 自动类型转换
+- 基于 libffi 的实现
+- 动态库加载
+- **函数指针回调** - 将 Hemlock 函数传递给 C
+- **导出 extern 函数** - 跨模块共享 FFI 绑定
+- **结构体传递和返回值** - 按值传递 C 兼容的结构体
+- **完整的指针辅助函数** - 读写所有类型（i8-i64, u8-u64, f32, f64, ptr）
+- **缓冲区/指针转换** - `buffer_ptr()`、`ptr_to_buffer()`
+- **FFI 类型大小** - `ffi_sizeof()` 用于平台感知的类型大小
+- **平台类型** - 支持 `size_t`、`usize`、`isize`、`intptr_t`
 
-**In Development:**
-- 🔄 String marshaling helpers
-- 🔄 Error handling improvements
+**开发中：**
+- 字符串封送辅助函数
+- 错误处理改进
 
-**Test Coverage:**
-- FFI tests passing including callback tests
-- Basic function calling verified
-- Type conversion tested
-- qsort callback integration tested
+## 支持的类型
 
-## Supported Types
+### 原始类型
 
-### Primitive Types
+以下 Hemlock 类型可以传递给 C 函数或从 C 函数返回：
 
-The following Hemlock types can be passed to/from C functions:
+| Hemlock 类型 | C 类型 | 大小 | 说明 |
+|--------------|--------|------|------|
+| `i8` | `int8_t` | 1 字节 | 有符号 8 位整数 |
+| `i16` | `int16_t` | 2 字节 | 有符号 16 位整数 |
+| `i32` | `int32_t` | 4 字节 | 有符号 32 位整数 |
+| `i64` | `int64_t` | 8 字节 | 有符号 64 位整数 |
+| `u8` | `uint8_t` | 1 字节 | 无符号 8 位整数 |
+| `u16` | `uint16_t` | 2 字节 | 无符号 16 位整数 |
+| `u32` | `uint32_t` | 4 字节 | 无符号 32 位整数 |
+| `u64` | `uint64_t` | 8 字节 | 无符号 64 位整数 |
+| `f32` | `float` | 4 字节 | 32 位浮点数 |
+| `f64` | `double` | 8 字节 | 64 位浮点数 |
+| `ptr` | `void*` | 8 字节 | 原始指针 |
 
-| Hemlock Type | C Type | Size | Notes |
-|--------------|--------|------|-------|
-| `i8` | `int8_t` | 1 byte | Signed 8-bit integer |
-| `i16` | `int16_t` | 2 bytes | Signed 16-bit integer |
-| `i32` | `int32_t` | 4 bytes | Signed 32-bit integer |
-| `i64` | `int64_t` | 8 bytes | Signed 64-bit integer |
-| `u8` | `uint8_t` | 1 byte | Unsigned 8-bit integer |
-| `u16` | `uint16_t` | 2 bytes | Unsigned 16-bit integer |
-| `u32` | `uint32_t` | 4 bytes | Unsigned 32-bit integer |
-| `u64` | `uint64_t` | 8 bytes | Unsigned 64-bit integer |
-| `f32` | `float` | 4 bytes | 32-bit floating point |
-| `f64` | `double` | 8 bytes | 64-bit floating point |
-| `ptr` | `void*` | 8 bytes | Raw pointer |
+### 类型转换
 
-### Type Conversion
+**自动转换：**
+- Hemlock 整数 -> C 整数（带范围检查）
+- Hemlock 浮点数 -> C 浮点数
+- Hemlock 指针 -> C 指针
+- C 返回值 -> Hemlock 值
 
-**Automatic conversions:**
-- Hemlock integers → C integers (with range checking)
-- Hemlock floats → C floats
-- Hemlock pointers → C pointers
-- C return values → Hemlock values
-
-**Example type mappings:**
+**示例类型映射：**
 ```hemlock
-// Hemlock → C
-let i: i32 = 42;         // → int32_t (4 bytes)
-let f: f64 = 3.14;       // → double (8 bytes)
-let p: ptr = alloc(64);  // → void* (8 bytes)
+// Hemlock -> C
+let i: i32 = 42;         // -> int32_t (4 字节)
+let f: f64 = 3.14;       // -> double (8 字节)
+let p: ptr = alloc(64);  // -> void* (8 字节)
 
-// C → Hemlock (return values)
-// int32_t foo() → i32
-// double bar() → f64
-// void* baz() → ptr
+// C -> Hemlock（返回值）
+// int32_t foo() -> i32
+// double bar() -> f64
+// void* baz() -> ptr
 ```
 
-## Basic Concepts
+## 基本概念
 
-### Shared Libraries
+### 共享库
 
-FFI works with compiled shared libraries:
+FFI 与编译后的共享库配合使用：
 
-**Linux:** `.so` files
+**Linux:** `.so` 文件
 ```
 libexample.so
 /usr/lib/libm.so
 ```
 
-**macOS:** `.dylib` files
+**macOS:** `.dylib` 文件
 ```
 libexample.dylib
 /usr/lib/libSystem.dylib
 ```
 
-**Windows:** `.dll` files
+**Windows:** `.dll` 文件
 ```
 example.dll
 kernel32.dll
 ```
 
-### Function Signatures
+### 函数签名
 
-C functions must have known signatures for FFI to work correctly:
+C 函数必须具有已知的签名才能让 FFI 正常工作：
 
 ```c
-// Example C function signatures
+// 示例 C 函数签名
 int add(int a, int b);
 double sqrt(double x);
 void* malloc(size_t size);
 void free(void* ptr);
 ```
 
-These can be called from Hemlock once the library is loaded and functions are bound.
+一旦加载库并绑定函数，就可以从 Hemlock 调用这些函数。
 
-### Platform Compatibility
+### 平台兼容性
 
-FFI uses **libffi** for portability:
-- Works on x86, x86-64, ARM, ARM64
-- Handles calling conventions automatically
-- Abstracts platform-specific ABI details
-- Supports Linux, macOS, Windows (with appropriate libffi)
+FFI 使用 **libffi** 实现可移植性：
+- 适用于 x86、x86-64、ARM、ARM64
+- 自动处理调用约定
+- 抽象平台特定的 ABI 细节
+- 支持 Linux、macOS、Windows（需要适当的 libffi）
 
-## Exporting FFI Functions
+## 导出 FFI 函数
 
-FFI functions declared with `extern fn` can be exported from modules, allowing you to create reusable library wrappers that can be shared across multiple files.
+使用 `extern fn` 声明的 FFI 函数可以从模块导出，允许您创建可跨多个文件共享的可重用库包装器。
 
-### Basic Export Syntax
+### 基本导出语法
 
 ```hemlock
-// string_utils.hml - A library module wrapping C string functions
+// string_utils.hml - 包装 C 字符串函数的库模块
 import "libc.so.6";
 
-// Export the extern function directly
+// 直接导出 extern 函数
 export extern fn strlen(s: string): i32;
 export extern fn strcmp(s1: string, s2: string): i32;
 
-// You can also export wrapper functions alongside extern functions
+// 您也可以在 extern 函数旁边导出包装函数
 export fn string_length(s: string): i32 {
     return strlen(s);
 }
@@ -172,25 +165,25 @@ export fn strings_equal(a: string, b: string): bool {
 }
 ```
 
-### Importing Exported FFI Functions
+### 导入导出的 FFI 函数
 
 ```hemlock
-// main.hml - Using the exported FFI functions
+// main.hml - 使用导出的 FFI 函数
 import { strlen, string_length, strings_equal } from "./string_utils.hml";
 
 let msg = "Hello, World!";
-print(strlen(msg));           // 13 - direct extern call
-print(string_length(msg));    // 13 - wrapper function
+print(strlen(msg));           // 13 - 直接 extern 调用
+print(string_length(msg));    // 13 - 包装函数
 
 print(strings_equal("foo", "foo"));  // true
 print(strings_equal("foo", "bar"));  // false
 ```
 
-### Use Cases for Export Extern
+### Export Extern 的用例
 
-**1. Platform Abstraction**
+**1. 平台抽象**
 ```hemlock
-// platform.hml - Abstract platform differences
+// platform.hml - 抽象平台差异
 import "libc.so.6";  // Linux
 
 export extern fn getpid(): i32;
@@ -198,272 +191,134 @@ export extern fn getuid(): i32;
 export extern fn geteuid(): i32;
 ```
 
-**2. Library Wrappers**
+**2. 库包装器**
 ```hemlock
-// crypto_lib.hml - Wrap crypto library functions
+// crypto_lib.hml - 包装加密库函数
 import "libcrypto.so";
 
 export extern fn SHA256(data: ptr, len: u64, out: ptr): ptr;
 export extern fn MD5(data: ptr, len: u64, out: ptr): ptr;
 
-// Add Hemlock-friendly wrappers
+// 添加 Hemlock 友好的包装器
 export fn sha256_string(s: string): string {
-    // Implementation using the extern function
+    // 使用 extern 函数的实现
 }
 ```
 
-**3. Centralized FFI Declarations**
+**3. 集中式 FFI 声明**
 ```hemlock
-// libc.hml - Central module for libc bindings
+// libc.hml - libc 绑定的中央模块
 import "libc.so.6";
 
-// String functions
+// 字符串函数
 export extern fn strlen(s: string): i32;
 export extern fn strcpy(dest: ptr, src: string): ptr;
 export extern fn strcat(dest: ptr, src: string): ptr;
 
-// Memory functions
+// 内存函数
 export extern fn malloc(size: u64): ptr;
 export extern fn realloc(p: ptr, size: u64): ptr;
 export extern fn calloc(nmemb: u64, size: u64): ptr;
 
-// Process functions
+// 进程函数
 export extern fn getpid(): i32;
 export extern fn getppid(): i32;
 export extern fn getenv(name: string): ptr;
 ```
 
-Then use throughout your project:
+然后在整个项目中使用：
 ```hemlock
 import { strlen, malloc, getpid } from "./libc.hml";
 ```
 
-### Combining with Regular Exports
+## 用例
 
-You can mix exported extern functions with regular function exports:
+### 1. 系统库
 
+访问标准 C 库函数：
+
+**数学函数：**
 ```hemlock
-// math_extended.hml
-import "libm.so.6";
-
-// Export raw C functions
-export extern fn sin(x: f64): f64;
-export extern fn cos(x: f64): f64;
-export extern fn tan(x: f64): f64;
-
-// Export Hemlock functions that use them
-export fn deg_to_rad(degrees: f64): f64 {
-    return degrees * 3.14159265359 / 180.0;
-}
-
-export fn sin_degrees(degrees: f64): f64 {
-    return sin(deg_to_rad(degrees));
-}
-```
-
-### Platform-Specific Libraries
-
-When exporting extern functions, remember that library names differ by platform:
-
-```hemlock
-// For Linux
-import "libc.so.6";
-
-// For macOS (different approach needed)
-import "libSystem.B.dylib";
-```
-
-Currently, Hemlock's `import "library"` syntax uses static library paths, so platform-specific modules may be needed for cross-platform FFI code.
-
-## Use Cases
-
-### 1. System Libraries
-
-Access standard C library functions:
-
-**Math functions:**
-```hemlock
-// Call sqrt from libm
+// 从 libm 调用 sqrt
 let result = sqrt(16.0);  // 4.0
 ```
 
-**Memory allocation:**
+**内存分配：**
 ```hemlock
-// Call malloc/free from libc
+// 从 libc 调用 malloc/free
 let ptr = malloc(1024);
 free(ptr);
 ```
 
-### 2. Third-Party Libraries
+### 2. 第三方库
 
-Use existing C libraries:
+使用现有的 C 库：
 
-**Example: Image processing**
+**示例：图像处理**
 ```hemlock
-// Load libpng or libjpeg
-// Process images using C library functions
+// 加载 libpng 或 libjpeg
+// 使用 C 库函数处理图像
 ```
 
-**Example: Cryptography**
+**示例：加密**
 ```hemlock
-// Use OpenSSL or libsodium
-// Encryption/decryption via FFI
+// 使用 OpenSSL 或 libsodium
+// 通过 FFI 进行加密/解密
 ```
 
-### 3. System APIs
+### 3. 系统 API
 
-Direct system calls:
+直接系统调用：
 
-**Example: POSIX APIs**
+**示例：POSIX API**
 ```hemlock
-// Call getpid, getuid, etc.
-// Access low-level system functionality
+// 调用 getpid、getuid 等
+// 访问底层系统功能
 ```
 
-### 4. Performance-Critical Code
+### 4. 性能关键代码
 
-Call optimized C implementations:
-
-```hemlock
-// Use highly-optimized C libraries
-// SIMD operations, vectorized code
-// Hardware-accelerated functions
-```
-
-### 5. Hardware Access
-
-Interface with hardware libraries:
+调用优化的 C 实现：
 
 ```hemlock
-// GPIO control on embedded systems
-// USB device communication
-// Serial port access
+// 使用高度优化的 C 库
+// SIMD 操作、向量化代码
+// 硬件加速函数
 ```
 
-### 6. Legacy Code Integration
+## FFI 回调
 
-Reuse existing C codebases:
+Hemlock 支持使用 libffi 闭包将函数作为回调传递给 C 代码。这使得能够与期望函数指针的 C API 集成，如 `qsort`、事件循环和基于回调的库。
 
-```hemlock
-// Call functions from legacy C applications
-// Gradually migrate to Hemlock
-// Preserve working C code
-```
+### 创建回调
 
-## Future Development
-
-### Planned Features
-
-**1. Struct Support**
-```hemlock
-// Future: Pass/return C structs
-define Point {
-    x: f64,
-    y: f64,
-}
-
-let p = Point { x: 1.0, y: 2.0 };
-c_function_with_struct(p);
-```
-
-**2. Array/Buffer Handling**
-```hemlock
-// Future: Better array passing
-let arr = [1, 2, 3, 4, 5];
-process_array(arr);  // Pass to C function
-```
-
-**3. Function Pointer Callbacks** ✅ (Implemented!)
-```hemlock
-// Pass Hemlock functions to C as callbacks
-fn my_compare(a: ptr, b: ptr): i32 {
-    let va = ptr_deref_i32(a);
-    let vb = ptr_deref_i32(b);
-    return va - vb;
-}
-
-// Create a C-callable function pointer
-let cmp = callback(my_compare, ["ptr", "ptr"], "i32");
-
-// Use with qsort or any C function expecting a callback
-qsort(arr, count, elem_size, cmp);
-
-// Clean up when done
-callback_free(cmp);
-```
-
-**4. String Marshaling**
-```hemlock
-// Future: Automatic string conversion
-let s = "hello";
-c_string_function(s);  // Auto-convert to C string
-```
-
-**5. Error Handling**
-```hemlock
-// Future: Better error reporting
-try {
-    let result = risky_c_function();
-} catch (e) {
-    print("FFI error: " + e);
-}
-```
-
-**6. Type Safety**
-```hemlock
-// Future: Type annotations for FFI
-@ffi("libm.so")
-fn sqrt(x: f64): f64;
-
-let result = sqrt(16.0);  // Type-checked
-```
-
-### Features
-
-**v1.0:**
-- ✅ Basic FFI with primitive types
-- ✅ Dynamic library loading
-- ✅ Function calling
-- ✅ Callback support via libffi closures
-
-**Future:**
-- Struct support
-- Array handling improvements
-- Automatic binding generation
-
-## FFI Callbacks
-
-Hemlock supports passing functions to C code as callbacks using libffi closures. This enables integration with C APIs that expect function pointers, such as `qsort`, event loops, and callback-based libraries.
-
-### Creating Callbacks
-
-Use `callback()` to create a C-callable function pointer from a Hemlock function:
+使用 `callback()` 从 Hemlock 函数创建 C 可调用的函数指针：
 
 ```hemlock
 // callback(function, param_types, return_type) -> ptr
 let cb = callback(my_function, ["ptr", "ptr"], "i32");
 ```
 
-**Parameters:**
-- `function`: A Hemlock function to wrap
-- `param_types`: Array of type name strings (e.g., `["ptr", "i32"]`)
-- `return_type`: Return type string (e.g., `"i32"`, `"void"`)
+**参数：**
+- `function`：要包装的 Hemlock 函数
+- `param_types`：类型名称字符串数组（如 `["ptr", "i32"]`）
+- `return_type`：返回类型字符串（如 `"i32"`、`"void"`）
 
-**Supported callback types:**
-- `"i8"`, `"i16"`, `"i32"`, `"i64"` - Signed integers
-- `"u8"`, `"u16"`, `"u32"`, `"u64"` - Unsigned integers
-- `"f32"`, `"f64"` - Floating point
-- `"ptr"` - Pointer
-- `"void"` - No return value
-- `"bool"` - Boolean
+**支持的回调类型：**
+- `"i8"`, `"i16"`, `"i32"`, `"i64"` - 有符号整数
+- `"u8"`, `"u16"`, `"u32"`, `"u64"` - 无符号整数
+- `"f32"`, `"f64"` - 浮点数
+- `"ptr"` - 指针
+- `"void"` - 无返回值
+- `"bool"` - 布尔值
 
-### Example: qsort
+### 示例：qsort
 
 ```hemlock
 import "libc.so.6";
 extern fn qsort(base: ptr, nmemb: u64, size: u64, compar: ptr): void;
 
-// Comparison function for integers (ascending order)
+// 整数比较函数（升序）
 fn compare_ints(a: ptr, b: ptr): i32 {
     let va = ptr_deref_i32(a);
     let vb = ptr_deref_i32(b);
@@ -472,141 +327,105 @@ fn compare_ints(a: ptr, b: ptr): i32 {
     return 0;
 }
 
-// Allocate array of 5 integers
-let arr = alloc(20);  // 5 * 4 bytes
+// 分配 5 个整数的数组
+let arr = alloc(20);  // 5 * 4 字节
 ptr_write_i32(arr, 5);
 ptr_write_i32(ptr_offset(arr, 1, 4), 2);
 ptr_write_i32(ptr_offset(arr, 2, 4), 8);
 ptr_write_i32(ptr_offset(arr, 3, 4), 1);
 ptr_write_i32(ptr_offset(arr, 4, 4), 9);
 
-// Create callback and sort
+// 创建回调并排序
 let cmp = callback(compare_ints, ["ptr", "ptr"], "i32");
 qsort(arr, 5, 4, cmp);
 
-// Array is now sorted: [1, 2, 5, 8, 9]
+// 数组现在已排序：[1, 2, 5, 8, 9]
 
-// Clean up
+// 清理
 callback_free(cmp);
 free(arr);
 ```
 
-### Pointer Helper Functions
+### 指针辅助函数
 
-Hemlock provides comprehensive helper functions for working with raw pointers. These are essential for FFI callbacks and direct memory manipulation.
+Hemlock 提供全面的辅助函数用于处理原始指针。这些对于 FFI 回调和直接内存操作至关重要。
 
-#### Integer Type Helpers
+#### 整数类型辅助函数
 
-| Function | Description |
-|----------|-------------|
-| `ptr_deref_i8(ptr)` | Dereference pointer, read i8 |
-| `ptr_deref_i16(ptr)` | Dereference pointer, read i16 |
-| `ptr_deref_i32(ptr)` | Dereference pointer, read i32 |
-| `ptr_deref_i64(ptr)` | Dereference pointer, read i64 |
-| `ptr_deref_u8(ptr)` | Dereference pointer, read u8 |
-| `ptr_deref_u16(ptr)` | Dereference pointer, read u16 |
-| `ptr_deref_u32(ptr)` | Dereference pointer, read u32 |
-| `ptr_deref_u64(ptr)` | Dereference pointer, read u64 |
-| `ptr_write_i8(ptr, value)` | Write i8 to pointer location |
-| `ptr_write_i16(ptr, value)` | Write i16 to pointer location |
-| `ptr_write_i32(ptr, value)` | Write i32 to pointer location |
-| `ptr_write_i64(ptr, value)` | Write i64 to pointer location |
-| `ptr_write_u8(ptr, value)` | Write u8 to pointer location |
-| `ptr_write_u16(ptr, value)` | Write u16 to pointer location |
-| `ptr_write_u32(ptr, value)` | Write u32 to pointer location |
-| `ptr_write_u64(ptr, value)` | Write u64 to pointer location |
+| 函数 | 描述 |
+|------|------|
+| `ptr_deref_i8(ptr)` | 解引用指针，读取 i8 |
+| `ptr_deref_i16(ptr)` | 解引用指针，读取 i16 |
+| `ptr_deref_i32(ptr)` | 解引用指针，读取 i32 |
+| `ptr_deref_i64(ptr)` | 解引用指针，读取 i64 |
+| `ptr_deref_u8(ptr)` | 解引用指针，读取 u8 |
+| `ptr_deref_u16(ptr)` | 解引用指针，读取 u16 |
+| `ptr_deref_u32(ptr)` | 解引用指针，读取 u32 |
+| `ptr_deref_u64(ptr)` | 解引用指针，读取 u64 |
+| `ptr_write_i8(ptr, value)` | 向指针位置写入 i8 |
+| `ptr_write_i16(ptr, value)` | 向指针位置写入 i16 |
+| `ptr_write_i32(ptr, value)` | 向指针位置写入 i32 |
+| `ptr_write_i64(ptr, value)` | 向指针位置写入 i64 |
+| `ptr_write_u8(ptr, value)` | 向指针位置写入 u8 |
+| `ptr_write_u16(ptr, value)` | 向指针位置写入 u16 |
+| `ptr_write_u32(ptr, value)` | 向指针位置写入 u32 |
+| `ptr_write_u64(ptr, value)` | 向指针位置写入 u64 |
 
-#### Float Type Helpers
+#### 浮点类型辅助函数
 
-| Function | Description |
-|----------|-------------|
-| `ptr_deref_f32(ptr)` | Dereference pointer, read f32 (float) |
-| `ptr_deref_f64(ptr)` | Dereference pointer, read f64 (double) |
-| `ptr_write_f32(ptr, value)` | Write f32 to pointer location |
-| `ptr_write_f64(ptr, value)` | Write f64 to pointer location |
+| 函数 | 描述 |
+|------|------|
+| `ptr_deref_f32(ptr)` | 解引用指针，读取 f32 (float) |
+| `ptr_deref_f64(ptr)` | 解引用指针，读取 f64 (double) |
+| `ptr_write_f32(ptr, value)` | 向指针位置写入 f32 |
+| `ptr_write_f64(ptr, value)` | 向指针位置写入 f64 |
 
-#### Pointer Type Helpers
+#### 指针类型辅助函数
 
-| Function | Description |
-|----------|-------------|
-| `ptr_deref_ptr(ptr)` | Dereference pointer-to-pointer |
-| `ptr_write_ptr(ptr, value)` | Write pointer to pointer location |
-| `ptr_offset(ptr, index, size)` | Calculate offset: `ptr + index * size` |
-| `ptr_read_i32(ptr)` | Read i32 through pointer-to-pointer (for qsort callbacks) |
-| `ptr_null()` | Get a null pointer constant |
+| 函数 | 描述 |
+|------|------|
+| `ptr_deref_ptr(ptr)` | 解引用指向指针的指针 |
+| `ptr_write_ptr(ptr, value)` | 向指针位置写入指针 |
+| `ptr_offset(ptr, index, size)` | 计算偏移：`ptr + index * size` |
+| `ptr_read_i32(ptr)` | 通过指向指针的指针读取 i32（用于 qsort 回调） |
+| `ptr_null()` | 获取空指针常量 |
 
-#### Buffer Conversion Helpers
+#### 缓冲区转换辅助函数
 
-| Function | Description |
-|----------|-------------|
-| `buffer_ptr(buffer)` | Get raw pointer from a buffer |
-| `ptr_to_buffer(ptr, size)` | Copy data from pointer into a new buffer |
+| 函数 | 描述 |
+|------|------|
+| `buffer_ptr(buffer)` | 从缓冲区获取原始指针 |
+| `ptr_to_buffer(ptr, size)` | 从指针复制数据到新缓冲区 |
 
-#### FFI Utility Functions
+#### FFI 实用函数
 
-| Function | Description |
-|----------|-------------|
-| `ffi_sizeof(type_name)` | Get size in bytes of an FFI type |
+| 函数 | 描述 |
+|------|------|
+| `ffi_sizeof(type_name)` | 获取 FFI 类型的字节大小 |
 
-**Supported type names for `ffi_sizeof`:**
-- `"i8"`, `"i16"`, `"i32"`, `"i64"` - Signed integers (1, 2, 4, 8 bytes)
-- `"u8"`, `"u16"`, `"u32"`, `"u64"` - Unsigned integers (1, 2, 4, 8 bytes)
-- `"f32"`, `"f64"` - Floats (4, 8 bytes)
-- `"ptr"` - Pointer (8 bytes on 64-bit)
-- `"size_t"`, `"usize"` - Platform-dependent size type
-- `"intptr_t"`, `"isize"` - Platform-dependent signed pointer type
+**`ffi_sizeof` 支持的类型名称：**
+- `"i8"`, `"i16"`, `"i32"`, `"i64"` - 有符号整数（1, 2, 4, 8 字节）
+- `"u8"`, `"u16"`, `"u32"`, `"u64"` - 无符号整数（1, 2, 4, 8 字节）
+- `"f32"`, `"f64"` - 浮点数（4, 8 字节）
+- `"ptr"` - 指针（64 位系统上 8 字节）
+- `"size_t"`, `"usize"` - 平台相关的大小类型
+- `"intptr_t"`, `"isize"` - 平台相关的有符号指针类型
 
-#### Example: Working with Different Types
+### 释放回调
 
-```hemlock
-let p = alloc(64);
-
-// Write and read integers
-ptr_write_i8(p, 42);
-print(ptr_deref_i8(p));  // 42
-
-ptr_write_i64(ptr_offset(p, 1, 8), 9000000000);
-print(ptr_deref_i64(ptr_offset(p, 1, 8)));  // 9000000000
-
-// Write and read floats
-ptr_write_f64(p, 3.14159);
-print(ptr_deref_f64(p));  // 3.14159
-
-// Pointer-to-pointer
-let inner = alloc(4);
-ptr_write_i32(inner, 999);
-ptr_write_ptr(p, inner);
-let retrieved = ptr_deref_ptr(p);
-print(ptr_deref_i32(retrieved));  // 999
-
-// Get type sizes
-print(ffi_sizeof("i64"));  // 8
-print(ffi_sizeof("ptr"));  // 8 (on 64-bit)
-
-// Buffer conversion
-let buf = buffer(64);
-ptr_write_i32(buffer_ptr(buf), 12345);
-print(ptr_deref_i32(buffer_ptr(buf)));  // 12345
-
-free(inner);
-free(p);
-```
-
-### Freeing Callbacks
-
-**Important:** Always free callbacks when done to prevent memory leaks:
+**重要：** 始终在使用完回调后释放它们以防止内存泄漏：
 
 ```hemlock
 let cb = callback(my_fn, ["ptr"], "void");
-// ... use callback ...
-callback_free(cb);  // Free when done
+// ... 使用回调 ...
+callback_free(cb);  // 使用完后释放
 ```
 
-Callbacks are also automatically freed when the program exits.
+程序退出时回调也会自动释放。
 
-### Closures in Callbacks
+### 回调中的闭包
 
-Callbacks capture their closure environment, so they can access outer scope variables:
+回调捕获其闭包环境，因此可以访问外部作用域变量：
 
 ```hemlock
 let multiplier = 10;
@@ -614,83 +433,83 @@ let multiplier = 10;
 fn scale(a: ptr, b: ptr): i32 {
     let va = ptr_deref_i32(a);
     let vb = ptr_deref_i32(b);
-    // Can access 'multiplier' from outer scope
+    // 可以访问外部作用域的 'multiplier'
     return (va * multiplier) - (vb * multiplier);
 }
 
 let cmp = callback(scale, ["ptr", "ptr"], "i32");
 ```
 
-### Thread Safety
+### 线程安全
 
-Callback invocations are serialized with a mutex to ensure thread safety, as the Hemlock interpreter is not fully thread-safe. This means:
-- Only one callback can execute at a time
-- Safe to use with multi-threaded C libraries
-- May impact performance if callbacks are called very frequently from multiple threads
+回调调用通过互斥锁序列化以确保线程安全，因为 Hemlock 解释器不是完全线程安全的。这意味着：
+- 一次只能执行一个回调
+- 可以安全地与多线程 C 库一起使用
+- 如果回调从多个线程频繁调用，可能影响性能
 
-### Error Handling in Callbacks
+### 回调中的错误处理
 
-Exceptions thrown in callbacks cannot propagate to C code. Instead:
-- A warning is printed to stderr
-- The callback returns a default value (0 or NULL)
-- The exception is logged but not propagated
+在回调中抛出的异常无法传播到 C 代码。相反：
+- 向 stderr 打印警告
+- 回调返回默认值（0 或 NULL）
+- 异常被记录但不传播
 
 ```hemlock
 fn risky_callback(a: ptr): i32 {
-    throw "Something went wrong";  // Warning printed, returns 0
+    throw "Something went wrong";  // 打印警告，返回 0
 }
 ```
 
-For robust error handling, validate inputs and avoid throwing in callbacks.
+为了健壮的错误处理，请验证输入并避免在回调中抛出异常。
 
-## FFI Structs
+## FFI 结构体
 
-Hemlock supports passing structs by value to C functions. Struct types are automatically registered for FFI when you define them with type annotations.
+Hemlock 支持按值向 C 函数传递结构体。当您使用类型注解定义结构体时，结构体类型会自动为 FFI 注册。
 
-### Defining FFI-Compatible Structs
+### 定义 FFI 兼容的结构体
 
-A struct is FFI-compatible when all fields have explicit type annotations using FFI-compatible types:
+当所有字段都具有使用 FFI 兼容类型的显式类型注解时，结构体就是 FFI 兼容的：
 
 ```hemlock
-// FFI-compatible struct
+// FFI 兼容的结构体
 define Point {
     x: f64,
     y: f64,
 }
 
-// FFI-compatible struct with multiple field types
+// 具有多种字段类型的 FFI 兼容结构体
 define Rectangle {
-    top_left: Point,      // Nested struct
+    top_left: Point,      // 嵌套结构体
     width: f64,
     height: f64,
 }
 
-// NOT FFI-compatible (field without type annotation)
+// 不是 FFI 兼容的（字段没有类型注解）
 define DynamicObject {
-    name,                 // No type - not usable in FFI
+    name,                 // 没有类型 - 不能用于 FFI
     value,
 }
 ```
 
-### Using Structs in FFI
+### 在 FFI 中使用结构体
 
-Declare extern functions that use struct types:
+声明使用结构体类型的 extern 函数：
 
 ```hemlock
-// Define the struct type
+// 定义结构体类型
 define Vector2D {
     x: f64,
     y: f64,
 }
 
-// Import the C library
+// 导入 C 库
 import "libmath.so";
 
-// Declare extern function that takes/returns structs
+// 声明接受/返回结构体的 extern 函数
 extern fn vector_add(a: Vector2D, b: Vector2D): Vector2D;
 extern fn vector_length(v: Vector2D): f64;
 
-// Use it naturally
+// 自然地使用它
 let a: Vector2D = { x: 3.0, y: 0.0 };
 let b: Vector2D = { x: 0.0, y: 4.0 };
 let result = vector_add(a, b);
@@ -701,54 +520,54 @@ let len = vector_length(result);
 print(len);       // 5.0
 ```
 
-### Supported Field Types
+### 支持的字段类型
 
-Struct fields must use these FFI-compatible types:
+结构体字段必须使用以下 FFI 兼容类型：
 
-| Hemlock Type | C Type | Size |
+| Hemlock 类型 | C 类型 | 大小 |
 |--------------|--------|------|
-| `i8` | `int8_t` | 1 byte |
-| `i16` | `int16_t` | 2 bytes |
-| `i32` | `int32_t` | 4 bytes |
-| `i64` | `int64_t` | 8 bytes |
-| `u8` | `uint8_t` | 1 byte |
-| `u16` | `uint16_t` | 2 bytes |
-| `u32` | `uint32_t` | 4 bytes |
-| `u64` | `uint64_t` | 8 bytes |
-| `f32` | `float` | 4 bytes |
-| `f64` | `double` | 8 bytes |
-| `ptr` | `void*` | 8 bytes |
-| `string` | `char*` | 8 bytes |
-| `bool` | `int` | varies |
-| Nested struct | struct | varies |
+| `i8` | `int8_t` | 1 字节 |
+| `i16` | `int16_t` | 2 字节 |
+| `i32` | `int32_t` | 4 字节 |
+| `i64` | `int64_t` | 8 字节 |
+| `u8` | `uint8_t` | 1 字节 |
+| `u16` | `uint16_t` | 2 字节 |
+| `u32` | `uint32_t` | 4 字节 |
+| `u64` | `uint64_t` | 8 字节 |
+| `f32` | `float` | 4 字节 |
+| `f64` | `double` | 8 字节 |
+| `ptr` | `void*` | 8 字节 |
+| `string` | `char*` | 8 字节 |
+| `bool` | `int` | 可变 |
+| 嵌套结构体 | struct | 可变 |
 
-### Struct Layout
+### 结构体布局
 
-Hemlock uses the platform's native struct layout rules (matching the C ABI):
-- Fields are aligned according to their type
-- Padding is inserted as needed
-- Total size is padded to align the largest member
+Hemlock 使用平台的原生结构体布局规则（匹配 C ABI）：
+- 字段按其类型对齐
+- 根据需要插入填充
+- 总大小填充以对齐最大成员
 
 ```hemlock
-// Example: C-compatible layout
+// 示例：C 兼容布局
 define Mixed {
-    a: i8,    // offset 0, size 1
-              // 3 bytes padding
-    b: i32,   // offset 4, size 4
+    a: i8,    // 偏移 0，大小 1
+              // 3 字节填充
+    b: i32,   // 偏移 4，大小 4
 }
-// Total size: 8 bytes (with padding)
+// 总大小：8 字节（包含填充）
 
 define Point3D {
-    x: f64,   // offset 0, size 8
-    y: f64,   // offset 8, size 8
-    z: f64,   // offset 16, size 8
+    x: f64,   // 偏移 0，大小 8
+    y: f64,   // 偏移 8，大小 8
+    z: f64,   // 偏移 16，大小 8
 }
-// Total size: 24 bytes (no padding needed)
+// 总大小：24 字节（不需要填充）
 ```
 
-### Nested Structs
+### 嵌套结构体
 
-Structs can contain other structs:
+结构体可以包含其他结构体：
 
 ```hemlock
 define Inner {
@@ -771,9 +590,9 @@ let obj: Outer = {
 let result = process_nested(obj);
 ```
 
-### Struct Return Values
+### 结构体返回值
 
-C functions can return structs:
+C 函数可以返回结构体：
 
 ```hemlock
 define Point {
@@ -789,155 +608,91 @@ print(p.x);  // 0.0
 print(p.y);  // 0.0
 ```
 
-### Limitations
+### 限制
 
-- **Struct fields must have type annotations** - fields without types are not FFI-compatible
-- **No arrays in structs** - use pointers instead
-- **No unions** - only struct types are supported
-- **Callbacks cannot return structs** - use pointers for callback return values
+- **结构体字段必须有类型注解** - 没有类型的字段不是 FFI 兼容的
+- **结构体中没有数组** - 改用指针
+- **没有联合体** - 仅支持结构体类型
+- **回调不能返回结构体** - 回调返回值使用指针
 
-### Exporting Struct Types
+## 当前限制
 
-You can export struct type definitions from a module using `export define`:
+FFI 有以下限制：
 
-```hemlock
-// geometry.hml
-export define Vector2 {
-    x: f32,
-    y: f32,
-}
+**1. 手动类型转换**
+- 必须手动管理字符串转换
+- 没有自动的 Hemlock 字符串 <-> C 字符串转换
 
-export define Rectangle {
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
-}
+**2. 有限的错误处理**
+- 基本错误报告
+- 回调中的异常无法传播到 C
 
-export fn create_rect(x: f32, y: f32, w: f32, h: f32): Rectangle {
-    return { x: x, y: y, width: w, height: h };
-}
-```
+**3. 手动库加载**
+- 必须手动加载库
+- 没有自动绑定生成
 
-**Important:** Exported struct types are registered **globally** when the module is loaded. They become available automatically when you import anything from the module. You do NOT need to (and cannot) explicitly import them by name:
+**4. 平台特定代码**
+- 库路径因平台而异
+- 必须处理 .so vs .dylib vs .dll
 
-```hemlock
-// main.hml
+## 最佳实践
 
-// GOOD - struct types are auto-available after any import from the module
-import { create_rect } from "./geometry.hml";
-let v: Vector2 = { x: 1.0, y: 2.0 };      // Works - Vector2 is globally available
-let r: Rectangle = create_rect(0.0, 0.0, 100.0, 50.0);  // Works
+虽然全面的 FFI 文档仍在开发中，以下是一般的最佳实践：
 
-// BAD - cannot explicitly import struct types by name
-import { Vector2 } from "./geometry.hml";  // Error: Undefined variable 'Vector2'
-```
-
-This behavior exists because struct types are registered in the global type registry when the module loads, rather than being stored as values in the module's export environment. The type becomes available to all code that imports from the module.
-
-## Current Limitations
-
-FFI has the following limitations:
-
-**1. Manual Type Conversion**
-- Must manually manage string conversions
-- No automatic Hemlock string ↔ C string conversion
-
-**2. Limited Error Handling**
-- Basic error reporting
-- Exceptions in callbacks cannot propagate to C
-
-**3. Manual Library Loading**
-- Must manually load libraries
-- No automatic binding generation
-
-**4. Platform-Specific Code**
-- Library paths differ by platform
-- Must handle .so vs .dylib vs .dll
-
-## Best Practices
-
-While comprehensive FFI documentation is still being developed, here are general best practices:
-
-### 1. Type Safety
+### 1. 类型安全
 
 ```hemlock
-// Be explicit about types
+// 明确类型
 let x: i32 = 42;
 let result: f64 = c_function(x);
 ```
 
-### 2. Memory Management
+### 2. 内存管理
 
 ```hemlock
-// Remember to free allocated memory
+// 记住释放分配的内存
 let ptr = c_malloc(1024);
-// ... use ptr
+// ... 使用 ptr
 c_free(ptr);
 ```
 
-### 3. Error Checking
+### 3. 错误检查
 
 ```hemlock
-// Check return values
+// 检查返回值
 let result = c_function();
 if (result == null) {
     print("C function failed");
 }
 ```
 
-### 4. Platform Compatibility
+### 4. 平台兼容性
 
 ```hemlock
-// Handle platform differences
-// Use appropriate library extensions (.so, .dylib, .dll)
+// 处理平台差异
+// 使用适当的库扩展名（.so、.dylib、.dll）
 ```
 
-## Examples
+## 总结
 
-For working examples, refer to:
-- Callback tests: `/tests/ffi_callbacks/` - qsort callback examples
-- Stdlib FFI usage: `/stdlib/hash.hml`, `/stdlib/regex.hml`, `/stdlib/crypto.hml`
-- Example programs: `/examples/` (if available)
+Hemlock 的 FFI 提供：
 
-## Getting Help
+- 从共享库调用 C 函数
+- 原始类型支持（i8-i64, u8-u64, f32, f64, ptr）
+- 自动类型转换
+- 基于 libffi 的可移植性
+- 原生库集成基础
+- **函数指针回调** - 将 Hemlock 函数传递给 C
+- **导出 extern 函数** - 跨模块共享 FFI 绑定
+- **结构体传递和返回** - 按值传递 C 兼容的结构体
+- **导出 define** - 跨模块共享结构体类型定义（自动全局导入）
+- **完整的指针辅助函数** - 读写所有类型（i8-i64, u8-u64, f32, f64, ptr）
+- **缓冲区/指针转换** - 用于数据封送的 `buffer_ptr()`、`ptr_to_buffer()`
+- **FFI 类型大小** - 平台感知类型大小的 `ffi_sizeof()`
+- **平台类型** - 支持 `size_t`、`usize`、`isize`、`intptr_t`、`uintptr_t`
 
-FFI is a newer feature in Hemlock. For questions or issues:
+**当前状态：** FFI 功能完备，支持原始类型、结构体、回调、模块导出和完整的指针辅助函数
 
-1. Check test suite for working examples
-2. Refer to libffi documentation for low-level details
-3. Report bugs or request features via project issues
+**未来：** 字符串封送辅助函数
 
-## Summary
-
-Hemlock's FFI provides:
-
-- ✅ C function calling from shared libraries
-- ✅ Primitive type support (i8-i64, u8-u64, f32, f64, ptr)
-- ✅ Automatic type conversion
-- ✅ libffi-based portability
-- ✅ Foundation for native library integration
-- ✅ **Function pointer callbacks** - pass Hemlock functions to C
-- ✅ **Export extern functions** - share FFI bindings across modules
-- ✅ **Struct passing and return** - pass C-compatible structs by value
-- ✅ **Export define** - share struct type definitions across modules (auto-imported globally)
-- ✅ **Complete pointer helpers** - read/write all types (i8-i64, u8-u64, f32, f64, ptr)
-- ✅ **Buffer/pointer conversion** - `buffer_ptr()`, `ptr_to_buffer()` for data marshaling
-- ✅ **FFI type sizes** - `ffi_sizeof()` for platform-aware type sizes
-- ✅ **Platform types** - `size_t`, `usize`, `isize`, `intptr_t`, `uintptr_t` support
-
-**Current status:** FFI fully featured with primitive types, structs, callbacks, module exports, and complete pointer helper functions
-
-**Future:** String marshaling helpers
-
-**Use cases:** System libraries, third-party libraries, qsort, event loops, callback-based APIs, reusable library wrappers
-
-## Contributing
-
-FFI documentation is being expanded. If you're working with FFI:
-- Document your use cases
-- Share example code
-- Report issues or limitations
-- Suggest improvements
-
-The FFI system is designed to be practical and safe while providing low-level access when needed, following Hemlock's philosophy of "explicit over implicit" and "unsafe is a feature, not a bug."
+**用例：** 系统库、第三方库、qsort、事件循环、基于回调的 API、可重用的库包装器
