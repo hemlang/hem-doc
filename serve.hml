@@ -5,7 +5,7 @@ import { App } from "hemlang/sprout";
 import { read_file } from "@stdlib/fs";
 
 // Supported languages for documentation
-let supported_langs = ["en", "de", "es", "ja", "zh"];
+let supported_langs = ["en", "de", "es", "ja", "pt", "zh"];
 
 // Read the docs HTML at startup
 let docs_html = read_file("docs.html");
@@ -36,6 +36,11 @@ if (docs_ja == null) {
     print("Warning: docs-ja.html not found, Japanese docs will fall back to English");
 }
 
+let docs_pt = read_file("docs-pt.html");
+if (docs_pt == null) {
+    print("Warning: docs-pt.html not found, Portuguese docs will fall back to English");
+}
+
 // Read the LLM-friendly documentation at startup
 let llms_txt = read_file("llms.txt");
 if (llms_txt == null) {
@@ -61,6 +66,11 @@ if (llms_zh == null) {
 let llms_ja = read_file("llms-ja.txt");
 if (llms_ja == null) {
     print("Warning: llms-ja.txt not found, Japanese LLM docs will fall back to English");
+}
+
+let llms_pt = read_file("llms-pt.txt");
+if (llms_pt == null) {
+    print("Warning: llms-pt.txt not found, Portuguese LLM docs will fall back to English");
 }
 
 let app = App(null);
@@ -105,6 +115,15 @@ app.get("/docs-zh.html", fn(req, res, next) {
 app.get("/docs-ja.html", fn(req, res, next) {
     if (docs_ja != null) {
         res.type("html").send(docs_ja);
+    } else {
+        res.type("html").send(docs_html);
+    }
+});
+
+// Serve Portuguese documentation
+app.get("/docs-pt.html", fn(req, res, next) {
+    if (docs_pt != null) {
+        res.type("html").send(docs_pt);
     } else {
         res.type("html").send(docs_html);
     }
@@ -163,6 +182,17 @@ app.get("/llms-ja.txt", fn(req, res, next) {
     }
 });
 
+// Serve Portuguese LLM documentation
+app.get("/llms-pt.txt", fn(req, res, next) {
+    if (llms_pt != null) {
+        res.type("text").send(llms_pt);
+    } else if (llms_txt != null) {
+        res.type("text").send(llms_txt);
+    } else {
+        res.status(404).type("text").send("llms-pt.txt not found. Run 'make docs' to generate it.");
+    }
+});
+
 // Health check endpoint
 app.get("/health", fn(req, res, next) {
     res.json({
@@ -171,11 +201,13 @@ app.get("/health", fn(req, res, next) {
         docs_de_size: docs_de != null ? docs_de.length : 0,
         docs_es_size: docs_es != null ? docs_es.length : 0,
         docs_ja_size: docs_ja != null ? docs_ja.length : 0,
+        docs_pt_size: docs_pt != null ? docs_pt.length : 0,
         docs_zh_size: docs_zh != null ? docs_zh.length : 0,
         llms_size: llms_txt != null ? llms_txt.length : 0,
         llms_de_size: llms_de != null ? llms_de.length : 0,
         llms_es_size: llms_es != null ? llms_es.length : 0,
         llms_ja_size: llms_ja != null ? llms_ja.length : 0,
+        llms_pt_size: llms_pt != null ? llms_pt.length : 0,
         llms_zh_size: llms_zh != null ? llms_zh.length : 0
     });
 });
@@ -186,15 +218,17 @@ let port = 5169;
 app.listen(port, fn() {
     print("Hemlock Documentation Server");
     print("Serving docs at http://localhost:" + port);
-    print("  English:  http://localhost:" + port + "/");
-    print("  German:   http://localhost:" + port + "/docs-de.html");
-    print("  Spanish:  http://localhost:" + port + "/docs-es.html");
-    print("  Japanese: http://localhost:" + port + "/docs-ja.html");
-    print("  Chinese:  http://localhost:" + port + "/docs-zh.html");
+    print("  English:    http://localhost:" + port + "/");
+    print("  German:     http://localhost:" + port + "/docs-de.html");
+    print("  Spanish:    http://localhost:" + port + "/docs-es.html");
+    print("  Japanese:   http://localhost:" + port + "/docs-ja.html");
+    print("  Portuguese: http://localhost:" + port + "/docs-pt.html");
+    print("  Chinese:    http://localhost:" + port + "/docs-zh.html");
     print("LLM docs:");
-    print("  English:  http://localhost:" + port + "/llms.txt");
-    print("  German:   http://localhost:" + port + "/llms-de.txt");
-    print("  Spanish:  http://localhost:" + port + "/llms-es.txt");
-    print("  Japanese: http://localhost:" + port + "/llms-ja.txt");
-    print("  Chinese:  http://localhost:" + port + "/llms-zh.txt");
+    print("  English:    http://localhost:" + port + "/llms.txt");
+    print("  German:     http://localhost:" + port + "/llms-de.txt");
+    print("  Spanish:    http://localhost:" + port + "/llms-es.txt");
+    print("  Japanese:   http://localhost:" + port + "/llms-ja.txt");
+    print("  Portuguese: http://localhost:" + port + "/llms-pt.txt");
+    print("  Chinese:    http://localhost:" + port + "/llms-zh.txt");
 });

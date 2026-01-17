@@ -41,6 +41,7 @@ SUPPORTED_LANGUAGES = {
     'de': 'Deutsch',
     'es': 'Español',
     'ja': '日本語',
+    'pt': 'Português',
 }
 
 # Section name translations
@@ -100,6 +101,20 @@ SECTION_TRANSLATIONS = {
         'hpm: Package Development': 'hpm: パッケージ開発',
         'hpm: Reference': 'hpm: リファレンス',
         'hpm: Other': 'hpm: その他',
+    },
+    'pt': {
+        'Language Reference': 'Referência da Linguagem',
+        'Getting Started': 'Primeiros Passos',
+        'Language Guide': 'Guia da Linguagem',
+        'Advanced Topics': 'Tópicos Avançados',
+        'API Reference': 'Referência da API',
+        'Design & Philosophy': 'Design e Filosofia',
+        'Contributing': 'Contribuição',
+        'hpm: Getting Started': 'hpm: Primeiros Passos',
+        'hpm: User Guide': 'hpm: Guia do Usuário',
+        'hpm: Package Development': 'hpm: Desenvolvimento de Pacotes',
+        'hpm: Reference': 'hpm: Referência',
+        'hpm: Other': 'hpm: Outros',
     }
 }
 
@@ -328,6 +343,62 @@ TITLE_TRANSLATIONS = {
         'Versioning': 'バージョニング',
         'Architecture': 'アーキテクチャ',
         'Exit Codes': '終了コード',
+    },
+    'pt': {
+        # Getting Started
+        'Installation': 'Instalação',
+        'Quick Start': 'Início Rápido',
+        'Tutorial': 'Tutorial',
+        'Learning Paths': 'Caminhos de Aprendizado',
+        # Language Guide
+        'Syntax': 'Sintaxe',
+        'Types': 'Tipos',
+        'Functions': 'Funções',
+        'Arrays': 'Arrays',
+        'Strings': 'Strings',
+        'Objects': 'Objetos',
+        'Control Flow': 'Fluxo de Controle',
+        'Error Handling': 'Tratamento de Erros',
+        'Modules': 'Módulos',
+        'Memory': 'Gerenciamento de Memória',
+        'Pattern Matching': 'Correspondência de Padrões',
+        'Runes': 'Runas',
+        # Advanced
+        'Async Concurrency': 'Assincronismo e Concorrência',
+        'Atomics': 'Operações Atômicas',
+        'Bundling Packaging': 'Empacotamento e Distribuição',
+        'Command Execution': 'Execução de Comandos',
+        'Command Line Args': 'Argumentos de Linha de Comando',
+        'Ffi': 'FFI (Interface de Funções Estrangeiras)',
+        'File Io': 'E/S de Arquivos',
+        'Profiling': 'Perfilamento',
+        'Signals': 'Sinais',
+        # Reference
+        'Array API': 'API de Arrays',
+        'String API': 'API de Strings',
+        'File API': 'API de Arquivos',
+        'Memory API': 'API de Memória',
+        'Concurrency API': 'API de Concorrência',
+        'Builtins': 'Funções Integradas',
+        'Operators': 'Operadores',
+        'Type System': 'Sistema de Tipos',
+        # Design
+        'Philosophy': 'Filosofia',
+        'Implementation': 'Implementação',
+        'Signature Syntax': 'Sintaxe de Assinaturas',
+        # Contributing
+        'Guidelines': 'Diretrizes',
+        'Testing': 'Testes',
+        # hpm docs
+        'Commands': 'Comandos',
+        'Configuration': 'Configuração',
+        'Project Setup': 'Configuração do Projeto',
+        'Troubleshooting': 'Solução de Problemas',
+        'Creating Packages': 'Criação de Pacotes',
+        'Package Spec': 'Especificação de Pacotes',
+        'Versioning': 'Versionamento',
+        'Architecture': 'Arquitetura',
+        'Exit Codes': 'Códigos de Saída',
     }
 }
 
@@ -341,6 +412,7 @@ WELCOME_TITLE_TRANSLATIONS = {
     'de': 'Willkommen',
     'es': 'Bienvenido',
     'ja': 'ようこそ',
+    'pt': 'Bem-vindo',
 }
 
 
