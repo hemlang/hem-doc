@@ -329,10 +329,11 @@ def generate_html(docs, logo_data):
             left: 0;
             right: 0;
             height: 70px;
-            background: var(--pine);
+            background: #2F4F4F;
             color: white;
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             padding: 0 2rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
@@ -347,20 +348,7 @@ def generate_html(docs, logo_data):
             font-size: 1.5rem;
             font-weight: 600;
             letter-spacing: 0.5px;
-        }}
-
-        .header .tagline {{
-            margin-left: auto;
-            font-size: 0.9rem;
-            font-style: italic;
-            color: var(--light-sage);
-            display: none;
-        }}
-
-        @media (min-width: 768px) {{
-            .header .tagline {{
-                display: block;
-            }}
+            margin-right: auto;
         }}
 
         /* Layout */
@@ -702,7 +690,6 @@ def generate_html(docs, logo_data):
         /* Search */
         .search-container {{
             position: relative;
-            margin-left: auto;
             margin-right: 1rem;
         }}
 
@@ -831,7 +818,7 @@ def generate_html(docs, logo_data):
                 right: 0;
                 margin: 0;
                 padding: 0.5rem;
-                background: var(--dark-pine);
+                background: #1a2f2f;
                 display: none;
                 z-index: 999;
             }}
@@ -966,7 +953,6 @@ def generate_html(docs, logo_data):
                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
         </button>
-        <span class="tagline">"A small, unsafe language for writing unsafe things safely."</span>
     </div>
 
     <!-- Mobile Menu Toggle -->
