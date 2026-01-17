@@ -4,12 +4,31 @@
 import { App } from "hemlang/sprout";
 import { read_file } from "@stdlib/fs";
 
+// Supported languages for documentation
+let supported_langs = ["en", "de", "es", "zh"];
+
 // Read the docs HTML at startup
 let docs_html = read_file("docs.html");
 if (docs_html == null) {
     print("Error: docs.html not found");
     print("Run this from the hem-doc directory");
     exit(1);
+}
+
+// Read language-specific documentation files
+let docs_de = read_file("docs-de.html");
+if (docs_de == null) {
+    print("Warning: docs-de.html not found, German docs will fall back to English");
+}
+
+let docs_es = read_file("docs-es.html");
+if (docs_es == null) {
+    print("Warning: docs-es.html not found, Spanish docs will fall back to English");
+}
+
+let docs_zh = read_file("docs-zh.html");
+if (docs_zh == null) {
+    print("Warning: docs-zh.html not found, Chinese docs will fall back to English");
 }
 
 // Read the LLM-friendly documentation at startup
@@ -20,9 +39,40 @@ if (llms_txt == null) {
 
 let app = App(null);
 
-// Serve the documentation
+// Serve the documentation (English at root and /docs.html)
 app.get("/", fn(req, res, next) {
     res.type("html").send(docs_html);
+});
+
+app.get("/docs.html", fn(req, res, next) {
+    res.type("html").send(docs_html);
+});
+
+// Serve German documentation
+app.get("/docs-de.html", fn(req, res, next) {
+    if (docs_de != null) {
+        res.type("html").send(docs_de);
+    } else {
+        res.type("html").send(docs_html);
+    }
+});
+
+// Serve Spanish documentation
+app.get("/docs-es.html", fn(req, res, next) {
+    if (docs_es != null) {
+        res.type("html").send(docs_es);
+    } else {
+        res.type("html").send(docs_html);
+    }
+});
+
+// Serve Chinese documentation
+app.get("/docs-zh.html", fn(req, res, next) {
+    if (docs_zh != null) {
+        res.type("html").send(docs_zh);
+    } else {
+        res.type("html").send(docs_html);
+    }
 });
 
 // Serve LLM-friendly documentation
@@ -39,6 +89,9 @@ app.get("/health", fn(req, res, next) {
     res.json({
         status: "ok",
         docs_size: docs_html.length,
+        docs_de_size: docs_de != null ? docs_de.length : 0,
+        docs_es_size: docs_es != null ? docs_es.length : 0,
+        docs_zh_size: docs_zh != null ? docs_zh.length : 0,
         llms_size: llms_txt != null ? llms_txt.length : 0
     });
 });
@@ -49,5 +102,9 @@ let port = 5169;
 app.listen(port, fn() {
     print("Hemlock Documentation Server");
     print("Serving docs at http://localhost:" + port);
+    print("  English:  http://localhost:" + port + "/");
+    print("  German:   http://localhost:" + port + "/docs-de.html");
+    print("  Spanish:  http://localhost:" + port + "/docs-es.html");
+    print("  Chinese:  http://localhost:" + port + "/docs-zh.html");
     print("LLM docs at http://localhost:" + port + "/llms.txt");
 });
