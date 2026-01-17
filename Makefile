@@ -4,7 +4,7 @@
 HEMLOCK ?= hemlock
 HPM ?= hpm
 PYTHON ?= python3
-VERSION := 1.0.4
+VERSION := 1.0.5
 
 .PHONY: all deps docs docs-py server package dist clean help
 
@@ -16,17 +16,19 @@ deps:
 	@$(HPM) install
 	@echo "Done"
 
-# Generate documentation HTML using Hemlock (preferred)
+# Generate documentation HTML and LLM-friendly text using Hemlock (preferred)
 docs:
-	@echo "Generating docs.html..."
+	@echo "Generating docs.html and llms.txt..."
 	@$(HEMLOCK) build_docs.hml
 	@echo "Done: docs.html ($(shell wc -c < docs.html | tr -d ' ') bytes)"
+	@echo "Done: llms.txt ($(shell wc -c < llms.txt | tr -d ' ') bytes)"
 
-# Generate documentation HTML using Python (fallback)
+# Generate documentation HTML and LLM-friendly text using Python (fallback)
 docs-py:
-	@echo "Generating docs.html (Python fallback)..."
+	@echo "Generating docs.html and llms.txt (Python fallback)..."
 	@$(PYTHON) build_docs.py
 	@echo "Done: docs.html ($(shell wc -c < docs.html | tr -d ' ') bytes)"
+	@echo "Done: llms.txt ($(shell wc -c < llms.txt | tr -d ' ') bytes)"
 
 # Package the documentation server
 server: docs
@@ -39,17 +41,17 @@ server: docs
 dist: server
 	@echo "Creating distribution package..."
 	@rm -f hem-doc-$(VERSION).zip
-	@zip -j hem-doc-$(VERSION).zip hem-doc-server docs.html
+	@zip -j hem-doc-$(VERSION).zip hem-doc-server docs.html llms.txt
 	@ls -l hem-doc-$(VERSION).zip | awk '{print "Done: " $$9 " (" $$5 " bytes)"}'
 
 # Run the documentation server locally
 run: server
-	@echo "Starting documentation server on http://localhost:3000"
+	@echo "Starting documentation server on http://localhost:5169"
 	@./hem-doc-server
 
 # Clean build artifacts
 clean:
-	@rm -f hem-doc-server *.hmlc *.hmlb *.zip
+	@rm -f hem-doc-server *.hmlc *.hmlb *.zip llms.txt
 	@echo "Cleaned build artifacts"
 
 # Show help
@@ -58,13 +60,17 @@ help:
 	@echo ""
 	@echo "Usage:"
 	@echo "  make deps    - Install dependencies via hpm"
-	@echo "  make docs    - Generate docs.html using Hemlock (preferred)"
-	@echo "  make docs-py - Generate docs.html using Python (fallback)"
+	@echo "  make docs    - Generate docs.html and llms.txt using Hemlock"
+	@echo "  make docs-py - Generate docs.html and llms.txt using Python (fallback)"
 	@echo "  make server  - Package the documentation server executable"
-	@echo "  make dist    - Create distribution zip (server + docs.html)"
+	@echo "  make dist    - Create distribution zip (server + docs + llms.txt)"
 	@echo "  make run     - Run the documentation server locally"
 	@echo "  make clean   - Remove build artifacts"
 	@echo "  make help    - Show this help message"
+	@echo ""
+	@echo "Output files:"
+	@echo "  docs.html    - Interactive HTML documentation"
+	@echo "  llms.txt     - LLM-friendly plain text documentation"
 	@echo ""
 	@echo "Environment variables:"
 	@echo "  HEMLOCK      - Path to hemlock interpreter (default: hemlock)"
