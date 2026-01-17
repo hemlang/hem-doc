@@ -287,6 +287,34 @@ def generate_html(docs, logo_data):
             --accent: #6B8E6B;
         }}
 
+        [data-theme="dark"] {{
+            --sage: #6B8E6B;
+            --pine: #9CAF88;
+            --dark-pine: #0d1a1a;
+            --light-sage: #1a2f2f;
+            --cream: #0f1a1a;
+            --text: #e0e8e0;
+            --text-light: #a8b8a8;
+            --border: #2a4a4a;
+            --code-bg: #162626;
+            --accent: #9CAF88;
+        }}
+
+        @media (prefers-color-scheme: dark) {{
+            :root:not([data-theme="light"]) {{
+                --sage: #6B8E6B;
+                --pine: #9CAF88;
+                --dark-pine: #0d1a1a;
+                --light-sage: #1a2f2f;
+                --cream: #0f1a1a;
+                --text: #e0e8e0;
+                --text-light: #a8b8a8;
+                --border: #2a4a4a;
+                --code-bg: #162626;
+                --accent: #9CAF88;
+            }}
+        }}
+
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
             line-height: 1.7;
@@ -301,10 +329,11 @@ def generate_html(docs, logo_data):
             left: 0;
             right: 0;
             height: 70px;
-            background: var(--pine);
+            background: #2F4F4F;
             color: white;
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             padding: 0 2rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
@@ -319,20 +348,7 @@ def generate_html(docs, logo_data):
             font-size: 1.5rem;
             font-weight: 600;
             letter-spacing: 0.5px;
-        }}
-
-        .header .tagline {{
-            margin-left: auto;
-            font-size: 0.9rem;
-            font-style: italic;
-            color: var(--light-sage);
-            display: none;
-        }}
-
-        @media (min-width: 768px) {{
-            .header .tagline {{
-                display: block;
-            }}
+            margin-right: auto;
         }}
 
         /* Layout */
@@ -674,7 +690,6 @@ def generate_html(docs, logo_data):
         /* Search */
         .search-container {{
             position: relative;
-            margin-left: auto;
             margin-right: 1rem;
         }}
 
@@ -803,7 +818,7 @@ def generate_html(docs, logo_data):
                 right: 0;
                 margin: 0;
                 padding: 0.5rem;
-                background: var(--dark-pine);
+                background: #1a2f2f;
                 display: none;
                 z-index: 999;
             }}
@@ -848,6 +863,57 @@ def generate_html(docs, logo_data):
                 display: none;
             }}
         }}
+
+        /* Theme Toggle */
+        .theme-toggle {{
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-left: 0.5rem;
+        }}
+
+        .theme-toggle:hover {{
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }}
+
+        .theme-toggle svg {{
+            width: 20px;
+            height: 20px;
+        }}
+
+        .theme-toggle .sun-icon {{
+            display: none;
+        }}
+
+        .theme-toggle .moon-icon {{
+            display: block;
+        }}
+
+        [data-theme="dark"] .theme-toggle .sun-icon {{
+            display: block;
+        }}
+
+        [data-theme="dark"] .theme-toggle .moon-icon {{
+            display: none;
+        }}
+
+        @media (prefers-color-scheme: dark) {{
+            :root:not([data-theme="light"]) .theme-toggle .sun-icon {{
+                display: block;
+            }}
+            :root:not([data-theme="light"]) .theme-toggle .moon-icon {{
+                display: none;
+            }}
+        }}
     </style>
 </head>
 <body>
@@ -871,7 +937,22 @@ def generate_html(docs, logo_data):
                 <path d="M21 21l-4.35-4.35"></path>
             </svg>
         </button>
-        <span class="tagline">"A small, unsafe language for writing unsafe things safely."</span>
+        <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+        </button>
     </div>
 
     <!-- Mobile Menu Toggle -->
@@ -910,6 +991,57 @@ def generate_html(docs, logo_data):
                     sidebar.classList.remove('open');
                     menuToggle.textContent = '\\u2630';
                 }}
+            }}
+        }});
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const root = document.documentElement;
+
+        // Get saved theme or detect system preference
+        function getPreferredTheme() {{
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {{
+                return savedTheme;
+            }}
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }}
+
+        // Apply theme
+        function setTheme(theme) {{
+            root.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }}
+
+        // Initialize theme
+        const initialTheme = getPreferredTheme();
+        if (localStorage.getItem('theme')) {{
+            setTheme(initialTheme);
+        }}
+
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', () => {{
+            const currentTheme = root.getAttribute('data-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            // Determine current effective theme
+            let effectiveTheme;
+            if (currentTheme) {{
+                effectiveTheme = currentTheme;
+            }} else {{
+                effectiveTheme = prefersDark ? 'dark' : 'light';
+            }}
+
+            // Toggle to opposite theme
+            const newTheme = effectiveTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }});
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {{
+            if (!localStorage.getItem('theme')) {{
+                // Only auto-switch if user hasn't manually set a preference
+                root.removeAttribute('data-theme');
             }}
         }});
 
