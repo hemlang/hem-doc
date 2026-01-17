@@ -25,7 +25,7 @@ make docs
 # Build the documentation server
 make server
 
-# Run the server locally (http://localhost:3000)
+# Run the server locally (http://localhost:5169)
 make run
 
 # Create a distribution package (zip with server + docs)
@@ -70,7 +70,7 @@ make server
 
 # Run it
 ./hem-doc-server
-# Serving docs at http://localhost:3000
+# Serving docs at http://localhost:5169
 ```
 
 The server provides:
