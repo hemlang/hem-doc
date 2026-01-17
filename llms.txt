@@ -39,8 +39,8 @@ TABLE OF CONTENTS
   20. Bundling Packaging
   21. Command Execution
   22. Command Line Args
-  23. Ffi
-  24. File Io
+  23. FFI
+  24. File IO
   25. Profiling
   26. Signals
 
@@ -14725,7 +14725,7 @@ Common patterns:
 
 
 --------------------------------------------------------------------------------
-## Ffi
+## FFI
 --------------------------------------------------------------------------------
 
 # Foreign Function Interface (FFI) in Hemlock
@@ -15674,7 +15674,7 @@ The FFI system is designed to be practical and safe while providing low-level ac
 
 
 --------------------------------------------------------------------------------
-## File Io
+## File IO
 --------------------------------------------------------------------------------
 
 # File I/O in Hemlock
