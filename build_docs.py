@@ -37,6 +37,7 @@ LLM_OUTPUT_FILE = Path(__file__).parent / 'llms.txt'
 SUPPORTED_LANGUAGES = {
     'en': 'English',
     'zh': '中文',
+    'es': 'Español',
 }
 
 # Section name translations
@@ -54,6 +55,20 @@ SECTION_TRANSLATIONS = {
         'hpm: Package Development': 'hpm: 包开发',
         'hpm: Reference': 'hpm: 参考',
         'hpm: Other': 'hpm: 其他',
+    },
+    'es': {
+        'Language Reference': 'Referencia del Lenguaje',
+        'Getting Started': 'Primeros Pasos',
+        'Language Guide': 'Guía del Lenguaje',
+        'Advanced Topics': 'Temas Avanzados',
+        'API Reference': 'Referencia de API',
+        'Design & Philosophy': 'Diseño y Filosofía',
+        'Contributing': 'Contribuir',
+        'hpm: Getting Started': 'hpm: Primeros Pasos',
+        'hpm: User Guide': 'hpm: Guía del Usuario',
+        'hpm: Package Development': 'hpm: Desarrollo de Paquetes',
+        'hpm: Reference': 'hpm: Referencia',
+        'hpm: Other': 'hpm: Otros',
     }
 }
 
@@ -114,6 +129,62 @@ TITLE_TRANSLATIONS = {
         'Versioning': '版本控制',
         'Architecture': '架构',
         'Exit Codes': '退出码',
+    },
+    'es': {
+        # Getting Started
+        'Installation': 'Instalación',
+        'Quick Start': 'Inicio Rápido',
+        'Tutorial': 'Tutorial',
+        'Learning Paths': 'Rutas de Aprendizaje',
+        # Language Guide
+        'Syntax': 'Sintaxis',
+        'Types': 'Tipos',
+        'Functions': 'Funciones',
+        'Arrays': 'Arreglos',
+        'Strings': 'Cadenas',
+        'Objects': 'Objetos',
+        'Control Flow': 'Flujo de Control',
+        'Error Handling': 'Manejo de Errores',
+        'Modules': 'Módulos',
+        'Memory': 'Gestión de Memoria',
+        'Pattern Matching': 'Coincidencia de Patrones',
+        'Runes': 'Runas',
+        # Advanced
+        'Async Concurrency': 'Asincronía y Concurrencia',
+        'Atomics': 'Operaciones Atómicas',
+        'Bundling Packaging': 'Empaquetado y Distribución',
+        'Command Execution': 'Ejecución de Comandos',
+        'Command Line Args': 'Argumentos de Línea de Comandos',
+        'Ffi': 'FFI (Interfaz de Funciones Externas)',
+        'File Io': 'E/S de Archivos',
+        'Profiling': 'Perfilado',
+        'Signals': 'Señales',
+        # Reference
+        'Array API': 'API de Arreglos',
+        'String API': 'API de Cadenas',
+        'File API': 'API de Archivos',
+        'Memory API': 'API de Memoria',
+        'Concurrency API': 'API de Concurrencia',
+        'Builtins': 'Funciones Integradas',
+        'Operators': 'Operadores',
+        'Type System': 'Sistema de Tipos',
+        # Design
+        'Philosophy': 'Filosofía',
+        'Implementation': 'Implementación',
+        'Signature Syntax': 'Sintaxis de Firmas',
+        # Contributing
+        'Guidelines': 'Guías de Contribución',
+        'Testing': 'Pruebas',
+        # hpm docs
+        'Commands': 'Comandos',
+        'Configuration': 'Configuración',
+        'Project Setup': 'Configuración del Proyecto',
+        'Troubleshooting': 'Solución de Problemas',
+        'Creating Packages': 'Creación de Paquetes',
+        'Package Spec': 'Especificación de Paquetes',
+        'Versioning': 'Versionado',
+        'Architecture': 'Arquitectura',
+        'Exit Codes': 'Códigos de Salida',
     }
 }
 
