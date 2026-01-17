@@ -39,8 +39,34 @@ SUPPORTED_LANGUAGES = {
     'zh': '中文',
 }
 
+# Section name translations
+SECTION_TRANSLATIONS = {
+    'zh': {
+        'Language Reference': '语言参考',
+        'Getting Started': '快速入门',
+        'Language Guide': '语言指南',
+        'Advanced Topics': '高级主题',
+        'API Reference': 'API 参考',
+        'Design & Philosophy': '设计与理念',
+        'Contributing': '贡献指南',
+        'hpm: Getting Started': 'hpm: 快速入门',
+        'hpm: User Guide': 'hpm: 用户指南',
+        'hpm: Package Development': 'hpm: 包开发',
+        'hpm: Reference': 'hpm: 参考',
+        'hpm: Other': 'hpm: 其他',
+    }
+}
+
 # Current build language
 CURRENT_LANG = 'en'
+
+
+def translate_section(section_name, lang):
+    """Translate a section name to the target language."""
+    if lang == 'en':
+        return section_name
+    translations = SECTION_TRANSLATIONS.get(lang, {})
+    return translations.get(section_name, section_name)
 
 
 def read_file(path):
@@ -172,7 +198,8 @@ def collect_docs(lang='en'):
     if claude_path.exists():
         content, is_translated = read_file_with_translation(claude_path, lang)
         content = convert_md_links(content, 'language-reference')
-        docs['Language Reference'] = {
+        title = translate_section('Language Reference', lang)
+        docs[title] = {
             'id': 'language-reference',
             'content': content,
             'order': 0,
@@ -200,6 +227,8 @@ def collect_docs(lang='en'):
             if not subdir_path.exists():
                 continue
 
+            translated_section = translate_section(section_name, lang)
+
             for md_file in sorted(subdir_path.glob('*.md')):
                 # Skip development docs
                 if 'development' in str(md_file):
@@ -213,11 +242,11 @@ def collect_docs(lang='en'):
                 content, is_translated = read_file_with_translation(md_file, lang)
                 content = convert_md_links(content, subdir)
 
-                docs[f"{section_name} -> {title}"] = {
+                docs[f"{translated_section} -> {title}"] = {
                     'id': doc_id,
                     'content': content,
                     'order': order,
-                    'section': section_name
+                    'section': translated_section
                 }
 
                 if is_translated:
@@ -260,17 +289,18 @@ def collect_docs(lang='en'):
                 section_name = 'hpm: Other'
                 order = 14
 
+            translated_section = translate_section(section_name, lang)
             title = smart_title(file_name)
             doc_id = f"hpm-{file_name}"
 
             content, is_translated = read_file_with_translation(md_file, lang)
             content = convert_md_links(content, f"hpm-{file_name}")
 
-            docs[f"{section_name} -> {title}"] = {
+            docs[f"{translated_section} -> {title}"] = {
                 'id': doc_id,
                 'content': content,
                 'order': order,
-                'section': section_name
+                'section': translated_section
             }
 
             if is_translated:
