@@ -1,111 +1,111 @@
-# Hemlock Implementation Details
+# Hemlock 实现细节
 
-This document describes the technical implementation of the Hemlock language, including project structure, compilation pipeline, runtime architecture, and design decisions.
-
----
-
-## Table of Contents
-
-- [Project Structure](#project-structure)
-- [Compilation Pipeline](#compilation-pipeline)
-- [Modular Interpreter Design](#modular-interpreter-design)
-- [Runtime Architecture](#runtime-architecture)
-- [Value Representation](#value-representation)
-- [Type System Implementation](#type-system-implementation)
-- [Memory Management](#memory-management)
-- [Concurrency Model](#concurrency-model)
-- [Future Plans](#future-plans)
+本文档描述了 Hemlock 语言的技术实现，包括项目结构、编译流水线、运行时架构和设计决策。
 
 ---
 
-## Project Structure
+## 目录
+
+- [项目结构](#项目结构)
+- [编译流水线](#编译流水线)
+- [模块化解释器设计](#模块化解释器设计)
+- [运行时架构](#运行时架构)
+- [值表示](#值表示)
+- [类型系统实现](#类型系统实现)
+- [内存管理](#内存管理)
+- [并发模型](#并发模型)
+- [未来计划](#未来计划)
+
+---
+
+## 项目结构
 
 ```
 hemlock/
 ├── src/
-│   ├── frontend/              # Shared: lexer, parser, AST
-│   │   ├── lexer.c            # Tokenization
-│   │   ├── parser/            # Recursive descent parser
-│   │   ├── ast.c              # AST node management
-│   │   └── module.c           # Module resolution
+│   ├── frontend/              # 共享：词法分析器、解析器、AST
+│   │   ├── lexer.c            # 词法分析
+│   │   ├── parser/            # 递归下降解析器
+│   │   ├── ast.c              # AST 节点管理
+│   │   └── module.c           # 模块解析
 │   ├── backends/
-│   │   ├── interpreter/       # hemlock: tree-walking interpreter
-│   │   │   ├── main.c         # CLI entry point
-│   │   │   ├── runtime.c      # Expression/statement evaluation
-│   │   │   ├── builtins.c     # Built-in functions
+│   │   ├── interpreter/       # hemlock：树遍历解释器
+│   │   │   ├── main.c         # CLI 入口点
+│   │   │   ├── runtime.c      # 表达式/语句求值
+│   │   │   ├── builtins.c     # 内置函数
 │   │   │   └── ...
-│   │   └── compiler/          # hemlockc: C code generator
-│   │       ├── main.c         # CLI, orchestration
-│   │       ├── type_check.c   # Compile-time type checking
-│   │       ├── codegen.c      # Code generation context
-│   │       ├── codegen_expr.c # Expression codegen
-│   │       ├── codegen_stmt.c # Statement codegen
+│   │   └── compiler/          # hemlockc：C 代码生成器
+│   │       ├── main.c         # CLI、编排
+│   │       ├── type_check.c   # 编译时类型检查
+│   │       ├── codegen.c      # 代码生成上下文
+│   │       ├── codegen_expr.c # 表达式代码生成
+│   │       ├── codegen_stmt.c # 语句代码生成
 │   │       └── ...
 │   ├── tools/
-│   │   ├── lsp/               # Language Server Protocol
-│   │   └── bundler/           # Bundle/package tools
-├── runtime/                   # libhemlock_runtime.a (for compiled programs)
-├── stdlib/                    # Standard library (39 modules)
-│   └── docs/                  # Module documentation
+│   │   ├── lsp/               # 语言服务器协议
+│   │   └── bundler/           # 打包/包工具
+├── runtime/                   # libhemlock_runtime.a（用于编译后的程序）
+├── stdlib/                    # 标准库（39 个模块）
+│   └── docs/                  # 模块文档
 ├── tests/
-│   ├── parity/                # Tests that must pass both backends
-│   ├── interpreter/           # Interpreter-specific tests
-│   └── compiler/              # Compiler-specific tests
-├── examples/                  # Example programs
-└── docs/                      # Documentation
+│   ├── parity/                # 必须在两个后端都通过的测试
+│   ├── interpreter/           # 解释器特定测试
+│   └── compiler/              # 编译器特定测试
+├── examples/                  # 示例程序
+└── docs/                      # 文档
 ```
 
-### Directory Organization
+### 目录组织
 
-**`include/`** - Public API headers that define the interface between components:
-- Clean separation between lexer, parser, AST, and interpreter
-- Forward declarations to minimize dependencies
-- Public API for embedding Hemlock in other programs
+**`include/`** - 定义组件间接口的公共 API 头文件：
+- 词法分析器、解析器、AST 和解释器之间的清晰分离
+- 前向声明以最小化依赖
+- 用于在其他程序中嵌入 Hemlock 的公共 API
 
-**`src/`** - Implementation files:
-- Top-level files handle lexing, parsing, AST management
-- `main.c` provides CLI and REPL
-- Interpreter is modularized into separate subsystems
+**`src/`** - 实现文件：
+- 顶层文件处理词法分析、解析、AST 管理
+- `main.c` 提供 CLI 和 REPL
+- 解释器模块化为独立的子系统
 
-**`src/interpreter/`** - Modular interpreter implementation:
-- Each module has a single, clear responsibility
-- Internal API defined in `internal.h` for inter-module communication
-- Modules can be compiled independently for faster builds
+**`src/interpreter/`** - 模块化解释器实现：
+- 每个模块有单一、清晰的职责
+- 内部 API 在 `internal.h` 中定义用于模块间通信
+- 模块可以独立编译以加快构建速度
 
-**`tests/`** - Comprehensive test suite:
-- Organized by feature area
-- Each directory contains focused test cases
-- `run_tests.sh` orchestrates test execution
+**`tests/`** - 全面的测试套件：
+- 按功能区域组织
+- 每个目录包含专注的测试用例
+- `run_tests.sh` 编排测试执行
 
 ---
 
-## Compilation Pipeline
+## 编译流水线
 
-Hemlock uses a traditional compilation pipeline with distinct phases:
+Hemlock 使用传统的编译流水线，具有不同的阶段：
 
-### Phase 1: Lexical Analysis (Lexer)
+### 阶段 1：词法分析（Lexer）
 
-**Input:** Source code text
-**Output:** Token stream
-**Implementation:** `src/lexer.c`
+**输入：**源代码文本
+**输出：**Token 流
+**实现：**`src/lexer.c`
 
 ```
-Source: "let x = 42;"
+源码: "let x = 42;"
    ↓
 Tokens: [LET, IDENTIFIER("x"), EQUALS, INTEGER(42), SEMICOLON]
 ```
 
-**Key features:**
-- Recognizes keywords, identifiers, literals, operators, punctuation
-- Handles UTF-8 string literals and rune literals
-- Reports line numbers for error messages
-- Single-pass, no backtracking
+**主要特性：**
+- 识别关键字、标识符、字面量、运算符、标点符号
+- 处理 UTF-8 字符串字面量和 rune 字面量
+- 报告行号用于错误消息
+- 单遍，无回溯
 
-### Phase 2: Syntax Analysis (Parser)
+### 阶段 2：语法分析（Parser）
 
-**Input:** Token stream
-**Output:** Abstract Syntax Tree (AST)
-**Implementation:** `src/parser.c`
+**输入：**Token 流
+**输出：**抽象语法树（AST）
+**实现：**`src/parser.c`
 
 ```
 Tokens: [LET, IDENTIFIER("x"), EQUALS, INTEGER(42), SEMICOLON]
@@ -117,161 +117,161 @@ AST: LetStmt {
 }
 ```
 
-**Key features:**
-- Recursive descent parser
-- Builds tree representation of program structure
-- Handles operator precedence
-- Validates syntax (braces, semicolons, etc.)
-- No semantic analysis yet (done at runtime)
+**主要特性：**
+- 递归下降解析器
+- 构建程序结构的树表示
+- 处理运算符优先级
+- 验证语法（大括号、分号等）
+- 还没有语义分析（在运行时完成）
 
-**Operator Precedence (lowest to highest):**
-1. Assignment: `=`
-2. Logical OR: `||`
-3. Logical AND: `&&`
-4. Bitwise OR: `|`
-5. Bitwise XOR: `^`
-6. Bitwise AND: `&`
-7. Equality: `==`, `!=`
-8. Comparison: `<`, `>`, `<=`, `>=`
-9. Bitwise shifts: `<<`, `>>`
-10. Addition/Subtraction: `+`, `-`
-11. Multiplication/Division/Modulo: `*`, `/`, `%`
-12. Unary: `!`, `-`, `~`
-13. Call/Index/Member: `()`, `[]`, `.`
+**运算符优先级（从低到高）：**
+1. 赋值：`=`
+2. 逻辑或：`||`
+3. 逻辑与：`&&`
+4. 按位或：`|`
+5. 按位异或：`^`
+6. 按位与：`&`
+7. 相等：`==`、`!=`
+8. 比较：`<`、`>`、`<=`、`>=`
+9. 位移：`<<`、`>>`
+10. 加法/减法：`+`、`-`
+11. 乘法/除法/取模：`*`、`/`、`%`
+12. 一元：`!`、`-`、`~`
+13. 调用/索引/成员：`()`、`[]`、`.`
 
-### Phase 3a: Interpretation (Tree-Walking)
+### 阶段 3a：解释执行（树遍历）
 
-**Input:** AST
-**Output:** Program execution
-**Implementation:** `src/backends/interpreter/runtime.c`
-
-```
-AST: LetStmt { ... }
-   ↓
-Execution: Evaluates AST nodes recursively
-   ↓
-Result: Variable x created with value 42
-```
-
-**Key features:**
-- Direct AST traversal (tree-walking interpreter)
-- Dynamic type checking at runtime
-- Environment-based variable storage
-
-### Phase 3b: Compilation (hemlockc)
-
-**Input:** AST
-**Output:** Native executable via C code generation
-**Implementation:** `src/backends/compiler/`
+**输入：**AST
+**输出：**程序执行
+**实现：**`src/backends/interpreter/runtime.c`
 
 ```
 AST: LetStmt { ... }
    ↓
-Type Check: Validate types at compile time
+执行: 递归求值 AST 节点
    ↓
-C Codegen: Generate equivalent C code
-   ↓
-GCC: Compile C to native binary
-   ↓
-Result: Standalone executable
+结果: 创建值为 42 的变量 x
 ```
 
-**Key features:**
-- Compile-time type checking (enabled by default)
-- C code generation for portability
-- Links against `libhemlock_runtime.a`
-- Significantly faster execution than interpreter
+**主要特性：**
+- 直接 AST 遍历（树遍历解释器）
+- 运行时动态类型检查
+- 基于环境的变量存储
+
+### 阶段 3b：编译（hemlockc）
+
+**输入：**AST
+**输出：**通过 C 代码生成的原生可执行文件
+**实现：**`src/backends/compiler/`
+
+```
+AST: LetStmt { ... }
+   ↓
+类型检查: 编译时验证类型
+   ↓
+C 代码生成: 生成等效的 C 代码
+   ↓
+GCC: 将 C 编译为原生二进制文件
+   ↓
+结果: 独立可执行文件
+```
+
+**主要特性：**
+- 编译时类型检查（默认启用）
+- C 代码生成以实现可移植性
+- 链接 `libhemlock_runtime.a`
+- 比解释器执行速度显著更快
 
 ---
 
-## Compiler Backend (hemlockc)
+## 编译器后端（hemlockc）
 
-The Hemlock compiler generates C code from the AST, which is then compiled to a native executable using GCC.
+Hemlock 编译器从 AST 生成 C 代码，然后使用 GCC 编译为原生可执行文件。
 
-### Compiler Architecture
+### 编译器架构
 
 ```
 src/backends/compiler/
-├── main.c              # CLI, argument parsing, orchestration
-├── codegen.c           # Core code generation context
-├── codegen_expr.c      # Expression code generation
-├── codegen_stmt.c      # Statement code generation
-├── codegen_call.c      # Function call generation
-├── codegen_closure.c   # Closure implementation
-├── codegen_program.c   # Top-level program generation
-├── codegen_module.c    # Module/import handling
-├── type_check.c        # Compile-time type checking
-└── type_check.h        # Type checker API
+├── main.c              # CLI、参数解析、编排
+├── codegen.c           # 核心代码生成上下文
+├── codegen_expr.c      # 表达式代码生成
+├── codegen_stmt.c      # 语句代码生成
+├── codegen_call.c      # 函数调用生成
+├── codegen_closure.c   # 闭包实现
+├── codegen_program.c   # 顶层程序生成
+├── codegen_module.c    # 模块/导入处理
+├── type_check.c        # 编译时类型检查
+└── type_check.h        # 类型检查器 API
 ```
 
-### Type Checking
+### 类型检查
 
-The compiler includes a unified type checking system that:
+编译器包含统一的类型检查系统，可以：
 
-1. **Validates types at compile time** - Catches type errors before execution
-2. **Supports dynamic code** - Untyped code treated as `any` (always valid)
-3. **Provides optimization hints** - Identifies variables that can be unboxed
+1. **编译时验证类型** - 在执行前捕获类型错误
+2. **支持动态代码** - 无类型代码视为 `any`（始终有效）
+3. **提供优化提示** - 识别可以拆箱的变量
 
-**Type Checking Flags:**
+**类型检查标志：**
 
-| Flag | Description |
+| 标志 | 描述 |
 |------|-------------|
-| (default) | Type checking enabled |
-| `--check` | Type check only, don't compile |
-| `--no-type-check` | Disable type checking |
-| `--strict-types` | Warn on implicit `any` types |
+| （默认） | 启用类型检查 |
+| `--check` | 仅类型检查，不编译 |
+| `--no-type-check` | 禁用类型检查 |
+| `--strict-types` | 对隐式 `any` 类型发出警告 |
 
-**Type Checker Implementation:**
+**类型检查器实现：**
 
 ```c
-// type_check.h - Key structures
+// type_check.h - 关键结构
 typedef struct TypeCheckContext {
     const char *filename;
     int error_count;
     int warning_count;
-    UnboxableVar *unboxable_vars;  // Optimization hints
-    // ... type environment, definitions, etc.
+    UnboxableVar *unboxable_vars;  // 优化提示
+    // ... 类型环境、定义等
 } TypeCheckContext;
 
-// Main entry point
+// 主入口点
 int type_check_program(TypeCheckContext *ctx, Stmt **stmts, int count);
 ```
 
-### Code Generation
+### 代码生成
 
-The codegen phase translates AST nodes to C code:
+代码生成阶段将 AST 节点转换为 C 代码：
 
-**Expression Mapping:**
+**表达式映射：**
 ```
-Hemlock                 →  Generated C
+Hemlock                 →  生成的 C
 ----------------------------------------
 let x = 42;            →  HmlValue x = hml_val_i32(42);
 x + y                  →  hml_add(x, y)
 arr[i]                 →  hml_array_get(arr, i)
 obj.field              →  hml_object_get_field(obj, "field")
-fn(a, b) { ... }       →  Closure with environment capture
+fn(a, b) { ... }       →  带环境捕获的闭包
 ```
 
-**Runtime Integration:**
+**运行时集成：**
 
-Generated C code links against `libhemlock_runtime.a` which provides:
-- `HmlValue` tagged union type
-- Memory management (reference counting)
-- Built-in functions (print, typeof, etc.)
-- Concurrency primitives (tasks, channels)
-- FFI support
+生成的 C 代码链接 `libhemlock_runtime.a`，它提供：
+- `HmlValue` 标记联合类型
+- 内存管理（引用计数）
+- 内置函数（print、typeof 等）
+- 并发原语（任务、通道）
+- FFI 支持
 
-### Unboxing Optimization
+### 拆箱优化
 
-The type checker identifies variables that can use native C types instead of boxed `HmlValue`:
+类型检查器识别可以使用原生 C 类型而不是装箱 `HmlValue` 的变量：
 
-**Unboxable Patterns:**
-- Loop counters with known integer type
-- Accumulator variables in loops
-- Variables with explicit type annotations (i32, i64, f64, bool)
+**可拆箱模式：**
+- 已知整数类型的循环计数器
+- 循环中的累加器变量
+- 带显式类型注解的变量（i32、i64、f64、bool）
 
 ```hemlock
-// Loop counter 'i' can be unboxed to native int32_t
+// 循环计数器 'i' 可以拆箱为原生 int32_t
 for (let i: i32 = 0; i < 1000000; i = i + 1) {
     sum = sum + i;
 }
@@ -279,165 +279,165 @@ for (let i: i32 = 0; i < 1000000; i = i + 1) {
 
 ---
 
-## Modular Interpreter Design
+## 模块化解释器设计
 
-The interpreter is split into focused modules for maintainability and scalability.
+解释器被分割成专注的模块以提高可维护性和可扩展性。
 
-### Module Responsibilities
+### 模块职责
 
-#### 1. Environment (`environment.c`) - 121 lines
+#### 1. 环境（`environment.c`）- 121 行
 
-**Purpose:** Variable scoping and name resolution
+**目的：**变量作用域和名称解析
 
-**Key functions:**
-- `env_create()` - Create new environment with optional parent
-- `env_define()` - Define new variable in current scope
-- `env_get()` - Lookup variable in current or parent scopes
-- `env_set()` - Update existing variable value
-- `env_free()` - Free environment and all variables
+**关键函数：**
+- `env_create()` - 创建带可选父级的新环境
+- `env_define()` - 在当前作用域定义新变量
+- `env_get()` - 在当前或父作用域查找变量
+- `env_set()` - 更新现有变量值
+- `env_free()` - 释放环境及所有变量
 
-**Design:**
-- Linked scopes (each environment has pointer to parent)
-- HashMap for fast variable lookup
-- Supports lexical scoping for closures
+**设计：**
+- 链式作用域（每个环境有指向父级的指针）
+- HashMap 用于快速变量查找
+- 支持闭包的词法作用域
 
-#### 2. Values (`values.c`) - 394 lines
+#### 2. 值（`values.c`）- 394 行
 
-**Purpose:** Value constructors and data structure management
+**目的：**值构造函数和数据结构管理
 
-**Key functions:**
-- `value_create_*()` - Constructors for each value type
-- `value_copy()` - Deep/shallow copying logic
-- `value_free()` - Cleanup and memory deallocation
-- `value_to_string()` - String representation for printing
+**关键函数：**
+- `value_create_*()` - 每种值类型的构造函数
+- `value_copy()` - 深拷贝/浅拷贝逻辑
+- `value_free()` - 清理和内存释放
+- `value_to_string()` - 用于打印的字符串表示
 
-**Data structures:**
-- Objects (dynamic field arrays)
-- Arrays (dynamic resizing)
-- Buffers (ptr + length + capacity)
-- Closures (function + captured environment)
-- Tasks and Channels (concurrency primitives)
+**数据结构：**
+- 对象（动态字段数组）
+- 数组（动态调整大小）
+- 缓冲区（ptr + length + capacity）
+- 闭包（函数 + 捕获的环境）
+- 任务和通道（并发原语）
 
-#### 3. Types (`types.c`) - 440 lines
+#### 3. 类型（`types.c`）- 440 行
 
-**Purpose:** Type system, conversions, and duck typing
+**目的：**类型系统、转换和鸭子类型
 
-**Key functions:**
-- `type_check()` - Runtime type validation
-- `type_convert()` - Implicit type conversions/promotions
-- `duck_type_check()` - Structural type checking for objects
-- `type_name()` - Get printable type name
+**关键函数：**
+- `type_check()` - 运行时类型验证
+- `type_convert()` - 隐式类型转换/提升
+- `duck_type_check()` - 对象的结构类型检查
+- `type_name()` - 获取可打印的类型名称
 
-**Features:**
-- Type promotion hierarchy (i8 → i16 → i32 → i64 → f32 → f64, with i64/u64 + f32 → f64)
-- Range checking for numeric types
-- Duck typing for object type definitions
-- Optional field defaults
+**特性：**
+- 类型提升层次（i8 → i16 → i32 → i64 → f32 → f64，i64/u64 + f32 → f64）
+- 数值类型的范围检查
+- 对象类型定义的鸭子类型
+- 可选字段默认值
 
-#### 4. Builtins (`builtins.c`) - 955 lines
+#### 4. 内置函数（`builtins.c`）- 955 行
 
-**Purpose:** Built-in functions and global registration
+**目的：**内置函数和全局注册
 
-**Key functions:**
-- `register_builtins()` - Register all built-in functions and constants
-- Built-in function implementations (print, typeof, alloc, free, etc.)
-- Signal handling functions
-- Command execution (exec)
+**关键函数：**
+- `register_builtins()` - 注册所有内置函数和常量
+- 内置函数实现（print、typeof、alloc、free 等）
+- 信号处理函数
+- 命令执行（exec）
 
-**Categories of builtins:**
-- I/O: print, open, read_file, write_file
-- Memory: alloc, free, memset, memcpy, realloc
-- Types: typeof, assert
-- Concurrency: spawn, join, detach, channel
-- System: exec, signal, raise, panic
-- FFI: dlopen, dlsym, dlcall, dlclose
+**内置函数类别：**
+- I/O：print、open、read_file、write_file
+- 内存：alloc、free、memset、memcpy、realloc
+- 类型：typeof、assert
+- 并发：spawn、join、detach、channel
+- 系统：exec、signal、raise、panic
+- FFI：dlopen、dlsym、dlcall、dlclose
 
-#### 5. I/O (`io.c`) - 449 lines
+#### 5. I/O（`io.c`）- 449 行
 
-**Purpose:** File I/O and JSON serialization
+**目的：**文件 I/O 和 JSON 序列化
 
-**Key functions:**
-- File object methods (read, write, seek, tell, close)
-- JSON serialization/deserialization
-- Circular reference detection
+**关键函数：**
+- 文件对象方法（read、write、seek、tell、close）
+- JSON 序列化/反序列化
+- 循环引用检测
 
-**Features:**
-- File object with properties (path, mode, closed)
-- UTF-8 aware text I/O
-- Binary I/O support
-- JSON round-tripping for objects and arrays
+**特性：**
+- 带属性的文件对象（path、mode、closed）
+- UTF-8 感知的文本 I/O
+- 二进制 I/O 支持
+- 对象和数组的 JSON 往返
 
-#### 6. FFI (`ffi.c`) - Foreign Function Interface
+#### 6. FFI（`ffi.c`）- 外部函数接口
 
-**Purpose:** Calling C functions from shared libraries
+**目的：**从共享库调用 C 函数
 
-**Key functions:**
-- `dlopen()` - Load shared library
-- `dlsym()` - Get function pointer by name
-- `dlcall()` - Call C function with type conversion
-- `dlclose()` - Unload library
+**关键函数：**
+- `dlopen()` - 加载共享库
+- `dlsym()` - 按名称获取函数指针
+- `dlcall()` - 调用带类型转换的 C 函数
+- `dlclose()` - 卸载库
 
-**Features:**
-- Integration with libffi for dynamic function calls
-- Automatic type conversion (Hemlock ↔ C types)
-- Support for all primitive types
-- Pointer and buffer support
+**特性：**
+- 与 libffi 集成用于动态函数调用
+- 自动类型转换（Hemlock ↔ C 类型）
+- 支持所有原始类型
+- 指针和缓冲区支持
 
-#### 7. Runtime (`runtime.c`) - 865 lines
+#### 7. 运行时（`runtime.c`）- 865 行
 
-**Purpose:** Expression evaluation and statement execution
+**目的：**表达式求值和语句执行
 
-**Key functions:**
-- `eval_expr()` - Evaluate expressions (recursive)
-- `eval_stmt()` - Execute statements
-- Control flow handling (if, while, for, switch, etc.)
-- Exception handling (try/catch/finally/throw)
+**关键函数：**
+- `eval_expr()` - 求值表达式（递归）
+- `eval_stmt()` - 执行语句
+- 控制流处理（if、while、for、switch 等）
+- 异常处理（try/catch/finally/throw）
 
-**Features:**
-- Recursive expression evaluation
-- Short-circuit boolean evaluation
-- Method call detection and `self` binding
-- Exception propagation
-- Break/continue/return handling
+**特性：**
+- 递归表达式求值
+- 短路布尔求值
+- 方法调用检测和 `self` 绑定
+- 异常传播
+- break/continue/return 处理
 
-### Benefits of Modular Design
+### 模块化设计的好处
 
-**1. Separation of Concerns**
-- Each module has one clear responsibility
-- Easy to find where features are implemented
-- Reduces cognitive load when making changes
+**1. 关注点分离**
+- 每个模块有一个清晰的职责
+- 容易找到特性的实现位置
+- 减少更改时的认知负担
 
-**2. Faster Incremental Builds**
-- Only modified modules need recompilation
-- Parallel compilation possible
-- Shorter iteration times during development
+**2. 更快的增量构建**
+- 只有修改的模块需要重新编译
+- 可能进行并行编译
+- 开发期间更短的迭代时间
 
-**3. Easier Testing and Debugging**
-- Modules can be tested in isolation
-- Bugs are localized to specific subsystems
-- Mock implementations possible for testing
+**3. 更容易的测试和调试**
+- 模块可以独立测试
+- 错误定位到特定子系统
+- 可能使用模拟实现进行测试
 
-**4. Scalability**
-- New features can be added to appropriate modules
-- Modules can be refactored independently
-- Code size per file stays manageable
+**4. 可扩展性**
+- 新特性可以添加到适当的模块
+- 模块可以独立重构
+- 每个文件的代码量保持可管理
 
-**5. Code Organization**
-- Logical grouping of related functionality
-- Clear dependency graph
-- Easier onboarding for new contributors
+**5. 代码组织**
+- 相关功能的逻辑分组
+- 清晰的依赖图
+- 新贡献者更容易上手
 
 ---
 
-## Runtime Architecture
+## 运行时架构
 
-### Value Representation
+### 值表示
 
-All values in Hemlock are represented by the `Value` struct using a tagged union:
+Hemlock 中的所有值都由使用标记联合的 `Value` 结构表示：
 
 ```c
 typedef struct Value {
-    ValueType type;  // Runtime type tag
+    ValueType type;  // 运行时类型标签
     union {
         int32_t i32_value;
         int64_t i64_value;
@@ -461,46 +461,46 @@ typedef struct Value {
 } Value;
 ```
 
-**Design decisions:**
-- **Tagged union** for type safety while maintaining flexibility
-- **Runtime type tags** enable dynamic typing with type checking
-- **Direct value storage** for primitives (no boxing)
-- **Pointer storage** for heap-allocated types (strings, objects, arrays)
+**设计决策：**
+- **标记联合**用于类型安全同时保持灵活性
+- **运行时类型标签**启用带类型检查的动态类型
+- **直接值存储**用于原始类型（无装箱）
+- **指针存储**用于堆分配类型（字符串、对象、数组）
 
-### Memory Layout Examples
+### 内存布局示例
 
-**Integer (i32):**
+**整数（i32）：**
 ```
 Value {
     type: TYPE_I32,
     i32_value: 42
 }
 ```
-- Total size: ~16 bytes (8-byte tag + 8-byte union)
-- Stack allocated
-- No heap allocation needed
+- 总大小：约 16 字节（8 字节标签 + 8 字节联合）
+- 栈分配
+- 不需要堆分配
 
-**String:**
+**字符串：**
 ```
 Value {
     type: TYPE_STRING,
-    string_value: 0x7f8a4c000000  // Pointer to heap
+    string_value: 0x7f8a4c000000  // 指向堆的指针
 }
 
-Heap: "hello\0" (6 bytes, null-terminated UTF-8)
+堆: "hello\0"（6 字节，以 null 结尾的 UTF-8）
 ```
-- Value is 16 bytes on stack
-- String data is heap-allocated
-- Must be freed manually
+- 值在栈上占 16 字节
+- 字符串数据是堆分配的
+- 必须手动释放
 
-**Object:**
+**对象：**
 ```
 Value {
     type: TYPE_OBJECT,
-    object_value: 0x7f8a4c001000  // Pointer to heap
+    object_value: 0x7f8a4c001000  // 指向堆的指针
 }
 
-Heap: Object {
+堆: Object {
     type_name: "Person",
     fields: [
         { name: "name", value: Value{TYPE_STRING, "Alice"} },
@@ -510,81 +510,81 @@ Heap: Object {
     capacity: 4
 }
 ```
-- Object structure on heap
-- Fields stored in dynamic array
-- Field values are embedded Value structs
+- 对象结构在堆上
+- 字段存储在动态数组中
+- 字段值是嵌入的 Value 结构
 
-### Environment Implementation
+### 环境实现
 
-Variables are stored in environment chains:
+变量存储在环境链中：
 
 ```c
 typedef struct Environment {
     HashMap *bindings;           // name → Value
-    struct Environment *parent;  // Lexical parent scope
+    struct Environment *parent;  // 词法父作用域
 } Environment;
 ```
 
-**Scope chain example:**
+**作用域链示例：**
 ```
-Global Scope: { print: <builtin>, args: <array> }
+全局作用域: { print: <builtin>, args: <array> }
     ↑
-Function Scope: { x: 10, y: 20 }
+函数作用域: { x: 10, y: 20 }
     ↑
-Block Scope: { i: 0 }
+块作用域: { i: 0 }
 ```
 
-**Lookup algorithm:**
-1. Check current environment's hashmap
-2. If not found, check parent environment
-3. Repeat until found or reach global scope
-4. Error if not found in any scope
+**查找算法：**
+1. 检查当前环境的 hashmap
+2. 如果未找到，检查父环境
+3. 重复直到找到或到达全局作用域
+4. 如果在任何作用域都未找到则报错
 
 ---
 
-## Type System Implementation
+## 类型系统实现
 
-### Type Checking Strategy
+### 类型检查策略
 
-Hemlock uses **runtime type checking** with **optional type annotations**:
+Hemlock 使用**运行时类型检查**和**可选类型注解**：
 
 ```hemlock
-let x = 42;           // No type check, infers i32
-let y: u8 = 255;      // Runtime check: value must fit in u8
-let z: i32 = x + y;   // Runtime check + type promotion
+let x = 42;           // 无类型检查，推断为 i32
+let y: u8 = 255;      // 运行时检查：值必须适合 u8
+let z: i32 = x + y;   // 运行时检查 + 类型提升
 ```
 
-**Implementation flow:**
-1. **Literal inference** - Lexer/parser determine initial type from literal
-2. **Type annotation check** - If annotation present, validate at assignment
-3. **Promotion** - Binary operations promote to common type
-4. **Conversion** - Explicit conversions happen on demand
+**实现流程：**
+1. **字面量推断** - 词法分析器/解析器从字面量确定初始类型
+2. **类型注解检查** - 如果存在注解，在赋值时验证
+3. **提升** - 二元操作提升到公共类型
+4. **转换** - 显式转换按需发生
 
-### Type Promotion Implementation
+### 类型提升实现
 
-Type promotion follows a fixed hierarchy with precision preservation:
+类型提升遵循固定层次并保持精度：
 
 ```c
-// Simplified promotion logic
+// 简化的提升逻辑
 ValueType promote_types(ValueType a, ValueType b) {
-    // f64 always wins
+    // f64 始终获胜
     if (a == TYPE_F64 || b == TYPE_F64) return TYPE_F64;
 
-    // f32 with i64/u64 promotes to f64 (precision preservation)
+    // f32 与 i64/u64 提升到 f64（精度保持）
     if (a == TYPE_F32 || b == TYPE_F32) {
         ValueType other = (a == TYPE_F32) ? b : a;
         if (other == TYPE_I64 || other == TYPE_U64) return TYPE_F64;
         return TYPE_F32;
     }
 
-    // Larger integer types win
+    // 较大的整数类型获胜
     int rank_a = get_type_rank(a);
     int rank_b = get_type_rank(b);
     return (rank_a > rank_b) ? a : b;
 }
 ```
 
-**Type ranks:**
+**类型等级：**
 - i8: 0
 - u8: 1
 - i16: 2
@@ -596,42 +596,42 @@ ValueType promote_types(ValueType a, ValueType b) {
 - f32: 8
 - f64: 9
 
-### Duck Typing Implementation
+### 鸭子类型实现
 
-Object type checking uses structural comparison:
+对象类型检查使用结构比较：
 
 ```c
 bool duck_type_check(Object *obj, TypeDef *type_def) {
-    // Check all required fields
+    // 检查所有必需字段
     for (each field in type_def) {
         if (!object_has_field(obj, field.name)) {
-            return false;  // Missing field
+            return false;  // 缺少字段
         }
 
         Value *field_value = object_get_field(obj, field.name);
         if (!type_matches(field_value, field.type)) {
-            return false;  // Wrong type
+            return false;  // 类型错误
         }
     }
 
-    return true;  // All required fields present and correct type
+    return true;  // 所有必需字段存在且类型正确
 }
 ```
 
-**Duck typing allows:**
-- Extra fields in objects (ignored)
-- Substructural typing (object can have more than required)
-- Type name assignment after validation
+**鸭子类型允许：**
+- 对象中的额外字段（被忽略）
+- 子结构类型（对象可以有比要求更多的）
+- 验证后的类型名称分配
 
 ---
 
-## Memory Management
+## 内存管理
 
-### Allocation Strategy
+### 分配策略
 
-Hemlock uses **manual memory management** with two allocation primitives:
+Hemlock 使用**手动内存管理**，有两种分配原语：
 
-**1. Raw pointers (`ptr`):**
+**1. 原始指针（`ptr`）：**
 ```c
 void *alloc(size_t bytes) {
     void *ptr = malloc(bytes);
@@ -642,11 +642,11 @@ void *alloc(size_t bytes) {
     return ptr;
 }
 ```
-- Direct malloc/free
-- No tracking
-- User responsibility to free
+- 直接 malloc/free
+- 无跟踪
+- 用户负责释放
 
-**2. Buffers (`buffer`):**
+**2. 缓冲区（`buffer`）：**
 ```c
 typedef struct Buffer {
     void *data;
@@ -662,221 +662,221 @@ Buffer *create_buffer(size_t size) {
     return buf;
 }
 ```
-- Tracks size and capacity
-- Bounds checking on access
-- Still requires manual free
+- 跟踪大小和容量
+- 访问时边界检查
+- 仍然需要手动 free
 
-### Heap-Allocated Types
+### 堆分配类型
 
-**Strings:**
-- UTF-8 byte array on heap
-- Null-terminated for C interop
-- Mutable (can modify in place)
-- Refcounted (auto-freed when scope exits)
+**字符串：**
+- 堆上的 UTF-8 字节数组
+- 以 null 结尾用于 C 互操作
+- 可变（可以原地修改）
+- 引用计数（作用域退出时自动释放）
 
-**Objects:**
-- Dynamic field array
-- Field names and values on heap
-- Refcounted (auto-freed when scope exits)
-- Circular references possible (handled with visited-set tracking)
+**对象：**
+- 动态字段数组
+- 字段名和值在堆上
+- 引用计数（作用域退出时自动释放）
+- 可能存在循环引用（用 visited-set 跟踪处理）
 
-**Arrays:**
-- Dynamic capacity doubling growth
-- Elements are embedded Value structs
-- Automatic reallocation on growth
-- Refcounted (auto-freed when scope exits)
+**数组：**
+- 动态容量倍增增长
+- 元素是嵌入的 Value 结构
+- 增长时自动重新分配
+- 引用计数（作用域退出时自动释放）
 
-**Closures:**
-- Captures environment by reference
-- Environment is heap-allocated
-- Closure environments are properly freed when no longer referenced
+**闭包：**
+- 通过引用捕获环境
+- 环境是堆分配的
+- 闭包环境在不再引用时正确释放
 
 ---
 
-## Concurrency Model
+## 并发模型
 
-### Threading Architecture
+### 线程架构
 
-Hemlock uses **1:1 threading** with POSIX threads (pthreads):
+Hemlock 使用 POSIX 线程（pthreads）的 **1:1 线程**模型：
 
 ```
-User Task          OS Thread          CPU Core
+用户任务          操作系统线程          CPU 核心
 ---------          ---------          --------
 spawn(f1) ------>  pthread_create --> Core 0
 spawn(f2) ------>  pthread_create --> Core 1
 spawn(f3) ------>  pthread_create --> Core 2
 ```
 
-**Key characteristics:**
-- Each `spawn()` creates a new pthread
-- Kernel schedules threads across cores
-- True parallel execution (no GIL)
-- Pre-emptive multitasking
+**主要特征：**
+- 每个 `spawn()` 创建一个新的 pthread
+- 内核在核心间调度线程
+- 真正的并行执行（没有 GIL）
+- 抢占式多任务
 
-### Task Implementation
+### 任务实现
 
 ```c
 typedef struct Task {
-    pthread_t thread;        // OS thread handle
-    Value result;            // Return value
-    char *error;             // Exception message (if thrown)
-    pthread_mutex_t lock;    // Protects state
-    TaskState state;         // RUNNING, FINISHED, ERROR
+    pthread_t thread;        // 操作系统线程句柄
+    Value result;            // 返回值
+    char *error;             // 异常消息（如果抛出）
+    pthread_mutex_t lock;    // 保护状态
+    TaskState state;         // RUNNING、FINISHED、ERROR
 } Task;
 ```
 
-**Task lifecycle:**
-1. `spawn(func, args)` → Create Task, start pthread
-2. Thread runs function with arguments
-3. On return: Store result, set state to FINISHED
-4. On exception: Store error message, set state to ERROR
-5. `join(task)` → Wait for thread, return result or throw exception
+**任务生命周期：**
+1. `spawn(func, args)` → 创建 Task，启动 pthread
+2. 线程用参数运行函数
+3. 返回时：存储结果，设置状态为 FINISHED
+4. 异常时：存储错误消息，设置状态为 ERROR
+5. `join(task)` → 等待线程，返回结果或抛出异常
 
-### Channel Implementation
+### 通道实现
 
 ```c
 typedef struct Channel {
-    void **buffer;           // Circular buffer of Value*
-    size_t capacity;         // Maximum buffered items
-    size_t count;            // Current items in buffer
-    size_t read_index;       // Next read position
-    size_t write_index;      // Next write position
-    bool closed;             // Channel closed flag
-    pthread_mutex_t lock;    // Protects buffer
-    pthread_cond_t not_full; // Signal when space available
-    pthread_cond_t not_empty;// Signal when data available
+    void **buffer;           // Value* 的循环缓冲区
+    size_t capacity;         // 最大缓冲项目数
+    size_t count;            // 缓冲区中的当前项目数
+    size_t read_index;       // 下一个读取位置
+    size_t write_index;      // 下一个写入位置
+    bool closed;             // 通道关闭标志
+    pthread_mutex_t lock;    // 保护缓冲区
+    pthread_cond_t not_full; // 有空间时发信号
+    pthread_cond_t not_empty;// 有数据时发信号
 } Channel;
 ```
 
-**Send operation:**
-1. Lock mutex
-2. Wait if buffer full (cond_wait on not_full)
-3. Write value to buffer[write_index]
-4. Increment write_index (circular)
-5. Signal not_empty
-6. Unlock mutex
+**发送操作：**
+1. 锁定 mutex
+2. 如果缓冲区满则等待（cond_wait on not_full）
+3. 将值写入 buffer[write_index]
+4. 递增 write_index（循环）
+5. 信号 not_empty
+6. 解锁 mutex
 
-**Receive operation:**
-1. Lock mutex
-2. Wait if buffer empty (cond_wait on not_empty)
-3. Read value from buffer[read_index]
-4. Increment read_index (circular)
-5. Signal not_full
-6. Unlock mutex
+**接收操作：**
+1. 锁定 mutex
+2. 如果缓冲区空则等待（cond_wait on not_empty）
+3. 从 buffer[read_index] 读取值
+4. 递增 read_index（循环）
+5. 信号 not_full
+6. 解锁 mutex
 
-**Synchronization guarantees:**
-- Thread-safe send/recv (protected by mutex)
-- Blocking semantics (producer waits if full, consumer waits if empty)
-- Ordered delivery (FIFO within a channel)
-
----
-
-## Future Plans
-
-### Completed: Compiler Backend ✓
-
-The compiler backend (`hemlockc`) has been implemented with:
-- C code generation from AST
-- Compile-time type checking (enabled by default)
-- Runtime library (`libhemlock_runtime.a`)
-- Full parity with interpreter (98% test pass rate)
-- Unboxing optimization framework
-
-### Current Focus: Type System Enhancements
-
-**Recent improvements:**
-- Unified type checking and type inference systems
-- Compile-time type checking enabled by default
-- `--check` flag for type-only validation
-- Type context passed to codegen for optimization hints
-
-### Future Enhancements
-
-**Potential additions:**
-- Generics/templates
-- Pattern matching
-- LSP integration for type-aware IDE support
-- More aggressive unboxing optimizations
-- Escape analysis for stack allocation
-
-### Long-term Optimizations
-
-**Possible improvements:**
-- Inline caching for method calls
-- JIT compilation for hot code paths
-- Work-stealing scheduler for better concurrency
-- Profile-guided optimization
+**同步保证：**
+- 线程安全的 send/recv（由 mutex 保护）
+- 阻塞语义（满时生产者等待，空时消费者等待）
+- 有序交付（通道内 FIFO）
 
 ---
 
-## Implementation Guidelines
+## 未来计划
 
-### Adding New Features
+### 已完成：编译器后端
 
-When implementing new features, follow these guidelines:
+编译器后端（`hemlockc`）已实现：
+- 从 AST 生成 C 代码
+- 编译时类型检查（默认启用）
+- 运行时库（`libhemlock_runtime.a`）
+- 与解释器完全一致（98% 测试通过率）
+- 拆箱优化框架
 
-**1. Choose the right module:**
-- New value types → `values.c`
-- Type conversions → `types.c`
-- Built-in functions → `builtins.c`
-- I/O operations → `io.c`
-- Control flow → `runtime.c`
+### 当前重点：类型系统增强
 
-**2. Update all layers:**
-- Add AST node types if needed (`ast.h`, `ast.c`)
-- Add lexer tokens if needed (`lexer.c`)
-- Add parser rules (`parser.c`)
-- Implement runtime behavior (`runtime.c` or appropriate module)
-- Add tests (`tests/`)
+**最近改进：**
+- 统一的类型检查和类型推断系统
+- 编译时类型检查默认启用
+- 用于仅类型验证的 `--check` 标志
+- 传递给代码生成的类型上下文用于优化提示
 
-**3. Maintain consistency:**
-- Follow existing code style
-- Use consistent naming conventions
-- Document public API in headers
-- Keep error messages clear and consistent
+### 未来增强
 
-**4. Test thoroughly:**
-- Add test cases before implementing
-- Test success and error paths
-- Test edge cases
-- Verify no memory leaks (valgrind)
+**可能的添加：**
+- 泛型/模板
+- 模式匹配
+- LSP 集成用于类型感知的 IDE 支持
+- 更激进的拆箱优化
+- 用于栈分配的逃逸分析
 
-### Performance Considerations
+### 长期优化
 
-**Current bottlenecks:**
-- HashMap lookups for variable access
-- Recursive function calls (no TCO)
-- String concatenation (allocates new string each time)
-- Type checking overhead on every operation
-
-**Optimization opportunities:**
-- Cache variable locations (inline caching)
-- Tail call optimization
-- String builder for concatenation
-- Type inference to skip runtime checks
-
-### Debugging Tips
-
-**Useful tools:**
-- `valgrind` - Memory leak detection
-- `gdb` - Debugging crashes
-- `-g` flag - Debug symbols
-- `printf` debugging - Simple but effective
-
-**Common issues:**
-- Segfault → Null pointer dereference (check return values)
-- Memory leak → Missing free() call (check value_free paths)
-- Type error → Check type_convert() and type_check() logic
-- Crash in threads → Race condition (check mutex usage)
+**可能的改进：**
+- 方法调用的内联缓存
+- 热代码路径的 JIT 编译
+- 用于更好并发的工作窃取调度器
+- 配置文件引导的优化
 
 ---
 
-## Conclusion
+## 实现指南
 
-Hemlock's implementation prioritizes:
-- **Modularity** - Clean separation of concerns
-- **Simplicity** - Straightforward implementation
-- **Explicitness** - No hidden magic
-- **Maintainability** - Easy to understand and modify
+### 添加新特性
 
-The current tree-walking interpreter is intentionally simple to facilitate rapid feature development and experimentation. Future compiler backend will improve performance while maintaining the same semantics.
+实现新特性时，遵循以下指南：
+
+**1. 选择正确的模块：**
+- 新值类型 → `values.c`
+- 类型转换 → `types.c`
+- 内置函数 → `builtins.c`
+- I/O 操作 → `io.c`
+- 控制流 → `runtime.c`
+
+**2. 更新所有层：**
+- 如需要添加 AST 节点类型（`ast.h`、`ast.c`）
+- 如需要添加词法分析器 token（`lexer.c`）
+- 添加解析器规则（`parser.c`）
+- 实现运行时行为（`runtime.c` 或适当的模块）
+- 添加测试（`tests/`）
+
+**3. 保持一致性：**
+- 遵循现有代码风格
+- 使用一致的命名约定
+- 在头文件中记录公共 API
+- 保持错误消息清晰一致
+
+**4. 彻底测试：**
+- 实现前添加测试用例
+- 测试成功和错误路径
+- 测试边界情况
+- 验证没有内存泄漏（valgrind）
+
+### 性能考虑
+
+**当前瓶颈：**
+- 变量访问的 HashMap 查找
+- 递归函数调用（没有 TCO）
+- 字符串连接（每次分配新字符串）
+- 每次操作的类型检查开销
+
+**优化机会：**
+- 缓存变量位置（内联缓存）
+- 尾调用优化
+- 用于连接的字符串构建器
+- 类型推断以跳过运行时检查
+
+### 调试技巧
+
+**有用的工具：**
+- `valgrind` - 内存泄漏检测
+- `gdb` - 调试崩溃
+- `-g` 标志 - 调试符号
+- `printf` 调试 - 简单但有效
+
+**常见问题：**
+- 段错误 → 空指针解引用（检查返回值）
+- 内存泄漏 → 缺少 free() 调用（检查 value_free 路径）
+- 类型错误 → 检查 type_convert() 和 type_check() 逻辑
+- 线程崩溃 → 竞争条件（检查 mutex 使用）
+
+---
+
+## 总结
+
+Hemlock 的实现优先考虑：
+- **模块化** - 清晰的关注点分离
+- **简单性** - 直接的实现
+- **显式性** - 没有隐藏的魔法
+- **可维护性** - 易于理解和修改
+
+当前的树遍历解释器有意保持简单，以促进快速特性开发和实验。未来的编译器后端将在保持相同语义的同时提高性能。

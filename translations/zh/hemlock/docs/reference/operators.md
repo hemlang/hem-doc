@@ -1,30 +1,30 @@
-# Operators Reference
+# 运算符参考
 
-Complete reference for all operators in Hemlock, including precedence, associativity, and behavior.
-
----
-
-## Overview
-
-Hemlock provides C-style operators with explicit precedence rules. All operators follow strict typing rules with automatic type promotion where applicable.
+Hemlock 中所有运算符的完整参考，包括优先级、结合性和行为。
 
 ---
 
-## Arithmetic Operators
+## 概述
 
-### Binary Arithmetic
+Hemlock 提供 C 风格的运算符，具有明确的优先级规则。所有运算符遵循严格的类型规则，在适用时自动进行类型提升。
 
-| Operator | Name           | Example    | Description                  |
-|----------|----------------|------------|------------------------------|
-| `+`      | Addition       | `a + b`    | Add two values               |
-| `-`      | Subtraction    | `a - b`    | Subtract b from a            |
-| `*`      | Multiplication | `a * b`    | Multiply two values          |
-| `/`      | Division       | `a / b`    | Divide a by b                |
+---
 
-**Type Promotion:**
-Results follow type promotion rules (see [Type System](type-system.md#type-promotion-rules)).
+## 算术运算符
 
-**Examples:**
+### 二元算术
+
+| 运算符 | 名称   | 示例       | 描述           |
+|--------|--------|------------|----------------|
+| `+`    | 加法   | `a + b`    | 将两个值相加   |
+| `-`    | 减法   | `a - b`    | 从 a 中减去 b  |
+| `*`    | 乘法   | `a * b`    | 将两个值相乘   |
+| `/`    | 除法   | `a / b`    | 将 a 除以 b    |
+
+**类型提升：**
+结果遵循类型提升规则（参见 [类型系统](type-system.md#type-promotion-rules)）。
+
+**示例：**
 ```hemlock
 let a = 10 + 5;        // 15 (i32)
 let b = 10 - 3;        // 7 (i32)
@@ -40,20 +40,20 @@ let g: i32 = 20;
 let h = f + g;         // 30 (i32, promoted)
 ```
 
-**Division by Zero:**
-- Integer division by zero: Runtime error
-- Float division by zero: Returns `inf` or `-inf`
+**除以零：**
+- 整数除以零：运行时错误
+- 浮点数除以零：返回 `inf` 或 `-inf`
 
 ---
 
-### Unary Arithmetic
+### 一元算术
 
-| Operator | Name     | Example | Description          |
-|----------|----------|---------|----------------------|
-| `-`      | Negation | `-a`    | Negate value         |
-| `+`      | Plus     | `+a`    | Identity (no-op)     |
+| 运算符 | 名称 | 示例    | 描述         |
+|--------|------|---------|--------------|
+| `-`    | 取负 | `-a`    | 对值取负     |
+| `+`    | 正号 | `+a`    | 恒等（无操作）|
 
-**Examples:**
+**示例：**
 ```hemlock
 let a = 5;
 let b = -a;            // -5
@@ -64,21 +64,21 @@ let x = -3.14;         // -3.14
 
 ---
 
-## Comparison Operators
+## 比较运算符
 
-| Operator | Name                  | Example    | Returns |
-|----------|-----------------------|------------|---------|
-| `==`     | Equal                 | `a == b`   | `bool`  |
-| `!=`     | Not equal             | `a != b`   | `bool`  |
-| `<`      | Less than             | `a < b`    | `bool`  |
-| `>`      | Greater than          | `a > b`    | `bool`  |
-| `<=`     | Less than or equal    | `a <= b`   | `bool`  |
-| `>=`     | Greater than or equal | `a >= b`   | `bool`  |
+| 运算符 | 名称       | 示例       | 返回值   |
+|--------|------------|------------|----------|
+| `==`   | 等于       | `a == b`   | `bool`   |
+| `!=`   | 不等于     | `a != b`   | `bool`   |
+| `<`    | 小于       | `a < b`    | `bool`   |
+| `>`    | 大于       | `a > b`    | `bool`   |
+| `<=`   | 小于或等于 | `a <= b`   | `bool`   |
+| `>=`   | 大于或等于 | `a >= b`   | `bool`   |
 
-**Type Promotion:**
-Operands are promoted before comparison.
+**类型提升：**
+操作数在比较前会进行提升。
 
-**Examples:**
+**示例：**
 ```hemlock
 print(5 == 5);         // true
 print(10 != 5);        // true
@@ -99,19 +99,19 @@ print(a == b);         // true (promoted to i32)
 
 ---
 
-## Logical Operators
+## 逻辑运算符
 
-| Operator | Name        | Example      | Description              |
-|----------|-------------|--------------|--------------------------|
-| `&&`     | Logical AND | `a && b`     | True if both are true    |
-| `||`     | Logical OR  | `a || b`     | True if either is true   |
-| `!`      | Logical NOT | `!a`         | Negate boolean           |
+| 运算符 | 名称     | 示例         | 描述                 |
+|--------|----------|--------------|----------------------|
+| `&&`   | 逻辑与   | `a && b`     | 两者都为真时返回真   |
+| `||`   | 逻辑或   | `a || b`     | 任一为真时返回真     |
+| `!`    | 逻辑非   | `!a`         | 对布尔值取反         |
 
-**Short-Circuit Evaluation:**
-- `&&` - Stops at first false value
-- `||` - Stops at first true value
+**短路求值：**
+- `&&` - 遇到第一个假值时停止
+- `||` - 遇到第一个真值时停止
 
-**Examples:**
+**示例：**
 ```hemlock
 let a = true;
 let b = false;
@@ -133,24 +133,24 @@ if (x == 0 || (10 / x) > 2) {
 
 ---
 
-## Bitwise Operators
+## 位运算符
 
-**Restriction:** Integer types only (i8-i64, u8-u64)
+**限制：** 仅适用于整数类型 (i8-i64, u8-u64)
 
-### Binary Bitwise
+### 二元位运算
 
-| Operator | Name         | Example    | Description              |
-|----------|--------------|------------|--------------------------|
-| `&`      | Bitwise AND  | `a & b`    | AND each bit             |
-| `|`      | Bitwise OR   | `a | b`    | OR each bit              |
-| `^`      | Bitwise XOR  | `a ^ b`    | XOR each bit             |
-| `<<`     | Left shift   | `a << b`   | Shift left by b bits     |
-| `>>`     | Right shift  | `a >> b`   | Shift right by b bits    |
+| 运算符 | 名称     | 示例       | 描述               |
+|--------|----------|------------|--------------------|
+| `&`    | 按位与   | `a & b`    | 对每一位进行与运算 |
+| `|`    | 按位或   | `a | b`    | 对每一位进行或运算 |
+| `^`    | 按位异或 | `a ^ b`    | 对每一位进行异或运算 |
+| `<<`   | 左移     | `a << b`   | 向左移动 b 位      |
+| `>>`   | 右移     | `a >> b`   | 向右移动 b 位      |
 
-**Type Preservation:**
-Result type matches operand types (with type promotion).
+**类型保持：**
+结果类型与操作数类型匹配（经过类型提升）。
 
-**Examples:**
+**示例：**
 ```hemlock
 let a = 12;  // 1100 in binary
 let b = 10;  // 1010 in binary
@@ -162,7 +162,7 @@ print(a << 2);         // 48 (110000)
 print(a >> 1);         // 6  (110)
 ```
 
-**Unsigned Example:**
+**无符号示例：**
 ```hemlock
 let c: u8 = 15;        // 00001111
 let d: u8 = 7;         // 00000111
@@ -172,19 +172,19 @@ print(c | d);          // 15 (00001111)
 print(c ^ d);          // 8  (00001000)
 ```
 
-**Right Shift Behavior:**
-- Signed types: Arithmetic shift (sign-extends)
-- Unsigned types: Logical shift (zero-fills)
+**右移行为：**
+- 有符号类型：算术移位（符号扩展）
+- 无符号类型：逻辑移位（零填充）
 
 ---
 
-### Unary Bitwise
+### 一元位运算
 
-| Operator | Name        | Example | Description              |
-|----------|-------------|---------|--------------------------|
-| `~`      | Bitwise NOT | `~a`    | Flip all bits            |
+| 运算符 | 名称     | 示例    | 描述           |
+|--------|----------|---------|----------------|
+| `~`    | 按位取反 | `~a`    | 翻转所有位     |
 
-**Examples:**
+**示例：**
 ```hemlock
 let a = 12;            // 00001100 (i32)
 print(~a);             // -13 (two's complement)
@@ -195,15 +195,15 @@ print(~b);             // 240 (11110000)
 
 ---
 
-## String Operators
+## 字符串运算符
 
-### Concatenation
+### 连接
 
-| Operator | Name           | Example    | Description        |
-|----------|----------------|------------|--------------------|
-| `+`      | Concatenation  | `a + b`    | Join strings       |
+| 运算符 | 名称   | 示例       | 描述       |
+|--------|--------|------------|------------|
+| `+`    | 连接   | `a + b`    | 连接字符串 |
 
-**Examples:**
+**示例：**
 ```hemlock
 let s = "hello" + " " + "world";  // "hello world"
 let msg = "Count: " + typeof(42); // "Count: 42"
@@ -217,15 +217,15 @@ let prefix = '>' + " Message";     // "> Message"
 
 ---
 
-## Assignment Operators
+## 赋值运算符
 
-### Basic Assignment
+### 基本赋值
 
-| Operator | Name       | Example    | Description              |
-|----------|------------|------------|--------------------------|
-| `=`      | Assignment | `a = b`    | Assign value to variable |
+| 运算符 | 名称   | 示例       | 描述           |
+|--------|--------|------------|----------------|
+| `=`    | 赋值   | `a = b`    | 将值赋给变量   |
 
-**Examples:**
+**示例：**
 ```hemlock
 let x = 10;
 x = 20;
@@ -237,19 +237,19 @@ let obj = { x: 10 };
 obj.x = 20;
 ```
 
-### Compound Assignment
+### 复合赋值
 
-#### Arithmetic Compound Assignment
+#### 算术复合赋值
 
-| Operator | Name            | Example    | Equivalent         |
-|----------|-----------------|------------|--------------------|
-| `+=`     | Add assign      | `a += b`   | `a = a + b`        |
-| `-=`     | Subtract assign | `a -= b`   | `a = a - b`        |
-| `*=`     | Multiply assign | `a *= b`   | `a = a * b`        |
-| `/=`     | Divide assign   | `a /= b`   | `a = a / b`        |
-| `%=`     | Modulo assign   | `a %= b`   | `a = a % b`        |
+| 运算符 | 名称       | 示例       | 等价于             |
+|--------|------------|------------|--------------------|
+| `+=`   | 加法赋值   | `a += b`   | `a = a + b`        |
+| `-=`   | 减法赋值   | `a -= b`   | `a = a - b`        |
+| `*=`   | 乘法赋值   | `a *= b`   | `a = a * b`        |
+| `/=`   | 除法赋值   | `a /= b`   | `a = a / b`        |
+| `%=`   | 取模赋值   | `a %= b`   | `a = a % b`        |
 
-**Examples:**
+**示例：**
 ```hemlock
 let x = 10;
 x += 5;      // x is now 15
@@ -261,17 +261,17 @@ let count = 0;
 count += 1;  // Increment by 1
 ```
 
-#### Bitwise Compound Assignment
+#### 位运算复合赋值
 
-| Operator | Name               | Example     | Equivalent          |
-|----------|--------------------|-------------|---------------------|
-| `&=`     | Bitwise AND assign | `a &= b`    | `a = a & b`         |
-| `\|=`    | Bitwise OR assign  | `a \|= b`   | `a = a \| b`        |
-| `^=`     | Bitwise XOR assign | `a ^= b`    | `a = a ^ b`         |
-| `<<=`    | Left shift assign  | `a <<= b`   | `a = a << b`        |
-| `>>=`    | Right shift assign | `a >>= b`   | `a = a >> b`        |
+| 运算符 | 名称           | 示例        | 等价于              |
+|--------|----------------|-------------|---------------------|
+| `&=`   | 按位与赋值     | `a &= b`    | `a = a & b`         |
+| `\|=`  | 按位或赋值     | `a \|= b`   | `a = a \| b`        |
+| `^=`   | 按位异或赋值   | `a ^= b`    | `a = a ^ b`         |
+| `<<=`  | 左移赋值       | `a <<= b`   | `a = a << b`        |
+| `>>=`  | 右移赋值       | `a >>= b`   | `a = a >> b`        |
 
-**Examples:**
+**示例：**
 ```hemlock
 let flags = 0b1111;
 flags &= 0b0011;   // flags is now 0b0011 (mask off upper bits)
@@ -283,14 +283,14 @@ x <<= 4;           // x is now 16 (shift left by 4)
 x >>= 2;           // x is now 4 (shift right by 2)
 ```
 
-### Increment/Decrement
+### 自增/自减
 
-| Operator | Name       | Example | Description              |
-|----------|------------|---------|--------------------------|
-| `++`     | Increment  | `a++`   | Increment by 1 (postfix) |
-| `--`     | Decrement  | `a--`   | Decrement by 1 (postfix) |
+| 运算符 | 名称   | 示例    | 描述                 |
+|--------|--------|---------|----------------------|
+| `++`   | 自增   | `a++`   | 加 1（后缀）         |
+| `--`   | 自减   | `a--`   | 减 1（后缀）         |
 
-**Examples:**
+**示例：**
 ```hemlock
 let i = 0;
 i++;         // i is now 1
@@ -303,21 +303,21 @@ for (let j = 0; j < 10; j++) {
 }
 ```
 
-**Note:** Both `++` and `--` are postfix operators (value is returned before increment/decrement)
+**注意：** `++` 和 `--` 都是后缀运算符（在自增/自减之前返回值）
 
 ---
 
-## Null Safety Operators
+## 空值安全运算符
 
-### Null Coalescing (`??`)
+### 空值合并 (`??`)
 
-Returns the left operand if it's not null, otherwise returns the right operand.
+如果左操作数不为空则返回左操作数，否则返回右操作数。
 
-| Operator | Name             | Example      | Description                    |
-|----------|------------------|--------------|--------------------------------|
-| `??`     | Null coalescing  | `a ?? b`     | Return a if not null, else b   |
+| 运算符 | 名称       | 示例         | 描述                       |
+|--------|------------|--------------|----------------------------|
+| `??`   | 空值合并   | `a ?? b`     | 如果 a 非空返回 a，否则返回 b |
 
-**Examples:**
+**示例：**
 ```hemlock
 let name = null;
 let display = name ?? "Anonymous";  // "Anonymous"
@@ -338,17 +338,17 @@ let config = get_config() ?? { default: true };
 
 ---
 
-### Optional Chaining (`?.`)
+### 可选链 (`?.`)
 
-Safely access properties or call methods on potentially null values.
+安全地访问可能为空的值的属性或调用方法。
 
-| Operator | Name              | Example        | Description                      |
-|----------|-------------------|----------------|----------------------------------|
-| `?.`     | Optional chaining | `a?.b`         | Return a.b if a not null, else null |
-| `?.[`    | Optional index    | `a?.[0]`       | Return a[0] if a not null, else null |
-| `?.(`    | Optional call     | `a?.()`        | Call a() if a not null, else null |
+| 运算符 | 名称       | 示例           | 描述                             |
+|--------|------------|----------------|----------------------------------|
+| `?.`   | 可选链     | `a?.b`         | 如果 a 非空返回 a.b，否则返回 null |
+| `?.[`  | 可选索引   | `a?.[0]`       | 如果 a 非空返回 a[0]，否则返回 null |
+| `?.(`  | 可选调用   | `a?.()`        | 如果 a 非空调用 a()，否则返回 null |
 
-**Examples:**
+**示例：**
 ```hemlock
 let user = null;
 let name = user?.name;              // null (no error)
@@ -371,23 +371,23 @@ let empty = null;
 let result = empty?.method?.();     // null
 ```
 
-**Behavior:**
-- If the left operand is null, the entire expression short-circuits to null
-- If the left operand is not null, the access proceeds normally
-- Can be chained for deep property access
+**行为：**
+- 如果左操作数为空，整个表达式短路返回 null
+- 如果左操作数非空，正常进行访问
+- 可以链接用于深层属性访问
 
 ---
 
-## Member Access Operators
+## 成员访问运算符
 
-### Dot Operator
+### 点运算符
 
-| Operator | Name             | Example      | Description           |
-|----------|------------------|--------------|-----------------------|
-| `.`      | Member access    | `obj.field`  | Access object field   |
-| `.`      | Property access  | `arr.length` | Access property       |
+| 运算符 | 名称       | 示例         | 描述           |
+|--------|------------|--------------|----------------|
+| `.`    | 成员访问   | `obj.field`  | 访问对象字段   |
+| `.`    | 属性访问   | `arr.length` | 访问属性       |
 
-**Examples:**
+**示例：**
 ```hemlock
 // Object field access
 let person = { name: "Alice", age: 30 };
@@ -407,13 +407,13 @@ let result = s.to_upper(); // "HELLO"
 
 ---
 
-### Index Operator
+### 索引运算符
 
-| Operator | Name    | Example   | Description          |
-|----------|---------|-----------|----------------------|
-| `[]`     | Index   | `arr[i]`  | Access element       |
+| 运算符 | 名称   | 示例      | 描述       |
+|--------|--------|-----------|------------|
+| `[]`   | 索引   | `arr[i]`  | 访问元素   |
 
-**Examples:**
+**示例：**
 ```hemlock
 // Array indexing
 let arr = [10, 20, 30];
@@ -433,13 +433,13 @@ print(buf[0]);             // 65
 
 ---
 
-## Function Call Operator
+## 函数调用运算符
 
-| Operator | Name          | Example      | Description        |
-|----------|---------------|--------------|--------------------|
-| `()`     | Function call | `f(a, b)`    | Call function      |
+| 运算符 | 名称       | 示例         | 描述       |
+|--------|------------|--------------|------------|
+| `()`   | 函数调用   | `f(a, b)`    | 调用函数   |
 
-**Examples:**
+**示例：**
 ```hemlock
 fn add(a, b) {
     return a + b;
@@ -457,33 +457,33 @@ print("message");
 
 ---
 
-## Operator Precedence
+## 运算符优先级
 
-Operators are listed from highest to lowest precedence:
+运算符按从高到低的优先级排列：
 
-| Precedence | Operators                  | Description                    | Associativity |
-|------------|----------------------------|--------------------------------|---------------|
-| 1          | `()` `[]` `.` `?.`         | Call, index, member access, optional chain | Left-to-right |
-| 2          | `++` `--`                  | Postfix increment/decrement    | Left-to-right |
-| 3          | `!` `~` `-` (unary) `+` (unary) | Logical NOT, bitwise NOT, negation | Right-to-left |
-| 4          | `*` `/` `%`                | Multiplication, division, modulo | Left-to-right |
-| 5          | `+` `-`                    | Addition, subtraction          | Left-to-right |
-| 6          | `<<` `>>`                  | Bit shifts                     | Left-to-right |
-| 7          | `<` `<=` `>` `>=`          | Relational                     | Left-to-right |
-| 8          | `==` `!=`                  | Equality                       | Left-to-right |
-| 9          | `&`                        | Bitwise AND                    | Left-to-right |
-| 10         | `^`                        | Bitwise XOR                    | Left-to-right |
-| 11         | `|`                        | Bitwise OR                     | Left-to-right |
-| 12         | `&&`                       | Logical AND                    | Left-to-right |
-| 13         | `||`                       | Logical OR                     | Left-to-right |
-| 14         | `??`                       | Null coalescing                | Left-to-right |
-| 15         | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` | Assignment | Right-to-left |
+| 优先级 | 运算符                       | 描述                           | 结合性     |
+|--------|------------------------------|--------------------------------|------------|
+| 1      | `()` `[]` `.` `?.`           | 调用、索引、成员访问、可选链   | 从左到右   |
+| 2      | `++` `--`                    | 后缀自增/自减                  | 从左到右   |
+| 3      | `!` `~` `-` (一元) `+` (一元)| 逻辑非、按位取反、取负         | 从右到左   |
+| 4      | `*` `/` `%`                  | 乘法、除法、取模               | 从左到右   |
+| 5      | `+` `-`                      | 加法、减法                     | 从左到右   |
+| 6      | `<<` `>>`                    | 位移                           | 从左到右   |
+| 7      | `<` `<=` `>` `>=`            | 关系运算                       | 从左到右   |
+| 8      | `==` `!=`                    | 相等运算                       | 从左到右   |
+| 9      | `&`                          | 按位与                         | 从左到右   |
+| 10     | `^`                          | 按位异或                       | 从左到右   |
+| 11     | `|`                          | 按位或                         | 从左到右   |
+| 12     | `&&`                         | 逻辑与                         | 从左到右   |
+| 13     | `||`                         | 逻辑或                         | 从左到右   |
+| 14     | `??`                         | 空值合并                       | 从左到右   |
+| 15     | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` | 赋值 | 从右到左   |
 
 ---
 
-## Precedence Examples
+## 优先级示例
 
-### Example 1: Arithmetic and Comparison
+### 示例 1：算术和比较
 ```hemlock
 let result = 5 + 3 * 2;
 // Evaluated as: 5 + (3 * 2) = 11
@@ -494,7 +494,7 @@ let cmp = 10 > 5 + 3;
 // Addition has higher precedence than comparison
 ```
 
-### Example 2: Bitwise Operators
+### 示例 2：位运算符
 ```hemlock
 let result1 = 12 | 10 & 8;
 // Evaluated as: 12 | (10 & 8) = 12 | 8 = 12
@@ -509,7 +509,7 @@ let result3 = (5 & 3) | (2 << 1);
 // Evaluated as: 1 | 4 = 5
 ```
 
-### Example 3: Logical Operators
+### 示例 3：逻辑运算符
 ```hemlock
 let result = true || false && false;
 // Evaluated as: true || (false && false) = true
@@ -520,7 +520,7 @@ let cmp = 5 < 10 && 10 < 20;
 // Comparison has higher precedence than &&
 ```
 
-### Example 4: Using Parentheses
+### 示例 4：使用括号
 ```hemlock
 // Without parentheses
 let a = 2 + 3 * 4;        // 14
@@ -534,11 +534,11 @@ let c = (a + b) * (a - b);
 
 ---
 
-## Type-Specific Operator Behavior
+## 类型特定的运算符行为
 
-### Division (Always Float)
+### 除法（始终返回浮点数）
 
-The `/` operator **always returns a float** (f64), regardless of operand types:
+`/` 运算符**始终返回浮点数** (f64)，无论操作数类型：
 
 ```hemlock
 print(10 / 3);             // 3.333... (f64)
@@ -547,11 +547,11 @@ print(10.0 / 4.0);         // 2.5 (f64)
 print(-7 / 3);             // -2.333... (f64)
 ```
 
-This prevents the common bug of unexpected integer truncation.
+这可以防止常见的意外整数截断错误。
 
-### Floor Division (div / divi)
+### 地板除法 (div / divi)
 
-For floor division (like integer division in other languages), use the `div()` and `divi()` functions:
+对于地板除法（类似其他语言中的整数除法），使用 `div()` 和 `divi()` 函数：
 
 ```hemlock
 // div(a, b) - floor division returning float
@@ -564,8 +564,8 @@ print(divi(-7, 3));        // -3 (i64)
 print(typeof(divi(5, 2))); // i64
 ```
 
-**Integer-returning math functions:**
-For other rounding operations that return integers:
+**返回整数的数学函数：**
+对于其他返回整数的舍入操作：
 
 ```hemlock
 print(floori(3.7));        // 3 (i64)
@@ -578,9 +578,9 @@ let arr = [10, 20, 30, 40];
 print(arr[floori(1.9)]);   // 20 (index 1)
 ```
 
-### String Comparison
+### 字符串比较
 
-Strings are compared lexicographically:
+字符串按字典序比较：
 
 ```hemlock
 print("abc" < "def");      // true
@@ -588,7 +588,7 @@ print("apple" > "banana"); // false
 print("hello" == "hello"); // true
 ```
 
-### Null Comparison
+### 空值比较
 
 ```hemlock
 let x = null;
@@ -597,9 +597,9 @@ print(x == null);          // true
 print(x != null);          // false
 ```
 
-### Type Errors
+### 类型错误
 
-Some operations are not allowed between incompatible types:
+某些操作不允许在不兼容的类型之间进行：
 
 ```hemlock
 // ERROR: Cannot use bitwise operators on floats
@@ -616,8 +616,8 @@ let c = a + b;             // i32 (promoted)
 
 ---
 
-## See Also
+## 另请参阅
 
-- [Type System](type-system.md) - Type promotion and conversion rules
-- [Built-in Functions](builtins.md) - Built-in operations
-- [String API](string-api.md) - String concatenation and methods
+- [类型系统](type-system.md) - 类型提升和转换规则
+- [内置函数](builtins.md) - 内置操作
+- [字符串 API](string-api.md) - 字符串连接和方法

@@ -1,257 +1,257 @@
-# Hemlock Language Design Philosophy
+# Hemlock 语言设计理念
 
-> "A small, unsafe language for writing unsafe things safely."
+> "一个小巧的、非安全的语言，用于安全地编写非安全的代码。"
 
-This document captures the core design principles and philosophy of Hemlock. Read this first before making any changes or additions to the language.
-
----
-
-## Table of Contents
-
-- [Core Identity](#core-identity)
-- [Design Principles](#design-principles)
-- [Philosophy on Safety](#philosophy-on-safety)
-- [What NOT to Add](#what-not-to-add)
-- [Future Considerations](#future-considerations)
-- [Final Thoughts](#final-thoughts)
+本文档记录了 Hemlock 的核心设计原则和理念。在对语言进行任何更改或添加之前，请先阅读本文档。
 
 ---
 
-## Core Identity
+## 目录
 
-Hemlock is a **systems scripting language** that embraces manual memory management and explicit control. It's designed for programmers who want:
-
-- The power of C
-- The ergonomics of modern scripting languages
-- Structured async concurrency built-in
-- No hidden behavior or magic
-
-### What Hemlock IS NOT
-
-- **Memory-safe** (dangling pointers are your responsibility)
-- **A replacement for Rust, Go, or Lua**
-- **A language that hides complexity from you**
-
-### What Hemlock IS
-
-- **Explicit over implicit, always**
-- **Educational and experimental**
-- **A "C scripting layer" for systems work**
-- **Honest about tradeoffs**
+- [核心定位](#核心定位)
+- [设计原则](#设计原则)
+- [安全性理念](#安全性理念)
+- [不应添加的特性](#不应添加的特性)
+- [未来考虑](#未来考虑)
+- [结语](#结语)
 
 ---
 
-## Design Principles
+## 核心定位
 
-### 1. Explicit Over Implicit
+Hemlock 是一种**系统脚本语言**，采用手动内存管理和显式控制。它专为以下需求的程序员设计：
 
-Hemlock favors explicitness in all language constructs. There should be no surprises, no magic, and no hidden behavior.
+- C 语言的强大能力
+- 现代脚本语言的易用性
+- 内置的结构化异步并发
+- 无隐藏行为或魔法
 
-**Bad (implicit):**
+### Hemlock 不是什么
+
+- **内存安全的**（悬空指针是你的责任）
+- **Rust、Go 或 Lua 的替代品**
+- **向你隐藏复杂性的语言**
+
+### Hemlock 是什么
+
+- **永远显式优于隐式**
+- **教育性和实验性的**
+- **用于系统工作的 "C 脚本层"**
+- **诚实地对待权衡**
+
+---
+
+## 设计原则
+
+### 1. 显式优于隐式
+
+Hemlock 在所有语言结构中偏向显式。不应有惊喜、魔法和隐藏行为。
+
+**不好的做法（隐式）：**
 ```hemlock
-let x = 5  // Missing semicolon - should error
+let x = 5  // 缺少分号 - 应该报错
 ```
 
-**Good (explicit):**
+**好的做法（显式）：**
 ```hemlock
 let x = 5;
-free(ptr);  // You allocated it, you free it
+free(ptr);  // 你分配的，你释放
 ```
 
-**Key aspects:**
-- Semicolons are mandatory (no automatic semicolon insertion)
-- No garbage collection
-- Manual memory management (alloc/free)
-- Type annotations are optional but checked at runtime
-- No automatic resource cleanup (no RAII), but `defer` provides explicit cleanup
+**关键要点：**
+- 分号是强制的（没有自动分号插入）
+- 没有垃圾回收
+- 手动内存管理（alloc/free）
+- 类型注解是可选的，但在运行时会被检查
+- 没有自动资源清理（没有 RAII），但 `defer` 提供显式清理
 
-### 2. Dynamic by Default, Typed by Choice
+### 2. 默认动态，可选类型
 
-Every value has a runtime type tag, but the system is designed to be flexible while still catching errors.
+每个值都有运行时类型标签，但系统设计为灵活的同时仍能捕获错误。
 
-**Type inference:**
-- Small integers (fits in i32): `42` → `i32`
-- Large integers (> i32 range): `9223372036854775807` → `i64`
-- Floats: `3.14` → `f64`
+**类型推断：**
+- 小整数（适合 i32）：`42` → `i32`
+- 大整数（超过 i32 范围）：`9223372036854775807` → `i64`
+- 浮点数：`3.14` → `f64`
 
-**Explicit typing when needed:**
+**需要时显式类型：**
 ```hemlock
-let x = 42;              // i32 inferred (small value)
-let y: u8 = 255;         // explicit u8
-let z = x + y;           // promotes to i32
-let big = 5000000000;    // i64 inferred (> i32 max)
+let x = 42;              // 推断为 i32（小值）
+let y: u8 = 255;         // 显式 u8
+let z = x + y;           // 提升为 i32
+let big = 5000000000;    // 推断为 i64（超过 i32 最大值）
 ```
 
-**Type promotion rules** follow a clear hierarchy from smallest to largest, with floats always winning over integers.
+**类型提升规则**遵循从最小到最大的清晰层次，浮点数始终优先于整数。
 
-### 3. Unsafe is a Feature, Not a Bug
+### 3. 非安全是特性，不是缺陷
 
-Hemlock doesn't try to prevent all errors. Instead, it gives you the tools to be safe while allowing you to opt into unsafe behavior when needed.
+Hemlock 不试图阻止所有错误。相反，它给你安全的工具，同时允许你在需要时选择非安全行为。
 
-**Examples of intentional unsafety:**
-- Pointer arithmetic can overflow (user's responsibility)
-- No bounds checking on raw `ptr` (use `buffer` if you want safety)
-- Double-free crashes are allowed (manual memory management)
-- Type system prevents accidents but allows footguns when needed
+**有意的非安全性示例：**
+- 指针运算可能溢出（用户的责任）
+- 原始 `ptr` 没有边界检查（如果需要安全性，使用 `buffer`）
+- 允许双重释放崩溃（手动内存管理）
+- 类型系统防止意外但允许需要时的危险操作
 
 ```hemlock
 let p = alloc(10);
-let q = p + 100;  // Way past allocation - allowed but dangerous
+let q = p + 100;  // 远超分配范围 - 允许但危险
 ```
 
-**The philosophy:** The type system should prevent *accidents* but allow *intentional* unsafe operations.
+**理念：**类型系统应该防止*意外*，但允许*有意的*非安全操作。
 
-### 4. Structured Concurrency First-Class
+### 4. 结构化并发作为一等公民
 
-Concurrency is not an afterthought in Hemlock. It's built into the language from the ground up.
+并发不是 Hemlock 的事后考虑。它从一开始就内置于语言中。
 
-**Key features:**
-- `async`/`await` built into the language
-- Channels for communication
-- `spawn`/`join`/`detach` for task management
-- No raw threads, no locks - structured only
-- True multi-threaded parallelism using POSIX threads
+**主要特性：**
+- `async`/`await` 内置于语言中
+- 用于通信的 Channel
+- 用于任务管理的 `spawn`/`join`/`detach`
+- 没有原始线程，没有锁 - 仅结构化
+- 使用 POSIX 线程实现真正的多线程并行
 
-**Not an event loop or green threads** - Hemlock uses real OS threads for true parallelism across multiple CPU cores.
+**不是事件循环或绿色线程** - Hemlock 使用真正的操作系统线程在多个 CPU 核心上实现真正的并行。
 
-### 5. C-like Syntax, Low Ceremony
+### 5. 类 C 语法，低仪式感
 
-Hemlock should feel familiar to systems programmers while reducing boilerplate.
+Hemlock 对系统程序员来说应该感觉熟悉，同时减少样板代码。
 
-**Design choices:**
-- `{}` blocks always, no optional braces
-- Operators match C: `+`, `-`, `*`, `/`, `&&`, `||`, `!`
-- Type syntax matches Rust/TypeScript: `let x: type = value;`
-- Functions are first-class values
-- Minimal keywords and special forms
+**设计选择：**
+- 始终使用 `{}` 块，没有可选大括号
+- 运算符与 C 匹配：`+`、`-`、`*`、`/`、`&&`、`||`、`!`
+- 类型语法与 Rust/TypeScript 匹配：`let x: type = value;`
+- 函数是一等值
+- 最少的关键字和特殊形式
 
 ---
 
-## Philosophy on Safety
+## 安全性理念
 
-**Hemlock's take on safety:**
+**Hemlock 对安全性的看法：**
 
-> "We give you the tools to be safe (`buffer`, type annotations, bounds checking) but we don't force you to use them (`ptr`, manual memory, unsafe operations).
+> "我们给你安全的工具（`buffer`、类型注解、边界检查），但我们不强迫你使用它们（`ptr`、手动内存、非安全操作）。
 >
-> The default should guide toward safety, but the escape hatch should always be available."
+> 默认应该引导向安全，但逃生舱口应该始终可用。"
 
-### Safety Tools Provided
+### 提供的安全工具
 
-**1. Safe buffer type:**
+**1. 安全的 buffer 类型：**
 ```hemlock
 let b: buffer = buffer(64);
-b[0] = 65;              // bounds checked
+b[0] = 65;              // 边界检查
 print(b.length);        // 64
-free(b);                // still manual
+free(b);                // 仍然是手动的
 ```
 
-**2. Unsafe raw pointers:**
+**2. 非安全的原始指针：**
 ```hemlock
 let p: ptr = alloc(64);
 memset(p, 0, 64);
-free(p);  // You must remember to free
+free(p);  // 你必须记得释放
 ```
 
-**3. Type annotations:**
+**3. 类型注解：**
 ```hemlock
-let x: u8 = 255;   // OK
-let y: u8 = 256;   // ERROR: out of range
+let x: u8 = 255;   // 正确
+let y: u8 = 256;   // 错误：超出范围
 ```
 
-**4. Runtime type checking:**
+**4. 运行时类型检查：**
 ```hemlock
 let val = some_function();
 if (typeof(val) == "i32") {
-    // Safe to use as integer
+    // 可以安全地作为整数使用
 }
 ```
 
-### Guiding Principles
+### 指导原则
 
-1. **Default to safe patterns in documentation** - Show `buffer` before `ptr`, encourage type annotations
-2. **Make unsafe operations obvious** - Raw pointer arithmetic should look intentional
-3. **Provide escape hatches** - Don't prevent experienced users from doing low-level work
-4. **Be honest about tradeoffs** - Document what can go wrong
+1. **文档中默认使用安全模式** - 在 `ptr` 之前展示 `buffer`，鼓励类型注解
+2. **使非安全操作显眼** - 原始指针运算应该看起来是有意的
+3. **提供逃生舱口** - 不阻止有经验的用户进行底层工作
+4. **诚实地对待权衡** - 记录可能出错的地方
 
-### Examples of Safety vs. Unsafety
+### 安全与非安全示例
 
-| Safe Pattern | Unsafe Pattern | When to Use Unsafe |
+| 安全模式 | 非安全模式 | 何时使用非安全 |
 |-------------|----------------|-------------------|
-| `buffer` type | `ptr` type | FFI, performance-critical code |
-| Type annotations | No annotations | External interfaces, validation |
-| Bounds-checked access | Pointer arithmetic | Low-level memory operations |
-| Exception handling | Returning null/error codes | When exceptions are too heavyweight |
+| `buffer` 类型 | `ptr` 类型 | FFI、性能关键代码 |
+| 类型注解 | 无注解 | 外部接口、验证 |
+| 边界检查访问 | 指针运算 | 底层内存操作 |
+| 异常处理 | 返回 null/错误码 | 当异常太重量级时 |
 
 ---
 
-## What NOT to Add
+## 不应添加的特性
 
-Understanding what **not** to add is as important as knowing what to add.
+理解**不应**添加什么与知道应该添加什么同样重要。
 
-### ❌ Don't Add Implicit Behavior
+### 不要添加隐式行为
 
-**Bad examples:**
+**不好的示例：**
 
 ```hemlock
-// BAD: Automatic semicolon insertion
+// 不好：自动分号插入
 let x = 5
 let y = 10
 
-// BAD: Implicit type conversions that lose precision
-let x: i32 = 3.14  // Should truncate or error?
+// 不好：丢失精度的隐式类型转换
+let x: i32 = 3.14  // 应该截断还是报错？
 ```
 
-**Why:** Implicit behavior creates surprises and makes code harder to reason about.
+**原因：**隐式行为会造成惊喜，使代码更难理解。
 
-### ❌ Don't Hide Complexity
+### 不要隐藏复杂性
 
-**Bad examples:**
+**不好的示例：**
 
 ```hemlock
-// BAD: Magic behind-the-scenes optimization
-let arr = [1, 2, 3]  // Is this stack or heap? User should know! (Heap, refcounted)
+// 不好：幕后的魔法优化
+let arr = [1, 2, 3]  // 这是栈还是堆？用户应该知道！（堆，引用计数）
 
-// BAD: Raw pointer auto-freed
-let p = alloc(100)  // Does this auto-free? NO! Raw ptrs always need free()
+// 不好：原始指针自动释放
+let p = alloc(100)  // 这会自动释放吗？不会！原始指针总是需要 free()
 ```
 
-**Note on refcounting:** Hemlock uses internal refcounting for strings, arrays, objects, and buffers - these ARE auto-freed when scope exits. This is explicit and predictable (deterministic cleanup when ref hits 0, no GC pauses). Raw pointers (`ptr` from `alloc()`) are NOT refcounted and always require manual `free()`.
+**关于引用计数的说明：**Hemlock 对字符串、数组、对象和缓冲区使用内部引用计数 - 这些在作用域退出时会自动释放。这是显式且可预测的（当引用计数为 0 时确定性清理，没有 GC 暂停）。原始指针（来自 `alloc()` 的 `ptr`）不是引用计数的，始终需要手动 `free()`。
 
-**Why:** Hidden complexity makes it impossible to predict performance and debug issues.
+**原因：**隐藏的复杂性使得无法预测性能和调试问题。
 
-### ❌ Don't Break Existing Semantics
+### 不要破坏现有语义
 
-**Never change these core decisions:**
-- Semicolons are mandatory - don't make them optional
-- Manual memory management - don't add GC
-- Mutable strings - don't make them immutable
-- Runtime type checking - don't remove it
+**永远不要改变这些核心决定：**
+- 分号是强制的 - 不要使它们可选
+- 手动内存管理 - 不要添加 GC
+- 可变字符串 - 不要使它们不可变
+- 运行时类型检查 - 不要移除它
 
-**Why:** Consistency and stability are more important than trendy features.
+**原因：**一致性和稳定性比时髦的特性更重要。
 
-### ❌ Don't Add "Convenient" Features That Reduce Explicitness
+### 不要添加降低显式性的"便利"特性
 
-**Examples of features to avoid:**
-- Operator overloading (maybe for user types, but carefully)
-- Implicit type coercion that loses information
-- Automatic resource cleanup (RAII)
-- Method chaining that hides complexity
-- DSLs and magic syntax
+**应避免的特性示例：**
+- 运算符重载（用户类型可能可以，但要谨慎）
+- 丢失信息的隐式类型强制转换
+- 自动资源清理（RAII）
+- 隐藏复杂性的方法链
+- DSL 和魔法语法
 
-**Exception:** Convenience features are OK if they're **explicit sugar** over simple operations:
-- `else if` is fine (it's just nested if statements)
-- String interpolation might be OK if it's clearly syntactic sugar
-- Method syntax for objects is fine (it's explicit what it does)
+**例外：**如果便利特性是简单操作的**显式语法糖**，则可以：
+- `else if` 可以（它只是嵌套的 if 语句）
+- 字符串插值可能可以，如果它明显是语法糖
+- 对象的方法语法可以（它做什么是显式的）
 
 ---
 
-## Future Considerations
+## 未来考虑
 
-### Maybe Add (Under Discussion)
+### 可能添加（讨论中）
 
-These features align with Hemlock's philosophy but need careful design:
+这些特性符合 Hemlock 的理念，但需要仔细设计：
 
-**1. Pattern matching**
+**1. 模式匹配**
 ```hemlock
 match (value) {
     case i32: print("integer");
@@ -259,11 +259,11 @@ match (value) {
     case _: print("other");
 }
 ```
-- Explicit type checking
-- No hidden costs
-- Compile-time exhaustiveness checking possible
+- 显式类型检查
+- 没有隐藏成本
+- 可能进行编译时穷尽性检查
 
-**2. Error types (`Result<T, E>`)**
+**2. 错误类型（`Result<T, E>`）**
 ```hemlock
 fn divide(a: i32, b: i32): Result<i32, string> {
     if (b == 0) {
@@ -272,116 +272,116 @@ fn divide(a: i32, b: i32): Result<i32, string> {
     return Ok(a / b);
 }
 ```
-- Explicit error handling
-- Forces users to think about errors
-- Alternative to exceptions
+- 显式错误处理
+- 强制用户考虑错误
+- 异常的替代方案
 
-**3. Array/slice types**
-- Already have dynamic arrays
-- Could add fixed-size arrays for stack allocation
-- Would need to be explicit about stack vs. heap
+**3. 数组/切片类型**
+- 已经有动态数组
+- 可以添加固定大小数组用于栈分配
+- 需要显式说明栈与堆
 
-**4. Improved memory safety tools**
-- Optional bounds checking flag
-- Memory leak detection in debug builds
-- Sanitizer integration
+**4. 改进的内存安全工具**
+- 可选的边界检查标志
+- 调试构建中的内存泄漏检测
+- Sanitizer 集成
 
-### Probably Never Add
+### 可能永远不会添加
 
-These features violate core principles:
+这些特性违反核心原则：
 
-**1. Garbage collection**
-- Hides memory management complexity
-- Unpredictable performance
-- Against explicit control principle
+**1. 垃圾回收**
+- 隐藏内存管理复杂性
+- 不可预测的性能
+- 违背显式控制原则
 
-**2. Automatic memory management**
-- Same reasons as GC
-- Reference counting might be OK if explicit
+**2. 自动内存管理**
+- 与 GC 相同的原因
+- 如果显式的话，引用计数可能可以
 
-**3. Implicit type conversions that lose data**
-- Goes against "explicit over implicit"
-- Source of subtle bugs
+**3. 丢失数据的隐式类型转换**
+- 违背"显式优于隐式"
+- 微妙错误的来源
 
-**4. Macros (complex ones)**
-- Too much power, too much complexity
-- Simple macro system might be OK
-- Prefer code generation or functions
+**4. 宏（复杂的）**
+- 太多能力，太多复杂性
+- 简单的宏系统可能可以
+- 优先使用代码生成或函数
 
-**5. Class-based OOP with inheritance**
-- Too much implicit behavior
-- Duck typing and objects are sufficient
-- Composition over inheritance
+**5. 基于类的带继承的面向对象编程**
+- 太多隐式行为
+- 鸭子类型和对象就足够了
+- 组合优于继承
 
-**6. Module system with complex resolution**
-- Keep imports simple and explicit
-- No magic search paths
-- No version resolution (use OS package manager)
-
----
-
-## Final Thoughts
-
-### Trust and Responsibility
-
-Hemlock is about **trust and responsibility**. We trust the programmer to:
-
-- Manage memory correctly
-- Use types appropriately
-- Handle errors properly
-- Understand the tradeoffs
-
-In return, Hemlock provides:
-
-- No hidden costs
-- No surprise behavior
-- Full control when needed
-- Safety tools when wanted
-
-### The Guiding Question
-
-**When considering a new feature, ask:**
-
-> "Does this give the programmer more explicit control, or does it hide something?"
-
-- If it **adds explicit control** → probably fits Hemlock
-- If it **hides complexity** → probably doesn't belong
-- If it's **optional sugar** that's clearly documented → might be OK
-
-### Examples of Good Additions
-
-✅ **Switch statements** - Explicit control flow, no magic, clear semantics
-
-✅ **Async/await with pthreads** - Explicit concurrency, true parallelism, user controls spawning
-
-✅ **Buffer type alongside ptr** - Gives choice between safe and unsafe
-
-✅ **Optional type annotations** - Helps catch bugs without forcing strictness
-
-✅ **Try/catch/finally** - Explicit error handling with clear control flow
-
-### Examples of Bad Additions
-
-❌ **Automatic semicolon insertion** - Hides syntax errors, makes code ambiguous
-
-❌ **RAII/destructors** - Automatic cleanup hides when resources are released
-
-❌ **Implicit null coalescing** - Hides null checks, makes code harder to reason about
-
-❌ **Auto-growing strings** - Hides memory allocation, unpredictable performance
+**6. 具有复杂解析的模块系统**
+- 保持导入简单和显式
+- 没有魔法搜索路径
+- 没有版本解析（使用操作系统包管理器）
 
 ---
 
-## Conclusion
+## 结语
 
-Hemlock is not trying to be the safest language, the fastest language, or the most feature-rich language.
+### 信任与责任
 
-**Hemlock is trying to be the most *honest* language.**
+Hemlock 是关于**信任与责任**的。我们信任程序员能够：
 
-It tells you exactly what it's doing, gives you control when you need it, and doesn't hide the sharp edges. It's a language for people who want to understand their code at a low level while still enjoying modern ergonomics.
+- 正确管理内存
+- 适当使用类型
+- 正确处理错误
+- 理解权衡
 
-If you're not sure whether a feature belongs in Hemlock, remember:
+作为回报，Hemlock 提供：
 
-> **Explicit over implicit, always.**
-> **Unsafe is a feature, not a bug.**
-> **The user is responsible, and that's OK.**
+- 无隐藏成本
+- 无意外行为
+- 需要时的完全控制
+- 需要时的安全工具
+
+### 指导问题
+
+**当考虑新特性时，问：**
+
+> "这是给程序员更多显式控制，还是隐藏了某些东西？"
+
+- 如果它**增加显式控制** → 可能适合 Hemlock
+- 如果它**隐藏复杂性** → 可能不属于这里
+- 如果它是**可选的语法糖**且有清晰文档 → 可能可以
+
+### 好的添加示例
+
+- **Switch 语句** - 显式控制流，没有魔法，清晰的语义
+
+- **带 pthreads 的 Async/await** - 显式并发，真正的并行，用户控制生成
+
+- **Buffer 类型与 ptr 并存** - 在安全和非安全之间提供选择
+
+- **可选类型注解** - 帮助捕获错误而不强制严格
+
+- **Try/catch/finally** - 带清晰控制流的显式错误处理
+
+### 不好的添加示例
+
+- **自动分号插入** - 隐藏语法错误，使代码模糊
+
+- **RAII/析构函数** - 自动清理隐藏资源何时释放
+
+- **隐式空值合并** - 隐藏空值检查，使代码更难理解
+
+- **自动增长的字符串** - 隐藏内存分配，不可预测的性能
+
+---
+
+## 总结
+
+Hemlock 不是试图成为最安全的语言、最快的语言或功能最丰富的语言。
+
+**Hemlock 试图成为最*诚实*的语言。**
+
+它确切地告诉你它在做什么，在你需要时给你控制权，不隐藏锋利的边缘。它是为那些想在底层理解代码同时仍享受现代易用性的人设计的语言。
+
+如果你不确定某个特性是否属于 Hemlock，请记住：
+
+> **永远显式优于隐式。**
+> **非安全是特性，不是缺陷。**
+> **用户负责，这没问题。**

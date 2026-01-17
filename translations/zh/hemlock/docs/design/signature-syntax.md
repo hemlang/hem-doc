@@ -1,128 +1,128 @@
-# Signature Syntax Design
+# 签名语法设计
 
-> Extending Hemlock's type system with function types, nullable modifiers, type aliases, const parameters, and method signatures.
+> 用函数类型、可空修饰符、类型别名、const 参数和方法签名扩展 Hemlock 的类型系统。
 
-**Status:** Implemented (v1.7.0)
-**Version:** 1.0
-**Author:** Claude
-
----
-
-## Overview
-
-This document proposes five interconnected type system extensions that build on Hemlock's existing infrastructure:
-
-1. **Function Type Annotations** - First-class function types
-2. **Nullable Type Modifiers** - Explicit null handling (extends existing `nullable` flag)
-3. **Type Aliases** - Named type abbreviations
-4. **Const Parameters** - Immutability contracts
-5. **Method Signatures in Define** - Interface-like behavior
-
-These features share the philosophy: **explicit over implicit, optional but enforced when used**.
+**状态：**已实现（v1.7.0）
+**版本：**1.0
+**作者：**Claude
 
 ---
 
-## 1. Function Type Annotations
+## 概述
 
-### Motivation
+本文档提出了五个相互关联的类型系统扩展，它们建立在 Hemlock 现有基础设施之上：
 
-Currently, there's no way to express a function's signature as a type:
+1. **函数类型注解** - 一等函数类型
+2. **可空类型修饰符** - 显式的 null 处理（扩展现有的 `nullable` 标志）
+3. **类型别名** - 命名的类型缩写
+4. **Const 参数** - 不可变性契约
+5. **Define 中的方法签名** - 类接口行为
+
+这些特性共享相同的理念：**显式优于隐式，可选但使用时强制执行**。
+
+---
+
+## 1. 函数类型注解
+
+### 动机
+
+目前，没有办法将函数的签名表达为类型：
 
 ```hemlock
-// Current: callback has no type information
+// 当前：callback 没有类型信息
 fn map(arr: array, callback) { ... }
 
-// Proposed: explicit function type
+// 提议：显式函数类型
 fn map(arr: array, callback: fn(any, i32): any): array { ... }
 ```
 
-### Syntax
+### 语法
 
 ```hemlock
-// Basic function type
+// 基本函数类型
 fn(i32, i32): i32
 
-// With parameter names (documentation only, not enforced)
+// 带参数名（仅用于文档，不强制执行）
 fn(a: i32, b: i32): i32
 
-// No return value (void)
+// 无返回值（void）
 fn(string): void
-fn(string)              // Shorthand: omit `: void`
+fn(string)              // 简写：省略 `: void`
 
-// Nullable return
+// 可空返回
 fn(i32): string?
 
-// Optional parameters
+// 可选参数
 fn(name: string, age?: i32): void
 
-// Rest parameters
+// Rest 参数
 fn(...args: array): i32
 
-// No parameters
+// 无参数
 fn(): bool
 
-// Higher-order: function returning function
+// 高阶：返回函数的函数
 fn(i32): fn(i32): i32
 
-// Async function type
+// 异步函数类型
 async fn(i32): i32
 ```
 
-### Usage Examples
+### 使用示例
 
 ```hemlock
-// Variable with function type
+// 带函数类型的变量
 let add: fn(i32, i32): i32 = fn(a, b) { return a + b; };
 
-// Function parameter
+// 函数参数
 fn apply(f: fn(i32): i32, x: i32): i32 {
     return f(x);
 }
 
-// Return type is function
+// 返回类型是函数
 fn make_adder(n: i32): fn(i32): i32 {
     return fn(x) { return x + n; };
 }
 
-// Array of functions
+// 函数数组
 let ops: array<fn(i32, i32): i32> = [add, subtract, multiply];
 
-// Object field
+// 对象字段
 define EventHandler {
     name: string;
     callback: fn(Event): void;
 }
 ```
 
-### AST Changes
+### AST 更改
 
 ```c
-// In TypeKind enum (include/ast.h)
+// 在 TypeKind 枚举中（include/ast.h）
 typedef enum {
-    // ... existing types ...
-    TYPE_FUNCTION,      // NEW: Function type
+    // ... 现有类型 ...
+    TYPE_FUNCTION,      // 新增：函数类型
 } TypeKind;
 
-// In Type struct (include/ast.h)
+// 在 Type 结构中（include/ast.h）
 struct Type {
     TypeKind kind;
-    // ... existing fields ...
+    // ... 现有字段 ...
 
-    // For TYPE_FUNCTION:
-    struct Type **param_types;      // Parameter types
-    char **param_names;             // Optional parameter names (docs)
-    int *param_optional;            // Which params are optional
+    // 用于 TYPE_FUNCTION：
+    struct Type **param_types;      // 参数类型
+    char **param_names;             // 可选参数名（文档）
+    int *param_optional;            // 哪些参数是可选的
     int num_params;
-    char *rest_param_name;          // Rest parameter name or NULL
-    struct Type *rest_param_type;   // Rest parameter type
-    struct Type *return_type;       // Return type (NULL = void)
-    int is_async;                   // async fn type
+    char *rest_param_name;          // Rest 参数名或 NULL
+    struct Type *rest_param_type;   // Rest 参数类型
+    struct Type *return_type;       // 返回类型（NULL = void）
+    int is_async;                   // async fn 类型
 };
 ```
 
-### Parsing
+### 解析
 
-Function types begin with `fn` (or `async fn`) followed by parameter list:
+函数类型以 `fn`（或 `async fn`）开始，后跟参数列表：
 
 ```
 function_type := ["async"] "fn" "(" [param_type_list] ")" [":" type]
@@ -130,336 +130,336 @@ param_type_list := param_type ("," param_type)*
 param_type := [identifier ":"] ["?"] type | "..." [identifier] [":" type]
 ```
 
-**Disambiguation:** When parsing a type and `fn` is encountered:
-- If followed by `(`, it's a function type
-- Otherwise, syntax error (bare `fn` is not a valid type)
+**消歧义：**解析类型时遇到 `fn`：
+- 如果后跟 `(`，则是函数类型
+- 否则，语法错误（裸 `fn` 不是有效类型）
 
-### Type Compatibility
+### 类型兼容性
 
 ```hemlock
-// Exact match required for function types
-let f: fn(i32): i32 = fn(x: i32): i32 { return x; };  // OK
+// 函数类型需要精确匹配
+let f: fn(i32): i32 = fn(x: i32): i32 { return x; };  // 正确
 
-// Parameter contravariance (accepting broader types is OK)
-let g: fn(any): i32 = fn(x: i32): i32 { return x; };  // OK: i32 <: any
+// 参数逆变（接受更宽类型是可以的）
+let g: fn(any): i32 = fn(x: i32): i32 { return x; };  // 正确：i32 <: any
 
-// Return covariance (returning narrower types is OK)
-let h: fn(i32): any = fn(x: i32): i32 { return x; };  // OK: i32 <: any
+// 返回协变（返回更窄类型是可以的）
+let h: fn(i32): any = fn(x: i32): i32 { return x; };  // 正确：i32 <: any
 
-// Arity must match
-let bad: fn(i32): i32 = fn(a, b) { return a; };       // ERROR: arity mismatch
+// 参数数量必须匹配
+let bad: fn(i32): i32 = fn(a, b) { return a; };       // 错误：参数数量不匹配
 
-// Optional parameters compatible with required
-let opt: fn(i32, i32?): i32 = fn(a, b?: 0) { return a + b; };  // OK
+// 可选参数与必需参数兼容
+let opt: fn(i32, i32?): i32 = fn(a, b?: 0) { return a + b; };  // 正确
 ```
 
 ---
 
-## 2. Nullable Type Modifiers
+## 2. 可空类型修饰符
 
-### Motivation
+### 动机
 
-The `?` suffix makes null-acceptance explicit in signatures:
+`?` 后缀使签名中的 null 接受变得显式：
 
 ```hemlock
-// Current: unclear if null is valid
+// 当前：不清楚 null 是否有效
 fn find(arr: array, val: any): i32 { ... }
 
-// Proposed: explicit nullable return
+// 提议：显式可空返回
 fn find(arr: array, val: any): i32? { ... }
 ```
 
-### Syntax
+### 语法
 
 ```hemlock
-// Nullable types with ? suffix
-string?           // string or null
-i32?              // i32 or null
-User?             // User or null
-array<i32>?       // array or null
-fn(i32): i32?     // function returning i32 or null
+// 带 ? 后缀的可空类型
+string?           // string 或 null
+i32?              // i32 或 null
+User?             // User 或 null
+array<i32>?       // array 或 null
+fn(i32): i32?     // 返回 i32 或 null 的函数
 
-// Composing with function types
-fn(string?): i32          // Accepts string or null
-fn(string): i32?          // Returns i32 or null
-fn(string?): i32?         // Both nullable
+// 与函数类型组合
+fn(string?): i32          // 接受 string 或 null
+fn(string): i32?          // 返回 i32 或 null
+fn(string?): i32?         // 两者都可空
 
-// In define
+// 在 define 中
 define Result {
     value: any?;
     error: string?;
 }
 ```
 
-### Implementation Notes
+### 实现说明
 
-**Already exists:** The `Type.nullable` flag is already in the AST. This feature primarily needs:
-1. Parser support for `?` suffix on any type (verify/extend)
-2. Proper composition with function types
-3. Runtime enforcement
+**已存在：**`Type.nullable` 标志已在 AST 中。此特性主要需要：
+1. 对任何类型的 `?` 后缀的解析器支持（验证/扩展）
+2. 与函数类型的正确组合
+3. 运行时强制执行
 
-### Type Compatibility
+### 类型兼容性
 
 ```hemlock
-// Non-nullable assignable to nullable
-let x: i32? = 42;           // OK
-let y: i32? = null;         // OK
+// 非空可赋值给可空
+let x: i32? = 42;           // 正确
+let y: i32? = null;         // 正确
 
-// Nullable NOT assignable to non-nullable
-let z: i32 = x;             // ERROR: x might be null
+// 可空不能赋值给非空
+let z: i32 = x;             // 错误：x 可能是 null
 
-// Null coalescing to unwrap
-let z: i32 = x ?? 0;        // OK: ?? provides default
+// 空值合并以解包
+let z: i32 = x ?? 0;        // 正确：?? 提供默认值
 
-// Optional chaining returns nullable
+// 可选链返回可空
 let name: string? = user?.name;
 ```
 
 ---
 
-## 3. Type Aliases
+## 3. 类型别名
 
-### Motivation
+### 动机
 
-Complex types benefit from named abbreviations:
+复杂类型受益于命名缩写：
 
 ```hemlock
-// Current: repetitive compound types
+// 当前：重复的复合类型
 fn process(entity: HasName & HasId & HasTimestamp) { ... }
 fn validate(entity: HasName & HasId & HasTimestamp) { ... }
 
-// Proposed: named alias
+// 提议：命名别名
 type Entity = HasName & HasId & HasTimestamp;
 fn process(entity: Entity) { ... }
 fn validate(entity: Entity) { ... }
 ```
 
-### Syntax
+### 语法
 
 ```hemlock
-// Basic alias
+// 基本别名
 type Integer = i32;
 type Text = string;
 
-// Compound type alias
+// 复合类型别名
 type Entity = HasName & HasId;
 type Auditable = HasCreatedAt & HasUpdatedAt & HasCreatedBy;
 
-// Function type alias
+// 函数类型别名
 type Callback = fn(Event): void;
 type Predicate = fn(any): bool;
 type Reducer = fn(acc: any, val: any): any;
 type AsyncTask = async fn(): any;
 
-// Nullable alias
+// 可空别名
 type OptionalString = string?;
 
-// Generic alias (if we support generic type aliases)
+// 泛型别名（如果我们支持泛型类型别名）
 type Pair<T> = { first: T, second: T };
 type Result<T, E> = { value: T?, error: E? };
 
-// Array type alias
+// 数组类型别名
 type IntArray = array<i32>;
 type Matrix = array<array<f64>>;
 ```
 
-### Scope and Visibility
+### 作用域和可见性
 
 ```hemlock
-// Module-scoped by default
+// 默认模块作用域
 type Callback = fn(Event): void;
 
-// Exportable
+// 可导出
 export type Handler = fn(Request): Response;
 
-// In another file
+// 在另一个文件中
 import { Handler } from "./handlers.hml";
 fn register(h: Handler) { ... }
 ```
 
-### AST Changes
+### AST 更改
 
 ```c
-// New statement kind
+// 新语句类型
 typedef enum {
-    // ... existing statements ...
-    STMT_TYPE_ALIAS,    // NEW
+    // ... 现有语句 ...
+    STMT_TYPE_ALIAS,    // 新增
 } StmtKind;
 
-// In Stmt union
+// 在 Stmt union 中
 struct {
-    char *name;                 // Alias name
-    char **type_params;         // Generic params: <T, U>
+    char *name;                 // 别名名称
+    char **type_params;         // 泛型参数：<T, U>
     int num_type_params;
-    Type *aliased_type;         // The actual type
+    Type *aliased_type;         // 实际类型
 } type_alias;
 ```
 
-### Parsing
+### 解析
 
 ```
 type_alias := "type" identifier ["<" type_params ">"] "=" type ";"
 ```
 
-**Note:** `type` is a new keyword. Check for conflicts with existing identifiers.
+**注意：**`type` 是一个新关键字。检查与现有标识符的冲突。
 
-### Resolution
+### 解析
 
-Type aliases are resolved at:
-- **Parse time:** Alias recorded in type environment
-- **Check time:** Alias expanded to underlying type
-- **Runtime:** Alias is transparent (same as underlying type)
+类型别名在以下时机解析：
+- **解析时：**别名记录在类型环境中
+- **检查时：**别名展开为底层类型
+- **运行时：**别名是透明的（与底层类型相同）
 
 ```hemlock
 type MyInt = i32;
 let x: MyInt = 42;
-typeof(x);           // "i32" (not "MyInt")
+typeof(x);           // "i32"（不是 "MyInt"）
 ```
 
 ---
 
-## 4. Const Parameters
+## 4. Const 参数
 
-### Motivation
+### 动机
 
-Signal immutability intent in function signatures:
+在函数签名中表示不可变性意图：
 
 ```hemlock
-// Current: unclear if array will be modified
+// 当前：不清楚 array 是否会被修改
 fn print_all(items: array) { ... }
 
-// Proposed: explicit immutability contract
+// 提议：显式不可变性契约
 fn print_all(const items: array) { ... }
 ```
 
-### Syntax
+### 语法
 
 ```hemlock
-// Const parameter
+// Const 参数
 fn process(const data: buffer) {
-    // data[0] = 0;        // ERROR: cannot mutate const
-    let x = data[0];       // OK: reading allowed
+    // data[0] = 0;        // 错误：不能修改 const
+    let x = data[0];       // 正确：允许读取
     return x;
 }
 
-// Multiple const params
+// 多个 const 参数
 fn compare(const a: array, const b: array): bool { ... }
 
-// Mixed const and mutable
+// 混合 const 和可变
 fn update(const source: array, target: array) {
     for (item in source) {
-        target.push(item);   // OK: target is mutable
+        target.push(item);   // 正确：target 是可变的
     }
 }
 
-// Const with type inference
+// Const 与类型推断
 fn log(const msg) {
     print(msg);
 }
 
-// Const in function types
+// 函数类型中的 const
 type Reader = fn(const buffer): i32;
 ```
 
-### What Const Prevents
+### Const 阻止的操作
 
 ```hemlock
 fn bad(const arr: array) {
-    arr.push(1);         // ERROR: mutating method
-    arr.pop();           // ERROR: mutating method
-    arr[0] = 5;          // ERROR: index assignment
-    arr.clear();         // ERROR: mutating method
+    arr.push(1);         // 错误：修改方法
+    arr.pop();           // 错误：修改方法
+    arr[0] = 5;          // 错误：索引赋值
+    arr.clear();         // 错误：修改方法
 }
 
 fn ok(const arr: array) {
-    let x = arr[0];      // OK: reading
-    let len = len(arr);  // OK: length check
-    let copy = arr.slice(0, 10);  // OK: creates new array
-    for (item in arr) {  // OK: iteration
+    let x = arr[0];      // 正确：读取
+    let len = len(arr);  // 正确：长度检查
+    let copy = arr.slice(0, 10);  // 正确：创建新数组
+    for (item in arr) {  // 正确：迭代
         print(item);
     }
 }
 ```
 
-### Mutating vs Non-Mutating Methods
+### 修改方法与非修改方法
 
-| Type | Mutating (blocked by const) | Non-Mutating (allowed) |
+| 类型 | 修改（被 const 阻止） | 非修改（允许） |
 |------|----------------------------|------------------------|
-| array | push, pop, shift, unshift, insert, remove, clear, reverse (in-place) | slice, concat, map, filter, find, contains, first, last, join |
-| string | index assignment (`s[0] = 'x'`) | all methods (return new strings) |
-| buffer | index assignment, memset, memcpy (to) | index read, slice |
-| object | field assignment | field read |
+| array | push、pop、shift、unshift、insert、remove、clear、reverse（原地） | slice、concat、map、filter、find、contains、first、last、join |
+| string | 索引赋值（`s[0] = 'x'`） | 所有方法（返回新字符串） |
+| buffer | 索引赋值、memset、memcpy（目标） | 索引读取、slice |
+| object | 字段赋值 | 字段读取 |
 
-### AST Changes
+### AST 更改
 
 ```c
-// In function expression (include/ast.h)
+// 在函数表达式中（include/ast.h）
 struct {
-    // ... existing fields ...
-    int *param_is_const;    // NEW: 1 if const, 0 otherwise
+    // ... 现有字段 ...
+    int *param_is_const;    // 新增：1 表示 const，0 表示否
 } function;
 
-// In Type struct for function types
+// 在函数类型的 Type 结构中
 struct Type {
-    // ... existing fields ...
-    int *param_is_const;    // For TYPE_FUNCTION
+    // ... 现有字段 ...
+    int *param_is_const;    // 用于 TYPE_FUNCTION
 };
 ```
 
-### Enforcement
+### 强制执行
 
-**Interpreter:**
-- Track const-ness in variable bindings
-- Check before mutation operations
-- Runtime error on const violation
+**解释器：**
+- 在变量绑定中跟踪 const 性
+- 在修改操作前检查
+- const 违规时运行时错误
 
-**Compiler:**
-- Emit const-qualified C variables where beneficial
-- Static analysis for const violations
-- Warning/error at compile time
+**编译器：**
+- 在有益时生成 const 限定的 C 变量
+- const 违规的静态分析
+- 编译时警告/错误
 
 ---
 
-## 5. Method Signatures in Define
+## 5. Define 中的方法签名
 
-### Motivation
+### 动机
 
-Allow `define` blocks to specify expected methods, not just data fields:
+允许 `define` 块指定预期的方法，不仅是数据字段：
 
 ```hemlock
-// Current: only data fields
+// 当前：仅数据字段
 define User {
     name: string;
     age: i32;
 }
 
-// Proposed: method signatures
+// 提议：方法签名
 define Comparable {
     fn compare(other: Self): i32;
 }
 
 define Serializable {
     fn serialize(): string;
-    fn deserialize(data: string): Self;  // Static method
+    fn deserialize(data: string): Self;  // 静态方法
 }
 ```
 
-### Syntax
+### 语法
 
 ```hemlock
-// Method signature (no body)
+// 方法签名（无方法体）
 define Hashable {
     fn hash(): i32;
 }
 
-// Multiple methods
+// 多个方法
 define Collection {
     fn size(): i32;
     fn is_empty(): bool;
     fn contains(item: any): bool;
 }
 
-// Mixed fields and methods
+// 混合字段和方法
 define Entity {
     id: i32;
     name: string;
@@ -467,7 +467,7 @@ define Entity {
     fn serialize(): string;
 }
 
-// Using Self type
+// 使用 Self 类型
 define Cloneable {
     fn clone(): Self;
 }
@@ -477,17 +477,17 @@ define Comparable {
     fn equals(other: Self): bool;
 }
 
-// Optional methods
+// 可选方法
 define Printable {
     fn to_string(): string;
-    fn debug_string?(): string;  // Optional method (may be absent)
+    fn debug_string?(): string;  // 可选方法（可能不存在）
 }
 
-// Methods with default implementations
+// 带默认实现的方法
 define Ordered {
-    fn compare(other: Self): i32;  // Required
+    fn compare(other: Self): i32;  // 必需
 
-    // Default implementations (inherited if not overridden)
+    // 默认实现（如果未覆盖则继承）
     fn less_than(other: Self): bool {
         return self.compare(other) < 0;
     }
@@ -500,16 +500,16 @@ define Ordered {
 }
 ```
 
-### The `Self` Type
+### `Self` 类型
 
-`Self` refers to the concrete type implementing the interface:
+`Self` 指的是实现接口的具体类型：
 
 ```hemlock
 define Addable {
     fn add(other: Self): Self;
 }
 
-// When used:
+// 使用时：
 let a: Addable = {
     value: 10,
     add: fn(other) {
@@ -518,22 +518,22 @@ let a: Addable = {
 };
 ```
 
-### Structural Typing (Duck Typing)
+### 结构类型（鸭子类型）
 
-Method signatures use the same duck typing as fields:
+方法签名使用与字段相同的鸭子类型：
 
 ```hemlock
 define Stringifiable {
     fn to_string(): string;
 }
 
-// Any object with to_string() method satisfies Stringifiable
+// 任何有 to_string() 方法的对象都满足 Stringifiable
 let x: Stringifiable = {
     name: "test",
     to_string: fn() { return self.name; }
 };
 
-// Compound types with methods
+// 带方法的复合类型
 define Named { name: string; }
 define Printable { fn to_string(): string; }
 
@@ -545,72 +545,72 @@ let y: NamedPrintable = {
 };
 ```
 
-### AST Changes
+### AST 更改
 
 ```c
-// Extend define_object in Stmt union
+// 扩展 Stmt union 中的 define_object
 struct {
     char *name;
     char **type_params;
     int num_type_params;
 
-    // Fields (existing)
+    // 字段（现有）
     char **field_names;
     Type **field_types;
     int *field_optional;
     Expr **field_defaults;
     int num_fields;
 
-    // Methods (NEW)
+    // 方法（新增）
     char **method_names;
     Type **method_types;        // TYPE_FUNCTION
-    int *method_optional;       // Optional methods (fn name?(): type)
-    Expr **method_defaults;     // Default implementations (NULL if signature only)
+    int *method_optional;       // 可选方法（fn name?(): type）
+    Expr **method_defaults;     // 默认实现（如果仅签名则为 NULL）
     int num_methods;
 } define_object;
 ```
 
-### Type Checking
+### 类型检查
 
-When checking `value: InterfaceType`:
-1. Check all required fields exist with compatible types
-2. Check all required methods exist with compatible signatures
-3. Optional fields/methods may be absent
+检查 `value: InterfaceType` 时：
+1. 检查所有必需字段存在且类型兼容
+2. 检查所有必需方法存在且签名兼容
+3. 可选字段/方法可以不存在
 
 ```hemlock
 define Sortable {
     fn compare(other: Self): i32;
 }
 
-// Valid: has compare method
+// 有效：有 compare 方法
 let valid: Sortable = {
     value: 10,
     compare: fn(other) { return self.value - other.value; }
 };
 
-// Invalid: missing compare
-let invalid: Sortable = { value: 10 };  // ERROR: missing method 'compare'
+// 无效：缺少 compare
+let invalid: Sortable = { value: 10 };  // 错误：缺少方法 'compare'
 
-// Invalid: wrong signature
+// 无效：签名错误
 let wrong: Sortable = {
-    compare: fn() { return 0; }  // ERROR: expected (Self): i32
+    compare: fn() { return 0; }  // 错误：期望 (Self): i32
 };
 ```
 
 ---
 
-## Interaction Examples
+## 交互示例
 
-### Combining All Features
+### 组合所有特性
 
 ```hemlock
-// Type alias for complex function type
+// 复杂函数类型的类型别名
 type EventCallback = fn(event: Event, context: Context?): bool;
 
-// Type alias for compound interface
+// 复合接口的类型别名
 type Entity = HasId & HasName & Serializable;
 
-// Define with method signatures
+// 带方法签名的 Define
 define Repository<T> {
     fn find(id: i32): T?;
     fn save(const entity: T): bool;
@@ -618,7 +618,7 @@ define Repository<T> {
     fn find_all(predicate: fn(T): bool): array<T>;
 }
 
-// Using it all together
+// 将所有组合在一起使用
 fn create_user_repo(): Repository<User> {
     let users: array<User> = [];
 
@@ -644,7 +644,7 @@ fn create_user_repo(): Repository<User> {
 }
 ```
 
-### Callbacks with Explicit Types
+### 显式类型的回调
 
 ```hemlock
 type ClickHandler = fn(event: MouseEvent): void;
@@ -666,10 +666,10 @@ fn create_button(label: string, handler: ClickHandler): Widget {
 }
 ```
 
-### Nullable Function Types
+### 可空函数类型
 
 ```hemlock
-// Optional callback
+// 可选回调
 fn fetch(url: string, on_complete: fn(Response): void?): void {
     let response = http_get(url);
     if (on_complete != null) {
@@ -677,7 +677,7 @@ fn fetch(url: string, on_complete: fn(Response): void?): void {
     }
 }
 
-// Nullable return from function type
+// 函数类型的可空返回
 type Parser = fn(input: string): AST?;
 
 fn try_parse(parsers: array<Parser>, input: string): AST? {
@@ -693,112 +693,111 @@ fn try_parse(parsers: array<Parser>, input: string): AST? {
 
 ---
 
-## Implementation Roadmap
+## 实现路线图
 
-### Phase 1: Core Infrastructure
-1. Add `TYPE_FUNCTION` to TypeKind enum
-2. Extend Type struct with function type fields
-3. Add `CHECKED_FUNCTION` to compiler type checker
-4. Add `Self` type support (TYPE_SELF)
+### 阶段 1：核心基础设施
+1. 将 `TYPE_FUNCTION` 添加到 TypeKind 枚举
+2. 用函数类型字段扩展 Type 结构
+3. 将 `CHECKED_FUNCTION` 添加到编译器类型检查器
+4. 添加 `Self` 类型支持（TYPE_SELF）
 
-### Phase 2: Parsing
-1. Implement `parse_function_type()` in parser
-2. Handle `fn(...)` in type position
-3. Add `type` keyword and `STMT_TYPE_ALIAS` parsing
-4. Add `const` parameter modifier parsing
-5. Extend define parsing for method signatures
+### 阶段 2：解析
+1. 在解析器中实现 `parse_function_type()`
+2. 在类型位置处理 `fn(...)`
+3. 添加 `type` 关键字和 `STMT_TYPE_ALIAS` 解析
+4. 添加 `const` 参数修饰符解析
+5. 扩展 define 解析以支持方法签名
 
-### Phase 3: Type Checking
-1. Function type compatibility rules
-2. Type alias resolution and expansion
-3. Const parameter mutation checking
-4. Method signature validation in define types
-5. Self type resolution
+### 阶段 3：类型检查
+1. 函数类型兼容性规则
+2. 类型别名解析和展开
+3. Const 参数修改检查
+4. define 类型中的方法签名验证
+5. Self 类型解析
 
-### Phase 4: Runtime
-1. Function type validation at call sites
-2. Const violation detection
-3. Type alias transparency
+### 阶段 4：运行时
+1. 调用点的函数类型验证
+2. Const 违规检测
+3. 类型别名透明性
 
-### Phase 5: Parity Tests
-1. Function type annotation tests
-2. Nullable composition tests
-3. Type alias tests
-4. Const parameter tests
-5. Method signature tests
+### 阶段 5：一致性测试
+1. 函数类型注解测试
+2. 可空组合测试
+3. 类型别名测试
+4. Const 参数测试
+5. 方法签名测试
 
 ---
 
-## Design Decisions
+## 设计决策
 
-### 1. Generic Type Aliases: **YES**
+### 1. 泛型类型别名：**是**
 
-Type aliases support generic parameters:
+类型别名支持泛型参数：
 
 ```hemlock
-// Generic type aliases
+// 泛型类型别名
 type Pair<T> = { first: T, second: T };
 type Result<T, E> = { value: T?, error: E? };
 type Mapper<T, U> = fn(T): U;
 type AsyncResult<T> = async fn(): T?;
 
-// Usage
+// 使用
 let coords: Pair<f64> = { first: 3.14, second: 2.71 };
 let result: Result<User, string> = { value: user, error: null };
 let transform: Mapper<i32, string> = fn(n) { return n.to_string(); };
 ```
 
-### 2. Const Propagation: **DEEP**
+### 2. Const 传播：**深层**
 
-Const parameters are fully immutable - no mutation through any path:
+Const 参数是完全不可变的 - 通过任何路径都不能修改：
 
 ```hemlock
 fn process(const arr: array<object>) {
-    arr.push({});        // ERROR: cannot mutate const array
-    arr[0] = {};         // ERROR: cannot mutate const array
-    arr[0].x = 5;        // ERROR: cannot mutate through const (DEEP)
+    arr.push({});        // 错误：不能修改 const 数组
+    arr[0] = {};         // 错误：不能修改 const 数组
+    arr[0].x = 5;        // 错误：不能通过 const 修改（深层）
 
-    let x = arr[0].x;    // OK: reading is fine
-    let copy = arr[0];   // OK: creates a copy
-    copy.x = 5;          // OK: copy is not const
+    let x = arr[0].x;    // 正确：读取没问题
+    let copy = arr[0];   // 正确：创建副本
+    copy.x = 5;          // 正确：副本不是 const
 }
 
 fn nested(const obj: object) {
-    obj.user.name = "x"; // ERROR: deep const prevents nested mutation
-    obj.items[0] = 1;    // ERROR: deep const prevents nested mutation
+    obj.user.name = "x"; // 错误：深层 const 阻止嵌套修改
+    obj.items[0] = 1;    // 错误：深层 const 阻止嵌套修改
 }
 ```
 
-**Rationale:** Deep const provides stronger guarantees and is more useful for
-ensuring data integrity. If you need to mutate nested data, make a copy first.
+**理由：**深层 const 提供更强的保证，对于确保数据完整性更有用。如果需要修改嵌套数据，先复制。
 
-### 3. Self in Standalone Type Aliases: **NO**
+### 3. 独立类型别名中的 Self：**否**
 
-`Self` is only valid inside `define` blocks where it has clear meaning:
+`Self` 仅在 `define` 块内有效，在那里它有明确的含义：
 
 ```hemlock
-// Valid: Self refers to the defined type
+// 有效：Self 指的是定义的类型
 define Comparable {
     fn compare(other: Self): i32;
 }
 
-// Invalid: Self has no meaning here
-type Cloner = fn(Self): Self;  // ERROR: Self outside define context
+// 无效：Self 在这里没有意义
+type Cloner = fn(Self): Self;  // 错误：Self 在 define 上下文之外
 
-// Instead, use generics:
+// 改用泛型：
 type Cloner<T> = fn(T): T;
 ```
 
-### 4. Method Default Implementations: **YES (Simple Only)**
+### 4. 方法默认实现：**是（仅简单的）**
 
-Allow default implementations for simple/utility methods:
+允许简单/实用方法的默认实现：
 
 ```hemlock
 define Comparable {
-    // Required: must be implemented
+    // 必需：必须实现
     fn compare(other: Self): i32;
 
-    // Default implementations (simple convenience methods)
+    // 默认实现（简单便利方法）
     fn equals(other: Self): bool {
         return self.compare(other) == 0;
     }
@@ -813,7 +812,7 @@ define Comparable {
 define Printable {
     fn to_string(): string;
 
-    // Default: delegates to required method
+    // 默认：委托给必需方法
     fn print() {
         print(self.to_string());
     }
@@ -822,52 +821,52 @@ define Printable {
     }
 }
 
-// Object only needs to implement required methods
+// 对象只需实现必需方法
 let item: Comparable = {
     value: 42,
     compare: fn(other) { return self.value - other.value; }
-    // equals, less_than, greater_than are inherited from defaults
+    // equals、less_than、greater_than 从默认继承
 };
 
 item.less_than({ value: 50, compare: item.compare });  // true
 ```
 
-**Guidelines for defaults:**
-- Keep them simple (1-3 lines)
-- Should delegate to required methods
-- No complex logic or side effects
-- Primitives and straightforward compositions only
+**默认实现指南：**
+- 保持简单（1-3 行）
+- 应该委托给必需方法
+- 无复杂逻辑或副作用
+- 仅限原始类型和直接组合
 
-### 5. Variance: **INFERRED (No Explicit Annotations)**
+### 5. 型变：**推断（无显式注解）**
 
-Variance is inferred from how type parameters are used:
+型变根据类型参数的使用方式推断：
 
 ```hemlock
-// Variance is automatic based on position
-type Producer<T> = fn(): T;           // T in return = covariant
-type Consumer<T> = fn(T): void;       // T in param = contravariant
-type Transformer<T> = fn(T): T;       // T in both = invariant
+// 型变根据位置自动确定
+type Producer<T> = fn(): T;           // T 在返回位置 = 协变
+type Consumer<T> = fn(T): void;       // T 在参数位置 = 逆变
+type Transformer<T> = fn(T): T;       // T 在两个位置 = 不变
 
-// Example: Dog <: Animal (Dog is subtype of Animal)
+// 示例：Dog <: Animal（Dog 是 Animal 的子类型）
 let dog_producer: Producer<Dog> = fn() { return new_dog(); };
-let animal_producer: Producer<Animal> = dog_producer;  // OK: covariant
+let animal_producer: Producer<Animal> = dog_producer;  // 正确：协变
 
 let animal_consumer: Consumer<Animal> = fn(a) { print(a); };
-let dog_consumer: Consumer<Dog> = animal_consumer;     // OK: contravariant
+let dog_consumer: Consumer<Dog> = animal_consumer;     // 正确：逆变
 ```
 
-**Why infer?**
-- Less boilerplate (`<out T>` / `<in T>` adds noise)
-- Follows "explicit over implicit" - the position IS explicit
-- Matches how most languages handle function type variance
-- Errors are clear when variance rules are violated
+**为什么推断？**
+- 更少的样板代码（`<out T>` / `<in T>` 增加噪音）
+- 遵循"显式优于隐式" - 位置本身就是显式的
+- 与大多数语言处理函数类型型变的方式一致
+- 违反型变规则时错误清晰
 
 ---
 
-## Appendix: Grammar Changes
+## 附录：语法更改
 
 ```ebnf
-(* Types *)
+(* 类型 *)
 type := simple_type | compound_type | function_type
 simple_type := base_type ["?"] | identifier ["<" type_args ">"] ["?"]
 compound_type := simple_type ("&" simple_type)+
@@ -887,16 +886,16 @@ param_type := ["const"] [identifier ":"] ["?"] type
 
 type_args := type ("," type)*
 
-(* Statements *)
+(* 语句 *)
 type_alias := "type" identifier ["<" type_params ">"] "=" type ";"
 
 define_stmt := "define" identifier ["<" type_params ">"] "{" define_members "}"
 define_members := (field_def | method_def)*
 field_def := identifier (":" type ["=" expr] | "?:" (type | expr)) ";"?
 method_def := "fn" identifier ["?"] "(" [param_types] ")" [":" type] (block | ";")
-            (* "?" marks optional method, block provides default implementation *)
+            (* "?" 标记可选方法，block 提供默认实现 *)
 
-(* Parameters *)
+(* 参数 *)
 param := ["const"] ["ref"] identifier [":" type] ["?:" expr]
        | "..." identifier [":" type]
 ```

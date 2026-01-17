@@ -1,30 +1,30 @@
-# Type System Reference
+# 类型系统参考
 
-Complete reference for Hemlock's type system, including all primitive and composite types.
-
----
-
-## Overview
-
-Hemlock uses a **dynamic type system** with runtime type tags and optional type annotations. Every value has a runtime type, and type conversions follow explicit promotion rules.
-
-**Key Features:**
-- Runtime type checking (interpreter)
-- Compile-time type checking (hemlockc - enabled by default)
-- Optional type annotations
-- Automatic type inference for literals
-- Explicit type promotion rules
-- No implicit conversions that lose precision
+Hemlock 类型系统的完整参考，包括所有原始类型和复合类型。
 
 ---
 
-## Compile-Time Type Checking (hemlockc)
+## 概述
 
-The Hemlock compiler (`hemlockc`) includes a compile-time type checker that validates your code before generating executables. This catches type errors early without needing to run the program.
+Hemlock 使用**动态类型系统**，具有运行时类型标签和可选的类型注解。每个值都有运行时类型，类型转换遵循明确的提升规则。
 
-### Default Behavior
+**主要特性：**
+- 运行时类型检查（解释器）
+- 编译时类型检查（hemlockc - 默认启用）
+- 可选类型注解
+- 字面量自动类型推断
+- 明确的类型提升规则
+- 不会隐式转换导致精度损失
 
-Type checking is **enabled by default** in hemlockc:
+---
+
+## 编译时类型检查 (hemlockc)
+
+Hemlock 编译器（`hemlockc`）包含编译时类型检查器，在生成可执行文件之前验证您的代码。这可以在不运行程序的情况下及早发现类型错误。
+
+### 默认行为
+
+类型检查在 hemlockc 中**默认启用**：
 
 ```bash
 # Type checking happens automatically
@@ -35,15 +35,15 @@ hemlockc bad_types.hml
 # Output: 1 type error found
 ```
 
-### Compiler Flags
+### 编译器标志
 
-| Flag | Description |
-|------|-------------|
-| `--check` | Check types only, don't compile (exit after validation) |
-| `--no-type-check` | Disable type checking (not recommended) |
-| `--strict-types` | Enable stricter type warnings |
+| 标志 | 描述 |
+|------|------|
+| `--check` | 仅检查类型，不编译（验证后退出） |
+| `--no-type-check` | 禁用类型检查（不推荐） |
+| `--strict-types` | 启用更严格的类型警告 |
 
-**Examples:**
+**示例：**
 
 ```bash
 # Just validate types without compiling
@@ -57,17 +57,17 @@ hemlockc --no-type-check dynamic_code.hml -o program
 hemlockc --strict-types program.hml -o program
 ```
 
-### What the Type Checker Validates
+### 类型检查器验证的内容
 
-1. **Type annotations** - Ensures assigned values match declared types
-2. **Function calls** - Validates argument types against parameter types
-3. **Return types** - Checks return statements match declared return type
-4. **Operator usage** - Verifies operands are compatible
-5. **Property access** - Validates object field types for typed objects
+1. **类型注解** - 确保赋值的值与声明的类型匹配
+2. **函数调用** - 验证参数类型与参数类型匹配
+3. **返回类型** - 检查返回语句与声明的返回类型匹配
+4. **运算符使用** - 验证操作数兼容
+5. **属性访问** - 验证类型化对象的对象字段类型
 
-### Permissive Numeric Conversions
+### 宽松的数值转换
 
-The type checker allows numeric type conversions at compile time, with range validation happening at runtime:
+类型检查器允许在编译时进行数值类型转换，范围验证在运行时进行：
 
 ```hemlock
 let x: i8 = 100;      // OK - 100 fits in i8 (validated at runtime)
@@ -75,9 +75,9 @@ let y: u8 = 255;      // OK - within u8 range
 let z: f64 = 42;      // OK - i32 to f64 is safe
 ```
 
-### Dynamic Code Support
+### 动态代码支持
 
-Code without type annotations is treated as dynamic (`any` type) and always passes the type checker:
+没有类型注解的代码被视为动态的（`any` 类型），始终通过类型检查器：
 
 ```hemlock
 let x = get_value();  // Dynamic - no annotation
@@ -86,20 +86,20 @@ process(x);           // OK - dynamic values accepted anywhere
 
 ---
 
-## Primitive Types
+## 原始类型
 
-### Numeric Types
+### 数值类型
 
-#### Signed Integers
+#### 有符号整数
 
-| Type   | Size    | Range                                      | Alias     |
+| 类型   | 大小    | 范围                                       | 别名      |
 |--------|---------|-------------------------------------------|-----------|
-| `i8`   | 1 byte  | -128 to 127                               | -         |
-| `i16`  | 2 bytes | -32,768 to 32,767                         | -         |
-| `i32`  | 4 bytes | -2,147,483,648 to 2,147,483,647           | `integer` |
-| `i64`  | 8 bytes | -9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 | - |
+| `i8`   | 1 字节  | -128 到 127                               | -         |
+| `i16`  | 2 字节  | -32,768 到 32,767                         | -         |
+| `i32`  | 4 字节  | -2,147,483,648 到 2,147,483,647           | `integer` |
+| `i64`  | 8 字节  | -9,223,372,036,854,775,808 到 9,223,372,036,854,775,807 | - |
 
-**Examples:**
+**示例：**
 ```hemlock
 let a: i8 = 127;
 let b: i16 = 32000;
@@ -110,16 +110,16 @@ let d: i64 = 9223372036854775807;
 let x: integer = 42;  // Same as i32
 ```
 
-#### Unsigned Integers
+#### 无符号整数
 
-| Type   | Size    | Range                     | Alias  |
+| 类型   | 大小    | 范围                      | 别名   |
 |--------|---------|---------------------------|--------|
-| `u8`   | 1 byte  | 0 to 255                  | `byte` |
-| `u16`  | 2 bytes | 0 to 65,535               | -      |
-| `u32`  | 4 bytes | 0 to 4,294,967,295        | -      |
-| `u64`  | 8 bytes | 0 to 18,446,744,073,709,551,615 | - |
+| `u8`   | 1 字节  | 0 到 255                  | `byte` |
+| `u16`  | 2 字节  | 0 到 65,535               | -      |
+| `u32`  | 4 字节  | 0 到 4,294,967,295        | -      |
+| `u64`  | 8 字节  | 0 到 18,446,744,073,709,551,615 | - |
 
-**Examples:**
+**示例：**
 ```hemlock
 let a: u8 = 255;
 let b: u16 = 65535;
@@ -130,14 +130,14 @@ let d: u64 = 18446744073709551615;
 let byte_val: byte = 65;  // Same as u8
 ```
 
-#### Floating Point
+#### 浮点数
 
-| Type   | Size    | Precision      | Alias    |
-|--------|---------|----------------|----------|
-| `f32`  | 4 bytes | ~7 digits      | -        |
-| `f64`  | 8 bytes | ~15 digits     | `number` |
+| 类型   | 大小    | 精度         | 别名     |
+|--------|---------|--------------|----------|
+| `f32`  | 4 字节  | 约 7 位数字  | -        |
+| `f64`  | 8 字节  | 约 15 位数字 | `number` |
 
-**Examples:**
+**示例：**
 ```hemlock
 let pi: f32 = 3.14159;
 let precise: f64 = 3.14159265359;
@@ -148,16 +148,16 @@ let x: number = 2.718;  // Same as f64
 
 ---
 
-### Integer Literal Inference
+### 整数字面量推断
 
-Integer literals are automatically typed based on their value:
+整数字面量根据其值自动确定类型：
 
-**Rules:**
-- Values in i32 range (-2,147,483,648 to 2,147,483,647): infer as `i32`
-- Values outside i32 range but within i64 range: infer as `i64`
-- Use explicit type annotations for other types (i8, i16, u8, u16, u32, u64)
+**规则：**
+- 在 i32 范围内的值（-2,147,483,648 到 2,147,483,647）：推断为 `i32`
+- 超出 i32 范围但在 i64 范围内的值：推断为 `i64`
+- 其他类型（i8、i16、u8、u16、u32、u64）使用显式类型注解
 
-**Examples:**
+**示例：**
 ```hemlock
 let small = 42;                    // i32 (fits in i32)
 let large = 5000000000;            // i64 (> i32 max)
@@ -167,15 +167,15 @@ let explicit: u32 = 100;           // u32 (type annotation overrides)
 
 ---
 
-### Boolean Type
+### 布尔类型
 
-**Type:** `bool`
+**类型：** `bool`
 
-**Values:** `true`, `false`
+**值：** `true`、`false`
 
-**Size:** 1 byte (internally)
+**大小：** 1 字节（内部）
 
-**Examples:**
+**示例：**
 ```hemlock
 let is_active: bool = true;
 let done = false;
@@ -187,21 +187,21 @@ if (is_active && !done) {
 
 ---
 
-### Character Types
+### 字符类型
 
 #### Rune
 
-**Type:** `rune`
+**类型：** `rune`
 
-**Description:** Unicode codepoint (U+0000 to U+10FFFF)
+**描述：** Unicode 码点 (U+0000 到 U+10FFFF)
 
-**Size:** 4 bytes (32-bit value)
+**大小：** 4 字节（32 位值）
 
-**Range:** 0 to 0x10FFFF (1,114,111)
+**范围：** 0 到 0x10FFFF (1,114,111)
 
-**Literal Syntax:** Single quotes `'x'`
+**字面量语法：** 单引号 `'x'`
 
-**Examples:**
+**示例：**
 ```hemlock
 // ASCII
 let a = 'A';
@@ -224,7 +224,7 @@ let emoji = '\u{1F680}';   // Up to 6 hex digits
 let max = '\u{10FFFF}';    // Maximum codepoint
 ```
 
-**Type Conversions:**
+**类型转换：**
 ```hemlock
 // Integer to rune
 let code: rune = 65;        // 'A'
@@ -241,27 +241,27 @@ let byte: u8 = 65;
 let rune_val: rune = byte;  // 'A'
 ```
 
-**See Also:** [String API](string-api.md) for string + rune concatenation
+**另请参阅：** [字符串 API](string-api.md) 了解字符串 + rune 连接
 
 ---
 
-### String Type
+### 字符串类型
 
-**Type:** `string`
+**类型：** `string`
 
-**Description:** UTF-8 encoded, mutable, heap-allocated text
+**描述：** UTF-8 编码、可变、堆分配的文本
 
-**Encoding:** UTF-8 (U+0000 to U+10FFFF)
+**编码：** UTF-8 (U+0000 到 U+10FFFF)
 
-**Mutability:** Mutable (unlike most languages)
+**可变性：** 可变（与大多数语言不同）
 
-**Properties:**
-- `.length` - Codepoint count (number of characters)
-- `.byte_length` - Byte count (UTF-8 encoding size)
+**属性：**
+- `.length` - 码点数（字符数）
+- `.byte_length` - 字节数（UTF-8 编码大小）
 
-**Literal Syntax:** Double quotes `"text"`
+**字面量语法：** 双引号 `"text"`
 
-**Examples:**
+**示例：**
 ```hemlock
 let s = "hello";
 s[0] = 'H';             // Mutate (now "Hello")
@@ -273,28 +273,28 @@ print(emoji.length);        // 1 (one codepoint)
 print(emoji.byte_length);   // 4 (four UTF-8 bytes)
 ```
 
-**Indexing:**
+**索引：**
 ```hemlock
 let s = "hello";
 let ch = s[0];          // Returns rune 'h'
 s[0] = 'H';             // Set with rune
 ```
 
-**See Also:** [String API](string-api.md) for complete method reference
+**另请参阅：** [字符串 API](string-api.md) 了解完整的方法参考
 
 ---
 
-### Null Type
+### 空值类型
 
-**Type:** `null`
+**类型：** `null`
 
-**Description:** The null value (absence of value)
+**描述：** 空值（表示值的缺失）
 
-**Size:** 8 bytes (internally)
+**大小：** 8 字节（内部）
 
-**Value:** `null`
+**值：** `null`
 
-**Examples:**
+**示例：**
 ```hemlock
 let x = null;
 let y: i32 = null;  // ERROR: type mismatch
@@ -306,22 +306,22 @@ if (x == null) {
 
 ---
 
-## Composite Types
+## 复合类型
 
-### Array Type
+### 数组类型
 
-**Type:** `array`
+**类型：** `array`
 
-**Description:** Dynamic, heap-allocated, mixed-type array
+**描述：** 动态、堆分配、混合类型数组
 
-**Properties:**
-- `.length` - Number of elements
+**属性：**
+- `.length` - 元素数量
 
-**Zero-indexed:** Yes
+**从零开始索引：** 是
 
-**Literal Syntax:** `[elem1, elem2, ...]`
+**字面量语法：** `[elem1, elem2, ...]`
 
-**Examples:**
+**示例：**
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
 print(arr[0]);         // 1
@@ -331,19 +331,19 @@ print(arr.length);     // 5
 let mixed = [1, "hello", true, null];
 ```
 
-**See Also:** [Array API](array-api.md) for complete method reference
+**另请参阅：** [数组 API](array-api.md) 了解完整的方法参考
 
 ---
 
-### Object Type
+### 对象类型
 
-**Type:** `object`
+**类型：** `object`
 
-**Description:** JavaScript-style object with dynamic fields
+**描述：** JavaScript 风格的动态字段对象
 
-**Literal Syntax:** `{ field: value, ... }`
+**字面量语法：** `{ field: value, ... }`
 
-**Examples:**
+**示例：**
 ```hemlock
 let person = { name: "Alice", age: 30 };
 print(person.name);  // "Alice"
@@ -352,7 +352,7 @@ print(person.name);  // "Alice"
 person.email = "alice@example.com";
 ```
 
-**Type Definitions:**
+**类型定义：**
 ```hemlock
 define Person {
     name: string,
@@ -366,38 +366,38 @@ print(typeof(p));  // "Person"
 
 ---
 
-### Pointer Types
+### 指针类型
 
-#### Raw Pointer (ptr)
+#### 原始指针 (ptr)
 
-**Type:** `ptr`
+**类型：** `ptr`
 
-**Description:** Raw memory address (unsafe)
+**描述：** 原始内存地址（不安全）
 
-**Size:** 8 bytes
+**大小：** 8 字节
 
-**Bounds Checking:** None
+**边界检查：** 无
 
-**Examples:**
+**示例：**
 ```hemlock
 let p: ptr = alloc(64);
 memset(p, 0, 64);
 free(p);
 ```
 
-#### Buffer (buffer)
+#### 缓冲区 (buffer)
 
-**Type:** `buffer`
+**类型：** `buffer`
 
-**Description:** Safe pointer wrapper with bounds checking
+**描述：** 带边界检查的安全指针包装器
 
-**Structure:** Pointer + length + capacity
+**结构：** 指针 + 长度 + 容量
 
-**Properties:**
-- `.length` - Buffer size
-- `.capacity` - Allocated capacity
+**属性：**
+- `.length` - 缓冲区大小
+- `.capacity` - 分配的容量
 
-**Examples:**
+**示例：**
 ```hemlock
 let b: buffer = buffer(64);
 b[0] = 65;              // Bounds checked
@@ -405,54 +405,54 @@ print(b.length);        // 64
 free(b);
 ```
 
-**See Also:** [Memory API](memory-api.md) for allocation functions
+**另请参阅：** [内存 API](memory-api.md) 了解分配函数
 
 ---
 
-## Special Types
+## 特殊类型
 
-### File Type
+### 文件类型
 
-**Type:** `file`
+**类型：** `file`
 
-**Description:** File handle for I/O operations
+**描述：** 用于 I/O 操作的文件句柄
 
-**Properties:**
-- `.path` - File path (string)
-- `.mode` - Open mode (string)
-- `.closed` - Whether file is closed (bool)
+**属性：**
+- `.path` - 文件路径（字符串）
+- `.mode` - 打开模式（字符串）
+- `.closed` - 文件是否已关闭（布尔值）
 
-**See Also:** [File API](file-api.md)
-
----
-
-### Task Type
-
-**Type:** `task`
-
-**Description:** Handle for concurrent task
-
-**See Also:** [Concurrency API](concurrency-api.md)
+**另请参阅：** [文件 API](file-api.md)
 
 ---
 
-### Channel Type
+### 任务类型
 
-**Type:** `channel`
+**类型：** `task`
 
-**Description:** Thread-safe communication channel
+**描述：** 并发任务的句柄
 
-**See Also:** [Concurrency API](concurrency-api.md)
+**另请参阅：** [并发 API](concurrency-api.md)
 
 ---
 
-### Function Type
+### 通道类型
 
-**Type:** `function`
+**类型：** `channel`
 
-**Description:** First-class function value
+**描述：** 线程安全的通信通道
 
-**Examples:**
+**另请参阅：** [并发 API](concurrency-api.md)
+
+---
+
+### 函数类型
+
+**类型：** `function`
+
+**描述：** 一等函数值
+
+**示例：**
 ```hemlock
 fn add(a, b) {
     return a + b;
@@ -468,19 +468,19 @@ print(typeof(multiply)); // "function"
 
 ---
 
-### Void Type
+### Void 类型
 
-**Type:** `void`
+**类型：** `void`
 
-**Description:** Absence of return value (internal use)
+**描述：** 表示没有返回值（内部使用）
 
 ---
 
-## Type Promotion Rules
+## 类型提升规则
 
-When mixing types in operations, Hemlock promotes to the "higher" type:
+当在操作中混合类型时，Hemlock 会提升到"更高"的类型：
 
-**Promotion Hierarchy:**
+**提升层级：**
 ```
 f64 (highest precision)
  ↑
@@ -503,13 +503,13 @@ u8
 i8 (lowest)
 ```
 
-**Rules:**
-1. Float always wins over integer
-2. Larger size wins within same category (int/uint/float)
-3. Both operands are promoted to result type
-4. **Precision preservation:** i64/u64 + f32 promotes to f64 (not f32)
+**规则：**
+1. 浮点数始终优先于整数
+2. 在相同类别（整数/无符号整数/浮点数）中较大的大小优先
+3. 两个操作数都会提升到结果类型
+4. **精度保持：** i64/u64 + f32 提升到 f64（而不是 f32）
 
-**Examples:**
+**示例：**
 ```hemlock
 // Size promotion
 u8 + i32    → i32    // Larger size wins
@@ -523,19 +523,17 @@ i64 + f64   → f64    // Float always wins
 i8 + f64    → f64    // Float + largest wins
 ```
 
-**Why i64 + f32 → f64?**
+**为什么 i64 + f32 → f64？**
 
-f32 has only a 24-bit mantissa, which cannot precisely represent integers larger
-than 2^24 (16,777,216). Since i64 can hold values up to 2^63, mixing i64 with f32
-would cause severe precision loss. Hemlock promotes to f64 (53-bit mantissa) instead.
+f32 只有 24 位尾数，无法精确表示大于 2^24（16,777,216）的整数。由于 i64 可以保存高达 2^63 的值，将 i64 与 f32 混合会导致严重的精度损失。Hemlock 改为提升到 f64（53 位尾数）。
 
 ---
 
-## Range Checking
+## 范围检查
 
-Type annotations enforce range checks at assignment:
+类型注解在赋值时强制进行范围检查：
 
-**Valid Assignments:**
+**有效赋值：**
 ```hemlock
 let x: u8 = 255;             // OK
 let y: i8 = 127;             // OK
@@ -543,7 +541,7 @@ let a: i64 = 2147483647;     // OK
 let b: u64 = 4294967295;     // OK
 ```
 
-**Invalid Assignments (Runtime Error):**
+**无效赋值（运行时错误）：**
 ```hemlock
 let x: u8 = 256;             // ERROR: out of range
 let y: i8 = 128;             // ERROR: max is 127
@@ -552,24 +550,24 @@ let z: u64 = -1;             // ERROR: u64 cannot be negative
 
 ---
 
-## Type Introspection
+## 类型内省
 
 ### typeof(value)
 
-Returns the type name as a string.
+以字符串形式返回类型名称。
 
-**Signature:**
+**签名：**
 ```hemlock
 typeof(value: any): string
 ```
 
-**Returns:**
-- Primitive types: `"i8"`, `"i16"`, `"i32"`, `"i64"`, `"u8"`, `"u16"`, `"u32"`, `"u64"`, `"f32"`, `"f64"`, `"bool"`, `"string"`, `"rune"`, `"null"`
-- Composite types: `"array"`, `"object"`, `"ptr"`, `"buffer"`, `"function"`
-- Special types: `"file"`, `"task"`, `"channel"`
-- Typed objects: Custom type name (e.g., `"Person"`)
+**返回值：**
+- 原始类型：`"i8"`、`"i16"`、`"i32"`、`"i64"`、`"u8"`、`"u16"`、`"u32"`、`"u64"`、`"f32"`、`"f64"`、`"bool"`、`"string"`、`"rune"`、`"null"`
+- 复合类型：`"array"`、`"object"`、`"ptr"`、`"buffer"`、`"function"`
+- 特殊类型：`"file"`、`"task"`、`"channel"`
+- 类型化对象：自定义类型名称（例如 `"Person"`）
 
-**Examples:**
+**示例：**
 ```hemlock
 print(typeof(42));              // "i32"
 print(typeof(3.14));            // "f64"
@@ -584,28 +582,28 @@ let p: Person = { name: "Alice" };
 print(typeof(p));               // "Person"
 ```
 
-**See Also:** [Built-in Functions](builtins.md#typeof)
+**另请参阅：** [内置函数](builtins.md#typeof)
 
 ---
 
-## Type Conversions
+## 类型转换
 
-### Implicit Conversions
+### 隐式转换
 
-Hemlock performs implicit type conversions in arithmetic operations following the type promotion rules.
+Hemlock 在算术运算中按照类型提升规则执行隐式类型转换。
 
-**Examples:**
+**示例：**
 ```hemlock
 let a: u8 = 10;
 let b: i32 = 20;
 let result = a + b;     // result is i32 (promoted)
 ```
 
-### Explicit Conversions
+### 显式转换
 
-Use type annotations for explicit conversions:
+使用类型注解进行显式转换：
 
-**Examples:**
+**示例：**
 ```hemlock
 // Integer to float
 let i: i32 = 42;
@@ -627,28 +625,28 @@ let s: string = 'H';    // "H"
 
 ---
 
-## Type Aliases
+## 类型别名
 
-### Built-in Aliases
+### 内置别名
 
-Hemlock provides built-in type aliases for common types:
+Hemlock 为常用类型提供内置类型别名：
 
-| Alias     | Actual Type | Usage                    |
-|-----------|-------------|--------------------------|
-| `integer` | `i32`       | General-purpose integers |
-| `number`  | `f64`       | General-purpose floats   |
-| `byte`    | `u8`        | Byte values              |
+| 别名      | 实际类型 | 用途           |
+|-----------|----------|----------------|
+| `integer` | `i32`    | 通用整数       |
+| `number`  | `f64`    | 通用浮点数     |
+| `byte`    | `u8`     | 字节值         |
 
-**Examples:**
+**示例：**
 ```hemlock
 let count: integer = 100;       // Same as i32
 let price: number = 19.99;      // Same as f64
 let b: byte = 255;              // Same as u8
 ```
 
-### Custom Type Aliases
+### 自定义类型别名
 
-Define custom type aliases using the `type` keyword:
+使用 `type` 关键字定义自定义类型别名：
 
 ```hemlock
 // Simple aliases
@@ -670,28 +668,28 @@ type Pair<T> = { first: T, second: T };
 type Result<T, E> = { value: T?, error: E? };
 ```
 
-**Using custom aliases:**
+**使用自定义别名：**
 ```hemlock
 let cb: Callback = fn(n) { print(n); };
 let p: Person = { name: "Alice", age: 30 };
 let coords: Pair<f64> = { first: 3.14, second: 2.71 };
 ```
 
-**Note:** Type aliases are transparent - `typeof()` returns the underlying type name.
+**注意：** 类型别名是透明的 - `typeof()` 返回底层类型名称。
 
 ---
 
-## Function Types
+## 函数类型
 
-Function types specify the signature of function values:
+函数类型指定函数值的签名：
 
-### Syntax
+### 语法
 
 ```hemlock
 fn(param_types): return_type
 ```
 
-### Examples
+### 示例
 
 ```hemlock
 // Basic function type
@@ -715,9 +713,9 @@ fn run_async(handler: async fn(): void) {
 
 ---
 
-## Compound Types (Intersection)
+## 复合类型（交叉类型）
 
-Compound types use `&` to require multiple type constraints:
+复合类型使用 `&` 来要求多个类型约束：
 
 ```hemlock
 define HasName { name: string }
@@ -735,33 +733,33 @@ fn describe(p: HasName & HasAge & HasEmail) {
 
 ---
 
-## Summary Table
+## 汇总表
 
-| Type       | Size     | Mutable | Heap-allocated | Description                    |
-|------------|----------|---------|----------------|--------------------------------|
-| `i8`-`i64` | 1-8 bytes| No      | No             | Signed integers                |
-| `u8`-`u64` | 1-8 bytes| No      | No             | Unsigned integers              |
-| `f32`      | 4 bytes  | No      | No             | Single-precision float         |
-| `f64`      | 8 bytes  | No      | No             | Double-precision float         |
-| `bool`     | 1 byte   | No      | No             | Boolean                        |
-| `rune`     | 4 bytes  | No      | No             | Unicode codepoint              |
-| `string`   | Variable | Yes     | Yes            | UTF-8 text                     |
-| `array`    | Variable | Yes     | Yes            | Dynamic array                  |
-| `object`   | Variable | Yes     | Yes            | Dynamic object                 |
-| `ptr`      | 8 bytes  | No      | No             | Raw pointer                    |
-| `buffer`   | Variable | Yes     | Yes            | Safe pointer wrapper           |
-| `file`     | Opaque   | Yes     | Yes            | File handle                    |
-| `task`     | Opaque   | No      | Yes            | Concurrent task handle         |
-| `channel`  | Opaque   | Yes     | Yes            | Thread-safe channel            |
-| `function` | Opaque   | No      | Yes            | Function value                 |
-| `null`     | 8 bytes  | No      | No             | Null value                     |
+| 类型       | 大小     | 可变 | 堆分配 | 描述                   |
+|------------|----------|------|--------|------------------------|
+| `i8`-`i64` | 1-8 字节 | 否   | 否     | 有符号整数             |
+| `u8`-`u64` | 1-8 字节 | 否   | 否     | 无符号整数             |
+| `f32`      | 4 字节   | 否   | 否     | 单精度浮点数           |
+| `f64`      | 8 字节   | 否   | 否     | 双精度浮点数           |
+| `bool`     | 1 字节   | 否   | 否     | 布尔值                 |
+| `rune`     | 4 字节   | 否   | 否     | Unicode 码点           |
+| `string`   | 可变     | 是   | 是     | UTF-8 文本             |
+| `array`    | 可变     | 是   | 是     | 动态数组               |
+| `object`   | 可变     | 是   | 是     | 动态对象               |
+| `ptr`      | 8 字节   | 否   | 否     | 原始指针               |
+| `buffer`   | 可变     | 是   | 是     | 安全指针包装器         |
+| `file`     | 不透明   | 是   | 是     | 文件句柄               |
+| `task`     | 不透明   | 否   | 是     | 并发任务句柄           |
+| `channel`  | 不透明   | 是   | 是     | 线程安全通道           |
+| `function` | 不透明   | 否   | 是     | 函数值                 |
+| `null`     | 8 字节   | 否   | 否     | 空值                   |
 
 ---
 
-## See Also
+## 另请参阅
 
-- [Operators Reference](operators.md) - Type behavior in operations
-- [Built-in Functions](builtins.md) - Type introspection and conversion
-- [String API](string-api.md) - String type methods
-- [Array API](array-api.md) - Array type methods
-- [Memory API](memory-api.md) - Pointer and buffer operations
+- [运算符参考](operators.md) - 运算中的类型行为
+- [内置函数](builtins.md) - 类型内省和转换
+- [字符串 API](string-api.md) - 字符串类型方法
+- [数组 API](array-api.md) - 数组类型方法
+- [内存 API](memory-api.md) - 指针和缓冲区操作
