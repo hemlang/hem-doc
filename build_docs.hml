@@ -5,9 +5,15 @@
 // - Embedded content (no HTTP server required)
 // - Beautiful sage/pine green theme
 // - Multi-page navigation
+// - Multi-language support
+// - Dark mode toggle
+// - Search functionality
+// - LLM-friendly plain text output
 //
 // Usage:
-//     hemlock build_docs.hml
+//     hemlock build_docs.hml           # Build English docs (default)
+//     hemlock build_docs.hml --lang zh # Build Chinese docs
+//     hemlock build_docs.hml --lang all # Build all available languages
 //
 // The hemlock submodule must be initialized before running this script:
 //     git submodule update --init --recursive
@@ -15,11 +21,314 @@
 import { read_file, write_file, exists, list_dir, is_file, is_dir } from "@stdlib/fs";
 import { base64_encode } from "@stdlib/encoding";
 import { stringify } from "@stdlib/json";
+import { args } from "@stdlib/env";
 
-// Paths to submodules
+// Paths to submodules and translations
 let HEMLOCK_DIR = "hemlock";
 let HPM_DIR = "hpm";
-let OUTPUT_FILE = "docs.html";
+let TRANSLATIONS_DIR = "translations";
+
+// Supported languages with display names
+let SUPPORTED_LANGUAGES = {
+    en: "English",
+    zh: "中文",
+    de: "Deutsch",
+    es: "Español",
+    ja: "日本語"
+};
+
+// Section name translations
+let SECTION_TRANSLATIONS = {
+    zh: {
+        "Language Reference": "语言参考",
+        "Getting Started": "快速入门",
+        "Language Guide": "语言指南",
+        "Advanced Topics": "高级主题",
+        "API Reference": "API 参考",
+        "Design & Philosophy": "设计与理念",
+        "Contributing": "贡献指南",
+        "hpm: Getting Started": "hpm: 快速入门",
+        "hpm: User Guide": "hpm: 用户指南",
+        "hpm: Package Development": "hpm: 包开发",
+        "hpm: Reference": "hpm: 参考",
+        "hpm: Other": "hpm: 其他"
+    },
+    de: {
+        "Language Reference": "Sprachreferenz",
+        "Getting Started": "Erste Schritte",
+        "Language Guide": "Sprachhandbuch",
+        "Advanced Topics": "Fortgeschrittene Themen",
+        "API Reference": "API-Referenz",
+        "Design & Philosophy": "Design & Philosophie",
+        "Contributing": "Mitwirken",
+        "hpm: Getting Started": "hpm: Erste Schritte",
+        "hpm: User Guide": "hpm: Benutzerhandbuch",
+        "hpm: Package Development": "hpm: Paketentwicklung",
+        "hpm: Reference": "hpm: Referenz",
+        "hpm: Other": "hpm: Sonstiges"
+    },
+    es: {
+        "Language Reference": "Referencia del Lenguaje",
+        "Getting Started": "Primeros Pasos",
+        "Language Guide": "Guía del Lenguaje",
+        "Advanced Topics": "Temas Avanzados",
+        "API Reference": "Referencia de API",
+        "Design & Philosophy": "Diseño y Filosofía",
+        "Contributing": "Contribuir",
+        "hpm: Getting Started": "hpm: Primeros Pasos",
+        "hpm: User Guide": "hpm: Guía del Usuario",
+        "hpm: Package Development": "hpm: Desarrollo de Paquetes",
+        "hpm: Reference": "hpm: Referencia",
+        "hpm: Other": "hpm: Otros"
+    },
+    ja: {
+        "Language Reference": "言語リファレンス",
+        "Getting Started": "はじめに",
+        "Language Guide": "言語ガイド",
+        "Advanced Topics": "高度なトピック",
+        "API Reference": "APIリファレンス",
+        "Design & Philosophy": "設計と思想",
+        "Contributing": "コントリビューション",
+        "hpm: Getting Started": "hpm: はじめに",
+        "hpm: User Guide": "hpm: ユーザーガイド",
+        "hpm: Package Development": "hpm: パッケージ開発",
+        "hpm: Reference": "hpm: リファレンス",
+        "hpm: Other": "hpm: その他"
+    }
+};
+
+// Page title translations
+let TITLE_TRANSLATIONS = {
+    zh: {
+        "Installation": "安装",
+        "Quick Start": "快速开始",
+        "Tutorial": "教程",
+        "Learning Paths": "学习路径",
+        "Syntax": "语法",
+        "Types": "类型",
+        "Functions": "函数",
+        "Arrays": "数组",
+        "Strings": "字符串",
+        "Objects": "对象",
+        "Control Flow": "控制流",
+        "Error Handling": "错误处理",
+        "Modules": "模块",
+        "Memory": "内存管理",
+        "Pattern Matching": "模式匹配",
+        "Runes": "字符(Rune)",
+        "Async Concurrency": "异步与并发",
+        "Atomics": "原子操作",
+        "Bundling Packaging": "打包与发布",
+        "Command Execution": "命令执行",
+        "Command Line Args": "命令行参数",
+        "FFI": "FFI (外部函数接口)",
+        "File IO": "文件 I/O",
+        "Profiling": "性能分析",
+        "Signals": "信号处理",
+        "Array API": "数组 API",
+        "String API": "字符串 API",
+        "File API": "文件 API",
+        "Memory API": "内存 API",
+        "Concurrency API": "并发 API",
+        "Builtins": "内置函数",
+        "Operators": "运算符",
+        "Type System": "类型系统",
+        "Philosophy": "设计理念",
+        "Implementation": "实现细节",
+        "Signature Syntax": "签名语法",
+        "Guidelines": "贡献指南",
+        "Testing": "测试",
+        "Commands": "命令",
+        "Configuration": "配置",
+        "Project Setup": "项目设置",
+        "Troubleshooting": "故障排除",
+        "Creating Packages": "创建包",
+        "Package Spec": "包规范",
+        "Versioning": "版本控制",
+        "Architecture": "架构",
+        "Exit Codes": "退出码"
+    },
+    de: {
+        "Installation": "Installation",
+        "Quick Start": "Schnellstart",
+        "Tutorial": "Tutorial",
+        "Learning Paths": "Lernpfade",
+        "Syntax": "Syntax",
+        "Types": "Typen",
+        "Functions": "Funktionen",
+        "Arrays": "Arrays",
+        "Strings": "Zeichenketten",
+        "Objects": "Objekte",
+        "Control Flow": "Kontrollfluss",
+        "Error Handling": "Fehlerbehandlung",
+        "Modules": "Module",
+        "Memory": "Speicherverwaltung",
+        "Pattern Matching": "Musterabgleich",
+        "Runes": "Runen",
+        "Async Concurrency": "Asynchronität & Nebenläufigkeit",
+        "Atomics": "Atomare Operationen",
+        "Bundling Packaging": "Bündeln & Paketieren",
+        "Command Execution": "Befehlsausführung",
+        "Command Line Args": "Kommandozeilenargumente",
+        "FFI": "FFI (Fremdsprachenschnittstelle)",
+        "File IO": "Datei-I/O",
+        "Profiling": "Profilerstellung",
+        "Signals": "Signalverarbeitung",
+        "Array API": "Array-API",
+        "String API": "String-API",
+        "File API": "Datei-API",
+        "Memory API": "Speicher-API",
+        "Concurrency API": "Nebenläufigkeits-API",
+        "Builtins": "Eingebaute Funktionen",
+        "Operators": "Operatoren",
+        "Type System": "Typsystem",
+        "Philosophy": "Designphilosophie",
+        "Implementation": "Implementierung",
+        "Signature Syntax": "Signatur-Syntax",
+        "Guidelines": "Richtlinien",
+        "Testing": "Testen",
+        "Commands": "Befehle",
+        "Configuration": "Konfiguration",
+        "Project Setup": "Projekteinrichtung",
+        "Troubleshooting": "Fehlerbehebung",
+        "Creating Packages": "Pakete erstellen",
+        "Package Spec": "Paketspezifikation",
+        "Versioning": "Versionierung",
+        "Architecture": "Architektur",
+        "Exit Codes": "Exit-Codes"
+    },
+    es: {
+        "Installation": "Instalación",
+        "Quick Start": "Inicio Rápido",
+        "Tutorial": "Tutorial",
+        "Learning Paths": "Rutas de Aprendizaje",
+        "Syntax": "Sintaxis",
+        "Types": "Tipos",
+        "Functions": "Funciones",
+        "Arrays": "Arreglos",
+        "Strings": "Cadenas",
+        "Objects": "Objetos",
+        "Control Flow": "Flujo de Control",
+        "Error Handling": "Manejo de Errores",
+        "Modules": "Módulos",
+        "Memory": "Gestión de Memoria",
+        "Pattern Matching": "Coincidencia de Patrones",
+        "Runes": "Runas",
+        "Async Concurrency": "Asincronía y Concurrencia",
+        "Atomics": "Operaciones Atómicas",
+        "Bundling Packaging": "Empaquetado y Distribución",
+        "Command Execution": "Ejecución de Comandos",
+        "Command Line Args": "Argumentos de Línea de Comandos",
+        "FFI": "FFI (Interfaz de Funciones Externas)",
+        "File IO": "E/S de Archivos",
+        "Profiling": "Perfilado",
+        "Signals": "Señales",
+        "Array API": "API de Arreglos",
+        "String API": "API de Cadenas",
+        "File API": "API de Archivos",
+        "Memory API": "API de Memoria",
+        "Concurrency API": "API de Concurrencia",
+        "Builtins": "Funciones Integradas",
+        "Operators": "Operadores",
+        "Type System": "Sistema de Tipos",
+        "Philosophy": "Filosofía",
+        "Implementation": "Implementación",
+        "Signature Syntax": "Sintaxis de Firmas",
+        "Guidelines": "Guías de Contribución",
+        "Testing": "Pruebas",
+        "Commands": "Comandos",
+        "Configuration": "Configuración",
+        "Project Setup": "Configuración del Proyecto",
+        "Troubleshooting": "Solución de Problemas",
+        "Creating Packages": "Creación de Paquetes",
+        "Package Spec": "Especificación de Paquetes",
+        "Versioning": "Versionado",
+        "Architecture": "Arquitectura",
+        "Exit Codes": "Códigos de Salida"
+    },
+    ja: {
+        "Installation": "インストール",
+        "Quick Start": "クイックスタート",
+        "Tutorial": "チュートリアル",
+        "Learning Paths": "学習パス",
+        "Syntax": "構文",
+        "Types": "型",
+        "Functions": "関数",
+        "Arrays": "配列",
+        "Strings": "文字列",
+        "Objects": "オブジェクト",
+        "Control Flow": "制御フロー",
+        "Error Handling": "エラー処理",
+        "Modules": "モジュール",
+        "Memory": "メモリ管理",
+        "Pattern Matching": "パターンマッチング",
+        "Runes": "ルーン",
+        "Async Concurrency": "非同期と並行処理",
+        "Atomics": "アトミック操作",
+        "Bundling Packaging": "バンドルとパッケージング",
+        "Command Execution": "コマンド実行",
+        "Command Line Args": "コマンドライン引数",
+        "FFI": "FFI（外部関数インターフェース）",
+        "File IO": "ファイルI/O",
+        "Profiling": "プロファイリング",
+        "Signals": "シグナル処理",
+        "Array API": "配列API",
+        "String API": "文字列API",
+        "File API": "ファイルAPI",
+        "Memory API": "メモリAPI",
+        "Concurrency API": "並行処理API",
+        "Builtins": "組み込み関数",
+        "Operators": "演算子",
+        "Type System": "型システム",
+        "Philosophy": "設計思想",
+        "Implementation": "実装の詳細",
+        "Signature Syntax": "シグネチャ構文",
+        "Guidelines": "ガイドライン",
+        "Testing": "テスト",
+        "Commands": "コマンド",
+        "Configuration": "設定",
+        "Project Setup": "プロジェクトセットアップ",
+        "Troubleshooting": "トラブルシューティング",
+        "Creating Packages": "パッケージの作成",
+        "Package Spec": "パッケージ仕様",
+        "Versioning": "バージョニング",
+        "Architecture": "アーキテクチャ",
+        "Exit Codes": "終了コード"
+    }
+};
+
+// Page titles by language
+let PAGE_TITLES = {
+    en: "Hemlock Language Manual",
+    zh: "Hemlock 语言手册",
+    de: "Hemlock-Sprachhandbuch",
+    es: "Manual del Lenguaje Hemlock",
+    ja: "Hemlock言語マニュアル"
+};
+
+// Translate a section name to the target language
+fn translate_section(section_name: string, lang: string): string {
+    if (lang == "en") {
+        return section_name;
+    }
+    let translations = SECTION_TRANSLATIONS[lang];
+    if (translations != null && translations[section_name] != null) {
+        return translations[section_name];
+    }
+    return section_name;
+}
+
+// Translate a page title to the target language
+fn translate_title(title: string, lang: string): string {
+    if (lang == "en") {
+        return title;
+    }
+    let translations = TITLE_TRANSLATIONS[lang];
+    if (translations != null && translations[title] != null) {
+        return translations[title];
+    }
+    return title;
+}
 
 // Read file content safely
 fn safe_read_file(path: string): string {
@@ -29,6 +338,80 @@ fn safe_read_file(path: string): string {
         print("Warning: Could not read " + path + ": " + e);
         return "";
     }
+}
+
+// Get the translated file path if it exists, otherwise return the original
+fn get_translated_path(original_path: string, lang: string): string {
+    if (lang == "en") {
+        return original_path;
+    }
+
+    let translated_path = TRANSLATIONS_DIR + "/" + lang + "/" + original_path;
+
+    if (exists(translated_path)) {
+        return translated_path;
+    }
+
+    return original_path;
+}
+
+// Read file content, preferring translation if available
+// Returns object with content and is_translated flag
+fn read_file_with_translation(path: string, lang: string) {
+    let translated_path = get_translated_path(path, lang);
+    let content = safe_read_file(translated_path);
+    let is_translated = translated_path != path && exists(translated_path);
+    return {
+        content: content,
+        is_translated: is_translated
+    };
+}
+
+// Convert text to title case, preserving acronyms like API, FFI, IO, etc.
+fn smart_title(text: string): string {
+    let parts = text.replace_all("-", " ").replace_all("_", " ").split(" ");
+    let result = "";
+
+    let i = 0;
+    while (i < parts.length) {
+        let part = parts[i];
+        if (part.length > 0) {
+            // Capitalize first letter
+            let first = part.slice(0, 1).to_upper();
+            let rest = part.slice(1, part.length);
+
+            if (result.length > 0) {
+                result = result + " ";
+            }
+            result = result + first + rest;
+        }
+        i = i + 1;
+    }
+
+    // Fix common acronyms that should stay uppercase
+    result = result.replace_all("Api", "API");
+    result = result.replace_all("Ffi", "FFI");
+    result = result.replace_all("Io", "IO");
+    result = result.replace_all("Cli", "CLI");
+    result = result.replace_all("Ast", "AST");
+    result = result.replace_all("Url", "URL");
+    result = result.replace_all("Http", "HTTP");
+    result = result.replace_all("Https", "HTTPS");
+    result = result.replace_all("Json", "JSON");
+    result = result.replace_all("Xml", "XML");
+    result = result.replace_all("Sql", "SQL");
+    result = result.replace_all("Ssl", "SSL");
+    result = result.replace_all("Tls", "TLS");
+    result = result.replace_all("Tcp", "TCP");
+    result = result.replace_all("Udp", "UDP");
+    result = result.replace_all("Cpu", "CPU");
+    result = result.replace_all("Gpu", "GPU");
+    result = result.replace_all("Html", "HTML");
+    result = result.replace_all("Css", "CSS");
+    result = result.replace_all("Csv", "CSV");
+    result = result.replace_all("Hpm", "HPM");
+
+    return result;
 }
 
 // Encode image as base64 data URL
@@ -54,125 +437,6 @@ fn encode_image(path: string): string {
         print("Warning: Could not encode image " + path + ": " + e);
         return "";
     }
-}
-
-// Collect all documentation files from hemlock and hpm submodules
-fn collect_docs() {
-    let docs = {};
-
-    // Add CLAUDE.md as the main documentation
-    let claude_path = HEMLOCK_DIR + "/CLAUDE.md";
-    if (exists(claude_path)) {
-        let content = safe_read_file(claude_path);
-        content = convert_md_links(content, "language-reference");
-        docs["Language Reference"] = {
-            id: "language-reference",
-            content: content,
-            order: 0,
-            section: ""
-        };
-    }
-
-    // Define section order for hemlock docs
-    let section_dirs = ["getting-started", "language-guide", "advanced", "reference", "design", "contributing"];
-    let section_names = ["Getting Started", "Language Guide", "Advanced Topics", "API Reference", "Design & Philosophy", "Contributing"];
-
-    // Collect docs from hemlock/docs/ directory
-    let docs_dir = HEMLOCK_DIR + "/docs";
-    if (exists(docs_dir)) {
-        let i = 0;
-        while (i < section_dirs.length) {
-            let subdir = section_dirs[i];
-            let section_name = section_names[i];
-            let subdir_path = docs_dir + "/" + subdir;
-
-            if (exists(subdir_path) && is_dir(subdir_path)) {
-                let entries = list_dir(subdir_path);
-
-                let j = 0;
-                while (j < entries.length) {
-                    let entry = entries[j];
-
-                    // Only process .md files, skip development docs
-                    if (entry.ends_with(".md") && !entry.contains("development")) {
-                        let md_path = subdir_path + "/" + entry;
-
-                        if (is_file(md_path)) {
-                            // Convert filename to title
-                            let file_name = entry.slice(0, entry.length - 3);  // Remove .md
-                            let title = filename_to_title(file_name);
-                            let doc_id = subdir + "-" + file_name;
-
-                            let content = safe_read_file(md_path);
-                            content = convert_md_links(content, subdir);
-
-                            let key = section_name + " -> " + title;
-                            docs[key] = {
-                                id: doc_id,
-                                content: content,
-                                order: i + 1,
-                                section: section_name
-                            };
-                        }
-                    }
-                    j = j + 1;
-                }
-            }
-            i = i + 1;
-        }
-    }
-
-    // Collect hpm documentation
-    let hpm_docs_dir = HPM_DIR + "/docs";
-    if (exists(hpm_docs_dir) && is_dir(hpm_docs_dir)) {
-        // hpm documentation file mappings
-        let hpm_files = ["installation", "quick-start", "project-setup", "commands", "configuration", "troubleshooting", "creating-packages", "package-spec", "versioning", "architecture", "exit-codes"];
-        let hpm_sections = ["hpm: Getting Started", "hpm: Getting Started", "hpm: Getting Started", "hpm: User Guide", "hpm: User Guide", "hpm: User Guide", "hpm: Package Development", "hpm: Package Development", "hpm: Package Development", "hpm: Reference", "hpm: Reference"];
-        let hpm_orders = [10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13];
-
-        let entries = list_dir(hpm_docs_dir);
-        let j = 0;
-        while (j < entries.length) {
-            let entry = entries[j];
-
-            // Only process .md files, skip README
-            if (entry.ends_with(".md") && !entry.to_lower().contains("readme")) {
-                let md_path = hpm_docs_dir + "/" + entry;
-
-                if (is_file(md_path)) {
-                    let file_name = entry.slice(0, entry.length - 3);  // Remove .md
-                    let title = filename_to_title(file_name);
-                    let doc_id = "hpm-" + file_name;
-
-                    // Find section and order for this file
-                    let section_name = "hpm: Other";
-                    let order = 14;
-                    let k = 0;
-                    while (k < hpm_files.length) {
-                        if (hpm_files[k] == file_name) {
-                            section_name = hpm_sections[k];
-                            order = hpm_orders[k];
-                        }
-                        k = k + 1;
-                    }
-
-                    let content = safe_read_file(md_path);
-                    content = convert_md_links(content, "hpm-" + file_name);
-
-                    let key = section_name + " -> " + title;
-                    docs[key] = {
-                        id: doc_id,
-                        content: content,
-                        order: order,
-                        section: section_name
-                    };
-                }
-            }
-            j = j + 1;
-        }
-    }
-
-    return docs;
 }
 
 // Convert markdown file links to hash-based page IDs
@@ -289,37 +553,165 @@ fn convert_md_path_to_hash(path: string, current_section: string): string {
     return "#" + path;
 }
 
-// Convert filename to title (e.g., "getting-started" -> "Getting Started")
-fn filename_to_title(name: string): string {
-    let parts = name.replace_all("-", " ").replace_all("_", " ").split(" ");
-    let result = "";
+// Collect all documentation files from hemlock and hpm submodules
+fn collect_docs(lang: string) {
+    let docs = {};
+    let translation_stats = { translated: 0, fallback: 0 };
 
-    let i = 0;
-    while (i < parts.length) {
-        let part = parts[i];
-        if (part.length > 0) {
-            // Capitalize first letter
-            let first = part.slice(0, 1).to_upper();
-            let rest = part.slice(1, part.length);
-
-            if (result.length > 0) {
-                result = result + " ";
-            }
-            result = result + first + rest;
+    // Add CLAUDE.md as the main documentation
+    let claude_path = HEMLOCK_DIR + "/CLAUDE.md";
+    if (exists(claude_path)) {
+        let result = read_file_with_translation(claude_path, lang);
+        let content = convert_md_links(result.content, "language-reference");
+        let title = translate_section("Language Reference", lang);
+        docs[title] = {
+            id: "language-reference",
+            content: content,
+            order: 0,
+            section: ""
+        };
+        if (result.is_translated) {
+            translation_stats.translated = translation_stats.translated + 1;
+        } else {
+            translation_stats.fallback = translation_stats.fallback + 1;
         }
-        i = i + 1;
     }
 
-    return result;
+    // Define section order for hemlock docs
+    let section_dirs = ["getting-started", "language-guide", "advanced", "reference", "design", "contributing"];
+    let section_names = ["Getting Started", "Language Guide", "Advanced Topics", "API Reference", "Design & Philosophy", "Contributing"];
+
+    // Collect docs from hemlock/docs/ directory
+    let docs_dir = HEMLOCK_DIR + "/docs";
+    if (exists(docs_dir)) {
+        let i = 0;
+        while (i < section_dirs.length) {
+            let subdir = section_dirs[i];
+            let section_name = section_names[i];
+            let translated_section = translate_section(section_name, lang);
+            let subdir_path = docs_dir + "/" + subdir;
+
+            if (exists(subdir_path) && is_dir(subdir_path)) {
+                let entries = list_dir(subdir_path);
+
+                let j = 0;
+                while (j < entries.length) {
+                    let entry = entries[j];
+
+                    // Only process .md files, skip development docs
+                    if (entry.ends_with(".md") && !entry.contains("development")) {
+                        let md_path = subdir_path + "/" + entry;
+
+                        if (is_file(md_path)) {
+                            // Convert filename to title
+                            let file_name = entry.slice(0, entry.length - 3);  // Remove .md
+                            let title = smart_title(file_name);
+                            let translated_title = translate_title(title, lang);
+                            let doc_id = subdir + "-" + file_name;
+
+                            let result = read_file_with_translation(md_path, lang);
+                            let content = convert_md_links(result.content, subdir);
+
+                            let key = translated_section + " -> " + translated_title;
+                            docs[key] = {
+                                id: doc_id,
+                                content: content,
+                                order: i + 1,
+                                section: translated_section
+                            };
+
+                            if (result.is_translated) {
+                                translation_stats.translated = translation_stats.translated + 1;
+                            } else {
+                                translation_stats.fallback = translation_stats.fallback + 1;
+                            }
+                        }
+                    }
+                    j = j + 1;
+                }
+            }
+            i = i + 1;
+        }
+    }
+
+    // Collect hpm documentation
+    let hpm_docs_dir = HPM_DIR + "/docs";
+    if (exists(hpm_docs_dir) && is_dir(hpm_docs_dir)) {
+        // hpm documentation file mappings
+        let hpm_files = ["installation", "quick-start", "project-setup", "commands", "configuration", "troubleshooting", "creating-packages", "package-spec", "versioning", "architecture", "exit-codes"];
+        let hpm_sections = ["hpm: Getting Started", "hpm: Getting Started", "hpm: Getting Started", "hpm: User Guide", "hpm: User Guide", "hpm: User Guide", "hpm: Package Development", "hpm: Package Development", "hpm: Package Development", "hpm: Reference", "hpm: Reference"];
+        let hpm_orders = [10, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13];
+
+        let entries = list_dir(hpm_docs_dir);
+        let j = 0;
+        while (j < entries.length) {
+            let entry = entries[j];
+
+            // Only process .md files, skip README
+            if (entry.ends_with(".md") && !entry.to_lower().contains("readme")) {
+                let md_path = hpm_docs_dir + "/" + entry;
+
+                if (is_file(md_path)) {
+                    let file_name = entry.slice(0, entry.length - 3);  // Remove .md
+                    let title = smart_title(file_name);
+                    let translated_title = translate_title(title, lang);
+                    let doc_id = "hpm-" + file_name;
+
+                    // Find section and order for this file
+                    let section_name = "hpm: Other";
+                    let order = 14;
+                    let k = 0;
+                    while (k < hpm_files.length) {
+                        if (hpm_files[k] == file_name) {
+                            section_name = hpm_sections[k];
+                            order = hpm_orders[k];
+                        }
+                        k = k + 1;
+                    }
+
+                    let translated_section = translate_section(section_name, lang);
+                    let result = read_file_with_translation(md_path, lang);
+                    let content = convert_md_links(result.content, "hpm-" + file_name);
+
+                    let key = translated_section + " -> " + translated_title;
+                    docs[key] = {
+                        id: doc_id,
+                        content: content,
+                        order: order,
+                        section: translated_section
+                    };
+
+                    if (result.is_translated) {
+                        translation_stats.translated = translation_stats.translated + 1;
+                    } else {
+                        translation_stats.fallback = translation_stats.fallback + 1;
+                    }
+                }
+            }
+            j = j + 1;
+        }
+    }
+
+    // Print translation stats for non-English builds
+    if (lang != "en") {
+        let total = translation_stats.translated + translation_stats.fallback;
+        if (total > 0) {
+            let percent = (100 * translation_stats.translated) / total;
+            print("  Translation coverage: " + translation_stats.translated + "/" + total + " pages (" + percent + "%)");
+        }
+    }
+
+    return docs;
 }
 
 // Get all doc keys in sorted order
-fn get_sorted_doc_keys(docs) {
+fn get_sorted_doc_keys(docs, lang: string) {
     let keys = [];
 
     // Add Language Reference first if it exists
-    if (docs["Language Reference"] != null) {
-        keys.push("Language Reference");
+    let lang_ref_title = translate_section("Language Reference", lang);
+    if (docs[lang_ref_title] != null) {
+        keys.push(lang_ref_title);
     }
 
     // Then add hemlock sections in order
@@ -331,19 +723,20 @@ fn get_sorted_doc_keys(docs) {
     while (i < section_dirs.length) {
         let subdir = section_dirs[i];
         let section_name = section_names[i];
+        let translated_section = translate_section(section_name, lang);
         let subdir_path = docs_dir + "/" + subdir;
 
         if (exists(subdir_path) && is_dir(subdir_path)) {
             let entries = list_dir(subdir_path);
-            // Note: not sorting - string comparison not supported
 
             let j = 0;
             while (j < entries.length) {
                 let entry = entries[j];
                 if (entry.ends_with(".md") && !entry.contains("development")) {
                     let file_name = entry.slice(0, entry.length - 3);
-                    let title = filename_to_title(file_name);
-                    let key = section_name + " -> " + title;
+                    let title = smart_title(file_name);
+                    let translated_title = translate_title(title, lang);
+                    let key = translated_section + " -> " + translated_title;
 
                     // Check if this key exists in docs
                     if (docs[key] != null) {
@@ -367,8 +760,10 @@ fn get_sorted_doc_keys(docs) {
         while (k < hpm_files.length) {
             let file_name = hpm_files[k];
             let section_name = hpm_sections[k];
-            let title = filename_to_title(file_name);
-            let key = section_name + " -> " + title;
+            let translated_section = translate_section(section_name, lang);
+            let title = smart_title(file_name);
+            let translated_title = translate_title(title, lang);
+            let key = translated_section + " -> " + translated_title;
 
             if (docs[key] != null) {
                 keys.push(key);
@@ -446,18 +841,48 @@ fn generate_pages_json(docs: object, sorted_keys: array): string {
     return stringify(pages);
 }
 
+// Generate language switcher options HTML
+fn generate_lang_options(current_lang: string): string {
+    let options = [];
+    let langs = ["en", "zh", "de", "es", "ja"];
+
+    let i = 0;
+    while (i < langs.length) {
+        let code = langs[i];
+        let name = SUPPORTED_LANGUAGES[code];
+        let filename = "docs.html";
+        if (code != "en") {
+            filename = "docs-" + code + ".html";
+        }
+        let selected = "";
+        if (code == current_lang) {
+            selected = " selected";
+        }
+        options.push("<option value=\"" + filename + "\"" + selected + ">" + name + "</option>");
+        i = i + 1;
+    }
+
+    return options.join("\n");
+}
+
 // Generate the complete HTML document
-fn generate_html(docs: object, logo_data: string): string {
-    let sorted_keys = get_sorted_doc_keys(docs);
+fn generate_html(docs: object, logo_data: string, lang: string): string {
+    let sorted_keys = get_sorted_doc_keys(docs, lang);
     let navigation_html = generate_nav_html(docs, sorted_keys);
     let pages_json = generate_pages_json(docs, sorted_keys);
+    let lang_options_html = generate_lang_options(lang);
+
+    let page_title = PAGE_TITLES[lang];
+    if (page_title == null) {
+        page_title = PAGE_TITLES["en"];
+    }
 
     let html = "<!DOCTYPE html>
-<html lang=\"en\">
+<html lang=\"" + lang + "\">
 <head>
     <meta charset=\"UTF-8\">
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
-    <title>Hemlock Language Manual</title>
+    <title>" + page_title + "</title>
     <style>
         * {
             margin: 0;
@@ -478,6 +903,34 @@ fn generate_html(docs: object, logo_data: string): string {
             --accent: #6B8E6B;
         }
 
+        [data-theme=\"dark\"] {
+            --sage: #6B8E6B;
+            --pine: #9CAF88;
+            --dark-pine: #0d1a1a;
+            --light-sage: #1a2f2f;
+            --cream: #0f1a1a;
+            --text: #e0e8e0;
+            --text-light: #a8b8a8;
+            --border: #2a4a4a;
+            --code-bg: #162626;
+            --accent: #9CAF88;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme=\"light\"]) {
+                --sage: #6B8E6B;
+                --pine: #9CAF88;
+                --dark-pine: #0d1a1a;
+                --light-sage: #1a2f2f;
+                --cream: #0f1a1a;
+                --text: #e0e8e0;
+                --text-light: #a8b8a8;
+                --border: #2a4a4a;
+                --code-bg: #162626;
+                --accent: #9CAF88;
+            }
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
             line-height: 1.7;
@@ -492,10 +945,11 @@ fn generate_html(docs: object, logo_data: string): string {
             left: 0;
             right: 0;
             height: 70px;
-            background: var(--pine);
+            background: #2F4F4F;
             color: white;
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             padding: 0 2rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
@@ -510,20 +964,7 @@ fn generate_html(docs: object, logo_data: string): string {
             font-size: 1.5rem;
             font-weight: 600;
             letter-spacing: 0.5px;
-        }
-
-        .header .tagline {
-            margin-left: auto;
-            font-size: 0.9rem;
-            font-style: italic;
-            color: var(--light-sage);
-            display: none;
-        }
-
-        @media (min-width: 768px) {
-            .header .tagline {
-                display: block;
-            }
+            margin-right: auto;
         }
 
         /* Layout */
@@ -861,14 +1302,308 @@ fn generate_html(docs: object, logo_data: string): string {
         .page.active {
             display: block;
         }
+
+        /* Search */
+        .search-container {
+            position: relative;
+            margin-right: 1rem;
+        }
+
+        .search-input {
+            width: 200px;
+            padding: 0.5rem 1rem;
+            padding-left: 2.2rem;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            width: 280px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+        }
+
+        .search-results {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            right: 0;
+            min-width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1001;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .search-result:last-child {
+            border-bottom: none;
+        }
+
+        .search-result:hover,
+        .search-result.selected {
+            background: var(--light-sage);
+        }
+
+        .search-result-title {
+            font-weight: 600;
+            color: var(--pine);
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .search-result-section {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .search-result-preview {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }
+
+        .search-result-preview mark {
+            background: var(--sage);
+            color: var(--pine);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        .search-no-results {
+            padding: 1rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .search-shortcut {
+            display: none;
+            margin-left: 0.5rem;
+            padding: 0.15rem 0.4rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        @media (min-width: 768px) {
+            .search-shortcut {
+                display: inline-block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                margin: 0;
+                padding: 0.5rem;
+                background: #1a2f2f;
+                display: none;
+                z-index: 999;
+            }
+
+            .search-container.active {
+                display: block;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .search-input:focus {
+                width: 100%;
+            }
+
+            .search-results {
+                position: fixed;
+                top: 120px;
+                left: 0.5rem;
+                right: 0.5rem;
+                min-width: auto;
+                max-height: calc(100vh - 140px);
+            }
+
+            .search-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: transparent;
+                border: none;
+                color: white;
+                font-size: 1.2rem;
+                cursor: pointer;
+                padding: 0.5rem;
+                margin-left: auto;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .search-toggle {
+                display: none;
+            }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-left: 0.5rem;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .theme-toggle .sun-icon {
+            display: none;
+        }
+
+        .theme-toggle .moon-icon {
+            display: block;
+        }
+
+        [data-theme=\"dark\"] .theme-toggle .sun-icon {
+            display: block;
+        }
+
+        [data-theme=\"dark\"] .theme-toggle .moon-icon {
+            display: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme=\"light\"]) .theme-toggle .sun-icon {
+                display: block;
+            }
+            :root:not([data-theme=\"light\"]) .theme-toggle .moon-icon {
+                display: none;
+            }
+        }
+
+        /* Language Switcher */
+        .lang-switcher {
+            margin-left: 0.5rem;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .lang-switcher:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .lang-switcher:focus {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .lang-switcher option {
+            background: var(--pine);
+            color: white;
+        }
+
+        [data-theme=\"dark\"] .lang-switcher option {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
     <!-- Header -->
     <div class=\"header\">
         <img src=\"" + logo_data + "\" alt=\"Hemlock Logo\" class=\"header-logo\">
-        <h1>Hemlock Language Manual</h1>
-        <span class=\"tagline\">\"A small, unsafe language for writing unsafe things safely.\"</span>
+        <h1>" + page_title + "</h1>
+        <!-- Search -->
+        <div class=\"search-container\" id=\"searchContainer\">
+            <svg class=\"search-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
+                <circle cx=\"11\" cy=\"11\" r=\"8\"></circle>
+                <path d=\"M21 21l-4.35-4.35\"></path>
+            </svg>
+            <input type=\"text\" class=\"search-input\" id=\"searchInput\" placeholder=\"Search docs...\" autocomplete=\"off\">
+            <span class=\"search-shortcut\">Ctrl+K</span>
+            <div class=\"search-results\" id=\"searchResults\"></div>
+        </div>
+        <button class=\"search-toggle\" id=\"searchToggle\">
+            <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
+                <circle cx=\"11\" cy=\"11\" r=\"8\"></circle>
+                <path d=\"M21 21l-4.35-4.35\"></path>
+            </svg>
+        </button>
+        <select class=\"lang-switcher\" id=\"langSwitcher\" onchange=\"switchLanguage(this.value)\">
+            " + lang_options_html + "
+        </select>
+        <button class=\"theme-toggle\" id=\"themeToggle\" title=\"Toggle dark mode\">
+            <svg class=\"moon-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
+                <path d=\"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\"></path>
+            </svg>
+            <svg class=\"sun-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
+                <circle cx=\"12\" cy=\"12\" r=\"5\"></circle>
+                <line x1=\"12\" y1=\"1\" x2=\"12\" y2=\"3\"></line>
+                <line x1=\"12\" y1=\"21\" x2=\"12\" y2=\"23\"></line>
+                <line x1=\"4.22\" y1=\"4.22\" x2=\"5.64\" y2=\"5.64\"></line>
+                <line x1=\"18.36\" y1=\"18.36\" x2=\"19.78\" y2=\"19.78\"></line>
+                <line x1=\"1\" y1=\"12\" x2=\"3\" y2=\"12\"></line>
+                <line x1=\"21\" y1=\"12\" x2=\"23\" y2=\"12\"></line>
+                <line x1=\"4.22\" y1=\"19.78\" x2=\"5.64\" y2=\"18.36\"></line>
+                <line x1=\"18.36\" y1=\"5.64\" x2=\"19.78\" y2=\"4.22\"></line>
+            </svg>
+        </button>
     </div>
 
     <!-- Mobile Menu Toggle -->
@@ -907,6 +1642,57 @@ fn generate_html(docs: object, logo_data: string): string {
                     sidebar.classList.remove('open');
                     menuToggle.textContent = '\\u2630';
                 }
+            }
+        });
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const root = document.documentElement;
+
+        // Get saved theme or detect system preference
+        function getPreferredTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                return savedTheme;
+            }
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        // Apply theme
+        function setTheme(theme) {
+            root.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+
+        // Initialize theme
+        const initialTheme = getPreferredTheme();
+        if (localStorage.getItem('theme')) {
+            setTheme(initialTheme);
+        }
+
+        // Toggle theme on button click
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = root.getAttribute('data-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            // Determine current effective theme
+            let effectiveTheme;
+            if (currentTheme) {
+                effectiveTheme = currentTheme;
+            } else {
+                effectiveTheme = prefersDark ? 'dark' : 'light';
+            }
+
+            // Toggle to opposite theme
+            const newTheme = effectiveTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        });
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                // Only auto-switch if user hasn't manually set a preference
+                root.removeAttribute('data-theme');
             }
         });
 
@@ -1211,6 +1997,285 @@ fn generate_html(docs: object, logo_data: string): string {
             }
         });
 
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        const searchContainer = document.getElementById('searchContainer');
+        const searchToggle = document.getElementById('searchToggle');
+        let selectedIndex = -1;
+        let currentResults = [];
+
+        // Build search index from PAGES
+        function buildSearchIndex() {
+            const index = [];
+            for (const [title, page] of Object.entries(PAGES)) {
+                // Extract section from page ID
+                const parts = page.id.split('-');
+                let section = '';
+                if (parts.length > 1) {
+                    section = parts.slice(0, -1).join(' ');
+                }
+
+                // Extract headings from content
+                const headings = [];
+                const headingRegex = /^#+\\s+(.+)$/gm;
+                let match;
+                while ((match = headingRegex.exec(page.content)) !== null) {
+                    headings.push(match[1]);
+                }
+
+                // Get preview text (first 200 chars, stripped of markdown)
+                let preview = page.content
+                    .replace(/^#+\\s+.+$/gm, '')  // Remove headings
+                    .replace(/```[\\s\\S]*?```/g, '')  // Remove code blocks
+                    .replace(/`[^`]+`/g, '')  // Remove inline code
+                    .replace(/\\[([^\\]]+)\\]\\([^)]+\\)/g, '$1')  // Convert links to text
+                    .replace(/\\*\\*([^*]+)\\*\\*/g, '$1')  // Remove bold
+                    .replace(/\\*([^*]+)\\*/g, '$1')  // Remove italic
+                    .replace(/\\n+/g, ' ')  // Normalize whitespace
+                    .trim()
+                    .substring(0, 200);
+
+                index.push({
+                    title: title,
+                    pageId: page.id,
+                    section: section,
+                    headings: headings,
+                    content: page.content.toLowerCase(),
+                    preview: preview
+                });
+            }
+            return index;
+        }
+
+        const searchIndex = buildSearchIndex();
+
+        // Search function
+        function search(query) {
+            if (!query || query.length < 2) return [];
+
+            const q = query.toLowerCase().trim();
+            const results = [];
+
+            for (const item of searchIndex) {
+                let score = 0;
+                let matchedHeading = null;
+                let matchContext = '';
+
+                // Check title (highest priority)
+                const titleLower = item.title.toLowerCase();
+                if (titleLower === q) {
+                    score = 100;
+                } else if (titleLower.startsWith(q)) {
+                    score = 80;
+                } else if (titleLower.includes(q)) {
+                    score = 60;
+                }
+
+                // Check headings
+                for (const heading of item.headings) {
+                    const headingLower = heading.toLowerCase();
+                    if (headingLower === q) {
+                        score = Math.max(score, 50);
+                        matchedHeading = heading;
+                    } else if (headingLower.includes(q)) {
+                        score = Math.max(score, 40);
+                        if (!matchedHeading) matchedHeading = heading;
+                    }
+                }
+
+                // Check content
+                if (item.content.includes(q)) {
+                    score = Math.max(score, 20);
+
+                    // Find context around the match
+                    const idx = item.content.indexOf(q);
+                    const start = Math.max(0, idx - 40);
+                    const end = Math.min(item.content.length, idx + q.length + 60);
+                    matchContext = item.content.substring(start, end);
+                    if (start > 0) matchContext = '...' + matchContext;
+                    if (end < item.content.length) matchContext = matchContext + '...';
+                }
+
+                if (score > 0) {
+                    results.push({
+                        title: item.title,
+                        pageId: item.pageId,
+                        section: item.section,
+                        score: score,
+                        matchedHeading: matchedHeading,
+                        preview: matchContext || item.preview,
+                        query: q
+                    });
+                }
+            }
+
+            // Sort by score descending
+            results.sort((a, b) => b.score - a.score);
+
+            return results.slice(0, 10);  // Limit to 10 results
+        }
+
+        // Highlight query in text
+        function highlightText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }
+
+        // Render search results
+        function renderResults(results, query) {
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class=\"search-no-results\">No results found</div>';
+                return;
+            }
+
+            const html = results.map((result, index) => {
+                const titleHtml = highlightText(result.title, query);
+                const previewHtml = highlightText(result.preview, query);
+                const selectedClass = index === selectedIndex ? ' selected' : '';
+
+                return `
+                    <div class=\"search-result${selectedClass}\" data-index=\"${index}\" data-page=\"${result.pageId}\">
+                        ${result.section ? `<div class=\"search-result-section\">${result.section}</div>` : ''}
+                        <div class=\"search-result-title\">${titleHtml}</div>
+                        ${result.matchedHeading ? `<div class=\"search-result-preview\">${highlightText(result.matchedHeading, query)}</div>` : ''}
+                        <div class=\"search-result-preview\">${previewHtml}</div>
+                    </div>
+                `;
+            }).join('');
+
+            searchResults.innerHTML = html;
+
+            // Add click handlers
+            searchResults.querySelectorAll('.search-result').forEach(el => {
+                el.addEventListener('click', () => {
+                    const pageId = el.dataset.page;
+                    loadPage(pageId);
+                    closeSearch();
+                });
+            });
+        }
+
+        // Show search results
+        function showResults() {
+            searchResults.classList.add('active');
+        }
+
+        // Hide search results
+        function hideResults() {
+            searchResults.classList.remove('active');
+            selectedIndex = -1;
+        }
+
+        // Close search (mobile)
+        function closeSearch() {
+            hideResults();
+            searchInput.value = '';
+            searchInput.blur();
+            if (window.innerWidth < 769) {
+                searchContainer.classList.remove('active');
+            }
+        }
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Handle search input
+        const handleSearch = debounce((query) => {
+            currentResults = search(query);
+            if (query.length >= 2) {
+                renderResults(currentResults, query);
+                showResults();
+            } else {
+                hideResults();
+            }
+        }, 150);
+
+        searchInput.addEventListener('input', (e) => {
+            handleSearch(e.target.value);
+        });
+
+        // Handle keyboard navigation
+        searchInput.addEventListener('keydown', (e) => {
+            if (!searchResults.classList.contains('active')) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, currentResults.length - 1);
+                renderResults(currentResults, searchInput.value);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                renderResults(currentResults, searchInput.value);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedIndex >= 0 && currentResults[selectedIndex]) {
+                    loadPage(currentResults[selectedIndex].pageId);
+                    closeSearch();
+                } else if (currentResults.length > 0) {
+                    loadPage(currentResults[0].pageId);
+                    closeSearch();
+                }
+            } else if (e.key === 'Escape') {
+                closeSearch();
+            }
+        });
+
+        // Close results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchContainer.contains(e.target)) {
+                hideResults();
+            }
+        });
+
+        // Focus search on input click
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value.length >= 2) {
+                handleSearch(searchInput.value);
+            }
+        });
+
+        // Global keyboard shortcut (Ctrl+K or Cmd+K)
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                if (window.innerWidth < 769) {
+                    searchContainer.classList.add('active');
+                }
+                searchInput.focus();
+            }
+            if (e.key === 'Escape') {
+                closeSearch();
+            }
+        });
+
+        // Mobile search toggle
+        if (searchToggle) {
+            searchToggle.addEventListener('click', () => {
+                searchContainer.classList.toggle('active');
+                if (searchContainer.classList.contains('active')) {
+                    searchInput.focus();
+                }
+            });
+        }
+
+        // Language switcher
+        function switchLanguage(filename) {
+            const currentHash = window.location.hash;
+            window.location.href = filename + currentHash;
+        }
+
         // Load initial page
         const initialHash = window.location.hash.substring(1);
         const firstPageId = Object.values(PAGES)[0].id;
@@ -1222,8 +2287,199 @@ fn generate_html(docs: object, logo_data: string): string {
     return html;
 }
 
+// Generate LLM-friendly plain text documentation
+fn generate_llm_txt(docs: object, sorted_keys: array, lang: string): string {
+    let lines = [];
+
+    // Language-specific header text
+    let lang_name = SUPPORTED_LANGUAGES[lang];
+    if (lang_name == null) {
+        lang_name = "English";
+    }
+
+    let title = "";
+    let description = [];
+    if (lang == "en") {
+        title = "HEMLOCK PROGRAMMING LANGUAGE - COMPLETE DOCUMENTATION";
+        description = [
+            "This file contains the complete documentation for the Hemlock programming",
+            "language and the hpm package manager. It is optimized for LLM consumption."
+        ];
+    } else {
+        title = "HEMLOCK PROGRAMMING LANGUAGE - COMPLETE DOCUMENTATION (" + lang_name + ")";
+        description = [
+            "This file contains the complete documentation for the Hemlock programming",
+            "language and the hpm package manager in " + lang_name + ".",
+            "It is optimized for LLM consumption."
+        ];
+    }
+
+    // Header
+    lines.push("================================================================================");
+    lines.push(title);
+    lines.push("================================================================================");
+    lines.push("");
+    let d = 0;
+    while (d < description.length) {
+        lines.push(description[d]);
+        d = d + 1;
+    }
+    lines.push("");
+    lines.push("Source: https://github.com/hemlang/hem-doc");
+    lines.push("");
+
+    // Table of contents
+    lines.push("--------------------------------------------------------------------------------");
+    lines.push("TABLE OF CONTENTS");
+    lines.push("--------------------------------------------------------------------------------");
+    lines.push("");
+
+    let current_section = "";
+    let toc_num = 1;
+    let i = 0;
+    while (i < sorted_keys.length) {
+        let doc_title = sorted_keys[i];
+        let info = docs[doc_title];
+        let section = info.section;
+
+        if (section != "" && section != current_section) {
+            lines.push("");
+            lines.push("[" + section + "]");
+            current_section = section;
+        }
+
+        // Simplify title for TOC
+        let nav_title = doc_title;
+        if (doc_title.contains(" -> ")) {
+            let parts = doc_title.split(" -> ");
+            nav_title = parts[parts.length - 1];
+        }
+        lines.push("  " + toc_num + ". " + nav_title);
+        toc_num = toc_num + 1;
+        i = i + 1;
+    }
+
+    lines.push("");
+    lines.push("");
+
+    // Documentation content
+    lines.push("================================================================================");
+    lines.push("DOCUMENTATION");
+    lines.push("================================================================================");
+
+    current_section = "";
+    i = 0;
+    while (i < sorted_keys.length) {
+        let doc_title = sorted_keys[i];
+        let info = docs[doc_title];
+        let section = info.section;
+
+        // Add section divider if new section
+        if (section != "" && section != current_section) {
+            lines.push("");
+            lines.push("");
+            lines.push("################################################################################");
+            lines.push("# " + section.to_upper());
+            lines.push("################################################################################");
+            current_section = section;
+        }
+
+        // Page header
+        let nav_title = doc_title;
+        if (doc_title.contains(" -> ")) {
+            let parts = doc_title.split(" -> ");
+            nav_title = parts[parts.length - 1];
+        }
+        lines.push("");
+        lines.push("--------------------------------------------------------------------------------");
+        lines.push("## " + nav_title);
+        lines.push("--------------------------------------------------------------------------------");
+        lines.push("");
+
+        // Page content (strip trailing whitespace from each line)
+        let content = info.content;
+        let content_lines = content.split("\n");
+        let j = 0;
+        while (j < content_lines.length) {
+            lines.push(content_lines[j].trim_end());
+            j = j + 1;
+        }
+
+        i = i + 1;
+    }
+
+    // Footer
+    lines.push("");
+    lines.push("");
+    lines.push("================================================================================");
+    lines.push("END OF DOCUMENTATION");
+    lines.push("================================================================================");
+
+    return lines.join("\n");
+}
+
+// Build documentation for a specific language
+fn build_for_language(lang: string, logo_data: string) {
+    let lang_name = SUPPORTED_LANGUAGES[lang];
+    if (lang_name == null) {
+        lang_name = lang;
+    }
+    print("\nBuilding " + lang_name + " (" + lang + ") documentation...");
+
+    // Determine output file
+    let output_file = "docs.html";
+    if (lang != "en") {
+        output_file = "docs-" + lang + ".html";
+    }
+
+    // Collect documentation
+    print("Collecting documentation files...");
+    let docs = collect_docs(lang);
+    let sorted_keys = get_sorted_doc_keys(docs, lang);
+
+    if (sorted_keys.length == 0) {
+        print("Error: No documentation pages found");
+        return { success: false, docs: null, sorted_keys: null };
+    }
+    print("Found " + sorted_keys.length + " documentation pages");
+
+    // Generate HTML
+    print("Generating HTML...");
+    let html = generate_html(docs, logo_data, lang);
+
+    // Write output
+    write_file(output_file, html);
+
+    print("Documentation built: " + output_file);
+    print("  - " + sorted_keys.length + " pages");
+
+    return { success: true, docs: docs, sorted_keys: sorted_keys };
+}
+
+// Parse command line arguments
+fn parse_args() {
+    let lang = "en";
+    let cmd_args = args();
+
+    let i = 0;
+    while (i < cmd_args.length) {
+        let arg = cmd_args[i];
+        if (arg == "--lang" || arg == "-l") {
+            if (i + 1 < cmd_args.length) {
+                lang = cmd_args[i + 1];
+                i = i + 1;
+            }
+        }
+        i = i + 1;
+    }
+
+    return lang;
+}
+
 // Main build function
 fn main() {
+    let lang = parse_args();
+
     print("Building Hemlock documentation viewer...");
 
     // Check that hemlock submodule exists
@@ -1254,19 +2510,7 @@ fn main() {
         }
     }
 
-    // Collect documentation
-    print("Collecting documentation files...");
-    let docs = collect_docs();
-
-    // Count documents
-    let sorted_keys = get_sorted_doc_keys(docs);
-    if (sorted_keys.length == 0) {
-        print("Error: No documentation pages found");
-        exit(1);
-    }
-    print("Found " + sorted_keys.length + " documentation pages");
-
-    // Encode logo
+    // Encode logo (once for all languages)
     print("Encoding logo...");
     let logo_path = HEMLOCK_DIR + "/logo.png";
     let logo_data = "";
@@ -1277,16 +2521,63 @@ fn main() {
         print("Warning: logo.png not found, continuing without logo");
     }
 
-    // Generate HTML
-    print("Generating HTML...");
-    let html = generate_html(docs, logo_data);
+    // Determine which languages to build
+    let languages = [];
+    if (lang == "all") {
+        languages = ["en", "zh", "de", "es", "ja"];
+    } else if (SUPPORTED_LANGUAGES[lang] != null) {
+        languages = [lang];
+    } else {
+        print("Error: Unknown language '" + lang + "'");
+        print("Supported languages: en, zh, de, es, ja");
+        exit(1);
+    }
 
-    // Write output
-    write_file(OUTPUT_FILE, html);
+    // Build for each language
+    let success_count = 0;
+    let built_docs = {};
 
-    print("Documentation built: " + OUTPUT_FILE);
-    print("  - " + sorted_keys.length + " pages");
-    print("  - Open docs.html in your browser to view");
+    let i = 0;
+    while (i < languages.length) {
+        let build_lang = languages[i];
+        let result = build_for_language(build_lang, logo_data);
+        if (result.success) {
+            success_count = success_count + 1;
+            built_docs[build_lang] = {
+                docs: result.docs,
+                sorted_keys: result.sorted_keys
+            };
+        }
+        i = i + 1;
+    }
+
+    // Generate LLM-friendly documentation for all languages
+    if (success_count > 0) {
+        print("\nGenerating LLM-friendly documentation...");
+        let langs_built = ["en", "zh", "de", "es", "ja"];
+        let j = 0;
+        while (j < langs_built.length) {
+            let llm_lang = langs_built[j];
+            if (built_docs[llm_lang] != null) {
+                let lang_data = built_docs[llm_lang];
+                let llm_txt = generate_llm_txt(lang_data.docs, lang_data.sorted_keys, llm_lang);
+
+                // Determine output file
+                let llm_file = "llms.txt";
+                if (llm_lang != "en") {
+                    llm_file = "llms-" + llm_lang + ".txt";
+                }
+
+                write_file(llm_file, llm_txt);
+
+                let llm_lang_name = SUPPORTED_LANGUAGES[llm_lang];
+                print("  " + llm_lang_name + ": " + llm_file + " (" + llm_txt.length + " characters)");
+            }
+            j = j + 1;
+        }
+    }
+
+    print("\nBuild complete: " + success_count + "/" + languages.length + " languages built successfully");
 
     return null;
 }
