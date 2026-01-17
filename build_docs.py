@@ -669,6 +669,184 @@ def generate_html(docs, logo_data):
         .page.active {{
             display: block;
         }}
+
+        /* Search */
+        .search-container {{
+            position: relative;
+            margin-left: auto;
+            margin-right: 1rem;
+        }}
+
+        .search-input {{
+            width: 200px;
+            padding: 0.5rem 1rem;
+            padding-left: 2.2rem;
+            border: none;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }}
+
+        .search-input::placeholder {{
+            color: rgba(255, 255, 255, 0.6);
+        }}
+
+        .search-input:focus {{
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            width: 280px;
+        }}
+
+        .search-icon {{
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+        }}
+
+        .search-results {{
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            right: 0;
+            min-width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1001;
+        }}
+
+        .search-results.active {{
+            display: block;
+        }}
+
+        .search-result {{
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }}
+
+        .search-result:last-child {{
+            border-bottom: none;
+        }}
+
+        .search-result:hover,
+        .search-result.selected {{
+            background: var(--light-sage);
+        }}
+
+        .search-result-title {{
+            font-weight: 600;
+            color: var(--pine);
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }}
+
+        .search-result-section {{
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }}
+
+        .search-result-preview {{
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }}
+
+        .search-result-preview mark {{
+            background: var(--sage);
+            color: var(--pine);
+            padding: 0 2px;
+            border-radius: 2px;
+        }}
+
+        .search-no-results {{
+            padding: 1rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }}
+
+        .search-shortcut {{
+            display: none;
+            margin-left: 0.5rem;
+            padding: 0.15rem 0.4rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.8);
+        }}
+
+        @media (min-width: 768px) {{
+            .search-shortcut {{
+                display: inline-block;
+            }}
+        }}
+
+        @media (max-width: 768px) {{
+            .search-container {{
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                margin: 0;
+                padding: 0.5rem;
+                background: var(--dark-pine);
+                display: none;
+                z-index: 999;
+            }}
+
+            .search-container.active {{
+                display: block;
+            }}
+
+            .search-input {{
+                width: 100%;
+            }}
+
+            .search-input:focus {{
+                width: 100%;
+            }}
+
+            .search-results {{
+                position: fixed;
+                top: 120px;
+                left: 0.5rem;
+                right: 0.5rem;
+                min-width: auto;
+                max-height: calc(100vh - 140px);
+            }}
+
+            .search-toggle {{
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: transparent;
+                border: none;
+                color: white;
+                font-size: 1.2rem;
+                cursor: pointer;
+                padding: 0.5rem;
+                margin-left: auto;
+            }}
+        }}
+
+        @media (min-width: 769px) {{
+            .search-toggle {{
+                display: none;
+            }}
+        }}
     </style>
 </head>
 <body>
@@ -676,6 +854,22 @@ def generate_html(docs, logo_data):
     <div class="header">
         <img src="{logo_data}" alt="Hemlock Logo" class="header-logo">
         <h1>Hemlock Language Manual</h1>
+        <!-- Search -->
+        <div class="search-container" id="searchContainer">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="M21 21l-4.35-4.35"></path>
+            </svg>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search docs..." autocomplete="off">
+            <span class="search-shortcut">Ctrl+K</span>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        <button class="search-toggle" id="searchToggle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="M21 21l-4.35-4.35"></path>
+            </svg>
+        </button>
         <span class="tagline">"A small, unsafe language for writing unsafe things safely."</span>
     </div>
 
@@ -1018,6 +1212,279 @@ def generate_html(docs, logo_data):
                 loadPage(hash);
             }}
         }});
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        const searchContainer = document.getElementById('searchContainer');
+        const searchToggle = document.getElementById('searchToggle');
+        let selectedIndex = -1;
+        let currentResults = [];
+
+        // Build search index from PAGES
+        function buildSearchIndex() {{
+            const index = [];
+            for (const [title, page] of Object.entries(PAGES)) {{
+                // Extract section from page ID
+                const parts = page.id.split('-');
+                let section = '';
+                if (parts.length > 1) {{
+                    section = parts.slice(0, -1).join(' ');
+                }}
+
+                // Extract headings from content
+                const headings = [];
+                const headingRegex = /^#+\\s+(.+)$/gm;
+                let match;
+                while ((match = headingRegex.exec(page.content)) !== null) {{
+                    headings.push(match[1]);
+                }}
+
+                // Get preview text (first 200 chars, stripped of markdown)
+                let preview = page.content
+                    .replace(/^#+\\s+.+$/gm, '')  // Remove headings
+                    .replace(/```[\\s\\S]*?```/g, '')  // Remove code blocks
+                    .replace(/`[^`]+`/g, '')  // Remove inline code
+                    .replace(/\\[([^\\]]+)\\]\\([^)]+\\)/g, '$1')  // Convert links to text
+                    .replace(/\\*\\*([^*]+)\\*\\*/g, '$1')  // Remove bold
+                    .replace(/\\*([^*]+)\\*/g, '$1')  // Remove italic
+                    .replace(/\\n+/g, ' ')  // Normalize whitespace
+                    .trim()
+                    .substring(0, 200);
+
+                index.push({{
+                    title: title,
+                    pageId: page.id,
+                    section: section,
+                    headings: headings,
+                    content: page.content.toLowerCase(),
+                    preview: preview
+                }});
+            }}
+            return index;
+        }}
+
+        const searchIndex = buildSearchIndex();
+
+        // Search function
+        function search(query) {{
+            if (!query || query.length < 2) return [];
+
+            const q = query.toLowerCase().trim();
+            const results = [];
+
+            for (const item of searchIndex) {{
+                let score = 0;
+                let matchedHeading = null;
+                let matchContext = '';
+
+                // Check title (highest priority)
+                const titleLower = item.title.toLowerCase();
+                if (titleLower === q) {{
+                    score = 100;
+                }} else if (titleLower.startsWith(q)) {{
+                    score = 80;
+                }} else if (titleLower.includes(q)) {{
+                    score = 60;
+                }}
+
+                // Check headings
+                for (const heading of item.headings) {{
+                    const headingLower = heading.toLowerCase();
+                    if (headingLower === q) {{
+                        score = Math.max(score, 50);
+                        matchedHeading = heading;
+                    }} else if (headingLower.includes(q)) {{
+                        score = Math.max(score, 40);
+                        if (!matchedHeading) matchedHeading = heading;
+                    }}
+                }}
+
+                // Check content
+                if (item.content.includes(q)) {{
+                    score = Math.max(score, 20);
+
+                    // Find context around the match
+                    const idx = item.content.indexOf(q);
+                    const start = Math.max(0, idx - 40);
+                    const end = Math.min(item.content.length, idx + q.length + 60);
+                    matchContext = item.content.substring(start, end);
+                    if (start > 0) matchContext = '...' + matchContext;
+                    if (end < item.content.length) matchContext = matchContext + '...';
+                }}
+
+                if (score > 0) {{
+                    results.push({{
+                        title: item.title,
+                        pageId: item.pageId,
+                        section: item.section,
+                        score: score,
+                        matchedHeading: matchedHeading,
+                        preview: matchContext || item.preview,
+                        query: q
+                    }});
+                }}
+            }}
+
+            // Sort by score descending
+            results.sort((a, b) => b.score - a.score);
+
+            return results.slice(0, 10);  // Limit to 10 results
+        }}
+
+        // Highlight query in text
+        function highlightText(text, query) {{
+            if (!query) return text;
+            const regex = new RegExp(`(${{query.replace(/[.*+?^${{}}()|[\\]\\\\]/g, '\\\\$&')}})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+        }}
+
+        // Render search results
+        function renderResults(results, query) {{
+            if (results.length === 0) {{
+                searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
+                return;
+            }}
+
+            const html = results.map((result, index) => {{
+                const titleHtml = highlightText(result.title, query);
+                const previewHtml = highlightText(result.preview, query);
+                const selectedClass = index === selectedIndex ? ' selected' : '';
+
+                return `
+                    <div class="search-result${{selectedClass}}" data-index="${{index}}" data-page="${{result.pageId}}">
+                        ${{result.section ? `<div class="search-result-section">${{result.section}}</div>` : ''}}
+                        <div class="search-result-title">${{titleHtml}}</div>
+                        ${{result.matchedHeading ? `<div class="search-result-preview">${{highlightText(result.matchedHeading, query)}}</div>` : ''}}
+                        <div class="search-result-preview">${{previewHtml}}</div>
+                    </div>
+                `;
+            }}).join('');
+
+            searchResults.innerHTML = html;
+
+            // Add click handlers
+            searchResults.querySelectorAll('.search-result').forEach(el => {{
+                el.addEventListener('click', () => {{
+                    const pageId = el.dataset.page;
+                    loadPage(pageId);
+                    closeSearch();
+                }});
+            }});
+        }}
+
+        // Show search results
+        function showResults() {{
+            searchResults.classList.add('active');
+        }}
+
+        // Hide search results
+        function hideResults() {{
+            searchResults.classList.remove('active');
+            selectedIndex = -1;
+        }}
+
+        // Close search (mobile)
+        function closeSearch() {{
+            hideResults();
+            searchInput.value = '';
+            searchInput.blur();
+            if (window.innerWidth < 769) {{
+                searchContainer.classList.remove('active');
+            }}
+        }}
+
+        // Debounce function
+        function debounce(func, wait) {{
+            let timeout;
+            return function executedFunction(...args) {{
+                const later = () => {{
+                    clearTimeout(timeout);
+                    func(...args);
+                }};
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            }};
+        }}
+
+        // Handle search input
+        const handleSearch = debounce((query) => {{
+            currentResults = search(query);
+            if (query.length >= 2) {{
+                renderResults(currentResults, query);
+                showResults();
+            }} else {{
+                hideResults();
+            }}
+        }}, 150);
+
+        searchInput.addEventListener('input', (e) => {{
+            handleSearch(e.target.value);
+        }});
+
+        // Handle keyboard navigation
+        searchInput.addEventListener('keydown', (e) => {{
+            if (!searchResults.classList.contains('active')) return;
+
+            if (e.key === 'ArrowDown') {{
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, currentResults.length - 1);
+                renderResults(currentResults, searchInput.value);
+            }} else if (e.key === 'ArrowUp') {{
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                renderResults(currentResults, searchInput.value);
+            }} else if (e.key === 'Enter') {{
+                e.preventDefault();
+                if (selectedIndex >= 0 && currentResults[selectedIndex]) {{
+                    loadPage(currentResults[selectedIndex].pageId);
+                    closeSearch();
+                }} else if (currentResults.length > 0) {{
+                    loadPage(currentResults[0].pageId);
+                    closeSearch();
+                }}
+            }} else if (e.key === 'Escape') {{
+                closeSearch();
+            }}
+        }});
+
+        // Close results when clicking outside
+        document.addEventListener('click', (e) => {{
+            if (!searchContainer.contains(e.target)) {{
+                hideResults();
+            }}
+        }});
+
+        // Focus search on input click
+        searchInput.addEventListener('focus', () => {{
+            if (searchInput.value.length >= 2) {{
+                handleSearch(searchInput.value);
+            }}
+        }});
+
+        // Global keyboard shortcut (Ctrl+K or Cmd+K)
+        document.addEventListener('keydown', (e) => {{
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {{
+                e.preventDefault();
+                if (window.innerWidth < 769) {{
+                    searchContainer.classList.add('active');
+                }}
+                searchInput.focus();
+            }}
+            if (e.key === 'Escape') {{
+                closeSearch();
+            }}
+        }});
+
+        // Mobile search toggle
+        if (searchToggle) {{
+            searchToggle.addEventListener('click', () => {{
+                searchContainer.classList.toggle('active');
+                if (searchContainer.classList.contains('active')) {{
+                    searchInput.focus();
+                }}
+            }});
+        }}
 
         // Load initial page
         const initialHash = window.location.hash.substring(1);
