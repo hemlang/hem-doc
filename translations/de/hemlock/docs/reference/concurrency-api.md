@@ -1,23 +1,23 @@
 # Nebenlaeufigkeits-API-Referenz
 
-Vollstaendige Referenz fuer Hemlocks Async/Nebenlaeufigkeitssystem.
+Vollständige Referenz für Hemlocks Async/Nebenlaeufigkeitssystem.
 
 ---
 
-## Uebersicht
+## Übersicht
 
-Hemlock bietet **strukturierte Nebenlaeufigkeit** mit echter Multi-Thread-Parallelitaet unter Verwendung von POSIX-Threads (pthreads). Jeder gestartete Task laeuft auf einem separaten OS-Thread, was echte parallele Ausfuehrung ueber mehrere CPU-Kerne ermoeglicht.
+Hemlock bietet **strukturierte Nebenläufigkeit** mit echter Multi-Thread-Parallelität unter Verwendung von POSIX-Threads (pthreads). Jeder gestartete Task läuft auf einem separaten OS-Thread, was echte parallele Ausführung über mehrere CPU-Kerne ermöglicht.
 
 **Hauptmerkmale:**
-- Echte Multi-Thread-Parallelitaet (keine Green Threads)
+- Echte Multi-Thread-Parallelität (keine Green Threads)
 - Async-Funktionssyntax
 - Task-Starten und -Beitreten
-- Thread-sichere Kanaele
+- Thread-sichere Kanäle
 - Ausnahme-Propagierung
 
 **Threading-Modell:**
 - Echte OS-Threads (POSIX pthreads)
-- Echte Parallelitaet (mehrere CPU-Kerne)
+- Echte Parallelität (mehrere CPU-Kerne)
 - Kernel-geplant (praeemptives Multitasking)
 - Thread-sichere Synchronisation (Mutexes, Bedingungsvariablen)
 
@@ -27,12 +27,12 @@ Hemlock bietet **strukturierte Nebenlaeufigkeit** mit echter Multi-Thread-Parall
 
 ### Async-Funktionsdeklaration
 
-Funktionen koennen als `async` deklariert werden um anzuzeigen, dass sie fuer nebenlaeufige Ausfuehrung konzipiert sind.
+Funktionen können als `async` deklariert werden um anzuzeigen, dass sie für nebenlaeufige Ausführung konzipiert sind.
 
 **Syntax:**
 ```hemlock
 async fn function_name(params): return_type {
-    // Funktionskoerper
+    // Funktionskörper
 }
 ```
 
@@ -61,11 +61,11 @@ async fn process_data(data: string) {
 
 **Verhalten:**
 - `async fn` deklariert eine asynchrone Funktion
-- Kann synchron aufgerufen werden (laeuft im aktuellen Thread)
-- Kann als nebenlaeufiger Task gestartet werden (laeuft auf neuem Thread)
-- Wenn gestartet, laeuft auf eigenem OS-Thread
+- Kann synchron aufgerufen werden (läuft im aktuellen Thread)
+- Kann als nebenlaeufiger Task gestartet werden (läuft auf neuem Thread)
+- Wenn gestartet, läuft auf eigenem OS-Thread
 
-**Hinweis:** Das `await`-Schluesselwort ist fuer zukuenftige Verwendung reserviert, aber derzeit nicht implementiert.
+**Hinweis:** Das `await`-Schlüsselwort ist für zukuenftige Verwendung reserviert, aber derzeit nicht implementiert.
 
 ---
 
@@ -84,7 +84,7 @@ spawn(async_fn: function, ...args): task
 - `async_fn` - Auszufuehrende Async-Funktion
 - `...args` - An die Funktion zu uebergebende Argumente
 
-**Rueckgabe:** Task-Handle
+**Rückgabe:** Task-Handle
 
 **Beispiele:**
 ```hemlock
@@ -116,8 +116,8 @@ let r3 = join(t3);
 
 **Verhalten:**
 - Erstellt neuen OS-Thread via `pthread_create()`
-- Beginnt sofort mit der Ausfuehrung der Funktion
-- Gibt Task-Handle fuer spaeteres Beitreten zurueck
+- Beginnt sofort mit der Ausführung der Funktion
+- Gibt Task-Handle für spaeteres Beitreten zurück
 - Tasks laufen parallel auf separaten CPU-Kernen
 
 ---
@@ -134,7 +134,7 @@ join(task: task): any
 **Parameter:**
 - `task` - Task-Handle von `spawn()`
 
-**Rueckgabe:** Rueckgabewert des Tasks
+**Rückgabe:** Rückgabewert des Tasks
 
 **Beispiele:**
 ```hemlock
@@ -150,9 +150,9 @@ print(result);         // 3628800
 
 **Verhalten:**
 - Blockiert aktuellen Thread bis Task abgeschlossen
-- Gibt Rueckgabewert des Tasks zurueck
+- Gibt Rückgabewert des Tasks zurück
 - Propagiert vom Task geworfene Ausnahmen
-- Raeumt Task-Ressourcen nach Rueckkehr auf
+- Raeumt Task-Ressourcen nach Rückkehr auf
 
 **Fehlerbehandlung:**
 ```hemlock
@@ -175,7 +175,7 @@ try {
 
 ### detach
 
-Loest Task ab (Fire-and-Forget-Ausfuehrung).
+Loest Task ab (Fire-and-Forget-Ausführung).
 
 **Signatur:**
 ```hemlock
@@ -185,7 +185,7 @@ detach(task: task): null
 **Parameter:**
 - `task` - Task-Handle von `spawn()`
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -195,27 +195,27 @@ async fn background_work() {
 }
 
 let t = spawn(background_work);
-detach(t);  // Task laeuft unabhaengig weiter
+detach(t);  // Task läuft unabhängig weiter
 
 // Kann abgeloesten Task nicht beitreten
 // join(t);  // FEHLER
 ```
 
 **Verhalten:**
-- Task laeuft unabhaengig weiter
+- Task läuft unabhängig weiter
 - Kann abgeloesten Task nicht `join()`en
 - Task und Thread werden automatisch aufgeraeumt wenn Task abgeschlossen
 
 **Anwendungsfaelle:**
 - Fire-and-Forget-Hintergrundtasks
 - Logging/Monitoring-Tasks
-- Tasks die keine Werte zurueckgeben muessen
+- Tasks die keine Werte zurückgeben müssen
 
 ---
 
-## Kanaele
+## Kanäle
 
-Kanaele bieten thread-sichere Kommunikation zwischen Tasks.
+Kanäle bieten thread-sichere Kommunikation zwischen Tasks.
 
 ### channel
 
@@ -229,11 +229,11 @@ channel(capacity: i32): channel
 **Parameter:**
 - `capacity` - Puffergroesse (Anzahl der Werte)
 
-**Rueckgabe:** Kanal-Objekt
+**Rückgabe:** Kanal-Objekt
 
 **Beispiele:**
 ```hemlock
-let ch = channel(10);  // Gepufferter Kanal mit Kapazitaet 10
+let ch = channel(10);  // Gepufferter Kanal mit Kapazität 10
 let ch2 = channel(1);  // Minimaler Puffer (synchron)
 let ch3 = channel(100); // Grosser Puffer
 ```
@@ -241,7 +241,7 @@ let ch3 = channel(100); // Grosser Puffer
 **Verhalten:**
 - Erstellt thread-sicheren Kanal
 - Verwendet pthread-Mutexes zur Synchronisation
-- Kapazitaet ist bei Erstellung fest
+- Kapazität ist bei Erstellung fest
 
 ---
 
@@ -259,7 +259,7 @@ channel.send(value: any): null
 **Parameter:**
 - `value` - Zu sendender Wert (beliebiger Typ)
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -281,7 +281,7 @@ let t = spawn(producer, ch, 5);
 - Sendet Wert an Kanal
 - Blockiert wenn Kanal voll
 - Thread-sicher (verwendet Mutex)
-- Gibt zurueck nachdem Wert gesendet wurde
+- Gibt zurück nachdem Wert gesendet wurde
 
 ---
 
@@ -294,7 +294,7 @@ Empfaengt Wert von Kanal (blockiert wenn leer).
 channel.recv(): any
 ```
 
-**Rueckgabe:** Wert vom Kanal, oder `null` wenn Kanal geschlossen und leer
+**Rückgabe:** Wert vom Kanal, oder `null` wenn Kanal geschlossen und leer
 
 **Beispiele:**
 ```hemlock
@@ -316,7 +316,7 @@ let t = spawn(consumer, ch, 5);
 **Verhalten:**
 - Empfaengt Wert vom Kanal
 - Blockiert wenn Kanal leer
-- Gibt `null` zurueck wenn Kanal geschlossen und leer
+- Gibt `null` zurück wenn Kanal geschlossen und leer
 - Thread-sicher (verwendet Mutex)
 
 ---
@@ -330,7 +330,7 @@ Schliesst Kanal (keine weiteren Sends erlaubt).
 channel.close(): null
 ```
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -357,7 +357,7 @@ async fn consumer(ch) {
 **Verhalten:**
 - Schliesst Kanal
 - Keine weiteren Sends erlaubt
-- `recv()` gibt `null` zurueck wenn Kanal leer
+- `recv()` gibt `null` zurück wenn Kanal leer
 - Thread-sicher
 
 ---
@@ -439,10 +439,10 @@ print(f5, f6, f7, f8);
 ### Zustandsuebergaenge
 
 1. **Erstellt** - Task gestartet aber noch nicht laufend
-2. **Laufend** - Task laeuft auf OS-Thread
-3. **Abgeschlossen** - Task beendet (Ergebnis verfuegbar)
+2. **Laufend** - Task läuft auf OS-Thread
+3. **Abgeschlossen** - Task beendet (Ergebnis verfügbar)
 4. **Beigetreten** - Ergebnis abgerufen, Ressourcen aufgeraeumt
-5. **Abgeloest** - Task laeuft unabhaengig weiter
+5. **Abgeloest** - Task läuft unabhängig weiter
 
 ### Lebenszyklus-Beispiel
 
@@ -454,7 +454,7 @@ async fn work(n: i32): i32 {
 // 1. Task erstellen
 let t = spawn(work, 21);  // Zustand: Laufend
 
-// Task laeuft auf separatem Thread...
+// Task läuft auf separatem Thread...
 
 // 2. Task beitreten
 let result = join(t);     // Zustand: Abgeschlossen → Beigetreten
@@ -467,7 +467,7 @@ print(result);            // 42
 
 ```hemlock
 async fn background() {
-    print("Hintergrund-Task laeuft");
+    print("Hintergrund-Task läuft");
     return null;
 }
 
@@ -477,7 +477,7 @@ let t = spawn(background);  // Zustand: Laufend
 // 2. Task abloesen
 detach(t);                  // Zustand: Abgeloest
 
-// Task laeuft unabhaengig weiter
+// Task läuft unabhängig weiter
 // Ressourcen werden vom OS aufgeraeumt wenn fertig
 ```
 
@@ -544,7 +544,7 @@ print("Task 3:", r3);
 
 ## Leistungscharakteristiken
 
-### Echte Parallelitaet
+### Echte Parallelität
 
 ```hemlock
 async fn cpu_intensive(n: i32): i32 {
@@ -557,13 +557,13 @@ async fn cpu_intensive(n: i32): i32 {
     return sum;
 }
 
-// Sequentielle Ausfuehrung
+// Sequentielle Ausführung
 let start = get_time();
 let r1 = cpu_intensive(10000000);
 let r2 = cpu_intensive(10000000);
 let sequential_time = get_time() - start;
 
-// Parallele Ausfuehrung
+// Parallele Ausführung
 let start2 = get_time();
 let t1 = spawn(cpu_intensive, 10000000);
 let t2 = spawn(cpu_intensive, 10000000);
@@ -575,8 +575,8 @@ let parallel_time = get_time() - start2;
 ```
 
 **Bewiesene Charakteristiken:**
-- N Tasks koennen N CPU-Kerne gleichzeitig nutzen
-- Stresstests zeigen 8-9x CPU-Zeit vs. Wandzeit (Beweis der Parallelitaet)
+- N Tasks können N CPU-Kerne gleichzeitig nutzen
+- Stresstests zeigen 8-9x CPU-Zeit vs. Wandzeit (Beweis der Parallelität)
 - Thread-Overhead: ~8KB Stack + pthread-Overhead pro Task
 - Blockierende Operationen in einem Task blockieren andere nicht
 
@@ -593,7 +593,7 @@ let parallel_time = get_time() - start2;
 
 ### Synchronisation
 
-- **Mutexes** - Kanaele verwenden `pthread_mutex_t`
+- **Mutexes** - Kanäle verwenden `pthread_mutex_t`
 - **Bedingungsvariablen** - Blockierendes send/recv verwendet `pthread_cond_t`
 - **Lock-freie Operationen** - Task-Zustandsuebergaenge sind atomar
 
@@ -601,24 +601,24 @@ let parallel_time = get_time() - start2;
 
 - **Beigetretene Tasks** - Automatisch aufgeraeumt nach `join()`
 - **Abgeloeste Tasks** - Automatisch aufgeraeumt wenn Task abgeschlossen
-- **Kanaele** - Referenzgezaehlt, freigegeben wenn nicht mehr verwendet
+- **Kanäle** - Referenzgezählt, freigegeben wenn nicht mehr verwendet
 
 ---
 
-## Einschraenkungen
+## Einschränkungen
 
-- Kein `select()` fuer Multiplexen mehrerer Kanaele
+- Kein `select()` für Multiplexen mehrerer Kanäle
 - Kein Work-Stealing-Scheduler (1 Thread pro Task)
 - Keine async I/O-Integration (Datei/Netzwerk-Operationen blockieren)
 - Kanalkapazitaet bei Erstellung fest
 
 ---
 
-## Vollstaendige API-Zusammenfassung
+## Vollständige API-Zusammenfassung
 
 ### Funktionen
 
-| Funktion  | Signatur                          | Rueckgabe | Beschreibung                     |
+| Funktion  | Signatur                          | Rückgabe | Beschreibung                     |
 |-----------|-----------------------------------|-----------|----------------------------------|
 | `spawn`   | `(async_fn: function, ...args)`   | `task`    | Nebenlaeufigen Task erstellen und starten |
 | `join`    | `(task: task)`                    | `any`     | Auf Task warten, Ergebnis holen  |
@@ -627,17 +627,17 @@ let parallel_time = get_time() - start2;
 
 ### Kanal-Methoden
 
-| Methode | Signatur        | Rueckgabe | Beschreibung                       |
+| Methode | Signatur        | Rückgabe | Beschreibung                       |
 |---------|-----------------|-----------|-----------------------------------|
 | `send`  | `(value: any)`  | `null`    | Wert senden (blockiert wenn voll) |
 | `recv`  | `()`            | `any`     | Wert empfangen (blockiert wenn leer) |
-| `close` | `()`            | `null`    | Kanal schliessen                  |
+| `close` | `()`            | `null`    | Kanal schließen                  |
 
 ### Typen
 
 | Typ       | Beschreibung                         |
 |-----------|--------------------------------------|
-| `task`    | Handle fuer nebenlaeufigen Task      |
+| `task`    | Handle für nebenlaeufigen Task      |
 | `channel` | Thread-sicherer Kommunikationskanal  |
 
 ---
@@ -646,9 +646,9 @@ let parallel_time = get_time() - start2;
 
 ### Empfohlen
 
-- Verwenden Sie Kanaele fuer Kommunikation zwischen Tasks
+- Verwenden Sie Kanäle für Kommunikation zwischen Tasks
 - Behandeln Sie Ausnahmen von beigetretenen Tasks
-- Schliessen Sie Kanaele wenn Senden beendet
+- Schließen Sie Kanäle wenn Senden beendet
 - Verwenden Sie `join()` um Ergebnisse zu holen und aufzuraeumen
 - Starten Sie nur async-Funktionen
 
@@ -658,7 +658,7 @@ let parallel_time = get_time() - start2;
 - Treten Sie demselben Task nicht zweimal bei
 - Senden Sie nicht auf geschlossenen Kanaelen
 - Starten Sie keine nicht-async-Funktionen
-- Vergessen Sie nicht Tasks beizutreten (ausser wenn abgeloest)
+- Vergessen Sie nicht Tasks beizutreten (außer wenn abgeloest)
 
 ---
 

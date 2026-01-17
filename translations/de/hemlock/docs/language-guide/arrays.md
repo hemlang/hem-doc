@@ -1,8 +1,8 @@
 # Arrays
 
-Hemlock bietet **dynamische Arrays** mit umfassenden Methoden zur Datenmanipulation und -verarbeitung. Arrays koennen gemischte Typen enthalten und wachsen bei Bedarf automatisch.
+Hemlock bietet **dynamische Arrays** mit umfassenden Methoden zur Datenmanipulation und -verarbeitung. Arrays können gemischte Typen enthalten und wachsen bei Bedarf automatisch.
 
-## Uebersicht
+## Übersicht
 
 ```hemlock
 // Array-Literale
@@ -13,8 +13,8 @@ print(arr.length);     // 5
 // Gemischte Typen erlaubt
 let mixed = [1, "hello", true, null];
 
-// Dynamische Groessenanpassung
-arr.push(6);           // Waechst automatisch
+// Dynamische Größenanpassung
+arr.push(6);           // Wächst automatisch
 arr.push(7);
 print(arr.length);     // 7
 ```
@@ -34,7 +34,7 @@ let booleans = [true, false, true];
 ```hemlock
 let arr = [];  // Leeres Array
 
-// Elemente spaeter hinzufuegen
+// Elemente später hinzufügen
 arr.push(1);
 arr.push(2);
 arr.push(3);
@@ -42,7 +42,7 @@ arr.push(3);
 
 ### Gemischte Typen
 
-Arrays koennen verschiedene Typen enthalten:
+Arrays können verschiedene Typen enthalten:
 
 ```hemlock
 let mixed = [
@@ -75,7 +75,7 @@ print(matrix[2][1]);  // 8
 
 ### Typisierte Arrays
 
-Arrays koennen Typannotationen haben, um Elementtypen zu erzwingen:
+Arrays können Typannotationen haben, um Elementtypen zu erzwingen:
 
 ```hemlock
 // Typisierte Array-Syntax
@@ -83,7 +83,7 @@ let nums: array<i32> = [1, 2, 3, 4, 5];
 let names: array<string> = ["Alice", "Bob", "Carol"];
 let flags: array<bool> = [true, false, true];
 
-// Typueberpruefung zur Laufzeit
+// Typüberprüfung zur Laufzeit
 let valid: array<i32> = [1, 2, 3];       // OK
 let invalid: array<i32> = [1, "two", 3]; // Laufzeitfehler: Typkonflikt
 
@@ -95,7 +95,7 @@ let matrix: array<array<i32>> = [
 ```
 
 **Typannotations-Verhalten:**
-- Elemente werden beim Hinzufuegen zum Array typueberprueft
+- Elemente werden beim Hinzufügen zum Array typüberprüft
 - Typkonflikte verursachen Laufzeitfehler
 - Ohne Typannotation akzeptieren Arrays gemischte Typen
 
@@ -111,7 +111,7 @@ let arr = [10, 20, 30, 40, 50];
 print(arr[0]);  // 10 (erstes Element)
 print(arr[4]);  // 50 (letztes Element)
 
-// Zugriff ausserhalb der Grenzen gibt null zurueck (kein Fehler)
+// Zugriff außerhalb der Grenzen gibt null zurück (kein Fehler)
 print(arr[10]);  // null
 ```
 
@@ -120,23 +120,23 @@ print(arr[10]);  // null
 ```hemlock
 let arr = [1, 2, 3];
 
-arr[0] = 10;    // Bestehendes aendern
+arr[0] = 10;    // Bestehendes ändern
 arr[1] = 20;
 print(arr);     // [10, 20, 3]
 
-// Kann ueber aktuelle Laenge hinaus zuweisen (Array waechst)
+// Kann über aktuelle Länge hinaus zuweisen (Array wächst)
 arr[5] = 60;    // Erstellt [10, 20, 3, null, null, 60]
 ```
 
 ### Negative Indizes
 
-**Nicht unterstuetzt** - Verwende nur positive Indizes:
+**Nicht unterstützt** - Verwende nur positive Indizes:
 
 ```hemlock
 let arr = [1, 2, 3];
 print(arr[-1]);  // FEHLER oder undefiniertes Verhalten
 
-// Verwende length fuer letztes Element
+// Verwende length für letztes Element
 print(arr[arr.length - 1]);  // 3
 ```
 
@@ -144,7 +144,7 @@ print(arr[arr.length - 1]);  // 3
 
 ### `.length`-Eigenschaft
 
-Gibt die Anzahl der Elemente zurueck:
+Gibt die Anzahl der Elemente zurück:
 
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
@@ -154,18 +154,18 @@ print(arr.length);  // 5
 let empty = [];
 print(empty.length);  // 0
 
-// Nach Aenderungen
+// Nach Änderungen
 arr.push(6);
 print(arr.length);  // 6
 ```
 
 ## Array-Methoden
 
-Hemlock bietet 18 Array-Methoden fuer umfassende Manipulation.
+Hemlock bietet 18 Array-Methoden für umfassende Manipulation.
 
 ### Stack-Operationen
 
-**`push(value)`** - Element am Ende hinzufuegen:
+**`push(value)`** - Element am Ende hinzufügen:
 ```hemlock
 let arr = [1, 2, 3];
 arr.push(4);           // [1, 2, 3, 4]
@@ -174,10 +174,10 @@ arr.push(5);           // [1, 2, 3, 4, 5]
 print(arr.length);     // 5
 ```
 
-**`pop()`** - Letztes Element entfernen und zurueckgeben:
+**`pop()`** - Letztes Element entfernen und zurückgeben:
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
-let last = arr.pop();  // Gibt 5 zurueck, arr ist jetzt [1, 2, 3, 4]
+let last = arr.pop();  // Gibt 5 zurück, arr ist jetzt [1, 2, 3, 4]
 
 print(last);           // 5
 print(arr.length);     // 4
@@ -185,36 +185,36 @@ print(arr.length);     // 4
 
 ### Queue-Operationen
 
-**`shift()`** - Erstes Element entfernen und zurueckgeben:
+**`shift()`** - Erstes Element entfernen und zurückgeben:
 ```hemlock
 let arr = [1, 2, 3];
-let first = arr.shift();   // Gibt 1 zurueck, arr ist jetzt [2, 3]
+let first = arr.shift();   // Gibt 1 zurück, arr ist jetzt [2, 3]
 
 print(first);              // 1
 print(arr);                // [2, 3]
 ```
 
-**`unshift(value)`** - Element am Anfang hinzufuegen:
+**`unshift(value)`** - Element am Anfang hinzufügen:
 ```hemlock
 let arr = [2, 3];
 arr.unshift(1);            // [1, 2, 3]
 arr.unshift(0);            // [0, 1, 2, 3]
 ```
 
-### Einfuege- und Entfernungsoperationen
+### Einfüge- und Entfernungsoperationen
 
-**`insert(index, value)`** - Element an Index einfuegen:
+**`insert(index, value)`** - Element an Index einfügen:
 ```hemlock
 let arr = [1, 2, 4, 5];
-arr.insert(2, 3);      // 3 an Index 2 einfuegen: [1, 2, 3, 4, 5]
+arr.insert(2, 3);      // 3 an Index 2 einfügen: [1, 2, 3, 4, 5]
 
-arr.insert(0, 0);      // Am Anfang einfuegen: [0, 1, 2, 3, 4, 5]
+arr.insert(0, 0);      // Am Anfang einfügen: [0, 1, 2, 3, 4, 5]
 ```
 
-**`remove(index)`** - Element an Index entfernen und zurueckgeben:
+**`remove(index)`** - Element an Index entfernen und zurückgeben:
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
-let removed = arr.remove(2);  // Gibt 3 zurueck, arr ist jetzt [1, 2, 4, 5]
+let removed = arr.remove(2);  // Gibt 3 zurück, arr ist jetzt [1, 2, 4, 5]
 
 print(removed);               // 3
 print(arr);                   // [1, 2, 4, 5]
@@ -233,7 +233,7 @@ let words = ["apple", "banana", "cherry"];
 let idx3 = words.find("banana");  // 1
 ```
 
-**`contains(value)`** - Pruefen ob Array Wert enthaelt:
+**`contains(value)`** - Prüfen ob Array Wert enthält:
 ```hemlock
 let arr = [10, 20, 30, 40];
 let has = arr.contains(20);  // true
@@ -248,7 +248,7 @@ let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4] (Indizes 1, 2, 3)
 let first = arr.slice(0, 2); // [1, 2]
 
-// Original unveraendert
+// Original unverändert
 print(arr);                  // [1, 2, 3, 4, 5]
 ```
 
@@ -256,14 +256,14 @@ print(arr);                  // [1, 2, 3, 4, 5]
 ```hemlock
 let arr = [1, 2, 3];
 let f = arr.first();         // 1 (ohne Entfernen)
-print(arr);                  // [1, 2, 3] (unveraendert)
+print(arr);                  // [1, 2, 3] (unverändert)
 ```
 
 **`last()`** - Letztes Element holen (ohne Entfernen):
 ```hemlock
 let arr = [1, 2, 3];
 let l = arr.last();          // 3 (ohne Entfernen)
-print(arr);                  // [1, 2, 3] (unveraendert)
+print(arr);                  // [1, 2, 3] (unverändert)
 ```
 
 ### Transformationsoperationen
@@ -273,7 +273,7 @@ print(arr);                  // [1, 2, 3] (unveraendert)
 let arr = [1, 2, 3, 4, 5];
 arr.reverse();               // [5, 4, 3, 2, 1]
 
-print(arr);                  // [5, 4, 3, 2, 1] (geaendert)
+print(arr);                  // [5, 4, 3, 2, 1] (geändert)
 ```
 
 **`join(delimiter)`** - Elemente zu String verbinden:
@@ -295,7 +295,7 @@ let a = [1, 2, 3];
 let b = [4, 5, 6];
 let combined = a.concat(b);  // [1, 2, 3, 4, 5, 6] (neues Array)
 
-// Originale unveraendert
+// Originale unverändert
 print(a);                    // [1, 2, 3]
 print(b);                    // [4, 5, 6]
 ```
@@ -313,7 +313,7 @@ print(arr);                  // []
 
 ## Methodenverkettung
 
-Methoden, die Arrays oder Werte zurueckgeben, ermoeglichen Verkettung:
+Methoden, die Arrays oder Werte zurückgeben, ermöglichen Verkettung:
 
 ```hemlock
 let result = [1, 2, 3]
@@ -329,18 +329,18 @@ let numbers = [5, 3, 8, 1, 9]
     .concat([10, 11]);  // [3, 8, 1, 10, 11]
 ```
 
-## Vollstaendige Methodenreferenz
+## Vollständige Methodenreferenz
 
-| Methode | Parameter | Rueckgabe | Mutiert | Beschreibung |
+| Methode | Parameter | Rückgabe | Mutiert | Beschreibung |
 |--------|-----------|---------|---------|-------------|
-| `push(value)` | any | void | Ja | Element am Ende hinzufuegen |
-| `pop()` | - | any | Ja | Letztes entfernen und zurueckgeben |
-| `shift()` | - | any | Ja | Erstes entfernen und zurueckgeben |
-| `unshift(value)` | any | void | Ja | Element am Anfang hinzufuegen |
-| `insert(index, value)` | i32, any | void | Ja | An Index einfuegen |
-| `remove(index)` | i32 | any | Ja | An Index entfernen und zurueckgeben |
+| `push(value)` | any | void | Ja | Element am Ende hinzufügen |
+| `pop()` | - | any | Ja | Letztes entfernen und zurückgeben |
+| `shift()` | - | any | Ja | Erstes entfernen und zurückgeben |
+| `unshift(value)` | any | void | Ja | Element am Anfang hinzufügen |
+| `insert(index, value)` | i32, any | void | Ja | An Index einfügen |
+| `remove(index)` | i32 | any | Ja | An Index entfernen und zurückgeben |
 | `find(value)` | any | i32 | Nein | Erstes Vorkommen finden (-1 wenn nicht gefunden) |
-| `contains(value)` | any | bool | Nein | Pruefen ob Wert enthalten |
+| `contains(value)` | any | bool | Nein | Prüfen ob Wert enthalten |
 | `slice(start, end)` | i32, i32 | array | Nein | Teilarray extrahieren (neues Array) |
 | `join(delimiter)` | string | string | Nein | Zu String verbinden |
 | `concat(other)` | array | array | Nein | Verketten (neues Array) |
@@ -349,28 +349,28 @@ let numbers = [5, 3, 8, 1, 9]
 | `last()` | - | any | Nein | Letztes Element holen |
 | `clear()` | - | void | Ja | Alle Elemente entfernen |
 | `map(callback)` | fn | array | Nein | Jedes Element transformieren |
-| `filter(predicate)` | fn | array | Nein | Passende Elemente auswaehlen |
+| `filter(predicate)` | fn | array | Nein | Passende Elemente auswählen |
 | `reduce(callback, initial)` | fn, any | any | Nein | Auf einzelnen Wert reduzieren |
 
 ## Implementierungsdetails
 
 ### Speichermodell
 
-- **Heap-allokiert** - Dynamische Kapazitaet
-- **Automatisches Wachstum** - Verdoppelt Kapazitaet bei Ueberschreitung
-- **Kein automatisches Schrumpfen** - Kapazitaet nimmt nicht ab
-- **Keine Grenzpruefung bei Indizierung** - Verwende Methoden fuer Sicherheit
+- **Heap-allokiert** - Dynamische Kapazität
+- **Automatisches Wachstum** - Verdoppelt Kapazität bei Überschreitung
+- **Kein automatisches Schrumpfen** - Kapazität nimmt nicht ab
+- **Keine Grenzprüfung bei Indizierung** - Verwende Methoden für Sicherheit
 
-### Kapazitaetsverwaltung
+### Kapazitätsverwaltung
 
 ```hemlock
-let arr = [];  // Anfangskapazitaet: 0
+let arr = [];  // Anfangskapazität: 0
 
-arr.push(1);   // Waechst auf Kapazitaet 1
-arr.push(2);   // Waechst auf Kapazitaet 2
-arr.push(3);   // Waechst auf Kapazitaet 4 (verdoppelt)
-arr.push(4);   // Immer noch Kapazitaet 4
-arr.push(5);   // Waechst auf Kapazitaet 8 (verdoppelt)
+arr.push(1);   // Wächst auf Kapazität 1
+arr.push(2);   // Wächst auf Kapazität 2
+arr.push(3);   // Wächst auf Kapazität 4 (verdoppelt)
+arr.push(4);   // Immer noch Kapazität 4
+arr.push(5);   // Wächst auf Kapazität 8 (verdoppelt)
 ```
 
 ### Wertvergleich
@@ -394,7 +394,7 @@ arr2.contains(obj1);  // true (gleiche Referenz)
 arr2.contains(obj2);  // false (verschiedene Referenz)
 ```
 
-## Haeufige Muster
+## Häufige Muster
 
 ### Funktionale Operationen (map/filter/reduce)
 
@@ -406,7 +406,7 @@ let numbers = [1, 2, 3, 4, 5];
 let doubled = numbers.map(fn(x) { return x * 2; });
 print(doubled);  // [2, 4, 6, 8, 10]
 
-// filter - passende Elemente auswaehlen
+// filter - passende Elemente auswählen
 let evens = numbers.filter(fn(x) { return x % 2 == 0; });
 print(evens);  // [2, 4]
 
@@ -441,7 +441,7 @@ let next = stack.pop();   // 2
 ```hemlock
 let queue = [];
 
-// Einreihen (am Ende hinzufuegen)
+// Einreihen (am Ende hinzufügen)
 queue.push(1);
 queue.push(2);
 queue.push(3);
@@ -453,25 +453,25 @@ let second = queue.shift();  // 2
 
 ## Best Practices
 
-1. **Verwende Methoden statt direkter Indizierung** - Grenzpruefung und Klarheit
-2. **Pruefe Grenzen** - Direkte Indizierung prueft keine Grenzen
-3. **Bevorzuge unveraenderliche Operationen** - Verwende `slice()` und `concat()` statt Mutation
-4. **Initialisiere mit Kapazitaet** - Wenn du die Groesse kennst (derzeit nicht unterstuetzt)
-5. **Verwende `contains()` fuer Zugehoerigkeit** - Klarer als manuelle Schleifen
+1. **Verwende Methoden statt direkter Indizierung** - Grenzprüfung und Klarheit
+2. **Pruefe Grenzen** - Direkte Indizierung prüft keine Grenzen
+3. **Bevorzuge unveränderliche Operationen** - Verwende `slice()` und `concat()` statt Mutation
+4. **Initialisiere mit Kapazität** - Wenn du die Größe kennst (derzeit nicht unterstützt)
+5. **Verwende `contains()` für Zugehörigkeit** - Klarer als manuelle Schleifen
 6. **Verkette Methoden** - Lesbarer als verschachtelte Aufrufe
 
-## Haeufige Fallstricke
+## Häufige Fallstricke
 
-### Fallstrick: Direkter Index ausserhalb der Grenzen
+### Fallstrick: Direkter Index außerhalb der Grenzen
 
 ```hemlock
 let arr = [1, 2, 3];
 
-// Keine Grenzpruefung!
+// Keine Grenzprüfung!
 arr[10] = 99;  // Erstellt duenn besetztes Array mit nulls
 print(arr.length);  // 11 (nicht 3!)
 
-// Besser: Verwende push() oder pruefe Laenge
+// Besser: Verwende push() oder pruefe Länge
 if (arr.length <= 10) {
     arr.push(99);
 }
@@ -486,9 +486,9 @@ let arr = [1, 2, 3];
 arr.reverse();
 print(arr);  // [3, 2, 1]
 
-// Gibt neues Array zurueck
+// Gibt neues Array zurück
 let sub = arr.slice(0, 2);
-print(arr);  // [3, 2, 1] (unveraendert)
+print(arr);  // [3, 2, 1] (unverändert)
 print(sub);  // [3, 2]
 ```
 
@@ -512,10 +512,10 @@ arr.contains({ x: 10 });  // false (verschiedenes Objekt)
 let global_cache = [];  // Modulebene, existiert bis Programmende
 
 fn add_to_cache(item) {
-    global_cache.push(item);  // Waechst unbegrenzt
+    global_cache.push(item);  // Wächst unbegrenzt
 }
 
-// Fuer langlebige Daten, erwaege:
+// Für langlebige Daten, erwaege:
 // - Array periodisch leeren: global_cache.clear();
 // - Frueh freigeben wenn fertig: free(global_cache);
 ```
@@ -652,26 +652,26 @@ sort(numbers);  // Aendert an Ort und Stelle
 print(numbers);  // [1, 2, 5, 8, 9]
 ```
 
-## Einschraenkungen
+## Einschränkungen
 
-Aktuelle Einschraenkungen:
+Aktuelle Einschränkungen:
 
-- **Keine Grenzpruefung bei Indizierung** - Direkter Zugriff ist ungeprueft
-- **Referenzgleichheit fuer Objekte** - `find()` und `contains()` verwenden Referenzvergleich
+- **Keine Grenzprüfung bei Indizierung** - Direkter Zugriff ist ungeprüft
+- **Referenzgleichheit für Objekte** - `find()` und `contains()` verwenden Referenzvergleich
 - **Keine Array-Destrukturierung** - Keine `let [a, b] = arr` Syntax
 - **Kein Spread-Operator** - Keine `[...arr1, ...arr2]` Syntax
 
-**Hinweis:** Arrays sind referenzgezaehlt und werden automatisch freigegeben, wenn der Scope endet. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) fuer Details.
+**Hinweis:** Arrays sind referenzgezählt und werden automatisch freigegeben, wenn der Scope endet. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
 
 ## Verwandte Themen
 
-- [Strings](strings.md) - String-Methoden aehnlich wie Array-Methoden
+- [Strings](strings.md) - String-Methoden ähnlich wie Array-Methoden
 - [Objekte](objects.md) - Arrays sind auch objektaehnlich
-- [Funktionen](functions.md) - Hoehere Ordnung Funktionen mit Arrays
-- [Kontrollfluss](control-flow.md) - Ueber Arrays iterieren
+- [Funktionen](functions.md) - Höhere Ordnung Funktionen mit Arrays
+- [Kontrollfluss](control-flow.md) - Über Arrays iterieren
 
 ## Siehe auch
 
-- **Dynamische Groessenanpassung**: Arrays wachsen automatisch mit Kapazitaetsverdopplung
+- **Dynamische Größenanpassung**: Arrays wachsen automatisch mit Kapazitätsverdopplung
 - **Methoden**: 18 umfassende Methoden zur Manipulation inklusive map/filter/reduce
-- **Speicher**: Siehe [Speicher](memory.md) fuer Array-Allokationsdetails
+- **Speicher**: Siehe [Speicher](memory.md) für Array-Allokationsdetails

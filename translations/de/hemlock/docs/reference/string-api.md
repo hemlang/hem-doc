@@ -1,16 +1,16 @@
 # String-API-Referenz
 
-Vollstaendige Referenz fuer Hemlocks String-Typ und alle 19 String-Methoden.
+Vollständige Referenz für Hemlocks String-Typ und alle 19 String-Methoden.
 
 ---
 
-## Uebersicht
+## Übersicht
 
-Strings in Hemlock sind **UTF-8-kodierte, veraenderbare, heap-allokierte** Sequenzen mit vollstaendiger Unicode-Unterstuetzung. Alle Operationen arbeiten mit **Codepoints** (Zeichen), nicht Bytes.
+Strings in Hemlock sind **UTF-8-kodierte, veraenderbare, heap-allokierte** Sequenzen mit vollstaendiger Unicode-Unterstützung. Alle Operationen arbeiten mit **Codepoints** (Zeichen), nicht Bytes.
 
 **Hauptmerkmale:**
 - UTF-8-Kodierung (U+0000 bis U+10FFFF)
-- Veraenderbar (kann Zeichen direkt aendern)
+- Veraenderbar (kann Zeichen direkt ändern)
 - Codepoint-basierte Indizierung
 - 19 eingebaute Methoden
 - Automatische Verkettung mit `+`-Operator
@@ -25,7 +25,7 @@ Strings in Hemlock sind **UTF-8-kodierte, veraenderbare, heap-allokierte** Seque
 - `.length` - Anzahl der Codepoints (Zeichen)
 - `.byte_length` - Anzahl der UTF-8-Bytes
 
-**Literal-Syntax:** Doppelte Anfuehrungszeichen `"text"`
+**Literal-Syntax:** Doppelte Anführungszeichen `"text"`
 
 **Beispiele:**
 ```hemlock
@@ -42,18 +42,18 @@ print(emoji.byte_length);   // 4 (vier UTF-8-Bytes)
 
 ## Indizierung
 
-Strings unterstuetzen Codepoint-basierte Indizierung mit `[]`:
+Strings unterstützen Codepoint-basierte Indizierung mit `[]`:
 
 **Lesezugriff:**
 ```hemlock
 let s = "hello";
-let ch = s[0];          // Gibt Rune 'h' zurueck
+let ch = s[0];          // Gibt Rune 'h' zurück
 ```
 
 **Schreibzugriff:**
 ```hemlock
 let s = "hello";
-s[0] = 'H';             // Mit Rune aendern (jetzt "Hello")
+s[0] = 'H';             // Mit Rune ändern (jetzt "Hello")
 ```
 
 **UTF-8-Beispiel:**
@@ -100,7 +100,7 @@ let msg = "Hi " + '👋' + " World " + '🌍';  // "Hi 👋 World 🌍"
 
 ### .length
 
-Gibt die Anzahl der Unicode-Codepoints (Zeichen) zurueck.
+Gibt die Anzahl der Unicode-Codepoints (Zeichen) zurück.
 
 **Typ:** `i32`
 
@@ -120,7 +120,7 @@ print(text.length);     // 8 (7 ASCII + 1 Emoji)
 
 ### .byte_length
 
-Gibt die Anzahl der UTF-8-Bytes zurueck.
+Gibt die Anzahl der UTF-8-Bytes zurück.
 
 **Typ:** `i32`
 
@@ -133,7 +133,7 @@ let emoji = "🚀";
 print(emoji.byte_length); // 4 (Emoji ist 4 UTF-8-Bytes)
 
 let text = "Hello 🌍!";
-print(text.byte_length);  // 11 (7 ASCII + 4 fuer Emoji)
+print(text.byte_length);  // 11 (7 ASCII + 4 für Emoji)
 ```
 
 ---
@@ -144,7 +144,7 @@ print(text.byte_length);  // 11 (7 ASCII + 4 fuer Emoji)
 
 #### substr
 
-Extrahiert Teilstring nach Position und Laenge.
+Extrahiert Teilstring nach Position und Länge.
 
 **Signatur:**
 ```hemlock
@@ -155,7 +155,7 @@ string.substr(start: i32, length: i32): string
 - `start` - Start-Codepoint-Index (nullbasiert)
 - `length` - Anzahl der zu extrahierenden Codepoints
 
-**Rueckgabe:** Neuer String
+**Rückgabe:** Neuer String
 
 **Beispiele:**
 ```hemlock
@@ -183,7 +183,7 @@ string.slice(start: i32, end: i32): string
 - `start` - Start-Codepoint-Index (nullbasiert)
 - `end` - End-Codepoint-Index (exklusiv)
 
-**Rueckgabe:** Neuer String
+**Rückgabe:** Neuer String
 
 **Beispiele:**
 ```hemlock
@@ -212,7 +212,7 @@ string.find(needle: string): i32
 **Parameter:**
 - `needle` - Zu suchender Teilstring
 
-**Rueckgabe:** Codepoint-Index des ersten Vorkommens, oder `-1` wenn nicht gefunden
+**Rückgabe:** Codepoint-Index des ersten Vorkommens, oder `-1` wenn nicht gefunden
 
 **Beispiele:**
 ```hemlock
@@ -226,7 +226,7 @@ let pos3 = s.find("l");         // 2 (erstes 'l')
 
 #### contains
 
-Prueft ob String Teilstring enthaelt.
+Prueft ob String Teilstring enthält.
 
 **Signatur:**
 ```hemlock
@@ -236,7 +236,7 @@ string.contains(needle: string): bool
 **Parameter:**
 - `needle` - Zu suchender Teilstring
 
-**Rueckgabe:** `true` wenn gefunden, `false` sonst
+**Rückgabe:** `true` wenn gefunden, `false` sonst
 
 **Beispiele:**
 ```hemlock
@@ -261,7 +261,7 @@ string.split(delimiter: string): array
 **Parameter:**
 - `delimiter` - String zum Teilen
 
-**Rueckgabe:** Array von Strings
+**Rückgabe:** Array von Strings
 
 **Beispiele:**
 ```hemlock
@@ -279,14 +279,14 @@ let words = text.split(" ");    // ["hello", "world", "foo"]
 
 #### trim
 
-Entfernt fuehrende und nachfolgende Leerzeichen.
+Entfernt führende und nachfolgende Leerzeichen.
 
 **Signatur:**
 ```hemlock
 string.trim(): string
 ```
 
-**Rueckgabe:** Neuer String ohne Leerzeichen
+**Rückgabe:** Neuer String ohne Leerzeichen
 
 **Beispiele:**
 ```hemlock
@@ -299,7 +299,7 @@ let clean2 = text.trim();       // "world"
 
 ---
 
-### Gross-/Kleinschreibung
+### Groß-/Kleinschreibung
 
 #### to_upper
 
@@ -310,7 +310,7 @@ Konvertiert String zu Grossbuchstaben.
 string.to_upper(): string
 ```
 
-**Rueckgabe:** Neuer String in Grossbuchstaben
+**Rückgabe:** Neuer String in Grossbuchstaben
 
 **Beispiele:**
 ```hemlock
@@ -332,7 +332,7 @@ Konvertiert String zu Kleinbuchstaben.
 string.to_lower(): string
 ```
 
-**Rueckgabe:** Neuer String in Kleinbuchstaben
+**Rückgabe:** Neuer String in Kleinbuchstaben
 
 **Beispiele:**
 ```hemlock
@@ -345,11 +345,11 @@ let lower2 = mixed.to_lower();  // "hello"
 
 ---
 
-### Praefix & Suffix
+### Präfix & Suffix
 
 #### starts_with
 
-Prueft ob String mit Praefix beginnt.
+Prueft ob String mit Präfix beginnt.
 
 **Signatur:**
 ```hemlock
@@ -357,9 +357,9 @@ string.starts_with(prefix: string): bool
 ```
 
 **Parameter:**
-- `prefix` - Zu pruefendes Praefix
+- `prefix` - Zu pruefendes Präfix
 
-**Rueckgabe:** `true` wenn String mit Praefix beginnt, `false` sonst
+**Rückgabe:** `true` wenn String mit Präfix beginnt, `false` sonst
 
 **Beispiele:**
 ```hemlock
@@ -382,7 +382,7 @@ string.ends_with(suffix: string): bool
 **Parameter:**
 - `suffix` - Zu pruefendes Suffix
 
-**Rueckgabe:** `true` wenn String mit Suffix endet, `false` sonst
+**Rückgabe:** `true` wenn String mit Suffix endet, `false` sonst
 
 **Beispiele:**
 ```hemlock
@@ -408,7 +408,7 @@ string.replace(old: string, new: string): string
 - `old` - Zu ersetzender Teilstring
 - `new` - Ersetzungsstring
 
-**Rueckgabe:** Neuer String mit erstem Vorkommen ersetzt
+**Rückgabe:** Neuer String mit erstem Vorkommen ersetzt
 
 **Beispiele:**
 ```hemlock
@@ -434,7 +434,7 @@ string.replace_all(old: string, new: string): string
 - `old` - Zu ersetzender Teilstring
 - `new` - Ersetzungsstring
 
-**Rueckgabe:** Neuer String mit allen Vorkommen ersetzt
+**Rückgabe:** Neuer String mit allen Vorkommen ersetzt
 
 **Beispiele:**
 ```hemlock
@@ -461,7 +461,7 @@ string.repeat(count: i32): string
 **Parameter:**
 - `count` - Anzahl der Wiederholungen
 
-**Rueckgabe:** Neuer String count-mal wiederholt
+**Rückgabe:** Neuer String count-mal wiederholt
 
 **Beispiele:**
 ```hemlock
@@ -478,7 +478,7 @@ let separator = line.repeat(40); // "----------------------------------------"
 
 #### char_at
 
-Gibt Unicode-Codepoint am Index zurueck.
+Gibt Unicode-Codepoint am Index zurück.
 
 **Signatur:**
 ```hemlock
@@ -488,7 +488,7 @@ string.char_at(index: i32): rune
 **Parameter:**
 - `index` - Codepoint-Index (nullbasiert)
 
-**Rueckgabe:** Rune (Unicode-Codepoint)
+**Rückgabe:** Rune (Unicode-Codepoint)
 
 **Beispiele:**
 ```hemlock
@@ -512,7 +512,7 @@ Konvertiert String zu Array von Runes.
 string.chars(): array
 ```
 
-**Rueckgabe:** Array von Runes (Codepoints)
+**Rückgabe:** Array von Runes (Codepoints)
 
 **Beispiele:**
 ```hemlock
@@ -530,7 +530,7 @@ let chars2 = text.chars();      // ['H', 'i', '🚀', '!']
 
 #### byte_at
 
-Gibt Byte-Wert am Index zurueck.
+Gibt Byte-Wert am Index zurück.
 
 **Signatur:**
 ```hemlock
@@ -540,7 +540,7 @@ string.byte_at(index: i32): u8
 **Parameter:**
 - `index` - Byte-Index (nullbasiert, NICHT Codepoint-Index)
 
-**Rueckgabe:** Byte-Wert (u8)
+**Rückgabe:** Byte-Wert (u8)
 
 **Beispiele:**
 ```hemlock
@@ -564,7 +564,7 @@ Konvertiert String zu Array von Bytes.
 string.bytes(): array
 ```
 
-**Rueckgabe:** Array von u8-Bytes
+**Rückgabe:** Array von u8-Bytes
 
 **Beispiele:**
 ```hemlock
@@ -587,7 +587,7 @@ Konvertiert String zu Buffer.
 string.to_bytes(): buffer
 ```
 
-**Rueckgabe:** Buffer mit UTF-8-Bytes
+**Rückgabe:** Buffer mit UTF-8-Bytes
 
 **Beispiele:**
 ```hemlock
@@ -601,7 +601,7 @@ let buf2 = emoji.to_bytes();
 print(buf2.length);             // 4
 ```
 
-**Hinweis:** Dies ist eine Legacy-Methode. Bevorzugen Sie `.bytes()` fuer die meisten Anwendungsfaelle.
+**Hinweis:** Dies ist eine Legacy-Methode. Bevorzugen Sie `.bytes()` für die meisten Anwendungsfaelle.
 
 ---
 
@@ -616,7 +616,7 @@ Parst JSON-String zu Wert.
 string.deserialize(): any
 ```
 
-**Rueckgabe:** Geparster Wert (Objekt, Array, Zahl, String, Bool oder null)
+**Rückgabe:** Geparster Wert (Objekt, Array, Zahl, String, Bool oder null)
 
 **Beispiele:**
 ```hemlock
@@ -648,7 +648,7 @@ print(num);                     // 42
 
 ## Methoden-Verkettung
 
-String-Methoden koennen fuer praegnante Operationen verkettet werden:
+String-Methoden können für praegnante Operationen verkettet werden:
 
 **Beispiele:**
 ```hemlock
@@ -668,20 +668,20 @@ let cleaned = "  HELLO  "
 
 ---
 
-## Vollstaendige Methodenuebersicht
+## Vollständige Methodenuebersicht
 
-| Methode        | Signatur                                     | Rueckgabe | Beschreibung                          |
+| Methode        | Signatur                                     | Rückgabe | Beschreibung                          |
 |----------------|----------------------------------------------|-----------|---------------------------------------|
-| `substr`       | `(start: i32, length: i32)`                  | `string`  | Teilstring nach Position/Laenge extrahieren |
+| `substr`       | `(start: i32, length: i32)`                  | `string`  | Teilstring nach Position/Länge extrahieren |
 | `slice`        | `(start: i32, end: i32)`                     | `string`  | Teilstring nach Bereich extrahieren   |
 | `find`         | `(needle: string)`                           | `i32`     | Erstes Vorkommen finden (-1 wenn nicht gefunden) |
-| `contains`     | `(needle: string)`                           | `bool`    | Pruefen ob Teilstring enthalten       |
+| `contains`     | `(needle: string)`                           | `bool`    | Prüfen ob Teilstring enthalten       |
 | `split`        | `(delimiter: string)`                        | `array`   | In Array teilen                       |
 | `trim`         | `()`                                         | `string`  | Leerzeichen entfernen                 |
 | `to_upper`     | `()`                                         | `string`  | Zu Grossbuchstaben konvertieren       |
 | `to_lower`     | `()`                                         | `string`  | Zu Kleinbuchstaben konvertieren       |
-| `starts_with`  | `(prefix: string)`                           | `bool`    | Pruefen ob mit Praefix beginnt        |
-| `ends_with`    | `(suffix: string)`                           | `bool`    | Pruefen ob mit Suffix endet           |
+| `starts_with`  | `(prefix: string)`                           | `bool`    | Prüfen ob mit Präfix beginnt        |
+| `ends_with`    | `(suffix: string)`                           | `bool`    | Prüfen ob mit Suffix endet           |
 | `replace`      | `(old: string, new: string)`                 | `string`  | Erstes Vorkommen ersetzen             |
 | `replace_all`  | `(old: string, new: string)`                 | `string`  | Alle Vorkommen ersetzen               |
 | `repeat`       | `(count: i32)`                               | `string`  | String n-mal wiederholen              |
@@ -697,5 +697,5 @@ let cleaned = "  HELLO  "
 ## Siehe auch
 
 - [Typsystem](type-system.md) - String-Typ-Details
-- [Array-API](array-api.md) - Array-Methoden fuer split()-Ergebnisse
+- [Array-API](array-api.md) - Array-Methoden für split()-Ergebnisse
 - [Operatoren](operators.md) - String-Verkettungsoperator

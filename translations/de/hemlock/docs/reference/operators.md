@@ -1,18 +1,18 @@
 # Operatoren-Referenz
 
-Vollstaendige Referenz fuer alle Operatoren in Hemlock, einschliesslich Praezedenz, Assoziativitaet und Verhalten.
+Vollständige Referenz für alle Operatoren in Hemlock, einschließlich Präzedenz, Assoziativitaet und Verhalten.
 
 ---
 
-## Uebersicht
+## Übersicht
 
-Hemlock bietet C-aehnliche Operatoren mit expliziten Praezedenzregeln. Alle Operatoren folgen strikten Typisierungsregeln mit automatischer Typpromovierung wo anwendbar.
+Hemlock bietet C-ähnliche Operatoren mit expliziten Praezedenzregeln. Alle Operatoren folgen strikten Typisierungsregeln mit automatischer Typpromovierung wo anwendbar.
 
 ---
 
 ## Arithmetische Operatoren
 
-### Binaere Arithmetik
+### Binäre Arithmetik
 
 | Operator | Name            | Beispiel   | Beschreibung               |
 |----------|-----------------|------------|----------------------------|
@@ -42,7 +42,7 @@ let h = f + g;         // 30 (i32, promoviert)
 
 **Division durch Null:**
 - Ganzzahl-Division durch Null: Laufzeitfehler
-- Gleitkomma-Division durch Null: Gibt `inf` oder `-inf` zurueck
+- Gleitkomma-Division durch Null: Gibt `inf` oder `-inf` zurück
 
 ---
 
@@ -51,13 +51,13 @@ let h = f + g;         // 30 (i32, promoviert)
 | Operator | Name     | Beispiel | Beschreibung          |
 |----------|----------|----------|-----------------------|
 | `-`      | Negation | `-a`     | Wert negieren         |
-| `+`      | Plus     | `+a`     | Identitaet (keine Aenderung) |
+| `+`      | Plus     | `+a`     | Identität (keine Änderung) |
 
 **Beispiele:**
 ```hemlock
 let a = 5;
 let b = -a;            // -5
-let c = +a;            // 5 (keine Aenderung)
+let c = +a;            // 5 (keine Änderung)
 
 let x = -3.14;         // -3.14
 ```
@@ -66,14 +66,14 @@ let x = -3.14;         // -3.14
 
 ## Vergleichsoperatoren
 
-| Operator | Name                    | Beispiel   | Rueckgabe |
+| Operator | Name                    | Beispiel   | Rückgabe |
 |----------|-------------------------|------------|-----------|
 | `==`     | Gleich                  | `a == b`   | `bool`    |
 | `!=`     | Ungleich                | `a != b`   | `bool`    |
 | `<`      | Kleiner als             | `a < b`    | `bool`    |
-| `>`      | Groesser als            | `a > b`    | `bool`    |
+| `>`      | Größer als            | `a > b`    | `bool`    |
 | `<=`     | Kleiner oder gleich     | `a <= b`   | `bool`    |
-| `>=`     | Groesser oder gleich    | `a >= b`   | `bool`    |
+| `>=`     | Größer oder gleich    | `a >= b`   | `bool`    |
 
 **Typpromovierung:**
 Operanden werden vor Vergleich promoviert.
@@ -135,9 +135,9 @@ if (x == 0 || (10 / x) > 2) {
 
 ## Bitweise Operatoren
 
-**Einschraenkung:** Nur Ganzzahltypen (i8-i64, u8-u64)
+**Einschränkung:** Nur Ganzzahltypen (i8-i64, u8-u64)
 
-### Binaere Bitweise
+### Binäre Bitweise
 
 | Operator | Name           | Beispiel   | Beschreibung              |
 |----------|----------------|------------|---------------------------|
@@ -152,8 +152,8 @@ Ergebnistyp entspricht Operandentypen (mit Typpromovierung).
 
 **Beispiele:**
 ```hemlock
-let a = 12;  // 1100 in Binaer
-let b = 10;  // 1010 in Binaer
+let a = 12;  // 1100 in Binär
+let b = 10;  // 1010 in Binär
 
 print(a & b);          // 8  (1000)
 print(a | b);          // 14 (1110)
@@ -241,7 +241,7 @@ obj.x = 20;
 
 #### Arithmetische zusammengesetzte Zuweisung
 
-| Operator | Name               | Beispiel   | Aequivalent        |
+| Operator | Name               | Beispiel   | Äquivalent        |
 |----------|--------------------|------------|--------------------|
 | `+=`     | Addieren und zuweisen | `a += b` | `a = a + b`        |
 | `-=`     | Subtrahieren und zuweisen | `a -= b` | `a = a - b`    |
@@ -258,12 +258,12 @@ x *= 2;      // x ist jetzt 24
 x /= 4;      // x ist jetzt 6
 
 let count = 0;
-count += 1;  // Um 1 erhoehen
+count += 1;  // Um 1 erhöhen
 ```
 
 #### Bitweise zusammengesetzte Zuweisung
 
-| Operator | Name                      | Beispiel    | Aequivalent         |
+| Operator | Name                      | Beispiel    | Äquivalent         |
 |----------|---------------------------|-------------|---------------------|
 | `&=`     | Bitweises UND und zuweisen | `a &= b`   | `a = a & b`         |
 | `\|=`    | Bitweises ODER und zuweisen| `a \|= b`  | `a = a \| b`        |
@@ -287,7 +287,7 @@ x >>= 2;           // x ist jetzt 4 (um 2 nach rechts verschieben)
 
 | Operator | Name       | Beispiel | Beschreibung                  |
 |----------|------------|----------|-------------------------------|
-| `++`     | Inkrement  | `a++`    | Um 1 erhoehen (Postfix)       |
+| `++`     | Inkrement  | `a++`    | Um 1 erhöhen (Postfix)       |
 | `--`     | Dekrement  | `a--`    | Um 1 verringern (Postfix)     |
 
 **Beispiele:**
@@ -297,13 +297,13 @@ i++;         // i ist jetzt 1
 i++;         // i ist jetzt 2
 i--;         // i ist jetzt 1
 
-// Haeufig in Schleifen
+// Häufig in Schleifen
 for (let j = 0; j < 10; j++) {
     print(j);
 }
 ```
 
-**Hinweis:** Sowohl `++` als auch `--` sind Postfix-Operatoren (Wert wird vor Inkrement/Dekrement zurueckgegeben)
+**Hinweis:** Sowohl `++` als auch `--` sind Postfix-Operatoren (Wert wird vor Inkrement/Dekrement zurückgegeben)
 
 ---
 
@@ -311,11 +311,11 @@ for (let j = 0; j < 10; j++) {
 
 ### Null-Koaleszenz (`??`)
 
-Gibt den linken Operanden zurueck wenn er nicht null ist, sonst den rechten Operanden.
+Gibt den linken Operanden zurück wenn er nicht null ist, sonst den rechten Operanden.
 
 | Operator | Name             | Beispiel     | Beschreibung                    |
 |----------|------------------|--------------|--------------------------------|
-| `??`     | Null-Koaleszenz  | `a ?? b`     | a zurueckgeben wenn nicht null, sonst b |
+| `??`     | Null-Koaleszenz  | `a ?? b`     | a zurückgeben wenn nicht null, sonst b |
 
 **Beispiele:**
 ```hemlock
@@ -344,8 +344,8 @@ Sicherer Zugriff auf Eigenschaften oder Aufruf von Methoden auf potenziell null-
 
 | Operator | Name                 | Beispiel       | Beschreibung                      |
 |----------|----------------------|----------------|-----------------------------------|
-| `?.`     | Optionale Verkettung | `a?.b`         | a.b zurueckgeben wenn a nicht null, sonst null |
-| `?.[`    | Optionaler Index     | `a?.[0]`       | a[0] zurueckgeben wenn a nicht null, sonst null |
+| `?.`     | Optionale Verkettung | `a?.b`         | a.b zurückgeben wenn a nicht null, sonst null |
+| `?.[`    | Optionaler Index     | `a?.[0]`       | a[0] zurückgeben wenn a nicht null, sonst null |
 | `?.(`    | Optionaler Aufruf    | `a?.()`        | a() aufrufen wenn a nicht null, sonst null |
 
 **Beispiele:**
@@ -373,8 +373,8 @@ let result = empty?.method?.();     // null
 
 **Verhalten:**
 - Wenn linker Operand null, wird gesamter Ausdruck auf null kurzgeschlossen
-- Wenn linker Operand nicht null, wird Zugriff normal durchgefuehrt
-- Kann fuer tiefen Eigenschaftszugriff verkettet werden
+- Wenn linker Operand nicht null, wird Zugriff normal durchgeführt
+- Kann für tiefen Eigenschaftszugriff verkettet werden
 
 ---
 
@@ -420,7 +420,7 @@ let arr = [10, 20, 30];
 print(arr[0]);             // 10
 arr[1] = 99;
 
-// String-Indizierung (gibt Rune zurueck)
+// String-Indizierung (gibt Rune zurück)
 let s = "hello";
 print(s[0]);               // 'h'
 s[0] = 'H';                // "Hello"
@@ -459,9 +459,9 @@ print("message");
 
 ## Operatorpraezedenz
 
-Operatoren von hoechster zu niedrigster Praezedenz:
+Operatoren von hoechster zu niedrigster Präzedenz:
 
-| Praezedenz | Operatoren                 | Beschreibung                    | Assoziativitaet |
+| Präzedenz | Operatoren                 | Beschreibung                    | Assoziativitaet |
 |------------|----------------------------|--------------------------------|----------------|
 | 1          | `()` `[]` `.` `?.`         | Aufruf, Index, Elementzugriff, optionale Verkettung | Links-nach-rechts |
 | 2          | `++` `--`                  | Postfix-Inkrement/Dekrement    | Links-nach-rechts |
@@ -481,30 +481,30 @@ Operatoren von hoechster zu niedrigster Praezedenz:
 
 ---
 
-## Praezedenz-Beispiele
+## Präzedenz-Beispiele
 
 ### Beispiel 1: Arithmetik und Vergleich
 ```hemlock
 let result = 5 + 3 * 2;
 // Ausgewertet als: 5 + (3 * 2) = 11
-// Multiplikation hat hoehere Praezedenz als Addition
+// Multiplikation hat höhere Präzedenz als Addition
 
 let cmp = 10 > 5 + 3;
 // Ausgewertet als: 10 > (5 + 3) = true
-// Addition hat hoehere Praezedenz als Vergleich
+// Addition hat höhere Präzedenz als Vergleich
 ```
 
 ### Beispiel 2: Bitweise Operatoren
 ```hemlock
 let result1 = 12 | 10 & 8;
 // Ausgewertet als: 12 | (10 & 8) = 12 | 8 = 12
-// & hat hoehere Praezedenz als |
+// & hat höhere Präzedenz als |
 
 let result2 = 8 | 1 << 2;
 // Ausgewertet als: 8 | (1 << 2) = 8 | 4 = 12
-// Verschiebung hat hoehere Praezedenz als bitweises ODER
+// Verschiebung hat höhere Präzedenz als bitweises ODER
 
-// Klammern fuer Klarheit verwenden
+// Klammern für Klarheit verwenden
 let result3 = (5 & 3) | (2 << 1);
 // Ausgewertet als: 1 | 4 = 5
 ```
@@ -513,11 +513,11 @@ let result3 = (5 & 3) | (2 << 1);
 ```hemlock
 let result = true || false && false;
 // Ausgewertet als: true || (false && false) = true
-// && hat hoehere Praezedenz als ||
+// && hat höhere Präzedenz als ||
 
 let cmp = 5 < 10 && 10 < 20;
 // Ausgewertet als: (5 < 10) && (10 < 20) = true
-// Vergleich hat hoehere Praezedenz als &&
+// Vergleich hat höhere Präzedenz als &&
 ```
 
 ### Beispiel 4: Klammern verwenden
@@ -538,7 +538,7 @@ let c = (a + b) * (a - b);
 
 ### Division (immer Gleitkomma)
 
-Der `/`-Operator **gibt immer eine Gleitkommazahl zurueck** (f64), unabhaengig von Operandentypen:
+Der `/`-Operator **gibt immer eine Gleitkommazahl zurück** (f64), unabhängig von Operandentypen:
 
 ```hemlock
 print(10 / 3);             // 3.333... (f64)
@@ -551,21 +551,21 @@ Dies verhindert den haeufigen Bug unerwarteter Ganzzahl-Trunkierung.
 
 ### Ganzzahl-Division (div / divi)
 
-Fuer Ganzzahl-Division (wie Integer-Division in anderen Sprachen) verwenden Sie die `div()` und `divi()` Funktionen:
+Für Ganzzahl-Division (wie Integer-Division in anderen Sprachen) verwenden Sie die `div()` und `divi()` Funktionen:
 
 ```hemlock
-// div(a, b) - Ganzzahl-Division gibt Gleitkomma zurueck
+// div(a, b) - Ganzzahl-Division gibt Gleitkomma zurück
 print(div(5, 2));          // 2 (f64)
 print(div(-7, 3));         // -3 (f64)  -- rundet Richtung -unendlich
 
-// divi(a, b) - Ganzzahl-Division gibt Ganzzahl zurueck
+// divi(a, b) - Ganzzahl-Division gibt Ganzzahl zurück
 print(divi(5, 2));         // 2 (i64)
 print(divi(-7, 3));        // -3 (i64)
 print(typeof(divi(5, 2))); // i64
 ```
 
 **Ganzzahl-zurueckgebende Mathematikfunktionen:**
-Fuer andere Rundungsoperationen die Ganzzahlen zurueckgeben:
+Für andere Rundungsoperationen die Ganzzahlen zurückgeben:
 
 ```hemlock
 print(floori(3.7));        // 3 (i64)
@@ -573,7 +573,7 @@ print(ceili(3.2));         // 4 (i64)
 print(roundi(3.5));        // 4 (i64)
 print(trunci(3.9));        // 3 (i64)
 
-// Diese koennen direkt als Array-Indizes verwendet werden
+// Diese können direkt als Array-Indizes verwendet werden
 let arr = [10, 20, 30, 40];
 print(arr[floori(1.9)]);   // 20 (Index 1)
 ```
@@ -608,7 +608,7 @@ let x = 3.14 & 2.71;
 // FEHLER: Kann bitweise Operatoren nicht auf Strings anwenden
 let y = "hello" & "world";
 
-// OK: Typpromovierung fuer Arithmetik
+// OK: Typpromovierung für Arithmetik
 let a: u8 = 10;
 let b: i32 = 20;
 let c = a + b;             // i32 (promoviert)

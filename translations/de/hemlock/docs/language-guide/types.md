@@ -1,6 +1,6 @@
 # Typsystem
 
-Hemlock verfuegt ueber ein **dynamisches Typsystem** mit optionalen Typannotationen und Laufzeit-Typueberpruefung.
+Hemlock verfuegt über ein **dynamisches Typsystem** mit optionalen Typannotationen und Laufzeit-Typüberprüfung.
 
 ---
 
@@ -13,21 +13,21 @@ Hemlock verfuegt ueber ein **dynamisches Typsystem** mit optionalen Typannotatio
 **Lassen Sie Hemlock es einfach herausfinden:**
 
 ```hemlock
-let count = 42;        // Hemlock weiss, dass dies eine Ganzzahl ist
-let price = 19.99;     // Hemlock weiss, dass dies eine Dezimalzahl ist
-let name = "Alice";    // Hemlock weiss, dass dies Text ist
-let active = true;     // Hemlock weiss, dass dies ja/nein ist
+let count = 42;        // Hemlock weiß, dass dies eine Ganzzahl ist
+let price = 19.99;     // Hemlock weiß, dass dies eine Dezimalzahl ist
+let name = "Alice";    // Hemlock weiß, dass dies Text ist
+let active = true;     // Hemlock weiß, dass dies ja/nein ist
 ```
 
-Hemlock waehlt automatisch den richtigen Typ fuer Ihre Werte. Sie *muessen* keine Typen angeben.
+Hemlock waehlt automatisch den richtigen Typ für Ihre Werte. Sie *müssen* keine Typen angeben.
 
-### Wann Typannotationen hinzufuegen
+### Wann Typannotationen hinzufügen
 
 Fuegen Sie Typen hinzu, wenn Sie:
 
-1. **Genau ueber die Groesse sein wollen** - `i8` vs `i64` ist wichtig fuer Speicher oder FFI
+1. **Genau über die Größe sein wollen** - `i8` vs `i64` ist wichtig für Speicher oder FFI
 2. **Ihren Code dokumentieren** - Typen zeigen, was eine Funktion erwartet
-3. **Fehler frueh erkennen wollen** - Hemlock prueft Typen zur Laufzeit
+3. **Fehler frueh erkennen wollen** - Hemlock prüft Typen zur Laufzeit
 
 ```hemlock
 // Ohne Typen (funktioniert gut):
@@ -41,13 +41,13 @@ fn add(a: i32, b: i32): i32 {
 }
 ```
 
-### Schnellreferenz: Zahlentypen waehlen
+### Schnellreferenz: Zahlentypen wählen
 
 | Was Sie speichern | Empfohlener Typ | Beispiel |
 |-------------------|-----------------|----------|
 | Normale Ganzzahlen | `i32` (Standard) | `let count = 42;` |
-| Sehr grosse Zahlen | `i64` | `let population = 8000000000;` |
-| Nie-negative Zaehler | `u32` | `let items: u32 = 100;` |
+| Sehr große Zahlen | `i64` | `let population = 8000000000;` |
+| Nie-negative Zähler | `u32` | `let items: u32 = 100;` |
 | Bytes (0-255) | `u8` | `let pixel: u8 = 255;` |
 | Dezimalzahlen/Brueche | `f64` (Standard) | `let price = 19.99;` |
 | Leistungskritische Dezimalzahlen | `f32` | `let x: f32 = 1.5;` |
@@ -57,7 +57,7 @@ fn add(a: i32, b: i32): i32 {
 | Kategorie | Typen | Wann verwenden |
 |-----------|-------|----------------|
 | **Ganzzahlen** | `i8`, `i16`, `i32`, `i64` | Zaehlen, IDs, Alter, usw. |
-| **Nur-positive Zahlen** | `u8`, `u16`, `u32`, `u64` | Bytes, Groessen, Array-Laengen |
+| **Nur-positive Zahlen** | `u8`, `u16`, `u32`, `u64` | Bytes, Groessen, Array-Längen |
 | **Dezimalzahlen** | `f32`, `f64` | Geld, Messungen, Mathematik |
 | **Ja/Nein** | `bool` | Flags, Bedingungen |
 | **Text** | `string` | Namen, Nachrichten, jeder Text |
@@ -67,7 +67,7 @@ fn add(a: i32, b: i32): i32 {
 | **Roher Speicher** | `ptr`, `buffer` | Low-Level-Programmierung |
 | **Nichts** | `null` | Abwesenheit eines Wertes |
 
-### Haeufige Szenarien
+### Häufige Szenarien
 
 **"Ich brauche nur eine Zahl"**
 ```hemlock
@@ -84,7 +84,7 @@ let price = 19.99;  // Fertig! Hemlock waehlt f64
 let byte: u8 = 255;  // 0-255 Bereich
 ```
 
-**"Ich brauche wirklich grosse Zahlen"**
+**"Ich brauche wirklich große Zahlen"**
 ```hemlock
 let big = 9000000000000;  // Hemlock waehlt automatisch i64 (> i32 max)
 // Oder explizit:
@@ -142,10 +142,10 @@ let back = text + "";     // Bereits ein String
 
 ## Philosophie
 
-- **Standardmaessig dynamisch** - Jeder Wert hat ein Laufzeit-Typ-Tag
-- **Typisiert nach Wahl** - Optionale Typannotationen erzwingen Laufzeitpruefungen
+- **Standardmäßig dynamisch** - Jeder Wert hat ein Laufzeit-Typ-Tag
+- **Typisiert nach Wahl** - Optionale Typannotationen erzwingen Laufzeitprüfungen
 - **Explizite Konvertierungen** - Implizite Konvertierungen folgen klaren Befoerderungsregeln
-- **Ehrlich ueber Typen** - `typeof()` sagt immer die Wahrheit
+- **Ehrlich über Typen** - `typeof()` sagt immer die Wahrheit
 
 ## Primitive Typen
 
@@ -169,8 +169,8 @@ let qword: u64 = 18446744073709551615;  // 64-Bit
 
 **Typ-Aliase:**
 ```hemlock
-let i: integer = 42;   // Alias fuer i32
-let b: byte = 255;     // Alias fuer u8
+let i: integer = 42;   // Alias für i32
+let b: byte = 255;     // Alias für u8
 ```
 
 ### Gleitkommatypen
@@ -178,7 +178,7 @@ let b: byte = 255;     // Alias fuer u8
 ```hemlock
 let f: f32 = 3.14159;        // 32-Bit Float
 let d: f64 = 2.718281828;    // 64-Bit Float (Standard)
-let n: number = 1.618;       // Alias fuer f64
+let n: number = 1.618;       // Alias für f64
 ```
 
 ### Boolescher Typ
@@ -195,9 +195,9 @@ let text: string = "Hallo, Welt!";
 let empty: string = "";
 ```
 
-Strings sind **veraenderlich**, **UTF-8-kodiert** und **heap-allokiert**.
+Strings sind **veränderlich**, **UTF-8-kodiert** und **heap-allokiert**.
 
-Siehe [Strings](strings.md) fuer vollstaendige Details.
+Siehe [Strings](strings.md) für vollständige Details.
 
 ### Rune-Typ
 
@@ -210,7 +210,7 @@ let unicode: rune = '\u{1F680}';
 
 Runes repraesentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF).
 
-Siehe [Runes](runes.md) fuer vollstaendige Details.
+Siehe [Runes](runes.md) für vollständige Details.
 
 ### Null-Typ
 
@@ -231,7 +231,7 @@ let mixed = [1, "zwei", true, null];  // Gemischte Typen erlaubt
 let empty: array = [];
 ```
 
-Siehe [Arrays](arrays.md) fuer vollstaendige Details.
+Siehe [Arrays](arrays.md) für vollständige Details.
 
 ### Object-Typ
 
@@ -240,25 +240,25 @@ let obj: object = { x: 10, y: 20 };
 let person = { name: "Alice", age: 30 };
 ```
 
-Siehe [Objects](objects.md) fuer vollstaendige Details.
+Siehe [Objects](objects.md) für vollständige Details.
 
 ### Pointer-Typen
 
 **Roher Pointer:**
 ```hemlock
 let p: ptr = alloc(64);
-// Keine Grenzpruefung, manuelle Lebenszeitverwaltung
+// Keine Grenzprüfung, manuelle Lebenszeitverwaltung
 free(p);
 ```
 
 **Sicherer Buffer:**
 ```hemlock
 let buf: buffer = buffer(64);
-// Grenzgeprueft, verfolgt Laenge und Kapazitaet
+// Grenzgeprueft, verfolgt Länge und Kapazität
 free(buf);
 ```
 
-Siehe [Speicherverwaltung](memory.md) fuer vollstaendige Details.
+Siehe [Speicherverwaltung](memory.md) für vollständige Details.
 
 ## Enum-Typen
 
@@ -298,7 +298,7 @@ switch (c) {
 
 ### Enums mit Werten
 
-Enums koennen explizite Ganzzahlwerte haben:
+Enums können explizite Ganzzahlwerte haben:
 
 ```hemlock
 enum Status {
@@ -403,7 +403,7 @@ Repraesentiert einen Kommunikationskanal zwischen Tasks.
 extern fn exit(code: i32): void;
 ```
 
-Wird fuer Funktionen verwendet, die keinen Wert zurueckgeben (nur FFI).
+Wird für Funktionen verwendet, die keinen Wert zurückgeben (nur FFI).
 
 ## Typinferenz
 
@@ -420,8 +420,8 @@ let d: u8 = 128;         // u8 (explizite Annotation)
 
 **Regeln:**
 - Werte im i32-Bereich (-2147483648 bis 2147483647): als `i32` abgeleitet
-- Werte ausserhalb des i32-Bereichs aber innerhalb von i64: als `i64` abgeleitet
-- Verwenden Sie explizite Annotationen fuer andere Typen (i8, i16, u8, u16, u32, u64)
+- Werte außerhalb des i32-Bereichs aber innerhalb von i64: als `i64` abgeleitet
+- Verwenden Sie explizite Annotationen für andere Typen (i8, i16, u8, u16, u32, u64)
 
 ### Float-Literal-Inferenz
 
@@ -432,14 +432,14 @@ let y: f32 = 3.14;   // f32 (explizit)
 
 ### Wissenschaftliche Notation
 
-Hemlock unterstuetzt wissenschaftliche Notation fuer numerische Literale:
+Hemlock unterstützt wissenschaftliche Notation für numerische Literale:
 
 ```hemlock
 let a = 1e10;        // 10000000000.0 (f64)
 let b = 1e-12;       // 0.000000000001 (f64)
 let c = 3.14e2;      // 314.0 (f64)
 let d = 2.5e-3;      // 0.0025 (f64)
-let e = 1E10;        // Gross-/Kleinschreibung egal
+let e = 1E10;        // Groß-/Kleinschreibung egal
 let f = 1e+5;        // Explizit positiver Exponent
 ```
 
@@ -474,7 +474,7 @@ fn greet(name: string, age: i32) {
 }
 ```
 
-### Funktions-Rueckgabetyp-Annotationen
+### Funktions-Rückgabetyp-Annotationen
 
 ```hemlock
 fn add(a: i32, b: i32): i32 {
@@ -493,11 +493,11 @@ define Person {
 let p: Person = { name: "Bob", age: 25 };
 ```
 
-## Typueberpruefung
+## Typüberprüfung
 
-### Laufzeit-Typueberpruefung
+### Laufzeit-Typüberprüfung
 
-Typannotationen werden zur **Laufzeit** geprueft, nicht zur Kompilierzeit:
+Typannotationen werden zur **Laufzeit** geprüft, nicht zur Kompilierzeit:
 
 ```hemlock
 let x: i32 = 42;     // OK
@@ -513,7 +513,7 @@ add(5, "hallo");     // Laufzeitfehler: Typenkonflikt
 
 ### Typabfragen
 
-Verwenden Sie `typeof()` um Werttypen zu pruefen:
+Verwenden Sie `typeof()` um Werttypen zu prüfen:
 
 ```hemlock
 print(typeof(42));         // "i32"
@@ -545,7 +545,7 @@ let y: f64 = 3.5;
 let result = x + y;  // result ist f64 (13.5)
 ```
 
-**Groessere Groesse gewinnt:**
+**Größere Größe gewinnt:**
 ```hemlock
 let a: i32 = 100;
 let b: i64 = 200;
@@ -553,7 +553,7 @@ let sum = a + b;     // sum ist i64 (300)
 ```
 
 **Praezisionserhaltung:** Beim Mischen von 64-Bit-Ganzzahlen mit f32 befördert Hemlock
-zu f64, um Praezisionsverlust zu vermeiden (f32 hat nur 24-Bit-Mantisse, unzureichend fuer i64/u64):
+zu f64, um Praezisionsverlust zu vermeiden (f32 hat nur 24-Bit-Mantisse, unzureichend für i64/u64):
 ```hemlock
 let big: i64 = 9007199254740993;
 let small: f32 = 1.0;
@@ -565,8 +565,8 @@ let result = big + small;  // result ist f64, nicht f32!
 u8 + i32  -> i32
 i32 + i64 -> i64
 u32 + u64 -> u64
-i32 + f32 -> f32    // f32 ausreichend fuer i32
-i64 + f32 -> f64    // f64 noetig um i64-Praezision zu erhalten
+i32 + f32 -> f32    // f32 ausreichend für i32
+i64 + f32 -> f64    // f64 nötig um i64-Präzision zu erhalten
 i64 + f64 -> f64
 i8 + f64  -> f64
 ```
@@ -605,7 +605,7 @@ let r: rune = b;      // u8 -> rune ('A')
 
 ### Typ-Konstruktorfunktionen
 
-Typnamen koennen als Funktionen verwendet werden, um Werte zu konvertieren oder zu parsen:
+Typnamen können als Funktionen verwendet werden, um Werte zu konvertieren oder zu parsen:
 
 **Strings zu Zahlen parsen:**
 ```hemlock
@@ -613,7 +613,7 @@ let n = i32("42");       // String zu i32 parsen: 42
 let f = f64("3.14159");  // String zu f64 parsen: 3.14159
 let b = bool("true");    // String zu bool parsen: true
 
-// Alle numerischen Typen unterstuetzt
+// Alle numerischen Typen unterstützt
 let a = i8("-128");      // Zu i8 parsen
 let c = u8("255");       // Zu u8 parsen
 let d = i16("1000");     // Zu i16 parsen
@@ -627,7 +627,7 @@ let j = f32("1.5");      // Zu f32 parsen
 ```hemlock
 let hex = i32("0xFF");   // 255
 let neg = i32("-42");    // -42
-let bin = i32("0b1010"); // 10 (binaer)
+let bin = i32("0b1010"); // 10 (binär)
 ```
 
 **Typ-Aliase funktionieren auch:**
@@ -645,14 +645,14 @@ let promoted = f64(100);     // i32 zu f64 (100.0)
 let narrowed = i8(127);      // i32 zu i8
 ```
 
-**Typannotationen fuehren numerische Koersion durch (aber KEIN String-Parsen):**
+**Typannotationen führen numerische Koersion durch (aber KEIN String-Parsen):**
 ```hemlock
 let f: f64 = 100;        // i32 zu f64 via Annotation (OK)
 let s: string = 'A';     // Rune zu String via Annotation (OK)
-let code: i32 = 'A';     // Rune zu i32 via Annotation (erhaelt Codepoint, OK)
+let code: i32 = 'A';     // Rune zu i32 via Annotation (erhält Codepoint, OK)
 
 // String-Parsen erfordert explizite Typ-Konstruktoren:
-let n = i32("42");       // Typ-Konstruktor fuer String-Parsen verwenden
+let n = i32("42");       // Typ-Konstruktor für String-Parsen verwenden
 // let x: i32 = "42";    // FEHLER - Typannotationen parsen keine Strings
 ```
 
@@ -660,7 +660,7 @@ let n = i32("42");       // Typ-Konstruktor fuer String-Parsen verwenden
 ```hemlock
 // Ungueltige Strings werfen Fehler bei Verwendung von Typ-Konstruktoren
 let bad = i32("hallo");  // Laufzeitfehler: kann "hallo" nicht als i32 parsen
-let overflow = u8("256"); // Laufzeitfehler: 256 ausserhalb des Bereichs fuer u8
+let overflow = u8("256"); // Laufzeitfehler: 256 außerhalb des Bereichs für u8
 ```
 
 **Boolean-Parsen:**
@@ -670,16 +670,16 @@ let f = bool("false");   // false
 let bad = bool("ja");    // Laufzeitfehler: muss "true" oder "false" sein
 ```
 
-## Bereichspruefung
+## Bereichsprüfung
 
 Typannotationen erzwingen Bereichspruefungen bei Zuweisung:
 
 ```hemlock
 let x: u8 = 255;    // OK
-let y: u8 = 256;    // FEHLER: ausserhalb des Bereichs fuer u8
+let y: u8 = 256;    // FEHLER: außerhalb des Bereichs für u8
 
 let a: i8 = 127;    // OK
-let b: i8 = 128;    // FEHLER: ausserhalb des Bereichs fuer i8
+let b: i8 = 128;    // FEHLER: außerhalb des Bereichs für i8
 
 let c: i64 = 2147483647;   // OK
 let d: u64 = 4294967295;   // OK
@@ -708,7 +708,7 @@ let f: f32 = 2.5;
 let result = i * f;  // f32 (12.5)
 ```
 
-### Komplexe Ausdruecke
+### Komplexe Ausdrücke
 
 ```hemlock
 let a: i8 = 10;
@@ -733,21 +733,21 @@ define Person {
 // OK: Hat alle erforderlichen Felder
 let p1: Person = { name: "Alice", age: 30 };
 
-// OK: Zusaetzliche Felder erlaubt
+// OK: Zusätzliche Felder erlaubt
 let p2: Person = { name: "Bob", age: 25, city: "NYC" };
 
 // FEHLER: Fehlendes 'age'-Feld
 let p3: Person = { name: "Carol" };
 
-// FEHLER: Falscher Typ fuer 'age'
+// FEHLER: Falscher Typ für 'age'
 let p4: Person = { name: "Dave", age: "dreissig" };
 ```
 
-**Typueberpruefung erfolgt bei Zuweisung:**
+**Typüberprüfung erfolgt bei Zuweisung:**
 - Validiert, dass alle erforderlichen Felder vorhanden sind
-- Validiert, dass Feldtypen uebereinstimmen
-- Zusaetzliche Felder sind erlaubt und werden beibehalten
-- Setzt den Typnamen des Objects fuer `typeof()`
+- Validiert, dass Feldtypen übereinstimmen
+- Zusätzliche Felder sind erlaubt und werden beibehalten
+- Setzt den Typnamen des Objects für `typeof()`
 
 ## Optionale Felder
 
@@ -764,12 +764,12 @@ print(cfg1.debug);    // false (Standard)
 print(cfg1.timeout);  // null
 
 let cfg2: Config = { host: "0.0.0.0", port: 80, debug: true };
-print(cfg2.debug);    // true (ueberschrieben)
+print(cfg2.debug);    // true (überschrieben)
 ```
 
 ## Typ-Aliase
 
-Hemlock unterstuetzt benutzerdefinierte Typ-Aliase mit dem `type`-Schluesselwort:
+Hemlock unterstützt benutzerdefinierte Typ-Aliase mit dem `type`-Schlüsselwort:
 
 ### Einfache Typ-Aliase
 
@@ -819,26 +819,26 @@ type Result<T, E> = { value: T?, error: E? };
 let coords: Pair<f64> = { first: 3.14, second: 2.71 };
 ```
 
-**Hinweis:** Typ-Aliase sind transparent - `typeof()` gibt den zugrunde liegenden Typnamen zurueck, nicht den Alias.
+**Hinweis:** Typ-Aliase sind transparent - `typeof()` gibt den zugrunde liegenden Typnamen zurück, nicht den Alias.
 
-## Typsystem-Einschraenkungen
+## Typsystem-Einschränkungen
 
-Aktuelle Einschraenkungen:
+Aktuelle Einschränkungen:
 
-- **Keine Generics bei Funktionen** - Funktions-Typparameter noch nicht unterstuetzt
-- **Keine Union-Typen** - Kann "A oder B" nicht ausdruecken
-- **Keine Nullable-Typen** - Alle Typen koennen null sein (verwenden Sie `?`-Suffix fuer explizite Nullability)
+- **Keine Generics bei Funktionen** - Funktions-Typparameter noch nicht unterstützt
+- **Keine Union-Typen** - Kann "A oder B" nicht ausdrücken
+- **Keine Nullable-Typen** - Alle Typen können null sein (verwenden Sie `?`-Suffix für explizite Nullability)
 
-**Hinweis:** Der Compiler (`hemlockc`) bietet Kompilierzeit-Typueberpruefung. Der Interpreter fuehrt nur Laufzeit-Typueberpruefung durch. Siehe die [Compiler-Dokumentation](../design/implementation.md) fuer Details.
+**Hinweis:** Der Compiler (`hemlockc`) bietet Kompilierzeit-Typüberprüfung. Der Interpreter führt nur Laufzeit-Typüberprüfung durch. Siehe die [Compiler-Dokumentation](../design/implementation.md) für Details.
 
 ## Best Practices
 
 ### Wann Typannotationen verwenden
 
 **Verwenden Sie Annotationen, wenn:**
-- Praeziser Typ wichtig ist (z.B. `u8` fuer Byte-Werte)
+- Praeziser Typ wichtig ist (z.B. `u8` für Byte-Werte)
 - Funktionsschnittstellen dokumentieren
-- Einschraenkungen erzwingen (z.B. Bereichspruefungen)
+- Einschränkungen erzwingen (z.B. Bereichspruefungen)
 
 ```hemlock
 fn hash(data: buffer, length: u32): u64 {
@@ -852,7 +852,7 @@ fn hash(data: buffer, length: u32): u64 {
 - Unnoetige Zeremonie
 
 ```hemlock
-// Unnoetig
+// Unnötig
 let x: i32 = 42;
 
 // Besser
@@ -861,7 +861,7 @@ let x = 42;
 
 ### Typsicherheits-Muster
 
-**Vor Verwendung pruefen:**
+**Vor Verwendung prüfen:**
 ```hemlock
 if (typeof(value) == "i32") {
     // Sicher als i32 zu verwenden
@@ -872,7 +872,7 @@ if (typeof(value) == "i32") {
 ```hemlock
 fn divide(a, b) {
     if (typeof(a) != "i32" || typeof(b) != "i32") {
-        throw "Argumente muessen Ganzzahlen sein";
+        throw "Argumente müssen Ganzzahlen sein";
     }
     if (b == 0) {
         throw "Division durch Null";
@@ -881,7 +881,7 @@ fn divide(a, b) {
 }
 ```
 
-**Duck Typing fuer Flexibilitaet verwenden:**
+**Duck Typing für Flexibilitaet verwenden:**
 ```hemlock
 define Printable {
     toString: fn,
@@ -892,7 +892,7 @@ fn print_item(item: Printable) {
 }
 ```
 
-## Naechste Schritte
+## Nächste Schritte
 
 - [Strings](strings.md) - UTF-8-String-Typ und Operationen
 - [Runes](runes.md) - Unicode-Codepoint-Typ

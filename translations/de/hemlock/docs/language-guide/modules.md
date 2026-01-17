@@ -2,15 +2,15 @@
 
 Dieses Dokument beschreibt das ES6-artige Import/Export-Modulsystem von Hemlock.
 
-## Uebersicht
+## Übersicht
 
-Hemlock unterstuetzt ein dateibasiertes Modulsystem mit ES6-artiger Import/Export-Syntax. Module sind:
+Hemlock unterstützt ein dateibasiertes Modulsystem mit ES6-artiger Import/Export-Syntax. Module sind:
 - **Singletons**: Jedes Modul wird einmal geladen und gecacht
 - **Dateibasiert**: Module entsprechen .hml-Dateien auf der Festplatte
-- **Explizit importiert**: Abhaengigkeiten werden mit Import-Anweisungen deklariert
-- **Topologisch ausgefuehrt**: Abhaengigkeiten werden vor abhaengigen Modulen ausgefuehrt
+- **Explizit importiert**: Abhängigkeiten werden mit Import-Anweisungen deklariert
+- **Topologisch ausgeführt**: Abhängigkeiten werden vor abhängigen Modulen ausgeführt
 
-Fuer Paketverwaltung und Drittanbieter-Abhaengigkeiten siehe [hpm (Hemlock Package Manager)](https://github.com/hemlang/hpm).
+Für Paketverwaltung und Drittanbieter-Abhängigkeiten siehe [hpm (Hemlock Package Manager)](https://github.com/hemlang/hpm).
 
 ## Syntax
 
@@ -43,7 +43,7 @@ export extern fn strlen(s: string): i32;
 export extern fn getpid(): i32;
 ```
 
-Siehe [FFI-Dokumentation](../advanced/ffi.md#exporting-ffi-functions) fuer weitere Details zum Exportieren von FFI-Funktionen.
+Siehe [FFI-Dokumentation](../advanced/ffi.md#exporting-ffi-functions) für weitere Details zum Exportieren von FFI-Funktionen.
 
 **Export Define (Struct-Typen):**
 ```hemlock
@@ -61,18 +61,18 @@ export define Rectangle {
 }
 ```
 
-**Wichtig:** Exportierte Struct-Typen werden global registriert, wenn das Modul geladen wird. Sie werden automatisch verfuegbar, wenn Sie etwas aus dem Modul importieren - Sie muessen (und koennen) sie NICHT explizit nach Namen importieren:
+**Wichtig:** Exportierte Struct-Typen werden global registriert, wenn das Modul geladen wird. Sie werden automatisch verfügbar, wenn Sie etwas aus dem Modul importieren - Sie müssen (und können) sie NICHT explizit nach Namen importieren:
 
 ```hemlock
-// GUT - Struct-Typen sind nach jedem Import automatisch verfuegbar
+// GUT - Struct-Typen sind nach jedem Import automatisch verfügbar
 import { some_function } from "./my_module.hml";
 let v: Vector2 = { x: 1.0, y: 2.0 };  // Funktioniert!
 
-// SCHLECHT - Struct-Typen koennen nicht explizit importiert werden
+// SCHLECHT - Struct-Typen können nicht explizit importiert werden
 import { Vector2 } from "./my_module.hml";  // Fehler: Undefinierte Variable 'Vector2'
 ```
 
-Siehe [FFI-Dokumentation](../advanced/ffi.md#exporting-struct-types) fuer weitere Details zum Exportieren von Struct-Typen.
+Siehe [FFI-Dokumentation](../advanced/ffi.md#exporting-struct-types) für weitere Details zum Exportieren von Struct-Typen.
 
 **Re-Exports:**
 ```hemlock
@@ -118,14 +118,14 @@ import { foo } from "/absolute/path/to/module.hml";
 ```
 
 **Erweiterungsbehandlung:**
-- Die `.hml`-Erweiterung kann weggelassen werden - sie wird automatisch hinzugefuegt
-- `./math` wird zu `./math.hml` aufgeloest
+- Die `.hml`-Erweiterung kann weggelassen werden - sie wird automatisch hinzugefügt
+- `./math` wird zu `./math.hml` aufgelöst
 
 ## Funktionen
 
-### Erkennung zirkulaerer Abhaengigkeiten
+### Erkennung zirkulaerer Abhängigkeiten
 
-Das Modulsystem erkennt zirkulaere Abhaengigkeiten und meldet einen Fehler:
+Das Modulsystem erkennt zirkulaere Abhängigkeiten und meldet einen Fehler:
 
 ```
 Error: Circular dependency detected when loading '/path/to/a.hml'
@@ -133,7 +133,7 @@ Error: Circular dependency detected when loading '/path/to/a.hml'
 
 ### Modul-Caching
 
-Module werden einmal geladen und gecacht. Mehrere Imports desselben Moduls geben dieselbe Instanz zurueck:
+Module werden einmal geladen und gecacht. Mehrere Imports desselben Moduls geben dieselbe Instanz zurück:
 
 ```hemlock
 // counter.hml
@@ -152,9 +152,9 @@ import { count } from "./counter.hml";  // Dieselbe Instanz!
 print(count);  // Immer noch 1 (geteilter Zustand)
 ```
 
-### Import-Unveraenderlichkeit
+### Import-Unveränderlichkeit
 
-Importierte Bindungen koennen nicht neu zugewiesen werden:
+Importierte Bindungen können nicht neu zugewiesen werden:
 
 ```hemlock
 import { add } from "./math.hml";
@@ -167,23 +167,23 @@ add = fn() { };  // FEHLER: kann importierte Bindung nicht neu zuweisen
 
 **Dateien:**
 - `include/module.h` - Modulsystem-API
-- `src/module.c` - Modulladen, Caching und Ausfuehrung
-- Parser-Unterstuetzung in `src/parser.c`
-- Laufzeit-Unterstuetzung in `src/interpreter/runtime.c`
+- `src/module.c` - Modulladen, Caching und Ausführung
+- Parser-Unterstützung in `src/parser.c`
+- Laufzeit-Unterstützung in `src/interpreter/runtime.c`
 
 **Schluesselkomponenten:**
 1. **ModuleCache**: Verwaltet geladene Module, indiziert nach absolutem Pfad
 2. **Module**: Repraesentiert ein geladenes Modul mit seinem AST und Exports
 3. **Pfadaufloesung**: Loest relative/absolute Pfade zu kanonischen Pfaden auf
-4. **Topologische Ausfuehrung**: Fuehrt Module in Abhaengigkeitsreihenfolge aus
+4. **Topologische Ausführung**: Fuehrt Module in Abhaengigkeitsreihenfolge aus
 
 ### Modulladeprozess
 
 1. **Parse-Phase**: Tokenisieren und Parsen der Moduldatei
 2. **Abhaengigkeitsaufloesung**: Rekursives Laden importierter Module
-3. **Zykluserkennung**: Pruefen, ob das Modul bereits geladen wird
+3. **Zykluserkennung**: Prüfen, ob das Modul bereits geladen wird
 4. **Caching**: Modul im Cache nach absolutem Pfad speichern
-5. **Ausfuehrungsphase**: Ausfuehrung in topologischer Reihenfolge (Abhaengigkeiten zuerst)
+5. **Ausfuehrungsphase**: Ausführung in topologischer Reihenfolge (Abhängigkeiten zuerst)
 
 ### API
 
@@ -205,14 +205,14 @@ void execute_module(Module *module, ModuleCache *cache, ExecutionContext *ctx);
 Testmodule befinden sich in `tests/modules/` und `tests/parity/modules/`:
 
 - `math.hml` - Basismodul mit Exports
-- `test_import_named.hml` - Test fuer benannte Imports
-- `test_import_namespace.hml` - Test fuer Namespace-Imports
-- `test_import_alias.hml` - Test fuer Import-Aliasing
-- `export_extern.hml` - Test fuer Export extern FFI-Funktion (Linux)
+- `test_import_named.hml` - Test für benannte Imports
+- `test_import_namespace.hml` - Test für Namespace-Imports
+- `test_import_alias.hml` - Test für Import-Aliasing
+- `export_extern.hml` - Test für Export extern FFI-Funktion (Linux)
 
 ## Paket-Imports (hpm)
 
-Mit installiertem [hpm](https://github.com/hemlang/hpm) koennen Sie Drittanbieter-Pakete von GitHub importieren:
+Mit installiertem [hpm](https://github.com/hemlang/hpm) können Sie Drittanbieter-Pakete von GitHub importieren:
 
 ```hemlock
 // Import aus Paket-Root (verwendet "main" aus package.json)
@@ -225,7 +225,7 @@ import { middleware } from "hemlang/sprout/middleware";
 import { HashMap } from "@stdlib/collections";
 ```
 
-Pakete werden in `hem_modules/` installiert und mit GitHub `owner/repo`-Syntax aufgeloest.
+Pakete werden in `hem_modules/` installiert und mit GitHub `owner/repo`-Syntax aufgelöst.
 
 ```bash
 # Ein Paket installieren
@@ -235,12 +235,12 @@ hpm install hemlang/sprout
 hpm install hemlang/sprout@^1.0.0
 ```
 
-Siehe die [hpm-Dokumentation](https://github.com/hemlang/hpm) fuer vollstaendige Details.
+Siehe die [hpm-Dokumentation](https://github.com/hemlang/hpm) für vollständige Details.
 
-## Aktuelle Einschraenkungen
+## Aktuelle Einschränkungen
 
-1. **Keine dynamischen Imports**: `import()` als Laufzeitfunktion wird nicht unterstuetzt
-2. **Keine bedingten Exports**: Exports muessen auf oberster Ebene sein
+1. **Keine dynamischen Imports**: `import()` als Laufzeitfunktion wird nicht unterstützt
+2. **Keine bedingten Exports**: Exports müssen auf oberster Ebene sein
 3. **Statische Bibliothekspfade**: FFI-Bibliotheksimports verwenden statische Pfade (plattformspezifisch)
 
 ## Zukuenftige Arbeit
@@ -252,7 +252,7 @@ Siehe die [hpm-Dokumentation](https://github.com/hemlang/hpm) fuer vollstaendige
 
 ## Beispiele
 
-Siehe `tests/modules/` fuer funktionierende Beispiele des Modulsystems.
+Siehe `tests/modules/` für funktionierende Beispiele des Modulsystems.
 
 Beispiel-Modulstruktur:
 ```

@@ -1,8 +1,8 @@
 # Fehlerbehandlung
 
-Hemlock unterstuetzt ausnahmebasierte Fehlerbehandlung mit `try`, `catch`, `finally`, `throw` und `panic`. Diese Anleitung behandelt behebbare Fehler mit Ausnahmen und nicht behebbare Fehler mit panic.
+Hemlock unterstützt ausnahmebasierte Fehlerbehandlung mit `try`, `catch`, `finally`, `throw` und `panic`. Diese Anleitung behandelt behebbare Fehler mit Ausnahmen und nicht behebbare Fehler mit panic.
 
-## Ueberblick
+## Überblick
 
 ```hemlock
 // Grundlegende Fehlerbehandlung
@@ -39,7 +39,7 @@ fn divide(a, b) {
 try {
     // riskanter Code
 } catch (e) {
-    // Fehler behandeln, e enthaelt den geworfenen Wert
+    // Fehler behandeln, e enthält den geworfenen Wert
 }
 ```
 
@@ -48,7 +48,7 @@ try {
 try {
     // riskanter Code
 } finally {
-    // wird immer ausgefuehrt, auch wenn Ausnahme geworfen
+    // wird immer ausgeführt, auch wenn Ausnahme geworfen
 }
 ```
 
@@ -65,7 +65,7 @@ try {
 
 ### Try-Block
 
-Der try-Block fuehrt Anweisungen sequentiell aus:
+Der try-Block führt Anweisungen sequentiell aus:
 
 ```hemlock
 try {
@@ -78,7 +78,7 @@ try {
 **Verhalten:**
 - Fuehrt Anweisungen der Reihe nach aus
 - Wenn Ausnahme geworfen: springt zu `catch` oder `finally`
-- Wenn keine Ausnahme: fuehrt `finally` aus (falls vorhanden), dann weiter
+- Wenn keine Ausnahme: führt `finally` aus (falls vorhanden), dann weiter
 
 ### Catch-Block
 
@@ -89,17 +89,17 @@ try {
     throw "hoppla";
 } catch (error) {
     print("Gefangen: " + error);  // error = "hoppla"
-    // error nur hier zugaenglich
+    // error nur hier zugänglich
 }
-// error hier nicht zugaenglich
+// error hier nicht zugänglich
 ```
 
 **Catch-Parameter:**
 - Empfaengt den geworfenen Wert (beliebiger Typ)
-- Auf den catch-Block beschraenkt
+- Auf den catch-Block beschränkt
 - Kann beliebig benannt werden (konventionell `e`, `err` oder `error`)
 
-**Was Sie im catch tun koennen:**
+**Was Sie im catch tun können:**
 ```hemlock
 try {
     risky_operation();
@@ -113,7 +113,7 @@ try {
     // Anderen Fehler werfen
     throw "anderer Fehler";
 
-    // Standardwert zurueckgeben
+    // Standardwert zurückgeben
     return null;
 
     // Behandeln und fortfahren
@@ -123,7 +123,7 @@ try {
 
 ### Finally-Block
 
-Der finally-Block wird **immer ausgefuehrt**:
+Der finally-Block wird **immer ausgeführt**:
 
 ```hemlock
 try {
@@ -132,26 +132,26 @@ try {
 } catch (e) {
     print("2: catch-Block");
 } finally {
-    print("3: finally-Block");  // Wird immer ausgefuehrt
+    print("3: finally-Block");  // Wird immer ausgeführt
 }
 print("4: nach try/catch/finally");
 
 // Ausgabe: 1: try-Block, 2: catch-Block, 3: finally-Block, 4: nach try/catch/finally
 ```
 
-**Wann finally ausgefuehrt wird:**
+**Wann finally ausgeführt wird:**
 - Nach dem try-Block (wenn keine Ausnahme)
 - Nach dem catch-Block (wenn Ausnahme gefangen)
-- Auch wenn try/catch `return`, `break` oder `continue` enthaelt
-- Bevor der Kontrollfluss try/catch verlaesst
+- Auch wenn try/catch `return`, `break` oder `continue` enthält
+- Bevor der Kontrollfluss try/catch verlässt
 
 **Finally mit return:**
 ```hemlock
 fn example() {
     try {
-        return 1;  // Gibt 1 zurueck nach finally-Ausfuehrung
+        return 1;  // Gibt 1 zurück nach finally-Ausführung
     } finally {
-        print("bereinigung");  // Wird vor Rueckgabe ausgefuehrt
+        print("bereinigung");  // Wird vor Rückgabe ausgeführt
     }
 }
 
@@ -159,7 +159,7 @@ fn example2() {
     try {
         return 1;
     } finally {
-        return 2;  // Finally-return ueberschreibt - gibt 2 zurueck
+        return 2;  // Finally-return überschreibt - gibt 2 zurück
     }
 }
 ```
@@ -169,7 +169,7 @@ fn example2() {
 for (let i = 0; i < 10; i = i + 1) {
     try {
         if (i == 5) {
-            break;  // Bricht nach finally-Ausfuehrung ab
+            break;  // Bricht nach finally-Ausführung ab
         }
     } finally {
         print("bereinigung " + typeof(i));
@@ -191,9 +191,9 @@ throw null;
 throw ["fehler", "details"];
 ```
 
-**Ausfuehrung:**
+**Ausführung:**
 1. Wertet den Ausdruck aus
-2. Springt sofort zum naechsten umschliessenden `catch`
+2. Springt sofort zum nächsten umschliessenden `catch`
 3. Wenn kein `catch`, propagiert nach oben im Aufrufstapel
 
 ### Fehler werfen
@@ -277,13 +277,13 @@ foo();  // Stuerzt ab mit: Laufzeitfehler: nicht gefangen!
 - Programm stuerzt ab
 - Gibt Fehlermeldung auf stderr aus
 - Beendet mit nicht-null Statuscode
-- Stack-Trace wird in zukuenftigen Versionen hinzugefuegt
+- Stack-Trace wird in zukuenftigen Versionen hinzugefügt
 
 ## Panic - Nicht behebbare Fehler
 
 ### Was ist Panic?
 
-`panic()` ist fuer **nicht behebbare Fehler**, die das Programm sofort beenden sollen:
+`panic()` ist für **nicht behebbare Fehler**, die das Programm sofort beenden sollen:
 
 ```hemlock
 panic();                    // Standardmeldung: "panic!"
@@ -295,7 +295,7 @@ panic(42);                  // Nicht-String-Werte werden ausgegeben
 - **Beendet sofort** das Programm mit Exit-Code 1
 - Gibt Fehlermeldung auf stderr aus: `panic: <meldung>`
 - **NICHT fangbar** mit try/catch
-- Fuer Bugs und nicht behebbare Fehler verwenden
+- Für Bugs und nicht behebbare Fehler verwenden
 
 ### Panic vs. Throw
 
@@ -311,16 +311,16 @@ try {
 try {
     panic("nicht behebbarer Fehler");  // Programm beendet sofort
 } catch (e) {
-    print("Das wird nie ausgefuehrt");       // Wird nie ausgefuehrt
+    print("Das wird nie ausgeführt");       // Wird nie ausgeführt
 }
 ```
 
 ### Wann Panic verwenden
 
-**Panic verwenden fuer:**
+**Panic verwenden für:**
 - **Bugs**: Unerreichbarer Code wurde erreicht
 - **Ungueltiger Zustand**: Datenstrukturkorruption erkannt
-- **Nicht behebbare Fehler**: Kritische Ressource nicht verfuegbar
+- **Nicht behebbare Fehler**: Kritische Ressource nicht verfügbar
 - **Assertionsfehler**: Wenn `assert()` nicht ausreicht
 
 **Beispiele:**
@@ -358,14 +358,14 @@ fn pop_stack(stack) {
 
 ### Wann NICHT Panic verwenden
 
-**Throw stattdessen verwenden fuer:**
+**Throw stattdessen verwenden für:**
 - Benutzereingabe-Validierung
 - Datei nicht gefunden
 - Netzwerkfehler
 - Erwartete Fehlerbedingungen
 
 ```hemlock
-// SCHLECHT: Panic fuer erwartete Fehler
+// SCHLECHT: Panic für erwartete Fehler
 fn divide(a, b) {
     if (b == 0) {
         panic("Division durch Null");  // Zu hart
@@ -373,7 +373,7 @@ fn divide(a, b) {
     return a / b;
 }
 
-// GUT: Throw fuer erwartete Fehler
+// GUT: Throw für erwartete Fehler
 fn divide(a, b) {
     if (b == 0) {
         throw "Division durch Null";  // Behebbar
@@ -389,7 +389,7 @@ fn divide(a, b) {
 ```hemlock
 fn example() {
     try {
-        return 1;  // Gibt 1 zurueck nach finally-Ausfuehrung
+        return 1;  // Gibt 1 zurück nach finally-Ausführung
     } finally {
         print("bereinigung");
     }
@@ -399,7 +399,7 @@ fn example2() {
     try {
         return 1;
     } finally {
-        return 2;  // Finally-return ueberschreibt try-return - gibt 2 zurueck
+        return 2;  // Finally-return überschreibt try-return - gibt 2 zurück
     }
 }
 ```
@@ -411,14 +411,14 @@ fn example2() {
 ```hemlock
 for (let i = 0; i < 10; i = i + 1) {
     try {
-        if (i == 5) { break; }  // Bricht nach finally-Ausfuehrung ab
+        if (i == 5) { break; }  // Bricht nach finally-Ausführung ab
     } finally {
         print("bereinigung " + typeof(i));
     }
 }
 ```
 
-**Regel:** Break/continue werden nach dem finally-Block ausgefuehrt.
+**Regel:** Break/continue werden nach dem finally-Block ausgeführt.
 
 ### Verschachteltes Try/Catch
 
@@ -435,13 +435,13 @@ try {
 }
 ```
 
-**Regel:** Verschachtelte try/catch-Bloecke funktionieren wie erwartet, innere catches geschehen zuerst.
+**Regel:** Verschachtelte try/catch-Blöcke funktionieren wie erwartet, innere catches geschehen zuerst.
 
-## Gaengige Muster
+## Gängige Muster
 
 ### Muster: Ressourcenbereinigung
 
-Immer `finally` fuer Bereinigung verwenden:
+Immer `finally` für Bereinigung verwenden:
 
 ```hemlock
 fn process_file(filename) {
@@ -495,7 +495,7 @@ fn safe_divide(a, b) {
 
 ### Muster: Validierung
 
-Ausnahmen fuer Validierung verwenden:
+Ausnahmen für Validierung verwenden:
 
 ```hemlock
 fn validate_user(user) {
@@ -511,7 +511,7 @@ fn validate_user(user) {
 }
 
 try {
-    validate_user({ name: "Alice", age: -5, email: "ungueltig" });
+    validate_user({ name: "Alice", age: -5, email: "ungültig" });
 } catch (e) {
     print("Validierung fehlgeschlagen: " + e);
 }
@@ -553,15 +553,15 @@ try {
 
 ## Best Practices
 
-1. **Ausnahmen fuer Ausnahmefaelle verwenden** - Nicht fuer normalen Kontrollfluss
+1. **Ausnahmen für Ausnahmefaelle verwenden** - Nicht für normalen Kontrollfluss
 2. **Aussagekraeftige Fehler werfen** - Strings oder Objekte mit Kontext verwenden
-3. **Immer finally fuer Bereinigung verwenden** - Stellt sicher, dass Ressourcen freigegeben werden
+3. **Immer finally für Bereinigung verwenden** - Stellt sicher, dass Ressourcen freigegeben werden
 4. **Nicht fangen und ignorieren** - Mindestens den Fehler protokollieren
-5. **Bei Bedarf erneut werfen** - Aufrufer behandeln lassen, wenn Sie nicht koennen
-6. **Panic fuer Bugs** - Panic fuer nicht behebbare Fehler verwenden
-7. **Ausnahmen dokumentieren** - Klar machen, welche Funktionen werfen koennen
+5. **Bei Bedarf erneut werfen** - Aufrufer behandeln lassen, wenn Sie nicht können
+6. **Panic für Bugs** - Panic für nicht behebbare Fehler verwenden
+7. **Ausnahmen dokumentieren** - Klar machen, welche Funktionen werfen können
 
-## Haeufige Fallstricke
+## Häufige Fallstricke
 
 ### Fallstrick: Fehler verschlucken
 
@@ -585,12 +585,12 @@ try {
 ### Fallstrick: Finally-Ueberschreibung
 
 ```hemlock
-// SCHLECHT: Finally ueberschreibt return
+// SCHLECHT: Finally überschreibt return
 fn get_value() {
     try {
         return 42;
     } finally {
-        return 0;  // Gibt 0 zurueck, nicht 42!
+        return 0;  // Gibt 0 zurück, nicht 42!
     }
 }
 
@@ -628,10 +628,10 @@ fn process() {
 }
 ```
 
-### Fallstrick: Panic fuer erwartete Fehler verwenden
+### Fallstrick: Panic für erwartete Fehler verwenden
 
 ```hemlock
-// SCHLECHT: Panic fuer erwarteten Fehler
+// SCHLECHT: Panic für erwarteten Fehler
 fn read_config(path) {
     if (!file_exists(path)) {
         panic("Konfigurationsdatei nicht gefunden");  // Zu hart
@@ -639,7 +639,7 @@ fn read_config(path) {
     return read_file(path);
 }
 
-// GUT: Throw fuer erwarteten Fehler
+// GUT: Throw für erwarteten Fehler
 fn read_config(path) {
     if (!file_exists(path)) {
         throw "Konfigurationsdatei nicht gefunden: " + path;  // Behebbar
@@ -738,7 +738,7 @@ fn divide(a, b) {
         throw create_error("TypeError", "b muss eine Zahl sein", { value: b });
     }
     if (b == 0) {
-        throw create_error("DivisionByZero", "Division durch Null nicht moeglich", { a: a, b: b });
+        throw create_error("DivisionByZero", "Division durch Null nicht möglich", { a: a, b: b });
     }
     return a / b;
 }
@@ -790,7 +790,7 @@ try {
 
 ## Ausfuehrungsreihenfolge
 
-Verstaendnis der Ausfuehrungsreihenfolge:
+Verständnis der Ausfuehrungsreihenfolge:
 
 ```hemlock
 try {
@@ -811,20 +811,20 @@ print("5: nach try/catch/finally");
 // 5: nach try/catch/finally
 ```
 
-## Aktuelle Einschraenkungen
+## Aktuelle Einschränkungen
 
 - **Kein Stack-Trace** - Nicht gefangene Ausnahmen zeigen keinen Stack-Trace (geplant)
-- **Einige Builtins beenden** - Einige eingebaute Funktionen rufen noch `exit()` statt zu werfen auf (wird ueberprueft)
+- **Einige Builtins beenden** - Einige eingebaute Funktionen rufen noch `exit()` statt zu werfen auf (wird überprüft)
 - **Keine benutzerdefinierten Ausnahmetypen** - Jeder Wert kann geworfen werden, aber keine formale Ausnahmehierarchie
 
 ## Verwandte Themen
 
 - [Functions](functions.md) - Ausnahmen und Funktionsrueckgaben
 - [Control Flow](control-flow.md) - Wie Ausnahmen den Kontrollfluss beeinflussen
-- [Memory](memory.md) - Finally fuer Speicherbereinigung verwenden
+- [Memory](memory.md) - Finally für Speicherbereinigung verwenden
 
 ## Siehe auch
 
 - **Ausnahmesemantik**: Siehe CLAUDE.md Abschnitt "Error Handling"
-- **Panic vs. Throw**: Verschiedene Anwendungsfaelle fuer verschiedene Fehlertypen
-- **Finally-Garantie**: Wird immer ausgefuehrt, auch bei return/break/continue
+- **Panic vs. Throw**: Verschiedene Anwendungsfaelle für verschiedene Fehlertypen
+- **Finally-Garantie**: Wird immer ausgeführt, auch bei return/break/continue

@@ -1,24 +1,24 @@
 # Speicher-API-Referenz
 
-Vollstaendige Referenz fuer Hemlocks Speicherverwaltungsfunktionen und Pointer-Typen.
+Vollständige Referenz für Hemlocks Speicherverwaltungsfunktionen und Pointer-Typen.
 
 ---
 
-## Uebersicht
+## Übersicht
 
 Hemlock bietet **manuelle Speicherverwaltung** mit expliziter Allokation und Deallokation. Speicher wird durch zwei Pointer-Typen verwaltet: Roh-Pointer (`ptr`) und sichere Buffer (`buffer`).
 
 **Grundprinzipien:**
 - Explizite Allokation und Deallokation
 - Keine Garbage Collection
-- Benutzer verantwortlich fuer Aufruf von `free()`
-- Interne Referenzzaehlung fuer Scope/Neuzuweisungssicherheit (siehe unten)
+- Benutzer verantwortlich für Aufruf von `free()`
+- Interne Referenzzaehlung für Scope/Neuzuweisungssicherheit (siehe unten)
 
 ### Interne Referenzzaehlung
 
-Die Laufzeit verwendet Referenzzaehlung intern zur Verwaltung von Objektlebenszeiten ueber Scopes. Fuer die meisten lokalen Variablen ist die Bereinigung automatisch.
+Die Laufzeit verwendet Referenzzaehlung intern zur Verwaltung von Objektlebenszeiten über Scopes. Für die meisten lokalen Variablen ist die Bereinigung automatisch.
 
-**Automatisch (kein `free()` noetig):**
+**Automatisch (kein `free()` nötig):**
 - Lokale Variablen von referenzgezaehlten Typen (buffer, array, object, string) werden freigegeben wenn Scope endet
 - Alte Werte werden freigegeben wenn Variablen neu zugewiesen werden
 - Container-Elemente werden freigegeben wenn Container freigegeben werden
@@ -28,7 +28,7 @@ Die Laufzeit verwendet Referenzzaehlung intern zur Verwaltung von Objektlebensze
 - Fruehe Bereinigung vor Scope-Ende
 - Langlebige/globale Daten
 
-Siehe [Speicherverwaltungs-Leitfaden](../language-guide/memory.md#internal-reference-counting) fuer Details.
+Siehe [Speicherverwaltungs-Leitfaden](../language-guide/memory.md#internal-reference-counting) für Details.
 
 ---
 
@@ -40,7 +40,7 @@ Siehe [Speicherverwaltungs-Leitfaden](../language-guide/memory.md#internal-refer
 
 **Beschreibung:** Rohe Speicheradresse ohne Grenzenprüfung oder Verfolgung.
 
-**Groesse:** 8 Bytes
+**Größe:** 8 Bytes
 
 **Anwendungsfaelle:**
 - Low-Level-Speicheroperationen
@@ -64,11 +64,11 @@ free(p);
 
 **Beschreibung:** Sicherer Pointer-Wrapper mit Grenzenprüfung.
 
-**Struktur:** Pointer + Laenge + Kapazitaet + Referenzzaehler
+**Struktur:** Pointer + Länge + Kapazität + Referenzzaehler
 
 **Eigenschaften:**
 - `.length` - Buffergroesse (i32)
-- `.capacity` - Allokierte Kapazitaet (i32)
+- `.capacity` - Allokierte Kapazität (i32)
 
 **Anwendungsfaelle:**
 - Die meisten Speicherallokationen
@@ -77,7 +77,7 @@ free(p);
 
 **Sicherheit:** Grenzenprüfung bei Indexzugriff
 
-**Referenzzaehlung:** Buffer sind intern referenzgezaehlt. Automatisch freigegeben wenn Scope endet oder Variable neu zugewiesen wird. Verwenden Sie `free()` fuer fruehe Bereinigung oder langlebige Daten.
+**Referenzzaehlung:** Buffer sind intern referenzgezählt. Automatisch freigegeben wenn Scope endet oder Variable neu zugewiesen wird. Verwenden Sie `free()` für fruehe Bereinigung oder langlebige Daten.
 
 **Beispiele:**
 ```hemlock
@@ -103,7 +103,7 @@ alloc(size: i32): ptr
 **Parameter:**
 - `size` - Anzahl der zu allokierenden Bytes
 
-**Rueckgabe:** Pointer zum allokierten Speicher (`ptr`)
+**Rückgabe:** Pointer zum allokierten Speicher (`ptr`)
 
 **Beispiele:**
 ```hemlock
@@ -111,17 +111,17 @@ let p = alloc(1024);        // 1KB allokieren
 memset(p, 0, 1024);         // Auf Null initialisieren
 free(p);                    // Wenn fertig freigeben
 
-// Fuer Struktur allokieren
+// Für Struktur allokieren
 let struct_size = 16;
 let p2 = alloc(struct_size);
 ```
 
 **Verhalten:**
-- Gibt uninitialisierten Speicher zurueck
+- Gibt uninitialisierten Speicher zurück
 - Speicher muss manuell freigegeben werden
-- Gibt `null` bei Allokationsfehler zurueck (Aufrufer muss pruefen)
+- Gibt `null` bei Allokationsfehler zurück (Aufrufer muss prüfen)
 
-**Siehe auch:** `buffer()` fuer sicherere Alternative
+**Siehe auch:** `buffer()` für sicherere Alternative
 
 ---
 
@@ -137,7 +137,7 @@ buffer(size: i32): buffer
 **Parameter:**
 - `size` - Buffergroesse in Bytes
 
-**Rueckgabe:** Buffer-Objekt
+**Rückgabe:** Buffer-Objekt
 
 **Beispiele:**
 ```hemlock
@@ -148,19 +148,19 @@ print(buf.capacity);        // 256
 // Zugriff mit Grenzenprüfung
 buf[0] = 65;                // 'A'
 buf[255] = 90;              // 'Z'
-// buf[256] = 0;            // FEHLER: ausserhalb der Grenzen
+// buf[256] = 0;            // FEHLER: außerhalb der Grenzen
 
 free(buf);
 ```
 
 **Eigenschaften:**
-- `.length` - Aktuelle Groesse (i32)
-- `.capacity` - Allokierte Kapazitaet (i32)
+- `.length` - Aktuelle Größe (i32)
+- `.capacity` - Allokierte Kapazität (i32)
 
 **Verhalten:**
 - Initialisiert Speicher auf Null
 - Bietet Grenzenprüfung bei Indexzugriff
-- Gibt `null` bei Allokationsfehler zurueck (Aufrufer muss pruefen)
+- Gibt `null` bei Allokationsfehler zurück (Aufrufer muss prüfen)
 - Muss manuell freigegeben werden
 
 ---
@@ -177,7 +177,7 @@ free(ptr: ptr | buffer): null
 **Parameter:**
 - `ptr` - Pointer oder Buffer zum Freigeben
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -201,7 +201,7 @@ free(buf);
 
 ### realloc
 
-Aendert Groesse von allokiertem Speicher.
+Aendert Größe von allokiertem Speicher.
 
 **Signatur:**
 ```hemlock
@@ -210,16 +210,16 @@ realloc(ptr: ptr, new_size: i32): ptr
 
 **Parameter:**
 - `ptr` - Pointer zur Groessenaenderung
-- `new_size` - Neue Groesse in Bytes
+- `new_size` - Neue Größe in Bytes
 
-**Rueckgabe:** Pointer zum vergroesserten Speicher (kann andere Adresse sein)
+**Rückgabe:** Pointer zum vergroesserten Speicher (kann andere Adresse sein)
 
 **Beispiele:**
 ```hemlock
 let p = alloc(100);
 // ... Speicher verwenden ...
 
-// Mehr Platz benoetigt
+// Mehr Platz benötigt
 p = realloc(p, 200);        // Jetzt 200 Bytes
 // ... erweiterten Speicher verwenden ...
 
@@ -228,12 +228,12 @@ free(p);
 
 **Verhalten:**
 - Kann Speicher an neue Position verschieben
-- Erhält vorhandene Daten (bis Minimum aus alter/neuer Groesse)
-- Alter Pointer ist nach erfolgreichem realloc ungueltig (zurueckgegebenen Pointer verwenden)
+- Erhält vorhandene Daten (bis Minimum aus alter/neuer Größe)
+- Alter Pointer ist nach erfolgreichem realloc ungültig (zurueckgegebenen Pointer verwenden)
 - Wenn new_size kleiner, werden Daten abgeschnitten
-- Gibt `null` bei Allokationsfehler zurueck (Original-Pointer bleibt gueltig)
+- Gibt `null` bei Allokationsfehler zurück (Original-Pointer bleibt gültig)
 
-**Wichtig:** Immer auf `null` pruefen und Pointer-Variable mit Ergebnis aktualisieren.
+**Wichtig:** Immer auf `null` prüfen und Pointer-Variable mit Ergebnis aktualisieren.
 
 ---
 
@@ -253,7 +253,7 @@ memset(ptr: ptr, byte: i32, size: i32): null
 - `byte` - Byte-Wert zum Fuellen (0-255)
 - `size` - Anzahl der zu fuellenden Bytes
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -294,7 +294,7 @@ memcpy(dest: ptr, src: ptr, size: i32): null
 - `src` - Quell-Pointer
 - `size` - Anzahl der zu kopierenden Bytes
 
-**Rueckgabe:** `null`
+**Rückgabe:** `null`
 
 **Beispiele:**
 ```hemlock
@@ -307,14 +307,14 @@ memset(src, 65, 100);
 // Zum Ziel kopieren
 memcpy(dest, src, 100);
 
-// dest enthaelt jetzt gleiche Daten wie src
+// dest enthält jetzt gleiche Daten wie src
 
 free(src);
 free(dest);
 ```
 
 **Verhalten:**
-- Kopiert Byte fuer Byte von src zu dest
+- Kopiert Byte für Byte von src zu dest
 - Keine Grenzenprüfung (unsicher)
 - Ueberlappende Bereiche haben undefiniertes Verhalten (vorsichtig verwenden)
 
@@ -324,7 +324,7 @@ free(dest);
 
 ### sizeof
 
-Gibt Groesse eines Typs in Bytes zurueck.
+Gibt Größe eines Typs in Bytes zurück.
 
 **Signatur:**
 ```hemlock
@@ -334,11 +334,11 @@ sizeof(type): i32
 **Parameter:**
 - `type` - Typ-Bezeichner (z.B. `i32`, `f64`, `ptr`)
 
-**Rueckgabe:** Groesse in Bytes (i32)
+**Rückgabe:** Größe in Bytes (i32)
 
 **Typgroessen:**
 
-| Typ | Groesse (Bytes) |
+| Typ | Größe (Bytes) |
 |-----|-----------------|
 | `i8` | 1 |
 | `i16` | 2 |
@@ -368,7 +368,7 @@ let total = sizeof(i32) * count; // 400 Bytes
 ```
 
 **Verhalten:**
-- Gibt 0 fuer unbekannte Typen zurueck
+- Gibt 0 für unbekannte Typen zurück
 - Akzeptiert sowohl Typ-Bezeichner als auch Typ-Strings
 
 ---
@@ -386,7 +386,7 @@ talloc(type, count: i32): ptr
 - `type` - Zu allokierender Typ (z.B. `i32`, `f64`, `ptr`)
 - `count` - Anzahl der Elemente (muss positiv sein)
 
-**Rueckgabe:** Pointer zum allokierten Array, oder `null` bei Allokationsfehler
+**Rückgabe:** Pointer zum allokierten Array, oder `null` bei Allokationsfehler
 
 **Beispiele:**
 ```hemlock
@@ -394,7 +394,7 @@ let arr = talloc(i32, 100);      // Array von 100 i32s (400 Bytes)
 let floats = talloc(f64, 50);    // Array von 50 f64s (400 Bytes)
 let bytes = talloc(u8, 1024);    // Array von 1024 Bytes
 
-// Immer auf Allokationsfehler pruefen
+// Immer auf Allokationsfehler prüfen
 if (arr == null) {
     panic("Allokation fehlgeschlagen");
 }
@@ -409,9 +409,9 @@ free(bytes);
 
 **Verhalten:**
 - Allokiert `sizeof(type) * count` Bytes
-- Gibt uninitialisierten Speicher zurueck
+- Gibt uninitialisierten Speicher zurück
 - Speicher muss manuell mit `free()` freigegeben werden
-- Gibt `null` bei Allokationsfehler zurueck (Aufrufer muss pruefen)
+- Gibt `null` bei Allokationsfehler zurück (Aufrufer muss prüfen)
 - Bricht ab wenn count nicht positiv ist
 
 ---
@@ -420,7 +420,7 @@ free(bytes);
 
 ### .length
 
-Gibt Buffergroesse zurueck.
+Gibt Buffergroesse zurück.
 
 **Typ:** `i32`
 
@@ -439,7 +439,7 @@ print(buf2.length);         // 1024
 
 ### .capacity
 
-Gibt Bufferkapazitaet zurueck.
+Gibt Bufferkapazitaet zurück.
 
 **Typ:** `i32`
 
@@ -451,7 +451,7 @@ let buf = buffer(256);
 print(buf.capacity);        // 256
 ```
 
-**Hinweis:** Derzeit sind `.length` und `.capacity` fuer mit `buffer()` erstellte Buffer gleich.
+**Hinweis:** Derzeit sind `.length` und `.capacity` für mit `buffer()` erstellte Buffer gleich.
 
 ---
 
@@ -504,10 +504,10 @@ if (p == null) {
 
 // ... Speicher verwenden ...
 
-// Mehr Platz benoetigt - auf Fehler pruefen
+// Mehr Platz benötigt - auf Fehler prüfen
 let new_p = realloc(p, 200);
 if (new_p == null) {
-    // Original-Pointer noch gueltig, aufraeumen
+    // Original-Pointer noch gültig, aufraeumen
     free(p);
     panic("Realloc fehlgeschlagen");
 }
@@ -539,7 +539,7 @@ free(copy);
 
 **Hemlocks Speicherverwaltung ist UNSICHER by Design:**
 
-### Haeufige Fallstricke
+### Häufige Fallstricke
 
 **1. Speicherlecks**
 ```hemlock
@@ -584,13 +584,13 @@ let p2 = alloc(100);
 free(p2);
 ```
 
-**4. Buffer-Ueberlauf (ptr)**
+**4. Buffer-Überlauf (ptr)**
 ```hemlock
-// SCHLECHT: Buffer-Ueberlauf mit ptr
+// SCHLECHT: Buffer-Überlauf mit ptr
 let p = alloc(10);
-memset(p, 65, 100);  // ABSTURZ: Schreiben ueber Allokation hinaus
+memset(p, 65, 100);  // ABSTURZ: Schreiben über Allokation hinaus
 
-// GUT: Buffer fuer Grenzenprüfung verwenden
+// GUT: Buffer für Grenzenprüfung verwenden
 let buf = buffer(10);
 // buf[100] = 65;  // FEHLER: Grenzenprüfung schlaegt fehl
 ```
@@ -612,11 +612,11 @@ free(p);
 
 **6. Ungeprüfter Allokationsfehler**
 ```hemlock
-// SCHLECHT: Nicht auf null pruefen
+// SCHLECHT: Nicht auf null prüfen
 let p = alloc(1000000000);  // Kann bei wenig Speicher fehlschlagen
 memset(p, 0, 1000000000);   // ABSTURZ: p ist null
 
-// GUT: Immer Allokationsergebnis pruefen
+// GUT: Immer Allokationsergebnis prüfen
 let p2 = alloc(1000000000);
 if (p2 == null) {
     panic("Speicher erschoepft");
@@ -630,13 +630,13 @@ free(p2);
 ## Wann was verwenden
 
 ### `buffer()` verwenden wenn:
-- Sie Grenzenprüfung benoetigen
+- Sie Grenzenprüfung benötigen
 - Mit dynamischen Daten arbeiten
 - Sicherheit wichtig ist
 - Hemlock lernen
 
 ### `alloc()` verwenden wenn:
-- Maximale Leistung benoetigt
+- Maximale Leistung benötigt
 - FFI/Schnittstelle zu C
 - Sie exaktes Speicherlayout kennen
 - Sie ein Experte sind
@@ -644,13 +644,13 @@ free(p2);
 ### `realloc()` verwenden wenn:
 - Allokationen vergroessern/verkleinern
 - Dynamische Arrays
-- Sie Daten erhalten muessen
+- Sie Daten erhalten müssen
 
 ---
 
-## Vollstaendige Funktionsuebersicht
+## Vollständige Funktionsuebersicht
 
-| Funktion  | Signatur                               | Rueckgabe | Beschreibung               |
+| Funktion  | Signatur                               | Rückgabe | Beschreibung               |
 |-----------|----------------------------------------|-----------|----------------------------|
 | `alloc`   | `(size: i32)`                          | `ptr`     | Roh-Speicher allokieren    |
 | `buffer`  | `(size: i32)`                          | `buffer`  | Sicheren Buffer allokieren |

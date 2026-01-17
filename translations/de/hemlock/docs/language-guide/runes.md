@@ -1,8 +1,8 @@
 # Runes
 
-Runes repraesentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF) als eigenstaendigen Typ fuer Zeichenmanipulation in Hemlock. Im Gegensatz zu Bytes (u8) sind Runes vollstaendige Unicode-Zeichen, die jedes Zeichen in jeder Sprache oder Emoji darstellen koennen.
+Runes repraesentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF) als eigenstaendigen Typ für Zeichenmanipulation in Hemlock. Im Gegensatz zu Bytes (u8) sind Runes vollständige Unicode-Zeichen, die jedes Zeichen in jeder Sprache oder Emoji darstellen können.
 
-## Ueberblick
+## Überblick
 
 ```hemlock
 let ch = 'A';           // Rune-Literal
@@ -19,20 +19,20 @@ let r = '>' + " msg";   // Rune + String Verkettung
 Eine Rune ist ein **32-Bit-Wert**, der einen Unicode-Codepoint repraesentiert:
 
 - **Bereich:** 0 bis 0x10FFFF (1.114.111 gueltige Codepoints)
-- **Kein numerischer Typ** - Wird fuer Zeichendarstellung verwendet
+- **Kein numerischer Typ** - Wird für Zeichendarstellung verwendet
 - **Unterschiedlich von u8/char** - Runes sind volles Unicode, u8 sind nur Bytes
-- **Von String-Indexierung zurueckgegeben** - `str[0]` gibt eine Rune zurueck, kein Byte
+- **Von String-Indexierung zurückgegeben** - `str[0]` gibt eine Rune zurück, kein Byte
 
 **Warum Runes?**
 - Hemlock-Strings sind UTF-8-kodiert
 - Ein einzelnes Unicode-Zeichen kann 1-4 Bytes in UTF-8 sein
-- Runes ermoeglichen die Arbeit mit vollstaendigen Zeichen, nicht mit Teilbytes
+- Runes ermöglichen die Arbeit mit vollstaendigen Zeichen, nicht mit Teilbytes
 
 ## Rune-Literale
 
 ### Grundlegende Syntax
 
-Einfache Anfuehrungszeichen kennzeichnen Rune-Literale:
+Einfache Anführungszeichen kennzeichnen Rune-Literale:
 
 ```hemlock
 let a = 'A';            // ASCII-Zeichen
@@ -43,7 +43,7 @@ let d = ' ';            // Leerzeichen
 
 ### Multi-Byte UTF-8 Zeichen
 
-Runes koennen jedes Unicode-Zeichen darstellen:
+Runes können jedes Unicode-Zeichen darstellen:
 
 ```hemlock
 // Emoji
@@ -63,14 +63,14 @@ let arrow = '→';        // Pfeil nach rechts (U+2192)
 
 ### Escape-Sequenzen
 
-Gaengige Escape-Sequenzen fuer Sonderzeichen:
+Gängige Escape-Sequenzen für Sonderzeichen:
 
 ```hemlock
 let newline = '\n';     // Zeilenumbruch (U+000A)
 let tab = '\t';         // Tabulator (U+0009)
 let backslash = '\\';   // Backslash (U+005C)
-let quote = '\'';       // Einfaches Anfuehrungszeichen (U+0027)
-let dquote = '"';       // Doppeltes Anfuehrungszeichen (U+0022)
+let quote = '\'';       // Einfaches Anführungszeichen (U+0027)
+let dquote = '"';       // Doppeltes Anführungszeichen (U+0022)
 let null_char = '\0';   // Null-Zeichen (U+0000)
 let cr = '\r';          // Wagenruecklauf (U+000D)
 ```
@@ -81,12 +81,12 @@ let cr = '\r';          // Wagenruecklauf (U+000D)
 - `\r` - Wagenruecklauf
 - `\0` - Null-Zeichen
 - `\\` - Backslash
-- `\'` - Einfaches Anfuehrungszeichen
-- `\"` - Doppeltes Anfuehrungszeichen
+- `\'` - Einfaches Anführungszeichen
+- `\"` - Doppeltes Anführungszeichen
 
 ### Unicode-Escapes
 
-Verwenden Sie `\u{XXXXXX}`-Syntax fuer Unicode-Codepoints (bis zu 6 Hex-Ziffern):
+Verwenden Sie `\u{XXXXXX}`-Syntax für Unicode-Codepoints (bis zu 6 Hex-Ziffern):
 
 ```hemlock
 let rocket = '\u{1F680}';   // 🚀 Emoji via Unicode-Escape
@@ -94,7 +94,7 @@ let heart = '\u{2764}';     // ❤ Herz
 let ascii = '\u{41}';       // 'A' via Escape
 let max = '\u{10FFFF}';     // Maximaler Unicode-Codepoint
 
-// Fuehrende Nullen optional
+// Führende Nullen optional
 let a = '\u{41}';           // Gleich wie '\u{0041}'
 let b = '\u{0041}';
 ```
@@ -102,12 +102,12 @@ let b = '\u{0041}';
 **Regeln:**
 - Bereich: `\u{0}` bis `\u{10FFFF}`
 - Hex-Ziffern: 1 bis 6 Ziffern
-- Gross-/Kleinschreibung egal: `\u{1F680}` oder `\u{1f680}`
-- Werte ausserhalb des gueltigen Unicode-Bereichs verursachen Fehler
+- Groß-/Kleinschreibung egal: `\u{1F680}` oder `\u{1f680}`
+- Werte außerhalb des gueltigen Unicode-Bereichs verursachen Fehler
 
 ## String + Rune Verkettung
 
-Runes koennen mit Strings verkettet werden:
+Runes können mit Strings verkettet werden:
 
 ```hemlock
 // String + Rune
@@ -127,12 +127,12 @@ let result = ('>' + " Wichtig").to_upper();  // "> WICHTIG"
 
 **Wie es funktioniert:**
 - Runes werden automatisch in UTF-8 kodiert
-- Waehrend der Verkettung in Strings konvertiert
+- Während der Verkettung in Strings konvertiert
 - Der String-Verkettungsoperator behandelt dies transparent
 
 ## Typkonvertierungen
 
-Runes koennen in/von anderen Typen konvertiert werden.
+Runes können in/von anderen Typen konvertiert werden.
 
 ### Integer <-> Rune
 
@@ -151,21 +151,21 @@ let rocket = '🚀';
 let code: i32 = rocket;         // 128640 (U+1F680)
 ```
 
-**Bereichspruefung:**
+**Bereichsprüfung:**
 - Integer zu Rune: Muss in [0, 0x10FFFF] sein
-- Werte ausserhalb des Bereichs verursachen Laufzeitfehler
-- Rune zu Integer: Funktioniert immer (gibt Codepoint zurueck)
+- Werte außerhalb des Bereichs verursachen Laufzeitfehler
+- Rune zu Integer: Funktioniert immer (gibt Codepoint zurück)
 
 ### Rune -> String
 
-Runes koennen explizit in Strings konvertiert werden:
+Runes können explizit in Strings konvertiert werden:
 
 ```hemlock
 // Explizite Konvertierung
 let ch: string = 'H';           // "H"
 let emoji: string = '🚀';       // "🚀"
 
-// Automatisch waehrend Verkettung
+// Automatisch während Verkettung
 let s = "" + 'A';               // "A"
 let s2 = "x" + 'y' + "z";       // "xyz"
 ```
@@ -188,7 +188,7 @@ let r: rune = extended;         // U+00C8 (E)
 
 ### Verkettete Konvertierungen
 
-Typkonvertierungen koennen verkettet werden:
+Typkonvertierungen können verkettet werden:
 
 ```hemlock
 // i32 -> Rune -> String
@@ -208,10 +208,10 @@ Wie Runes angezeigt werden haengt vom Codepoint ab:
 
 ```hemlock
 let ascii = 'A';
-print(ascii);                   // 'A' (in Anfuehrungszeichen, druckbares ASCII)
+print(ascii);                   // 'A' (in Anführungszeichen, druckbares ASCII)
 
 let emoji = '🚀';
-print(emoji);                   // U+1F680 (Unicode-Notation fuer Nicht-ASCII)
+print(emoji);                   // U+1F680 (Unicode-Notation für Nicht-ASCII)
 
 let tab = '\t';
 print(tab);                     // U+0009 (nicht-druckbar als Hex)
@@ -221,12 +221,12 @@ print(space);                   // ' ' (druckbar)
 ```
 
 **Ausgabeformat:**
-- Druckbares ASCII (32-126): Zeichen in Anfuehrungszeichen `'A'`
+- Druckbares ASCII (32-126): Zeichen in Anführungszeichen `'A'`
 - Nicht-druckbar oder Unicode: Hex-Notation `U+XXXX`
 
-### Typpruefung
+### Typprüfung
 
-Verwenden Sie `typeof()` um zu pruefen ob ein Wert eine Rune ist:
+Verwenden Sie `typeof()` um zu prüfen ob ein Wert eine Rune ist:
 
 ```hemlock
 let r = '🚀';
@@ -234,7 +234,7 @@ print(typeof(r));               // "rune"
 
 let s = "text";
 let ch = s[0];
-print(typeof(ch));              // "rune" (Indexierung gibt Runes zurueck)
+print(typeof(ch));              // "rune" (Indexierung gibt Runes zurück)
 
 let num = 65;
 print(typeof(num));             // "i32"
@@ -242,7 +242,7 @@ print(typeof(num));             // "i32"
 
 ### Vergleich
 
-Runes koennen auf Gleichheit verglichen werden:
+Runes können auf Gleichheit verglichen werden:
 
 ```hemlock
 let a = 'A';
@@ -250,12 +250,12 @@ let b = 'B';
 print(a == a);                  // true
 print(a == b);                  // false
 
-// Gross-/Kleinschreibung sensitiv
+// Groß-/Kleinschreibung sensitiv
 let upper = 'A';
 let lower = 'a';
 print(upper == lower);          // false
 
-// Runes koennen mit Integers verglichen werden (Codepoint-Werte)
+// Runes können mit Integers verglichen werden (Codepoint-Werte)
 print(a == 65);                 // true (implizite Konvertierung)
 print('🚀' == 128640);          // true
 ```
@@ -272,7 +272,7 @@ print('a' > 'Z');               // true (97 > 90)
 
 ## Arbeiten mit String-Indexierung
 
-String-Indexierung gibt Runes zurueck, keine Bytes:
+String-Indexierung gibt Runes zurück, keine Bytes:
 
 ```hemlock
 let s = "Hello🚀";
@@ -320,7 +320,7 @@ print(is_upper('A'));           // true
 print(is_lower('z'));           // true
 ```
 
-### Beispiel: Gross-/Kleinschreibung Konvertierung
+### Beispiel: Groß-/Kleinschreibung Konvertierung
 
 ```hemlock
 fn to_upper_rune(r: rune): rune {
@@ -382,7 +382,7 @@ let line = repeat_char('=', 40);  // "========================================"
 let stars = repeat_char('⭐', 5);  // "⭐⭐⭐⭐⭐"
 ```
 
-## Gaengige Muster
+## Gängige Muster
 
 ### Muster: Zeichenfilter
 
@@ -426,13 +426,13 @@ let o_count = count_char(text, 'o');  // 2
 
 ## Best Practices
 
-1. **Runes fuer Zeichenoperationen verwenden** - Versuchen Sie nicht mit Bytes fuer Text zu arbeiten
-2. **String-Indexierung gibt Runes zurueck** - Denken Sie daran dass `str[i]` Ihnen eine Rune gibt
+1. **Runes für Zeichenoperationen verwenden** - Versuchen Sie nicht mit Bytes für Text zu arbeiten
+2. **String-Indexierung gibt Runes zurück** - Denken Sie daran dass `str[i]` Ihnen eine Rune gibt
 3. **Unicode-bewusste Vergleiche** - Runes behandeln jedes Unicode-Zeichen
 4. **Bei Bedarf konvertieren** - Runes konvertieren einfach in Strings und Integers
 5. **Mit Emoji testen** - Testen Sie Zeichenoperationen immer mit Multi-Byte-Zeichen
 
-## Haeufige Fallstricke
+## Häufige Fallstricke
 
 ### Fallstrick: Rune vs. Byte Verwechslung
 
@@ -468,5 +468,5 @@ let rune2 = s.char_at(0);   // '🚀' (explizite Methode)
 ## Siehe auch
 
 - **Unicode-Standard**: Unicode-Codepoints werden vom Unicode Consortium definiert
-- **UTF-8-Kodierung**: Siehe [Strings](strings.md) fuer UTF-8-Details
-- **Typkonvertierungen**: Siehe [Types](types.md) fuer Konvertierungsregeln
+- **UTF-8-Kodierung**: Siehe [Strings](strings.md) für UTF-8-Details
+- **Typkonvertierungen**: Siehe [Types](types.md) für Konvertierungsregeln
