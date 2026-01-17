@@ -7,9 +7,12 @@ This script generates a standalone HTML file (docs.html) that includes:
 - Embedded content (no HTTP server required)
 - Beautiful sage/pine green theme
 - Multi-page navigation
+- Multi-language support
 
 Usage:
-    python build_docs.py
+    python build_docs.py           # Build English docs (default)
+    python build_docs.py --lang zh # Build Chinese docs
+    python build_docs.py --lang all # Build all available languages
 
 The hemlock submodule must be initialized before running this script:
     git submodule update --init --recursive
@@ -20,12 +23,23 @@ import sys
 import json
 import base64
 import re
+import argparse
 from pathlib import Path
 
-# Paths to submodules
+# Paths to submodules and translations
 HEMLOCK_DIR = Path(__file__).parent / 'hemlock'
 HPM_DIR = Path(__file__).parent / 'hpm'
+TRANSLATIONS_DIR = Path(__file__).parent / 'translations'
 OUTPUT_FILE = Path(__file__).parent / 'docs.html'
+
+# Supported languages with display names
+SUPPORTED_LANGUAGES = {
+    'en': 'English',
+    'zh': '中文',
+}
+
+# Current build language (set by main())
+CURRENT_LANG = 'en'
 
 
 def read_file(path):
@@ -36,6 +50,46 @@ def read_file(path):
     except Exception as e:
         print(f"Warning: Could not read {path}: {e}")
         return ""
+
+
+def get_translated_path(original_path, lang):
+    """Get the translated file path if it exists, otherwise return the original.
+
+    For a file like hemlock/docs/getting-started/tutorial.md with lang='zh',
+    looks for translations/zh/hemlock/docs/getting-started/tutorial.md
+    """
+    if lang == 'en':
+        return original_path
+
+    # Convert to Path object
+    original_path = Path(original_path)
+    base_dir = Path(__file__).parent
+
+    # Determine if this is a hemlock or hpm file
+    try:
+        rel_path = original_path.relative_to(base_dir)
+    except ValueError:
+        return original_path
+
+    # Build the translation path
+    translated_path = TRANSLATIONS_DIR / lang / rel_path
+
+    if translated_path.exists():
+        return translated_path
+
+    # Fall back to original English
+    return original_path
+
+
+def read_file_with_translation(path, lang):
+    """Read file content, preferring translation if available."""
+    translated_path = get_translated_path(path, lang)
+    content = read_file(translated_path)
+
+    # Track if we're using a translation or fallback
+    is_translated = (translated_path != Path(path)) and translated_path.exists()
+
+    return content, is_translated
 
 
 def smart_title(text):
@@ -114,14 +168,20 @@ def convert_md_links(content, current_section):
     return re.sub(pattern, replace_link, content)
 
 
-def collect_docs():
-    """Collect all documentation files from hemlock and hpm submodules."""
+def collect_docs(lang='en'):
+    """Collect all documentation files from hemlock and hpm submodules.
+
+    Args:
+        lang: Language code ('en', 'zh', etc.). Will use translations if available,
+              falling back to English for untranslated files.
+    """
     docs = {}
+    translation_stats = {'translated': 0, 'fallback': 0}
 
     # Add CLAUDE.md as the main documentation
     claude_path = HEMLOCK_DIR / 'CLAUDE.md'
     if claude_path.exists():
-        content = read_file(claude_path)
+        content, is_translated = read_file_with_translation(claude_path, lang)
         content = convert_md_links(content, 'language-reference')
         docs['Language Reference'] = {
             'id': 'language-reference',
@@ -129,6 +189,10 @@ def collect_docs():
             'order': 0,
             'section': ''
         }
+        if is_translated:
+            translation_stats['translated'] += 1
+        else:
+            translation_stats['fallback'] += 1
 
     # Collect docs from hemlock/docs/ directory
     docs_dir = HEMLOCK_DIR / 'docs'
@@ -157,7 +221,7 @@ def collect_docs():
                 title = smart_title(file_name)
                 doc_id = f"{subdir}-{file_name}"
 
-                content = read_file(md_file)
+                content, is_translated = read_file_with_translation(md_file, lang)
                 content = convert_md_links(content, subdir)
 
                 docs[f"{section_name} -> {title}"] = {
@@ -166,6 +230,11 @@ def collect_docs():
                     'order': order,
                     'section': section_name
                 }
+
+                if is_translated:
+                    translation_stats['translated'] += 1
+                else:
+                    translation_stats['fallback'] += 1
 
     # Collect hpm documentation
     hpm_docs_dir = HPM_DIR / 'docs'
@@ -205,7 +274,7 @@ def collect_docs():
             title = smart_title(file_name)
             doc_id = f"hpm-{file_name}"
 
-            content = read_file(md_file)
+            content, is_translated = read_file_with_translation(md_file, lang)
             content = convert_md_links(content, f"hpm-{file_name}")
 
             docs[f"{section_name} -> {title}"] = {
@@ -215,13 +284,30 @@ def collect_docs():
                 'section': section_name
             }
 
+            if is_translated:
+                translation_stats['translated'] += 1
+            else:
+                translation_stats['fallback'] += 1
+
     # Sort by order, then by name
     sorted_docs = dict(sorted(docs.items(), key=lambda x: (x[1]['order'], x[0])))
+
+    # Print translation stats for non-English builds
+    if lang != 'en':
+        total = translation_stats['translated'] + translation_stats['fallback']
+        print(f"  Translation coverage: {translation_stats['translated']}/{total} pages ({100*translation_stats['translated']//total}%)")
+
     return sorted_docs
 
 
-def generate_html(docs, logo_data):
-    """Generate the complete HTML document."""
+def generate_html(docs, logo_data, lang='en'):
+    """Generate the complete HTML document.
+
+    Args:
+        docs: Dictionary of documentation pages
+        logo_data: Base64 encoded logo image
+        lang: Language code for this build
+    """
 
     # Generate navigation items
     nav_items = []
@@ -260,12 +346,27 @@ def generate_html(docs, logo_data):
         for title, info in docs.items()
     }, ensure_ascii=False)
 
+    # Language-specific titles
+    titles = {
+        'en': 'Hemlock Language Manual',
+        'zh': 'Hemlock 语言手册',
+    }
+    page_title = titles.get(lang, titles['en'])
+
+    # Generate language switcher options
+    lang_options = []
+    for code, name in SUPPORTED_LANGUAGES.items():
+        filename = 'docs.html' if code == 'en' else f'docs-{code}.html'
+        selected = 'selected' if code == lang else ''
+        lang_options.append(f'<option value="{filename}" {selected}>{name}</option>')
+    lang_options_html = '\n'.join(lang_options)
+
     html = f'''<!DOCTYPE html>
-<html lang="en">
+<html lang="{lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hemlock Language Manual</title>
+    <title>{page_title}</title>
     <style>
         * {{
             margin: 0;
@@ -332,6 +433,28 @@ def generate_html(docs, logo_data):
             .header .tagline {{
                 display: block;
             }}
+        }}
+
+        /* Language Switcher */
+        .lang-switcher {{
+            margin-left: 1rem;
+            background: var(--dark-pine);
+            border: 1px solid var(--sage);
+            color: var(--light-sage);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+        }}
+
+        .lang-switcher:hover {{
+            background: var(--sage);
+            color: var(--pine);
+        }}
+
+        .lang-switcher:focus {{
+            border-color: var(--light-sage);
         }}
 
         /* Layout */
@@ -675,8 +798,11 @@ def generate_html(docs, logo_data):
     <!-- Header -->
     <div class="header">
         <img src="{logo_data}" alt="Hemlock Logo" class="header-logo">
-        <h1>Hemlock Language Manual</h1>
+        <h1>{page_title}</h1>
         <span class="tagline">"A small, unsafe language for writing unsafe things safely."</span>
+        <select class="lang-switcher" id="langSwitcher" onchange="switchLanguage(this.value)">
+            {lang_options_html}
+        </select>
     </div>
 
     <!-- Mobile Menu Toggle -->
@@ -1019,6 +1145,13 @@ def generate_html(docs, logo_data):
             }}
         }});
 
+        // Language switcher
+        function switchLanguage(filename) {{
+            // Preserve the current hash when switching languages
+            const currentHash = window.location.hash;
+            window.location.href = filename + currentHash;
+        }}
+
         // Load initial page
         const initialHash = window.location.hash.substring(1);
         const firstPageId = Object.values(PAGES)[0].id;
@@ -1030,8 +1163,52 @@ def generate_html(docs, logo_data):
     return html
 
 
+def build_for_language(lang):
+    """Build documentation for a specific language."""
+    global CURRENT_LANG
+    CURRENT_LANG = lang
+
+    lang_name = SUPPORTED_LANGUAGES.get(lang, lang)
+    print(f"\nBuilding {lang_name} ({lang}) documentation...")
+
+    # Determine output file
+    if lang == 'en':
+        output_file = Path(__file__).parent / 'docs.html'
+    else:
+        output_file = Path(__file__).parent / f'docs-{lang}.html'
+
+    # Collect documentation
+    print("Collecting documentation files...")
+    docs = collect_docs(lang)
+    if not docs:
+        print("Error: No documentation pages found")
+        return False
+    print(f"Found {len(docs)} documentation pages")
+
+    # Encode logo
+    logo_path = HEMLOCK_DIR / 'logo.png'
+    logo_data = encode_image(logo_path) if logo_path.exists() else ""
+
+    # Generate HTML
+    print("Generating HTML...")
+    html = generate_html(docs, logo_data, lang)
+
+    # Write output
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(html)
+
+    print(f"Documentation built: {output_file}")
+    print(f"  - {len(docs)} pages")
+    return True
+
+
 def main():
     """Main build function."""
+    parser = argparse.ArgumentParser(description='Build Hemlock documentation viewer')
+    parser.add_argument('--lang', '-l', default='en',
+                        help=f'Language to build: {", ".join(SUPPORTED_LANGUAGES.keys())} or "all" (default: en)')
+    args = parser.parse_args()
+
     print("Building Hemlock documentation viewer...")
 
     # Check that hemlock submodule exists
@@ -1058,32 +1235,23 @@ def main():
         if hpm_docs.exists():
             print(f"Found hpm documentation at {hpm_docs}")
 
-    # Collect documentation
-    print("Collecting documentation files...")
-    docs = collect_docs()
-    if not docs:
-        print("Error: No documentation pages found")
+    # Determine which languages to build
+    if args.lang == 'all':
+        languages = list(SUPPORTED_LANGUAGES.keys())
+    elif args.lang in SUPPORTED_LANGUAGES:
+        languages = [args.lang]
+    else:
+        print(f"Error: Unknown language '{args.lang}'")
+        print(f"Supported languages: {', '.join(SUPPORTED_LANGUAGES.keys())}")
         sys.exit(1)
-    print(f"Found {len(docs)} documentation pages")
 
-    # Encode logo
-    print("Encoding logo...")
-    logo_path = HEMLOCK_DIR / 'logo.png'
-    logo_data = encode_image(logo_path) if logo_path.exists() else ""
-    if not logo_data:
-        print("Warning: logo.png not found, continuing without logo")
+    # Build for each language
+    success_count = 0
+    for lang in languages:
+        if build_for_language(lang):
+            success_count += 1
 
-    # Generate HTML
-    print("Generating HTML...")
-    html = generate_html(docs, logo_data)
-
-    # Write output
-    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-        f.write(html)
-
-    print(f"Documentation built: {OUTPUT_FILE}")
-    print(f"  - {len(docs)} pages")
-    print(f"  - Open docs.html in your browser to view")
+    print(f"\nBuild complete: {success_count}/{len(languages)} languages built successfully")
 
 
 if __name__ == '__main__':
