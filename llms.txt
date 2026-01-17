@@ -142,9 +142,9 @@ free(buf);
 
 Ready to dive in? Here's how to begin:
 
-1. **[Installation](getting-started-installation)** - Download and set up Hemlock
-2. **[Quick Start](getting-started-quick-start)** - Write your first program in minutes
-3. **[Tutorial](getting-started-tutorial)** - Learn Hemlock step by step
+1. **[Installation](#getting-started-installation)** - Download and set up Hemlock
+2. **[Quick Start](#getting-started-quick-start)** - Write your first program in minutes
+3. **[Tutorial](#getting-started-tutorial)** - Learn Hemlock step by step
 
 ## Documentation Sections
 

@@ -143,9 +143,9 @@ free(buf);
 
 准备好开始了吗？以下是开始步骤：
 
-1. **[安装](getting-started-installation)** - 下载并设置 Hemlock
-2. **[快速开始](getting-started-quick-start)** - 几分钟内编写您的第一个程序
-3. **[教程](getting-started-tutorial)** - 逐步学习 Hemlock
+1. **[安装](#getting-started-installation)** - 下载并设置 Hemlock
+2. **[快速开始](#getting-started-quick-start)** - 几分钟内编写您的第一个程序
+3. **[教程](#getting-started-tutorial)** - 逐步学习 Hemlock
 
 ## 文档章节
 

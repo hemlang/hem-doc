@@ -143,9 +143,9 @@ free(buf);
 
 始める準備はできましたか？以下の手順で始めましょう：
 
-1. **[インストール](getting-started-installation)** - Hemlock をダウンロードしてセットアップ
-2. **[クイックスタート](getting-started-quick-start)** - 数分で最初のプログラムを作成
-3. **[チュートリアル](getting-started-tutorial)** - ステップバイステップで Hemlock を学ぶ
+1. **[インストール](#getting-started-installation)** - Hemlock をダウンロードしてセットアップ
+2. **[クイックスタート](#getting-started-quick-start)** - 数分で最初のプログラムを作成
+3. **[チュートリアル](#getting-started-tutorial)** - ステップバイステップで Hemlock を学ぶ
 
 ## ドキュメントセクション
 

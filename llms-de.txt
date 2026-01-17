@@ -143,9 +143,9 @@ free(buf);
 
 Bereit loszulegen? So beginnen Sie:
 
-1. **[Installation](getting-started-installation)** - Hemlock herunterladen und einrichten
-2. **[Schnellstart](getting-started-quick-start)** - Schreiben Sie Ihr erstes Programm in Minuten
-3. **[Tutorial](getting-started-tutorial)** - Lernen Sie Hemlock Schritt für Schritt
+1. **[Installation](#getting-started-installation)** - Hemlock herunterladen und einrichten
+2. **[Schnellstart](#getting-started-quick-start)** - Schreiben Sie Ihr erstes Programm in Minuten
+3. **[Tutorial](#getting-started-tutorial)** - Lernen Sie Hemlock Schritt für Schritt
 
 ## Dokumentationsabschnitte
 
