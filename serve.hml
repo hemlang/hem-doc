@@ -1,5 +1,5 @@
 // Hemlock Documentation Server
-// Serves the docs.html file using Sprout
+// Serves the docs.html and llms.txt files using Sprout
 
 import { App } from "hemlang/sprout";
 import { read_file } from "@stdlib/fs";
@@ -12,6 +12,12 @@ if (docs_html == null) {
     exit(1);
 }
 
+// Read the LLM-friendly documentation at startup
+let llms_txt = read_file("llms.txt");
+if (llms_txt == null) {
+    print("Warning: llms.txt not found, /llms.txt endpoint will be unavailable");
+}
+
 let app = App(null);
 
 // Serve the documentation
@@ -19,15 +25,29 @@ app.get("/", fn(req, res, next) {
     res.type("html").send(docs_html);
 });
 
-// Health check endpoint
-app.get("/health", fn(req, res, next) {
-    res.json({ status: "ok", docs_size: docs_html.length });
+// Serve LLM-friendly documentation
+app.get("/llms.txt", fn(req, res, next) {
+    if (llms_txt == null) {
+        res.status(404).type("text").send("llms.txt not found. Run 'make docs' to generate it.");
+    } else {
+        res.type("text").send(llms_txt);
+    }
 });
 
-// Serve on port 3000
+// Health check endpoint
+app.get("/health", fn(req, res, next) {
+    res.json({
+        status: "ok",
+        docs_size: docs_html.length,
+        llms_size: llms_txt != null ? llms_txt.length : 0
+    });
+});
+
+// Serve on port 5169
 let port = 5169;
 
 app.listen(port, fn() {
     print("Hemlock Documentation Server");
     print("Serving docs at http://localhost:" + port);
+    print("LLM docs at http://localhost:" + port + "/llms.txt");
 });

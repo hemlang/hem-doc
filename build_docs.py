@@ -26,6 +26,7 @@ from pathlib import Path
 HEMLOCK_DIR = Path(__file__).parent / 'hemlock'
 HPM_DIR = Path(__file__).parent / 'hpm'
 OUTPUT_FILE = Path(__file__).parent / 'docs.html'
+LLM_OUTPUT_FILE = Path(__file__).parent / 'llms.txt'
 
 
 def read_file(path):
@@ -1030,6 +1031,91 @@ def generate_html(docs, logo_data):
     return html
 
 
+def generate_llm_txt(docs):
+    """Generate LLM-friendly plain text documentation.
+
+    Creates a single text file optimized for LLM context windows:
+    - Clear structure with section markers
+    - All documentation concatenated
+    - No HTML/CSS/JS overhead
+    - Easy to parse and understand
+    """
+    lines = []
+
+    # Header
+    lines.append("=" * 80)
+    lines.append("HEMLOCK PROGRAMMING LANGUAGE - COMPLETE DOCUMENTATION")
+    lines.append("=" * 80)
+    lines.append("")
+    lines.append("This file contains the complete documentation for the Hemlock programming")
+    lines.append("language and the hpm package manager. It is optimized for LLM consumption.")
+    lines.append("")
+    lines.append("Source: https://github.com/hemlang/hem-doc")
+    lines.append("")
+
+    # Table of contents
+    lines.append("-" * 80)
+    lines.append("TABLE OF CONTENTS")
+    lines.append("-" * 80)
+    lines.append("")
+
+    current_section = None
+    toc_num = 1
+    for title, info in docs.items():
+        section = info.get('section', '')
+        if section and section != current_section:
+            lines.append(f"\n[{section}]")
+            current_section = section
+
+        # Simplify title for TOC
+        nav_title = title.split(' -> ')[-1] if ' -> ' in title else title
+        lines.append(f"  {toc_num}. {nav_title}")
+        toc_num += 1
+
+    lines.append("")
+    lines.append("")
+
+    # Documentation content
+    lines.append("=" * 80)
+    lines.append("DOCUMENTATION")
+    lines.append("=" * 80)
+
+    current_section = None
+    for title, info in docs.items():
+        section = info.get('section', '')
+
+        # Add section divider if new section
+        if section and section != current_section:
+            lines.append("")
+            lines.append("")
+            lines.append("#" * 80)
+            lines.append(f"# {section.upper()}")
+            lines.append("#" * 80)
+            current_section = section
+
+        # Page header
+        nav_title = title.split(' -> ')[-1] if ' -> ' in title else title
+        lines.append("")
+        lines.append("-" * 80)
+        lines.append(f"## {nav_title}")
+        lines.append("-" * 80)
+        lines.append("")
+
+        # Page content (strip trailing whitespace from each line)
+        content = info['content']
+        for line in content.split('\n'):
+            lines.append(line.rstrip())
+
+    # Footer
+    lines.append("")
+    lines.append("")
+    lines.append("=" * 80)
+    lines.append("END OF DOCUMENTATION")
+    lines.append("=" * 80)
+
+    return '\n'.join(lines)
+
+
 def main():
     """Main build function."""
     print("Building Hemlock documentation viewer...")
@@ -1077,13 +1163,25 @@ def main():
     print("Generating HTML...")
     html = generate_html(docs, logo_data)
 
-    # Write output
+    # Write HTML output
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
         f.write(html)
 
     print(f"Documentation built: {OUTPUT_FILE}")
     print(f"  - {len(docs)} pages")
     print(f"  - Open docs.html in your browser to view")
+
+    # Generate LLM-friendly documentation
+    print("Generating LLM-friendly documentation...")
+    llm_txt = generate_llm_txt(docs)
+
+    # Write LLM output
+    with open(LLM_OUTPUT_FILE, 'w', encoding='utf-8') as f:
+        f.write(llm_txt)
+
+    print(f"LLM documentation built: {LLM_OUTPUT_FILE}")
+    print(f"  - {len(llm_txt)} characters")
+    print(f"  - Use for LLM context or RAG applications")
 
 
 if __name__ == '__main__':
