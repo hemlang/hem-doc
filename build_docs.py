@@ -40,6 +40,7 @@ SUPPORTED_LANGUAGES = {
     'zh': '中文',
     'de': 'Deutsch',
     'es': 'Español',
+    'fr': 'Français',
     'ja': '日本語',
     'pt': 'Português',
 }
@@ -115,6 +116,20 @@ SECTION_TRANSLATIONS = {
         'hpm: Package Development': 'hpm: Desenvolvimento de Pacotes',
         'hpm: Reference': 'hpm: Referência',
         'hpm: Other': 'hpm: Outros',
+    },
+    'fr': {
+        'Language Reference': 'Référence du Langage',
+        'Getting Started': 'Prise en Main',
+        'Language Guide': 'Guide du Langage',
+        'Advanced Topics': 'Sujets Avancés',
+        'API Reference': 'Référence API',
+        'Design & Philosophy': 'Conception et Philosophie',
+        'Contributing': 'Contribuer',
+        'hpm: Getting Started': 'hpm : Prise en Main',
+        'hpm: User Guide': 'hpm : Guide Utilisateur',
+        'hpm: Package Development': 'hpm : Développement de Paquets',
+        'hpm: Reference': 'hpm : Référence',
+        'hpm: Other': 'hpm : Autres',
     }
 }
 
@@ -399,6 +414,62 @@ TITLE_TRANSLATIONS = {
         'Versioning': 'Versionamento',
         'Architecture': 'Arquitetura',
         'Exit Codes': 'Códigos de Saída',
+    },
+    'fr': {
+        # Getting Started
+        'Installation': 'Installation',
+        'Quick Start': 'Démarrage Rapide',
+        'Tutorial': 'Tutoriel',
+        'Learning Paths': 'Parcours d\'Apprentissage',
+        # Language Guide
+        'Syntax': 'Syntaxe',
+        'Types': 'Types',
+        'Functions': 'Fonctions',
+        'Arrays': 'Tableaux',
+        'Strings': 'Chaînes de Caractères',
+        'Objects': 'Objets',
+        'Control Flow': 'Flux de Contrôle',
+        'Error Handling': 'Gestion des Erreurs',
+        'Modules': 'Modules',
+        'Memory': 'Gestion de la Mémoire',
+        'Pattern Matching': 'Filtrage par Motif',
+        'Runes': 'Runes',
+        # Advanced
+        'Async Concurrency': 'Asynchronisme et Concurrence',
+        'Atomics': 'Opérations Atomiques',
+        'Bundling Packaging': 'Empaquetage et Distribution',
+        'Command Execution': 'Exécution de Commandes',
+        'Command Line Args': 'Arguments en Ligne de Commande',
+        'Ffi': 'FFI (Interface de Fonctions Étrangères)',
+        'File Io': 'E/S de Fichiers',
+        'Profiling': 'Profilage',
+        'Signals': 'Signaux',
+        # Reference
+        'Array API': 'API des Tableaux',
+        'String API': 'API des Chaînes',
+        'File API': 'API des Fichiers',
+        'Memory API': 'API Mémoire',
+        'Concurrency API': 'API de Concurrence',
+        'Builtins': 'Fonctions Intégrées',
+        'Operators': 'Opérateurs',
+        'Type System': 'Système de Types',
+        # Design
+        'Philosophy': 'Philosophie',
+        'Implementation': 'Implémentation',
+        'Signature Syntax': 'Syntaxe des Signatures',
+        # Contributing
+        'Guidelines': 'Directives',
+        'Testing': 'Tests',
+        # hpm docs
+        'Commands': 'Commandes',
+        'Configuration': 'Configuration',
+        'Project Setup': 'Configuration du Projet',
+        'Troubleshooting': 'Dépannage',
+        'Creating Packages': 'Création de Paquets',
+        'Package Spec': 'Spécification des Paquets',
+        'Versioning': 'Gestion des Versions',
+        'Architecture': 'Architecture',
+        'Exit Codes': 'Codes de Sortie',
     }
 }
 
@@ -411,6 +482,7 @@ WELCOME_TITLE_TRANSLATIONS = {
     'zh': '欢迎',
     'de': 'Willkommen',
     'es': 'Bienvenido',
+    'fr': 'Bienvenue',
     'ja': 'ようこそ',
     'pt': 'Bem-vindo',
 }
@@ -775,7 +847,9 @@ def generate_html(docs, logo_data, lang='en'):
         'zh': 'Hemlock 语言手册',
         'de': 'Hemlock-Sprachhandbuch',
         'es': 'Manual del Lenguaje Hemlock',
+        'fr': 'Manuel du Langage Hemlock',
         'ja': 'Hemlock言語マニュアル',
+        'pt': 'Manual da Linguagem Hemlock',
     }
     page_title = titles.get(lang, titles['en'])
 
