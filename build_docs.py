@@ -30,6 +30,7 @@ from pathlib import Path
 HEMLOCK_DIR = Path(__file__).parent / 'hemlock'
 HPM_DIR = Path(__file__).parent / 'hpm'
 TRANSLATIONS_DIR = Path(__file__).parent / 'translations'
+WELCOME_DIR = Path(__file__).parent / 'welcome'
 OUTPUT_FILE = Path(__file__).parent / 'docs.html'
 LLM_OUTPUT_FILE = Path(__file__).parent / 'llms.txt'
 
@@ -333,6 +334,15 @@ TITLE_TRANSLATIONS = {
 # Current build language
 CURRENT_LANG = 'en'
 
+# Welcome page title translations
+WELCOME_TITLE_TRANSLATIONS = {
+    'en': 'Welcome',
+    'zh': '欢迎',
+    'de': 'Willkommen',
+    'es': 'Bienvenido',
+    'ja': 'ようこそ',
+}
+
 
 def translate_section(section_name, lang):
     """Translate a section name to the target language."""
@@ -497,6 +507,20 @@ def collect_docs(lang='en'):
     """
     docs = {}
     translation_stats = {'translated': 0, 'fallback': 0}
+
+    # Add Welcome page first (from welcome/ directory, built into hem-doc)
+    welcome_file = WELCOME_DIR / f'{lang}.md'
+    if not welcome_file.exists():
+        welcome_file = WELCOME_DIR / 'en.md'  # Fallback to English
+    welcome_content = read_file(welcome_file)
+    welcome_title = WELCOME_TITLE_TRANSLATIONS.get(lang, WELCOME_TITLE_TRANSLATIONS['en'])
+    docs[welcome_title] = {
+        'id': 'welcome',
+        'content': welcome_content,
+        'order': -1,  # Ensure it's first
+        'section': ''
+    }
+    translation_stats['translated'] += 1
 
     # Add CLAUDE.md as the main documentation
     claude_path = HEMLOCK_DIR / 'CLAUDE.md'

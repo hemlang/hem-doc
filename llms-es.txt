@@ -12,81 +12,165 @@ Source: https://github.com/hemlang/hem-doc
 TABLE OF CONTENTS
 --------------------------------------------------------------------------------
 
-  1. Referencia del Lenguaje
+  1. Bienvenido
+  2. Referencia del Lenguaje
 
 [Primeros Pasos]
-  2. Inicio Rápido
-  3. Instalación
-  4. Rutas de Aprendizaje
-  5. Tutorial
+  3. Inicio Rápido
+  4. Instalación
+  5. Rutas de Aprendizaje
+  6. Tutorial
 
 [Guía del Lenguaje]
-  6. Arreglos
-  7. Cadenas
-  8. Coincidencia de Patrones
-  9. Flujo de Control
-  10. Funciones
-  11. Gestión de Memoria
-  12. Manejo de Errores
-  13. Módulos
-  14. Objetos
-  15. Runas
-  16. Sintaxis
-  17. Tipos
+  7. Arreglos
+  8. Cadenas
+  9. Coincidencia de Patrones
+  10. Flujo de Control
+  11. Funciones
+  12. Gestión de Memoria
+  13. Manejo de Errores
+  14. Módulos
+  15. Objetos
+  16. Runas
+  17. Sintaxis
+  18. Tipos
 
 [Temas Avanzados]
-  18. Argumentos de Línea de Comandos
-  19. Asincronía y Concurrencia
-  20. Ejecución de Comandos
-  21. Empaquetado y Distribución
-  22. FFI
-  23. File IO
-  24. Operaciones Atómicas
-  25. Perfilado
-  26. Señales
+  19. Argumentos de Línea de Comandos
+  20. Asincronía y Concurrencia
+  21. Ejecución de Comandos
+  22. Empaquetado y Distribución
+  23. FFI
+  24. File IO
+  25. Operaciones Atómicas
+  26. Perfilado
+  27. Señales
 
 [Referencia de API]
-  27. API de Archivos
-  28. API de Arreglos
-  29. API de Cadenas
-  30. API de Concurrencia
-  31. API de Memoria
-  32. Funciones Integradas
-  33. Operadores
-  34. Sistema de Tipos
+  28. API de Archivos
+  29. API de Arreglos
+  30. API de Cadenas
+  31. API de Concurrencia
+  32. API de Memoria
+  33. Funciones Integradas
+  34. Operadores
+  35. Sistema de Tipos
 
 [Diseño y Filosofía]
-  35. Filosofía
-  36. Implementación
-  37. Sintaxis de Firmas
+  36. Filosofía
+  37. Implementación
+  38. Sintaxis de Firmas
 
 [Contribuir]
-  38. Guías de Contribución
-  39. Pruebas
+  39. Guías de Contribución
+  40. Pruebas
 
 [hpm: Primeros Pasos]
-  40. Configuración del Proyecto
-  41. Inicio Rápido
-  42. Instalación
+  41. Configuración del Proyecto
+  42. Inicio Rápido
+  43. Instalación
 
 [hpm: Guía del Usuario]
-  43. Comandos
-  44. Configuración
-  45. Solución de Problemas
+  44. Comandos
+  45. Configuración
+  46. Solución de Problemas
 
 [hpm: Desarrollo de Paquetes]
-  46. Creación de Paquetes
-  47. Especificación de Paquetes
-  48. Versionado
+  47. Creación de Paquetes
+  48. Especificación de Paquetes
+  49. Versionado
 
 [hpm: Referencia]
-  49. Arquitectura
-  50. Códigos de Salida
+  50. Arquitectura
+  51. Códigos de Salida
 
 
 ================================================================================
 DOCUMENTATION
 ================================================================================
+
+--------------------------------------------------------------------------------
+## Bienvenido
+--------------------------------------------------------------------------------
+
+# Bienvenido a Hemlock
+
+> "Un lenguaje pequeño e inseguro para escribir cosas inseguras de manera segura."
+
+**Hemlock** es un lenguaje de scripting de sistemas que combina el poder de C con la ergonomía de los scripts modernos. Cuenta con gestión manual de memoria, control explícito y concurrencia asíncrona estructurada incorporada.
+
+## ¿Qué es Hemlock?
+
+Hemlock está diseñado para programadores que desean:
+
+- **Control explícito** sobre la memoria y la ejecución
+- **Sintaxis similar a C** con comodidades modernas
+- **Sin comportamiento oculto** ni magia
+- **Asincronía paralela real** con concurrencia basada en pthread
+
+Hemlock NO es un lenguaje con seguridad de memoria y recolección de basura. En cambio, te proporciona las herramientas para estar seguro (`buffer`, anotaciones de tipos, verificación de límites) sin obligarte a usarlas (`ptr`, memoria manual, operaciones inseguras).
+
+## Ejemplo Rápido
+
+```hemlock
+// ¡Hola, Hemlock!
+fn greet(name: string): string {
+    return `¡Hola, ${name}!`;
+}
+
+let message = greet("Mundo");
+print(message);
+
+// Gestión manual de memoria
+let buf = buffer(64);
+buf[0] = 72;  // 'H'
+buf[1] = 105; // 'i'
+print(buf);
+free(buf);
+```
+
+## Características de un Vistazo
+
+| Característica | Descripción |
+|----------------|-------------|
+| **Sistema de Tipos** | i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object |
+| **Memoria** | Gestión manual con `alloc()`, `buffer()`, `free()` |
+| **Async** | `async`/`await` incorporado con verdadero paralelismo pthread |
+| **FFI** | Llamar funciones C directamente desde bibliotecas compartidas |
+| **Biblioteca Estándar** | 40 módulos incluyendo crypto, http, sqlite, json y más |
+
+## Primeros Pasos
+
+¿Listo para comenzar? Así es como empezar:
+
+1. **[Instalación](#getting-started-installation)** - Descargar y configurar Hemlock
+2. **[Inicio Rápido](#getting-started-quick-start)** - Escribe tu primer programa en minutos
+3. **[Tutorial](#getting-started-tutorial)** - Aprende Hemlock paso a paso
+
+## Secciones de Documentación
+
+- **Primeros Pasos** - Instalación, guía de inicio rápido y tutoriales
+- **Guía del Lenguaje** - Profundización en sintaxis, tipos, funciones y más
+- **Temas Avanzados** - Programación asíncrona, FFI, señales y atómicos
+- **Referencia de API** - Referencia completa para funciones integradas y biblioteca estándar
+- **Diseño y Filosofía** - Comprender por qué Hemlock es como es
+
+## Gestor de Paquetes
+
+Hemlock viene con **hpm**, un gestor de paquetes para administrar dependencias:
+
+```bash
+hpm init my-project
+hpm add some-package
+hpm run
+```
+
+Consulta las secciones de documentación de hpm para más detalles.
+
+---
+
+Usa la navegación a la izquierda para explorar la documentación, o utiliza la barra de búsqueda para encontrar temas específicos.
+
 
 --------------------------------------------------------------------------------
 ## Referencia del Lenguaje

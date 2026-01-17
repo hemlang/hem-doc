@@ -11,81 +11,165 @@ Source: https://github.com/hemlang/hem-doc
 TABLE OF CONTENTS
 --------------------------------------------------------------------------------
 
-  1. Language Reference
+  1. Welcome
+  2. Language Reference
 
 [Getting Started]
-  2. Installation
-  3. Learning Paths
-  4. Quick Start
-  5. Tutorial
+  3. Installation
+  4. Learning Paths
+  5. Quick Start
+  6. Tutorial
 
 [Language Guide]
-  6. Arrays
-  7. Control Flow
-  8. Error Handling
-  9. Functions
-  10. Memory
-  11. Modules
-  12. Objects
-  13. Pattern Matching
-  14. Runes
-  15. Strings
-  16. Syntax
-  17. Types
+  7. Arrays
+  8. Control Flow
+  9. Error Handling
+  10. Functions
+  11. Memory
+  12. Modules
+  13. Objects
+  14. Pattern Matching
+  15. Runes
+  16. Strings
+  17. Syntax
+  18. Types
 
 [Advanced Topics]
-  18. Async Concurrency
-  19. Atomics
-  20. Bundling Packaging
-  21. Command Execution
-  22. Command Line Args
-  23. FFI
-  24. File IO
-  25. Profiling
-  26. Signals
+  19. Async Concurrency
+  20. Atomics
+  21. Bundling Packaging
+  22. Command Execution
+  23. Command Line Args
+  24. FFI
+  25. File IO
+  26. Profiling
+  27. Signals
 
 [API Reference]
-  27. Array API
-  28. Builtins
-  29. Concurrency API
-  30. File API
-  31. Memory API
-  32. Operators
-  33. String API
-  34. Type System
+  28. Array API
+  29. Builtins
+  30. Concurrency API
+  31. File API
+  32. Memory API
+  33. Operators
+  34. String API
+  35. Type System
 
 [Design & Philosophy]
-  35. Implementation
-  36. Philosophy
-  37. Signature Syntax
+  36. Implementation
+  37. Philosophy
+  38. Signature Syntax
 
 [Contributing]
-  38. Guidelines
-  39. Testing
+  39. Guidelines
+  40. Testing
 
 [hpm: Getting Started]
-  40. Installation
-  41. Project Setup
-  42. Quick Start
+  41. Installation
+  42. Project Setup
+  43. Quick Start
 
 [hpm: User Guide]
-  43. Commands
-  44. Configuration
-  45. Troubleshooting
+  44. Commands
+  45. Configuration
+  46. Troubleshooting
 
 [hpm: Package Development]
-  46. Creating Packages
-  47. Package Spec
-  48. Versioning
+  47. Creating Packages
+  48. Package Spec
+  49. Versioning
 
 [hpm: Reference]
-  49. Architecture
-  50. Exit Codes
+  50. Architecture
+  51. Exit Codes
 
 
 ================================================================================
 DOCUMENTATION
 ================================================================================
+
+--------------------------------------------------------------------------------
+## Welcome
+--------------------------------------------------------------------------------
+
+# Welcome to Hemlock
+
+> "A small, unsafe language for writing unsafe things safely."
+
+**Hemlock** is a systems scripting language that combines the power of C with modern scripting ergonomics. It features manual memory management, explicit control, and structured async concurrency built-in.
+
+## What is Hemlock?
+
+Hemlock is designed for programmers who want:
+
+- **Explicit control** over memory and execution
+- **C-like syntax** with modern conveniences
+- **No hidden behavior** or magic
+- **True parallel async** with pthread-based concurrency
+
+Hemlock is NOT a memory-safe language with garbage collection. Instead, it gives you the tools to be safe (`buffer`, type annotations, bounds checking) while not forcing you to use them (`ptr`, manual memory, unsafe operations).
+
+## Quick Example
+
+```hemlock
+// Hello, Hemlock!
+fn greet(name: string): string {
+    return `Hello, ${name}!`;
+}
+
+let message = greet("World");
+print(message);
+
+// Manual memory management
+let buf = buffer(64);
+buf[0] = 72;  // 'H'
+buf[1] = 105; // 'i'
+print(buf);
+free(buf);
+```
+
+## Features at a Glance
+
+| Feature | Description |
+|---------|-------------|
+| **Type System** | i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object |
+| **Memory** | Manual management with `alloc()`, `buffer()`, `free()` |
+| **Async** | Built-in `async`/`await` with true pthread parallelism |
+| **FFI** | Call C functions directly from shared libraries |
+| **Standard Library** | 40 modules including crypto, http, sqlite, json, and more |
+
+## Getting Started
+
+Ready to dive in? Here's how to begin:
+
+1. **[Installation](#getting-started-installation)** - Download and set up Hemlock
+2. **[Quick Start](#getting-started-quick-start)** - Write your first program in minutes
+3. **[Tutorial](#getting-started-tutorial)** - Learn Hemlock step by step
+
+## Documentation Sections
+
+- **Getting Started** - Installation, quick start guide, and tutorials
+- **Language Guide** - Deep dive into syntax, types, functions, and more
+- **Advanced Topics** - Async programming, FFI, signals, and atomics
+- **API Reference** - Complete reference for built-ins and standard library
+- **Design & Philosophy** - Understanding why Hemlock is the way it is
+
+## Package Manager
+
+Hemlock comes with **hpm**, a package manager for managing dependencies:
+
+```bash
+hpm init my-project
+hpm add some-package
+hpm run
+```
+
+See the hpm documentation sections for more details.
+
+---
+
+Use the navigation on the left to explore the documentation, or use the search bar to find specific topics.
+
 
 --------------------------------------------------------------------------------
 ## Language Reference
