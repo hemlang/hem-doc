@@ -40,10 +40,34 @@ def read_file(path):
 
 
 def smart_title(text):
-    """Convert text to title case, preserving acronyms like API."""
+    """Convert text to title case, preserving acronyms like API, FFI, IO, etc."""
     result = text.replace('-', ' ').replace('_', ' ').title()
     # Fix common acronyms that should stay uppercase
-    result = result.replace('Api', 'API')
+    acronyms = [
+        ('Api', 'API'),
+        ('Ffi', 'FFI'),
+        ('Io', 'IO'),
+        ('Cli', 'CLI'),
+        ('Ast', 'AST'),
+        ('Url', 'URL'),
+        ('Http', 'HTTP'),
+        ('Https', 'HTTPS'),
+        ('Json', 'JSON'),
+        ('Xml', 'XML'),
+        ('Sql', 'SQL'),
+        ('Ssl', 'SSL'),
+        ('Tls', 'TLS'),
+        ('Tcp', 'TCP'),
+        ('Udp', 'UDP'),
+        ('Cpu', 'CPU'),
+        ('Gpu', 'GPU'),
+        ('Html', 'HTML'),
+        ('Css', 'CSS'),
+        ('Csv', 'CSV'),
+        ('Hpm', 'HPM'),
+    ]
+    for wrong, right in acronyms:
+        result = result.replace(wrong, right)
     return result
 
 
