@@ -1,55 +1,55 @@
-# Memory API Reference
+# 内存 API 参考
 
-Complete reference for Hemlock's memory management functions and pointer types.
-
----
-
-## Overview
-
-Hemlock provides **manual memory management** with explicit allocation and deallocation. Memory is managed through two pointer types: raw pointers (`ptr`) and safe buffers (`buffer`).
-
-**Key Principles:**
-- Explicit allocation and deallocation
-- No garbage collection
-- User responsible for calling `free()`
-- Internal refcounting for scope/reassignment safety (see below)
-
-### Internal Reference Counting
-
-The runtime uses reference counting internally to manage object lifetimes through scopes. For most local variables, cleanup is automatic.
-
-**Automatic (no `free()` needed):**
-- Local variables of refcounted types (buffer, array, object, string) are freed when scope exits
-- Old values are released when variables are reassigned
-- Container elements are released when containers are freed
-
-**Manual `free()` required:**
-- Raw pointers from `alloc()` - always
-- Early cleanup before scope ends
-- Long-lived/global data
-
-See [Memory Management Guide](../language-guide/memory.md#internal-reference-counting) for details.
+Hemlock 内存管理函数和指针类型的完整参考文档。
 
 ---
 
-## Pointer Types
+## 概述
 
-### ptr (Raw Pointer)
+Hemlock 提供**手动内存管理**，具有显式的分配和释放。内存通过两种指针类型管理：原始指针（`ptr`）和安全缓冲区（`buffer`）。
 
-**Type:** `ptr`
+**核心原则：**
+- 显式分配和释放
+- 无垃圾回收
+- 用户负责调用 `free()`
+- 内部引用计数用于作用域/重新赋值安全（见下文）
 
-**Description:** Raw memory address with no bounds checking or tracking.
+### 内部引用计数
 
-**Size:** 8 bytes
+运行时内部使用引用计数来管理对象在作用域中的生命周期。对于大多数局部变量，清理是自动的。
 
-**Use Cases:**
-- Low-level memory operations
-- FFI (Foreign Function Interface)
-- Maximum performance (no overhead)
+**自动（无需 `free()`）：**
+- 引用计数类型（buffer、array、object、string）的局部变量在作用域退出时释放
+- 变量重新赋值时释放旧值
+- 容器释放时释放容器元素
 
-**Safety:** Unsafe - no bounds checking, user must track lifetime
+**需要手动 `free()`：**
+- 来自 `alloc()` 的原始指针 - 始终需要
+- 作用域结束前的提前清理
+- 长期存在/全局数据
 
-**Examples:**
+详见 [内存管理指南](../language-guide/memory.md#internal-reference-counting)。
+
+---
+
+## 指针类型
+
+### ptr（原始指针）
+
+**类型：** `ptr`
+
+**描述：** 原始内存地址，无边界检查或跟踪。
+
+**大小：** 8 字节
+
+**用例：**
+- 底层内存操作
+- FFI（外部函数接口）
+- 最高性能（无开销）
+
+**安全性：** 不安全 - 无边界检查，用户必须跟踪生命周期
+
+**示例：**
 ```hemlock
 let p: ptr = alloc(64);
 memset(p, 0, 64);
@@ -58,303 +58,303 @@ free(p);
 
 ---
 
-### buffer (Safe Buffer)
+### buffer（安全缓冲区）
 
-**Type:** `buffer`
+**类型：** `buffer`
 
-**Description:** Safe pointer wrapper with bounds checking.
+**描述：** 带边界检查的安全指针包装器。
 
-**Structure:** Pointer + length + capacity + ref_count
+**结构：** 指针 + 长度 + 容量 + 引用计数
 
-**Properties:**
-- `.length` - Buffer size (i32)
-- `.capacity` - Allocated capacity (i32)
+**属性：**
+- `.length` - 缓冲区大小 (i32)
+- `.capacity` - 已分配容量 (i32)
 
-**Use Cases:**
-- Most memory allocations
-- When safety is important
-- Dynamic arrays
+**用例：**
+- 大多数内存分配
+- 安全性重要时
+- 动态数组
 
-**Safety:** Bounds-checked on index access
+**安全性：** 索引访问时进行边界检查
 
-**Refcounting:** Buffers are internally refcounted. Automatically freed when scope exits or variable is reassigned. Use `free()` for early cleanup or long-lived data.
+**引用计数：** 缓冲区内部进行引用计数。作用域退出或变量重新赋值时自动释放。使用 `free()` 进行提前清理或用于长期存在的数据。
 
-**Examples:**
+**示例：**
 ```hemlock
 let b: buffer = buffer(64);
-b[0] = 65;              // Bounds checked
+b[0] = 65;              // 边界检查
 print(b.length);        // 64
 free(b);
 ```
 
 ---
 
-## Memory Allocation Functions
+## 内存分配函数
 
 ### alloc
 
-Allocate raw memory.
+分配原始内存。
 
-**Signature:**
+**签名：**
 ```hemlock
 alloc(size: i32): ptr
 ```
 
-**Parameters:**
-- `size` - Number of bytes to allocate
+**参数：**
+- `size` - 要分配的字节数
 
-**Returns:** Pointer to allocated memory (`ptr`)
+**返回值：** 指向已分配内存的指针 (`ptr`)
 
-**Examples:**
+**示例：**
 ```hemlock
-let p = alloc(1024);        // Allocate 1KB
-memset(p, 0, 1024);         // Initialize to zero
-free(p);                    // Free when done
+let p = alloc(1024);        // 分配 1KB
+memset(p, 0, 1024);         // 初始化为零
+free(p);                    // 完成后释放
 
-// Allocate for structure
+// 为结构分配
 let struct_size = 16;
 let p2 = alloc(struct_size);
 ```
 
-**Behavior:**
-- Returns uninitialized memory
-- Memory must be manually freed
-- Returns `null` on allocation failure (caller must check)
+**行为：**
+- 返回未初始化的内存
+- 必须手动释放内存
+- 分配失败时返回 `null`（调用者必须检查）
 
-**See Also:** `buffer()` for safer alternative
+**另请参阅：** `buffer()` 作为更安全的替代方案
 
 ---
 
 ### buffer
 
-Allocate safe buffer with bounds checking.
+分配带边界检查的安全缓冲区。
 
-**Signature:**
+**签名：**
 ```hemlock
 buffer(size: i32): buffer
 ```
 
-**Parameters:**
-- `size` - Buffer size in bytes
+**参数：**
+- `size` - 缓冲区大小（字节）
 
-**Returns:** Buffer object
+**返回值：** 缓冲区对象
 
-**Examples:**
+**示例：**
 ```hemlock
 let buf = buffer(256);
 print(buf.length);          // 256
 print(buf.capacity);        // 256
 
-// Access with bounds checking
+// 带边界检查的访问
 buf[0] = 65;                // 'A'
 buf[255] = 90;              // 'Z'
-// buf[256] = 0;            // ERROR: out of bounds
+// buf[256] = 0;            // 错误：越界
 
 free(buf);
 ```
 
-**Properties:**
-- `.length` - Current size (i32)
-- `.capacity` - Allocated capacity (i32)
+**属性：**
+- `.length` - 当前大小 (i32)
+- `.capacity` - 已分配容量 (i32)
 
-**Behavior:**
-- Initializes memory to zero
-- Provides bounds checking on index access
-- Returns `null` on allocation failure (caller must check)
-- Must be manually freed
+**行为：**
+- 将内存初始化为零
+- 在索引访问时提供边界检查
+- 分配失败时返回 `null`（调用者必须检查）
+- 必须手动释放
 
 ---
 
 ### free
 
-Free allocated memory.
+释放已分配的内存。
 
-**Signature:**
+**签名：**
 ```hemlock
 free(ptr: ptr | buffer): null
 ```
 
-**Parameters:**
-- `ptr` - Pointer or buffer to free
+**参数：**
+- `ptr` - 要释放的指针或缓冲区
 
-**Returns:** `null`
+**返回值：** `null`
 
-**Examples:**
+**示例：**
 ```hemlock
-// Free raw pointer
+// 释放原始指针
 let p = alloc(1024);
 free(p);
 
-// Free buffer
+// 释放缓冲区
 let buf = buffer(256);
 free(buf);
 ```
 
-**Behavior:**
-- Frees memory allocated by `alloc()` or `buffer()`
-- Double-free causes crash (user's responsibility to avoid)
-- Freeing invalid pointers causes undefined behavior
+**行为：**
+- 释放由 `alloc()` 或 `buffer()` 分配的内存
+- 双重释放会导致崩溃（用户有责任避免）
+- 释放无效指针会导致未定义行为
 
-**Important:** You allocate, you free. No automatic cleanup.
+**重要：** 你分配，你释放。没有自动清理。
 
 ---
 
 ### realloc
 
-Resize allocated memory.
+调整已分配内存的大小。
 
-**Signature:**
+**签名：**
 ```hemlock
 realloc(ptr: ptr, new_size: i32): ptr
 ```
 
-**Parameters:**
-- `ptr` - Pointer to resize
-- `new_size` - New size in bytes
+**参数：**
+- `ptr` - 要调整大小的指针
+- `new_size` - 新大小（字节）
 
-**Returns:** Pointer to resized memory (may be different address)
+**返回值：** 指向调整大小后内存的指针（可能是不同的地址）
 
-**Examples:**
+**示例：**
 ```hemlock
 let p = alloc(100);
-// ... use memory ...
+// ... 使用内存 ...
 
-// Need more space
-p = realloc(p, 200);        // Now 200 bytes
-// ... use expanded memory ...
+// 需要更多空间
+p = realloc(p, 200);        // 现在是 200 字节
+// ... 使用扩展的内存 ...
 
 free(p);
 ```
 
-**Behavior:**
-- May move memory to new location
-- Preserves existing data (up to minimum of old/new size)
-- Old pointer is invalid after successful realloc (use returned pointer)
-- If new_size is smaller, data is truncated
-- Returns `null` on allocation failure (original pointer remains valid)
+**行为：**
+- 可能将内存移动到新位置
+- 保留现有数据（直到旧/新大小的最小值）
+- 成功 realloc 后旧指针无效（使用返回的指针）
+- 如果 new_size 更小，数据会被截断
+- 分配失败时返回 `null`（原始指针仍然有效）
 
-**Important:** Always check for `null` and update your pointer variable with the result.
+**重要：** 始终检查 `null` 并用结果更新指针变量。
 
 ---
 
-## Memory Operations
+## 内存操作
 
 ### memset
 
-Fill memory with byte value.
+用字节值填充内存。
 
-**Signature:**
+**签名：**
 ```hemlock
 memset(ptr: ptr, byte: i32, size: i32): null
 ```
 
-**Parameters:**
-- `ptr` - Pointer to memory
-- `byte` - Byte value to fill (0-255)
-- `size` - Number of bytes to fill
+**参数：**
+- `ptr` - 指向内存的指针
+- `byte` - 要填充的字节值 (0-255)
+- `size` - 要填充的字节数
 
-**Returns:** `null`
+**返回值：** `null`
 
-**Examples:**
+**示例：**
 ```hemlock
 let p = alloc(100);
 
-// Zero out memory
+// 清零内存
 memset(p, 0, 100);
 
-// Fill with specific value
+// 用特定值填充
 memset(p, 0xFF, 100);
 
-// Initialize buffer
+// 初始化缓冲区
 let buf = alloc(256);
-memset(buf, 65, 256);       // Fill with 'A'
+memset(buf, 65, 256);       // 用 'A' 填充
 
 free(p);
 free(buf);
 ```
 
-**Behavior:**
-- Writes byte value to each byte in range
-- Byte value is truncated to 8 bits (0-255)
-- No bounds checking (unsafe)
+**行为：**
+- 将字节值写入范围内的每个字节
+- 字节值截断为 8 位 (0-255)
+- 无边界检查（不安全）
 
 ---
 
 ### memcpy
 
-Copy memory from source to destination.
+从源复制内存到目标。
 
-**Signature:**
+**签名：**
 ```hemlock
 memcpy(dest: ptr, src: ptr, size: i32): null
 ```
 
-**Parameters:**
-- `dest` - Destination pointer
-- `src` - Source pointer
-- `size` - Number of bytes to copy
+**参数：**
+- `dest` - 目标指针
+- `src` - 源指针
+- `size` - 要复制的字节数
 
-**Returns:** `null`
+**返回值：** `null`
 
-**Examples:**
+**示例：**
 ```hemlock
 let src = alloc(100);
 let dest = alloc(100);
 
-// Initialize source
+// 初始化源
 memset(src, 65, 100);
 
-// Copy to destination
+// 复制到目标
 memcpy(dest, src, 100);
 
-// dest now contains same data as src
+// dest 现在包含与 src 相同的数据
 
 free(src);
 free(dest);
 ```
 
-**Behavior:**
-- Copies byte-by-byte from src to dest
-- No bounds checking (unsafe)
-- Overlapping regions have undefined behavior (use carefully)
+**行为：**
+- 逐字节从 src 复制到 dest
+- 无边界检查（不安全）
+- 重叠区域行为未定义（小心使用）
 
 ---
 
-## Typed Memory Operations
+## 类型化内存操作
 
 ### sizeof
 
-Get size of type in bytes.
+获取类型的字节大小。
 
-**Signature:**
+**签名：**
 ```hemlock
 sizeof(type): i32
 ```
 
-**Parameters:**
-- `type` - Type identifier (e.g., `i32`, `f64`, `ptr`)
+**参数：**
+- `type` - 类型标识符（例如 `i32`、`f64`、`ptr`）
 
-**Returns:** Size in bytes (i32)
+**返回值：** 字节大小 (i32)
 
-**Type Sizes:**
+**类型大小：**
 
-| Type | Size (bytes) |
+| 类型 | 大小（字节）|
 |------|--------------|
 | `i8` | 1 |
 | `i16` | 2 |
-| `i32`, `integer` | 4 |
+| `i32`、`integer` | 4 |
 | `i64` | 8 |
-| `u8`, `byte` | 1 |
+| `u8`、`byte` | 1 |
 | `u16` | 2 |
 | `u32` | 4 |
 | `u64` | 8 |
 | `f32` | 4 |
-| `f64`, `number` | 8 |
+| `f64`、`number` | 8 |
 | `bool` | 1 |
 | `ptr` | 8 |
 | `rune` | 4 |
 
-**Examples:**
+**示例：**
 ```hemlock
 let int_size = sizeof(i32);      // 4
 let ptr_size = sizeof(ptr);      // 8
@@ -362,44 +362,44 @@ let float_size = sizeof(f64);    // 8
 let byte_size = sizeof(u8);      // 1
 let rune_size = sizeof(rune);    // 4
 
-// Calculate array allocation size
+// 计算数组分配大小
 let count = 100;
-let total = sizeof(i32) * count; // 400 bytes
+let total = sizeof(i32) * count; // 400 字节
 ```
 
-**Behavior:**
-- Returns 0 for unknown types
-- Accepts both type identifiers and type strings
+**行为：**
+- 对未知类型返回 0
+- 接受类型标识符和类型字符串
 
 ---
 
 ### talloc
 
-Allocate array of typed values.
+分配类型化值数组。
 
-**Signature:**
+**签名：**
 ```hemlock
 talloc(type, count: i32): ptr
 ```
 
-**Parameters:**
-- `type` - Type to allocate (e.g., `i32`, `f64`, `ptr`)
-- `count` - Number of elements (must be positive)
+**参数：**
+- `type` - 要分配的类型（例如 `i32`、`f64`、`ptr`）
+- `count` - 元素数量（必须为正数）
 
-**Returns:** Pointer to allocated array, or `null` on allocation failure
+**返回值：** 指向已分配数组的指针，分配失败时返回 `null`
 
-**Examples:**
+**示例：**
 ```hemlock
-let arr = talloc(i32, 100);      // Array of 100 i32s (400 bytes)
-let floats = talloc(f64, 50);    // Array of 50 f64s (400 bytes)
-let bytes = talloc(u8, 1024);    // Array of 1024 bytes
+let arr = talloc(i32, 100);      // 100 个 i32 的数组（400 字节）
+let floats = talloc(f64, 50);    // 50 个 f64 的数组（400 字节）
+let bytes = talloc(u8, 1024);    // 1024 字节的数组
 
-// Always check for allocation failure
+// 始终检查分配失败
 if (arr == null) {
     panic("allocation failed");
 }
 
-// Use the allocated memory
+// 使用已分配的内存
 // ...
 
 free(arr);
@@ -407,26 +407,26 @@ free(floats);
 free(bytes);
 ```
 
-**Behavior:**
-- Allocates `sizeof(type) * count` bytes
-- Returns uninitialized memory
-- Memory must be manually freed with `free()`
-- Returns `null` on allocation failure (caller must check)
-- Panics if count is not positive
+**行为：**
+- 分配 `sizeof(type) * count` 字节
+- 返回未初始化的内存
+- 必须使用 `free()` 手动释放内存
+- 分配失败时返回 `null`（调用者必须检查）
+- 如果 count 不是正数则 panic
 
 ---
 
-## Buffer Properties
+## 缓冲区属性
 
 ### .length
 
-Get buffer size.
+获取缓冲区大小。
 
-**Type:** `i32`
+**类型：** `i32`
 
-**Access:** Read-only
+**访问：** 只读
 
-**Examples:**
+**示例：**
 ```hemlock
 let buf = buffer(256);
 print(buf.length);          // 256
@@ -439,61 +439,61 @@ print(buf2.length);         // 1024
 
 ### .capacity
 
-Get buffer capacity.
+获取缓冲区容量。
 
-**Type:** `i32`
+**类型：** `i32`
 
-**Access:** Read-only
+**访问：** 只读
 
-**Examples:**
+**示例：**
 ```hemlock
 let buf = buffer(256);
 print(buf.capacity);        // 256
 ```
 
-**Note:** Currently, `.length` and `.capacity` are the same for buffers created with `buffer()`.
+**注意：** 目前，对于使用 `buffer()` 创建的缓冲区，`.length` 和 `.capacity` 相同。
 
 ---
 
-## Usage Patterns
+## 使用模式
 
-### Basic Allocation Pattern
+### 基本分配模式
 
 ```hemlock
-// Allocate
+// 分配
 let p = alloc(1024);
 if (p == null) {
     panic("allocation failed");
 }
 
-// Use
+// 使用
 memset(p, 0, 1024);
 
-// Free
+// 释放
 free(p);
 ```
 
-### Safe Buffer Pattern
+### 安全缓冲区模式
 
 ```hemlock
-// Allocate buffer
+// 分配缓冲区
 let buf = buffer(256);
 if (buf == null) {
     panic("buffer allocation failed");
 }
 
-// Use with bounds checking
+// 带边界检查使用
 let i = 0;
 while (i < buf.length) {
     buf[i] = i;
     i = i + 1;
 }
 
-// Free
+// 释放
 free(buf);
 ```
 
-### Dynamic Growth Pattern
+### 动态增长模式
 
 ```hemlock
 let size = 100;
@@ -502,30 +502,30 @@ if (p == null) {
     panic("allocation failed");
 }
 
-// ... use memory ...
+// ... 使用内存 ...
 
-// Need more space - check for failure
+// 需要更多空间 - 检查失败
 let new_p = realloc(p, 200);
 if (new_p == null) {
-    // Original pointer still valid, clean up
+    // 原始指针仍然有效，清理
     free(p);
     panic("realloc failed");
 }
 p = new_p;
 size = 200;
 
-// ... use expanded memory ...
+// ... 使用扩展的内存 ...
 
 free(p);
 ```
 
-### Memory Copy Pattern
+### 内存复制模式
 
 ```hemlock
 let original = alloc(100);
 memset(original, 65, 100);
 
-// Create copy
+// 创建副本
 let copy = alloc(100);
 memcpy(copy, original, 100);
 
@@ -535,88 +535,88 @@ free(copy);
 
 ---
 
-## Safety Considerations
+## 安全注意事项
 
-**Hemlock memory management is UNSAFE by design:**
+**Hemlock 内存管理设计上是不安全的：**
 
-### Common Pitfalls
+### 常见陷阱
 
-**1. Memory Leaks**
+**1. 内存泄漏**
 ```hemlock
-// BAD: Memory leak
+// 错误：内存泄漏
 fn create_buffer() {
     let p = alloc(1024);
-    return null;  // Memory leaked!
+    return null;  // 内存泄漏！
 }
 
-// GOOD: Proper cleanup
+// 正确：适当清理
 fn create_buffer() {
     let p = alloc(1024);
-    // ... use memory ...
+    // ... 使用内存 ...
     free(p);
     return null;
 }
 ```
 
-**2. Use After Free**
+**2. 释放后使用**
 ```hemlock
-// BAD: Use after free
+// 错误：释放后使用
 let p = alloc(100);
 free(p);
-memset(p, 0, 100);  // CRASH: using freed memory
+memset(p, 0, 100);  // 崩溃：使用已释放的内存
 
-// GOOD: Don't use after free
+// 正确：释放后不使用
 let p2 = alloc(100);
 memset(p2, 0, 100);
 free(p2);
-// Don't touch p2 after this
+// 此后不要使用 p2
 ```
 
-**3. Double Free**
+**3. 双重释放**
 ```hemlock
-// BAD: Double free
+// 错误：双重释放
 let p = alloc(100);
 free(p);
-free(p);  // CRASH: double free
+free(p);  // 崩溃：双重释放
 
-// GOOD: Free once
+// 正确：只释放一次
 let p2 = alloc(100);
 free(p2);
 ```
 
-**4. Buffer Overflow (ptr)**
+**4. 缓冲区溢出（ptr）**
 ```hemlock
-// BAD: Buffer overflow with ptr
+// 错误：ptr 的缓冲区溢出
 let p = alloc(10);
-memset(p, 65, 100);  // CRASH: writing past allocation
+memset(p, 65, 100);  // 崩溃：写入超过分配范围
 
-// GOOD: Use buffer for bounds checking
+// 正确：使用 buffer 进行边界检查
 let buf = buffer(10);
-// buf[100] = 65;  // ERROR: bounds check fails
+// buf[100] = 65;  // 错误：边界检查失败
 ```
 
-**5. Dangling Pointers**
+**5. 悬空指针**
 ```hemlock
-// BAD: Dangling pointer
+// 错误：悬空指针
 let p1 = alloc(100);
 let p2 = p1;
 free(p1);
-memset(p2, 0, 100);  // CRASH: p2 is dangling
+memset(p2, 0, 100);  // 崩溃：p2 是悬空的
 
-// GOOD: Track ownership carefully
+// 正确：仔细跟踪所有权
 let p = alloc(100);
-// ... use p ...
+// ... 使用 p ...
 free(p);
-// Don't keep other references to p
+// 不要保留对 p 的其他引用
 ```
 
-**6. Unchecked Allocation Failure**
+**6. 未检查的分配失败**
 ```hemlock
-// BAD: Not checking for null
-let p = alloc(1000000000);  // May fail on low memory
-memset(p, 0, 1000000000);   // CRASH: p is null
+// 错误：不检查 null
+let p = alloc(1000000000);  // 在低内存时可能失败
+memset(p, 0, 1000000000);   // 崩溃：p 是 null
 
-// GOOD: Always check allocation result
+// 正确：始终检查分配结果
 let p2 = alloc(1000000000);
 if (p2 == null) {
     panic("out of memory");
@@ -627,44 +627,44 @@ free(p2);
 
 ---
 
-## When to Use What
+## 何时使用什么
 
-### Use `buffer()` when:
-- You need bounds checking
-- Working with dynamic data
-- Safety is important
-- Learning Hemlock
+### 使用 `buffer()` 当：
+- 需要边界检查时
+- 处理动态数据时
+- 安全性重要时
+- 学习 Hemlock 时
 
-### Use `alloc()` when:
-- Maximum performance needed
-- FFI/interfacing with C
-- You know exact memory layout
-- You're an expert
+### 使用 `alloc()` 当：
+- 需要最高性能时
+- FFI/与 C 接口时
+- 知道确切的内存布局时
+- 你是专家时
 
-### Use `realloc()` when:
-- Growing/shrinking allocations
-- Dynamic arrays
-- You need to preserve data
+### 使用 `realloc()` 当：
+- 增长/缩小分配时
+- 动态数组
+- 需要保留数据时
 
 ---
 
-## Complete Function Summary
+## 完整函数总结
 
-| Function  | Signature                              | Returns  | Description                |
+| 函数      | 签名                                   | 返回值   | 描述                       |
 |-----------|----------------------------------------|----------|----------------------------|
-| `alloc`   | `(size: i32)`                          | `ptr`    | Allocate raw memory        |
-| `buffer`  | `(size: i32)`                          | `buffer` | Allocate safe buffer       |
-| `free`    | `(ptr: ptr \| buffer)`                 | `null`   | Free memory                |
-| `realloc` | `(ptr: ptr, new_size: i32)`            | `ptr`    | Resize allocation          |
-| `memset`  | `(ptr: ptr, byte: i32, size: i32)`     | `null`   | Fill memory                |
-| `memcpy`  | `(dest: ptr, src: ptr, size: i32)`     | `null`   | Copy memory                |
-| `sizeof`  | `(type)`                               | `i32`    | Get type size in bytes     |
-| `talloc`  | `(type, count: i32)`                   | `ptr`    | Allocate typed array       |
+| `alloc`   | `(size: i32)`                          | `ptr`    | 分配原始内存               |
+| `buffer`  | `(size: i32)`                          | `buffer` | 分配安全缓冲区             |
+| `free`    | `(ptr: ptr \| buffer)`                 | `null`   | 释放内存                   |
+| `realloc` | `(ptr: ptr, new_size: i32)`            | `ptr`    | 调整分配大小               |
+| `memset`  | `(ptr: ptr, byte: i32, size: i32)`     | `null`   | 填充内存                   |
+| `memcpy`  | `(dest: ptr, src: ptr, size: i32)`     | `null`   | 复制内存                   |
+| `sizeof`  | `(type)`                               | `i32`    | 获取类型字节大小           |
+| `talloc`  | `(type, count: i32)`                   | `ptr`    | 分配类型化数组             |
 
 ---
 
-## See Also
+## 另请参阅
 
-- [Type System](type-system.md) - Pointer and buffer types
-- [Built-in Functions](builtins.md) - All built-in functions
-- [String API](string-api.md) - String `.to_bytes()` method
+- [类型系统](type-system.md) - 指针和缓冲区类型
+- [内置函数](builtins.md) - 所有内置函数
+- [字符串 API](string-api.md) - 字符串 `.to_bytes()` 方法

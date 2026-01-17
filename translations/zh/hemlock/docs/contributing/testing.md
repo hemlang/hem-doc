@@ -1,190 +1,190 @@
-# Testing Guide for Hemlock
+# Hemlock 测试指南
 
-This guide explains Hemlock's testing philosophy, how to write tests, and how to run the test suite.
-
----
-
-## Table of Contents
-
-- [Testing Philosophy](#testing-philosophy)
-- [Test Suite Structure](#test-suite-structure)
-- [Running Tests](#running-tests)
-- [Writing Tests](#writing-tests)
-- [Test Categories](#test-categories)
-- [Memory Leak Testing](#memory-leak-testing)
-- [Continuous Integration](#continuous-integration)
-- [Best Practices](#best-practices)
+本指南解释了 Hemlock 的测试理念、如何编写测试以及如何运行测试套件。
 
 ---
 
-## Testing Philosophy
+## 目录
 
-### Core Principles
+- [测试理念](#测试理念)
+- [测试套件结构](#测试套件结构)
+- [运行测试](#运行测试)
+- [编写测试](#编写测试)
+- [测试类别](#测试类别)
+- [内存泄漏测试](#内存泄漏测试)
+- [持续集成](#持续集成)
+- [最佳实践](#最佳实践)
 
-**1. Test-Driven Development (TDD)**
+---
 
-Write tests **before** implementing features:
+## 测试理念
+
+### 核心原则
+
+**1. 测试驱动开发（TDD）**
+
+在实现功能**之前**编写测试：
 
 ```
-1. Write a failing test
-2. Implement the feature
-3. Run the test (should pass)
-4. Refactor if needed
-5. Repeat
+1. 编写一个失败的测试
+2. 实现功能
+3. 运行测试（应该通过）
+4. 如果需要，进行重构
+5. 重复
 ```
 
-**Benefits:**
-- Ensures features actually work
-- Prevents regressions
-- Documents expected behavior
-- Makes refactoring safer
+**好处：**
+- 确保功能确实有效
+- 防止回归
+- 记录预期行为
+- 使重构更安全
 
-**2. Comprehensive Coverage**
+**2. 全面覆盖**
 
-Test both success and failure cases:
+测试成功和失败情况：
 
 ```hemlock
-// Success case
-let x: u8 = 255;  // Should work
+// 成功情况
+let x: u8 = 255;  // 应该成功
 
-// Failure case
-let y: u8 = 256;  // Should error
+// 失败情况
+let y: u8 = 256;  // 应该出错
 ```
 
-**3. Test Early and Often**
+**3. 尽早且频繁地测试**
 
-Run tests:
-- Before committing code
-- After making changes
-- Before submitting pull requests
-- During code review
+运行测试：
+- 在提交代码之前
+- 在进行更改之后
+- 在提交 pull request 之前
+- 在代码审查期间
 
-**Rule:** All tests must pass before merging.
+**规则：** 合并之前所有测试必须通过。
 
-### What to Test
+### 测试什么
 
-**Always test:**
-- ✅ Basic functionality (happy path)
-- ✅ Error conditions (sad path)
-- ✅ Edge cases (boundary conditions)
-- ✅ Type checking and conversions
-- ✅ Memory management (no leaks)
-- ✅ Concurrency and race conditions
+**始终测试：**
+- 基本功能（正常路径）
+- 错误条件（异常路径）
+- 边界情况（边界条件）
+- 类型检查和转换
+- 内存管理（无泄漏）
+- 并发和竞态条件
 
-**Example test coverage:**
+**示例测试覆盖：**
 ```hemlock
-// Feature: String.substr(start, length)
+// 功能：String.substr(start, length)
 
-// Happy path
+// 正常路径
 print("hello".substr(0, 5));  // "hello"
 
-// Edge cases
-print("hello".substr(0, 0));  // "" (empty)
-print("hello".substr(5, 0));  // "" (at end)
-print("hello".substr(2, 100)); // "llo" (past end)
+// 边界情况
+print("hello".substr(0, 0));  // ""（空）
+print("hello".substr(5, 0));  // ""（在末尾）
+print("hello".substr(2, 100)); // "llo"（超过末尾）
 
-// Error cases
-// "hello".substr(-1, 5);  // Error: negative index
-// "hello".substr(0, -1);  // Error: negative length
+// 错误情况
+// "hello".substr(-1, 5);  // 错误：负索引
+// "hello".substr(0, -1);  // 错误：负长度
 ```
 
 ---
 
-## Test Suite Structure
+## 测试套件结构
 
-### Directory Organization
+### 目录组织
 
 ```
 tests/
-├── run_tests.sh          # Main test runner script
-├── primitives/           # Type system tests
+├── run_tests.sh          # 主测试运行脚本
+├── primitives/           # 类型系统测试
 │   ├── integers.hml
 │   ├── floats.hml
 │   ├── booleans.hml
 │   ├── i64.hml
 │   └── u64.hml
-├── conversions/          # Type conversion tests
+├── conversions/          # 类型转换测试
 │   ├── int_to_float.hml
 │   ├── promotion.hml
 │   └── rune_conversions.hml
-├── memory/               # Pointer/buffer tests
+├── memory/               # 指针/缓冲区测试
 │   ├── alloc.hml
 │   ├── buffer.hml
 │   └── memcpy.hml
-├── strings/              # String operation tests
+├── strings/              # 字符串操作测试
 │   ├── concat.hml
 │   ├── methods.hml
 │   ├── utf8.hml
 │   └── runes.hml
-├── control/              # Control flow tests
+├── control/              # 控制流测试
 │   ├── if.hml
 │   ├── switch.hml
 │   └── while.hml
-├── functions/            # Function and closure tests
+├── functions/            # 函数和闭包测试
 │   ├── basics.hml
 │   ├── closures.hml
 │   └── recursion.hml
-├── objects/              # Object tests
+├── objects/              # 对象测试
 │   ├── literals.hml
 │   ├── methods.hml
 │   ├── duck_typing.hml
 │   └── serialization.hml
-├── arrays/               # Array operation tests
+├── arrays/               # 数组操作测试
 │   ├── basics.hml
 │   ├── methods.hml
 │   └── slicing.hml
-├── loops/                # Loop tests
+├── loops/                # 循环测试
 │   ├── for.hml
 │   ├── while.hml
 │   ├── break.hml
 │   └── continue.hml
-├── exceptions/           # Error handling tests
+├── exceptions/           # 错误处理测试
 │   ├── try_catch.hml
 │   ├── finally.hml
 │   └── throw.hml
-├── io/                   # File I/O tests
+├── io/                   # 文件 I/O 测试
 │   ├── file_object.hml
 │   ├── read_write.hml
 │   └── seek.hml
-├── async/                # Concurrency tests
+├── async/                # 并发测试
 │   ├── spawn_join.hml
 │   ├── channels.hml
 │   └── exceptions.hml
-├── ffi/                  # FFI tests
+├── ffi/                  # FFI 测试
 │   ├── basic_call.hml
 │   ├── types.hml
 │   └── dlopen.hml
-├── signals/              # Signal handling tests
+├── signals/              # 信号处理测试
 │   ├── basic.hml
 │   ├── handlers.hml
 │   └── raise.hml
-└── args/                 # Command-line args tests
+└── args/                 # 命令行参数测试
     └── basic.hml
 ```
 
-### Test File Naming
+### 测试文件命名
 
-**Conventions:**
-- Use descriptive names: `method_chaining.hml` not `test1.hml`
-- Group related tests: `string_substr.hml`, `string_slice.hml`
-- One feature area per file
-- Keep files focused and small
+**约定：**
+- 使用描述性名称：`method_chaining.hml` 而不是 `test1.hml`
+- 分组相关测试：`string_substr.hml`、`string_slice.hml`
+- 每个文件一个功能区域
+- 保持文件专注且小巧
 
 ---
 
-## Running Tests
+## 运行测试
 
-### Run All Tests
+### 运行所有测试
 
 ```bash
-# From hemlock root directory
+# 从 hemlock 根目录
 make test
 
-# Or directly
+# 或直接
 ./tests/run_tests.sh
 ```
 
-**Output:**
+**输出：**
 ```
 Running tests in tests/primitives/...
   ✓ integers.hml
@@ -202,66 +202,66 @@ Passed: 251
 Failed: 0
 ```
 
-### Run Specific Category
+### 运行特定类别
 
 ```bash
-# Run only string tests
+# 只运行字符串测试
 ./tests/run_tests.sh tests/strings/
 
-# Run only one test file
+# 只运行一个测试文件
 ./tests/run_tests.sh tests/strings/concat.hml
 
-# Run multiple categories
+# 运行多个类别
 ./tests/run_tests.sh tests/strings/ tests/arrays/
 ```
 
-### Run with Valgrind (Memory Leak Check)
+### 使用 Valgrind 运行（内存泄漏检查）
 
 ```bash
-# Check single test for leaks
+# 检查单个测试的泄漏
 valgrind --leak-check=full ./hemlock tests/memory/alloc.hml
 
-# Check all tests (slow!)
+# 检查所有测试（很慢！）
 for test in tests/**/*.hml; do
     echo "Testing $test"
     valgrind --leak-check=full --error-exitcode=1 ./hemlock "$test"
 done
 ```
 
-### Debug Failed Tests
+### 调试失败的测试
 
 ```bash
-# Run with verbose output
+# 使用详细输出运行
 ./hemlock tests/failing_test.hml
 
-# Run with gdb
+# 使用 gdb 运行
 gdb --args ./hemlock tests/failing_test.hml
 (gdb) run
-(gdb) backtrace  # if it crashes
+(gdb) backtrace  # 如果崩溃
 ```
 
 ---
 
-## Writing Tests
+## 编写测试
 
-### Test File Format
+### 测试文件格式
 
-Test files are just Hemlock programs with expected output:
+测试文件只是带有预期输出的 Hemlock 程序：
 
-**Example: tests/primitives/integers.hml**
+**示例：tests/primitives/integers.hml**
 ```hemlock
-// Test basic integer literals
+// 测试基本整数字面量
 let x = 42;
 print(x);  // Expect: 42
 
 let y: i32 = 100;
 print(y);  // Expect: 100
 
-// Test arithmetic
+// 测试算术
 let sum = x + y;
 print(sum);  // Expect: 142
 
-// Test type inference
+// 测试类型推断
 let small = 10;
 print(typeof(small));  // Expect: i32
 
@@ -269,113 +269,113 @@ let large = 5000000000;
 print(typeof(large));  // Expect: i64
 ```
 
-**How tests work:**
-1. Test runner executes the .hml file
-2. Captures stdout output
-3. Compares with expected output (from comments or separate .out file)
-4. Reports pass/fail
+**测试如何工作：**
+1. 测试运行器执行 .hml 文件
+2. 捕获 stdout 输出
+3. 与预期输出比较（从注释或单独的 .out 文件）
+4. 报告通过/失败
 
-### Expected Output Methods
+### 预期输出方法
 
-**Method 1: Inline comments (recommended for simple tests)**
+**方法 1：内联注释（推荐用于简单测试）**
 
 ```hemlock
 print("hello");  // Expect: hello
 print(42);       // Expect: 42
 ```
 
-The test runner parses `// Expect: ...` comments.
+测试运行器解析 `// Expect: ...` 注释。
 
-**Method 2: Separate .out file**
+**方法 2：单独的 .out 文件**
 
-Create `test_name.hml.out` with expected output:
+创建 `test_name.hml.out` 包含预期输出：
 
-**test_name.hml:**
+**test_name.hml：**
 ```hemlock
 print("line 1");
 print("line 2");
 print("line 3");
 ```
 
-**test_name.hml.out:**
+**test_name.hml.out：**
 ```
 line 1
 line 2
 line 3
 ```
 
-### Testing Error Cases
+### 测试错误情况
 
-Error tests should cause the program to exit with non-zero status:
+错误测试应该导致程序以非零状态退出：
 
-**Example: tests/primitives/range_error.hml**
+**示例：tests/primitives/range_error.hml**
 ```hemlock
-// This should fail with a type error
-let x: u8 = 256;  // Out of range for u8
+// 这应该因类型错误而失败
+let x: u8 = 256;  // 超出 u8 范围
 ```
 
-**Expected behavior:**
-- Program exits with non-zero status
-- Prints error message to stderr
+**预期行为：**
+- 程序以非零状态退出
+- 向 stderr 打印错误消息
 
-**Test runner handling:**
-- Tests expecting errors should be in separate files
-- Use naming convention: `*_error.hml` or `*_fail.hml`
-- Document expected error in comments
+**测试运行器处理：**
+- 期望出错的测试应该在单独的文件中
+- 使用命名约定：`*_error.hml` 或 `*_fail.hml`
+- 在注释中记录预期错误
 
-### Testing Success Cases
+### 测试成功情况
 
-**Example: tests/strings/methods.hml**
+**示例：tests/strings/methods.hml**
 ```hemlock
-// Test substr
+// 测试 substr
 let s = "hello world";
 let sub = s.substr(6, 5);
 print(sub);  // Expect: world
 
-// Test find
+// 测试 find
 let pos = s.find("world");
 print(pos);  // Expect: 6
 
-// Test contains
+// 测试 contains
 let has = s.contains("lo");
 print(has);  // Expect: true
 
-// Test trim
+// 测试 trim
 let padded = "  hello  ";
 let trimmed = padded.trim();
 print(trimmed);  // Expect: hello
 ```
 
-### Testing Edge Cases
+### 测试边界情况
 
-**Example: tests/arrays/edge_cases.hml**
+**示例：tests/arrays/edge_cases.hml**
 ```hemlock
-// Empty array
+// 空数组
 let empty = [];
 print(empty.length);  // Expect: 0
 
-// Single element
+// 单个元素
 let single = [42];
 print(single[0]);  // Expect: 42
 
-// Negative index (should error in separate test file)
-// print(single[-1]);  // Error
+// 负索引（应该在单独的测试文件中出错）
+// print(single[-1]);  // 错误
 
-// Past-end index (should error)
-// print(single[100]);  // Error
+// 超出末尾索引（应该出错）
+// print(single[100]);  // 错误
 
-// Boundary conditions
+// 边界条件
 let arr = [1, 2, 3];
-print(arr.slice(0, 0));  // Expect: [] (empty)
-print(arr.slice(3, 3));  // Expect: [] (empty)
+print(arr.slice(0, 0));  // Expect: []（空）
+print(arr.slice(3, 3));  // Expect: []（空）
 print(arr.slice(1, 2));  // Expect: [2]
 ```
 
-### Testing Type System
+### 测试类型系统
 
-**Example: tests/conversions/promotion.hml**
+**示例：tests/conversions/promotion.hml**
 ```hemlock
-// Test type promotion in binary operations
+// 测试二元运算中的类型提升
 
 // i32 + i64 -> i64
 let a: i32 = 10;
@@ -396,9 +396,9 @@ let i = g + h;
 print(typeof(i));  // Expect: i32
 ```
 
-### Testing Concurrency
+### 测试并发
 
-**Example: tests/async/basic.hml**
+**示例：tests/async/basic.hml**
 ```hemlock
 async fn compute(n: i32): i32 {
     let sum = 0;
@@ -410,29 +410,29 @@ async fn compute(n: i32): i32 {
     return sum;
 }
 
-// Spawn tasks
+// 生成任务
 let t1 = spawn(compute, 10);
 let t2 = spawn(compute, 20);
 
-// Join and print results
+// 等待并打印结果
 let r1 = join(t1);
 let r2 = join(t2);
 print(r1);  // Expect: 45
 print(r2);  // Expect: 190
 ```
 
-### Testing Exceptions
+### 测试异常
 
-**Example: tests/exceptions/try_catch.hml**
+**示例：tests/exceptions/try_catch.hml**
 ```hemlock
-// Test basic try/catch
+// 测试基本 try/catch
 try {
     throw "error message";
 } catch (e) {
     print("Caught: " + e);  // Expect: Caught: error message
 }
 
-// Test finally
+// 测试 finally
 let executed = false;
 try {
     print("try");  // Expect: try
@@ -441,7 +441,7 @@ try {
     print("finally");  // Expect: finally
 }
 
-// Test exception propagation
+// 测试异常传播
 fn risky(): i32 {
     throw "failure";
 }
@@ -455,145 +455,145 @@ try {
 
 ---
 
-## Test Categories
+## 测试类别
 
-### Primitives Tests
+### 原始类型测试
 
-**What to test:**
-- Integer types (i8, i16, i32, i64, u8, u16, u32, u64)
-- Float types (f32, f64)
-- Boolean type
-- String type
-- Rune type
-- Null type
+**测试什么：**
+- 整数类型（i8、i16、i32、i64、u8、u16、u32、u64）
+- 浮点类型（f32、f64）
+- 布尔类型
+- 字符串类型
+- Rune 类型
+- Null 类型
 
-**Example areas:**
-- Literal syntax
-- Type inference
-- Range checking
-- Overflow behavior
-- Type annotations
+**示例领域：**
+- 字面量语法
+- 类型推断
+- 范围检查
+- 溢出行为
+- 类型注解
 
-### Conversion Tests
+### 转换测试
 
-**What to test:**
-- Implicit type promotion
-- Explicit type conversion
-- Lossy conversions (should error)
-- Type promotion in operations
-- Cross-type comparisons
+**测试什么：**
+- 隐式类型提升
+- 显式类型转换
+- 有损转换（应该出错）
+- 运算中的类型提升
+- 跨类型比较
 
-### Memory Tests
+### 内存测试
 
-**What to test:**
-- alloc/free correctness
-- Buffer creation and access
-- Bounds checking on buffers
-- memset, memcpy, realloc
-- Memory leak detection (valgrind)
+**测试什么：**
+- alloc/free 正确性
+- Buffer 创建和访问
+- 缓冲区边界检查
+- memset、memcpy、realloc
+- 内存泄漏检测（valgrind）
 
-### String Tests
+### 字符串测试
 
-**What to test:**
-- Concatenation
-- All 18 string methods
-- UTF-8 handling
-- Rune indexing
-- String + rune concatenation
-- Edge cases (empty strings, single char, etc.)
+**测试什么：**
+- 连接
+- 所有 18 个字符串方法
+- UTF-8 处理
+- Rune 索引
+- 字符串 + rune 连接
+- 边界情况（空字符串、单字符等）
 
-### Control Flow Tests
+### 控制流测试
 
-**What to test:**
+**测试什么：**
 - if/else/else if
-- while loops
-- for loops
-- switch statements
+- while 循环
+- for 循环
+- switch 语句
 - break/continue
-- return statements
+- return 语句
 
-### Function Tests
+### 函数测试
 
-**What to test:**
-- Function definition and calling
-- Parameter passing
-- Return values
-- Recursion
-- Closures and capture
-- First-class functions
-- Anonymous functions
+**测试什么：**
+- 函数定义和调用
+- 参数传递
+- 返回值
+- 递归
+- 闭包和捕获
+- 一等函数
+- 匿名函数
 
-### Object Tests
+### 对象测试
 
-**What to test:**
-- Object literals
-- Field access and assignment
-- Methods and self binding
-- Duck typing
-- Optional fields
-- JSON serialization/deserialization
-- Circular reference detection
+**测试什么：**
+- 对象字面量
+- 字段访问和赋值
+- 方法和 self 绑定
+- 鸭子类型
+- 可选字段
+- JSON 序列化/反序列化
+- 循环引用检测
 
-### Array Tests
+### 数组测试
 
-**What to test:**
-- Array creation
-- Indexing and assignment
-- All 15 array methods
-- Mixed types
-- Dynamic resizing
-- Edge cases (empty, single element)
+**测试什么：**
+- 数组创建
+- 索引和赋值
+- 所有 15 个数组方法
+- 混合类型
+- 动态调整大小
+- 边界情况（空、单个元素）
 
-### Exception Tests
+### 异常测试
 
-**What to test:**
+**测试什么：**
 - try/catch/finally
-- throw statement
-- Exception propagation
-- Nested try/catch
-- Return in try/catch/finally
-- Uncaught exceptions
+- throw 语句
+- 异常传播
+- 嵌套 try/catch
+- try/catch/finally 中的 return
+- 未捕获的异常
 
-### I/O Tests
+### I/O 测试
 
-**What to test:**
-- File opening modes
-- Read/write operations
+**测试什么：**
+- 文件打开模式
+- 读/写操作
 - Seek/tell
-- File properties
-- Error handling (missing files, etc.)
-- Resource cleanup
+- 文件属性
+- 错误处理（缺少文件等）
+- 资源清理
 
-### Async Tests
+### 异步测试
 
-**What to test:**
+**测试什么：**
 - spawn/join/detach
 - Channel send/recv
-- Exception propagation in tasks
-- Multiple concurrent tasks
-- Channel blocking behavior
+- 任务中的异常传播
+- 多个并发任务
+- Channel 阻塞行为
 
-### FFI Tests
+### FFI 测试
 
-**What to test:**
+**测试什么：**
 - dlopen/dlclose
 - dlsym
-- dlcall with various types
-- Type conversion
-- Error handling
+- 各种类型的 dlcall
+- 类型转换
+- 错误处理
 
 ---
 
-## Memory Leak Testing
+## 内存泄漏测试
 
-### Using Valgrind
+### 使用 Valgrind
 
-**Basic usage:**
+**基本用法：**
 ```bash
 valgrind --leak-check=full ./hemlock test.hml
 ```
 
-**Example output (no leaks):**
+**示例输出（无泄漏）：**
 ```
 ==12345== HEAP SUMMARY:
 ==12345==     in use at exit: 0 bytes in 0 blocks
@@ -602,7 +602,7 @@ valgrind --leak-check=full ./hemlock test.hml
 ==12345== All heap blocks were freed -- no leaks are possible
 ```
 
-**Example output (with leak):**
+**示例输出（有泄漏）：**
 ```
 ==12345== LEAK SUMMARY:
 ==12345==    definitely lost: 64 bytes in 1 blocks
@@ -612,45 +612,45 @@ valgrind --leak-check=full ./hemlock test.hml
 ==12345==         suppressed: 0 bytes in 0 blocks
 ```
 
-### Common Leak Sources
+### 常见泄漏来源
 
-**1. Missing free() calls:**
+**1. 缺少 free() 调用：**
 ```c
-// BAD
+// 差
 char *str = malloc(100);
-// ... use str
-// Forgot to free!
+// ... 使用 str
+// 忘记释放！
 
-// GOOD
+// 好
 char *str = malloc(100);
-// ... use str
+// ... 使用 str
 free(str);
 ```
 
-**2. Lost pointers:**
+**2. 丢失的指针：**
 ```c
-// BAD
+// 差
 char *ptr = malloc(100);
-ptr = malloc(200);  // Lost reference to first allocation!
+ptr = malloc(200);  // 丢失了对第一次分配的引用！
 
-// GOOD
+// 好
 char *ptr = malloc(100);
 free(ptr);
 ptr = malloc(200);
 ```
 
-**3. Exception paths:**
+**3. 异常路径：**
 ```c
-// BAD
+// 差
 void func() {
     char *data = malloc(100);
     if (error_condition) {
-        return;  // Leak!
+        return;  // 泄漏！
     }
     free(data);
 }
 
-// GOOD
+// 好
 void func() {
     char *data = malloc(100);
     if (error_condition) {
@@ -661,203 +661,203 @@ void func() {
 }
 ```
 
-### Known Acceptable Leaks
+### 已知可接受的泄漏
 
-Some small "leaks" are intentional startup allocations:
+一些小的"泄漏"是有意的启动分配：
 
-**Global built-ins:**
+**全局内置：**
 ```hemlock
-// Built-in functions, FFI types, and constants are allocated at startup
-// and not freed at exit (typically ~200 bytes)
+// 内置函数、FFI 类型和常量在启动时分配
+// 并且在退出时不释放（通常约 200 字节）
 ```
 
-These are not true leaks - they're one-time allocations that persist for the program lifetime and are cleaned up by the OS on exit.
+这些不是真正的泄漏 - 它们是一次性分配，在程序生命周期内持续存在，并在退出时由操作系统清理。
 
 ---
 
-## Continuous Integration
+## 持续集成
 
-### GitHub Actions (Future)
+### GitHub Actions（未来）
 
-Once CI is set up, all tests will run automatically on:
-- Push to main branch
-- Pull request creation/update
-- Scheduled daily runs
+一旦设置了 CI，所有测试将自动运行：
+- 推送到 main 分支
+- Pull request 创建/更新
+- 每日定时运行
 
-**CI workflow:**
-1. Build Hemlock
-2. Run test suite
-3. Check for memory leaks (valgrind)
-4. Report results on PR
+**CI 工作流程：**
+1. 构建 Hemlock
+2. 运行测试套件
+3. 检查内存泄漏（valgrind）
+4. 在 PR 上报告结果
 
-### Pre-Commit Checks
+### 提交前检查
 
-Before committing, run:
+在提交之前，运行：
 
 ```bash
-# Build fresh
+# 全新构建
 make clean && make
 
-# Run all tests
+# 运行所有测试
 make test
 
-# Check a few tests for leaks
+# 检查一些测试的泄漏
 valgrind --leak-check=full ./hemlock tests/memory/alloc.hml
 valgrind --leak-check=full ./hemlock tests/strings/concat.hml
 ```
 
 ---
 
-## Best Practices
+## 最佳实践
 
-### Do's
+### 应该做的
 
-✅ **Write tests first (TDD)**
+**先编写测试（TDD）**
 ```bash
-1. Create tests/feature/new_feature.hml
-2. Implement feature in src/
-3. Run tests until they pass
+1. 创建 tests/feature/new_feature.hml
+2. 在 src/ 中实现功能
+3. 运行测试直到通过
 ```
 
-✅ **Test both success and failure**
+**测试成功和失败两种情况**
 ```hemlock
-// Success: tests/feature/success.hml
+// 成功：tests/feature/success.hml
 let result = do_thing();
 print(result);  // Expect: expected value
 
-// Failure: tests/feature/failure.hml
-do_invalid_thing();  // Should error
+// 失败：tests/feature/failure.hml
+do_invalid_thing();  // 应该出错
 ```
 
-✅ **Use descriptive test names**
+**使用描述性测试名称**
 ```
-Good: tests/strings/substr_utf8_boundary.hml
-Bad:  tests/test1.hml
+好：tests/strings/substr_utf8_boundary.hml
+差：tests/test1.hml
 ```
 
-✅ **Keep tests focused**
-- One feature area per file
-- Clear setup and assertions
-- Minimal code
+**保持测试专注**
+- 每个文件一个功能区域
+- 清晰的设置和断言
+- 最少的代码
 
-✅ **Add comments explaining tricky tests**
+**添加解释棘手测试的注释**
 ```hemlock
-// Test that closure captures outer variable by reference
+// 测试闭包通过引用捕获外部变量
 fn outer() {
     let x = 10;
     let f = fn() { return x; };
-    x = 20;  // Modify after closure creation
-    return f();  // Should return 20, not 10
+    x = 20;  // 在闭包创建后修改
+    return f();  // 应该返回 20，而不是 10
 }
 ```
 
-✅ **Test edge cases**
-- Empty inputs
-- Null values
-- Boundary values (min/max)
-- Large inputs
-- Negative values
+**测试边界情况**
+- 空输入
+- Null 值
+- 边界值（最小/最大）
+- 大输入
+- 负值
 
-### Don'ts
+### 不应该做的
 
-❌ **Don't skip tests**
-- All tests must pass before merging
-- Don't comment out failing tests
-- Fix the bug or remove the feature
+**不要跳过测试**
+- 合并前所有测试必须通过
+- 不要注释掉失败的测试
+- 修复错误或删除功能
 
-❌ **Don't write tests that depend on each other**
+**不要编写相互依赖的测试**
 ```hemlock
-// BAD: test2.hml depends on test1.hml output
-// Tests should be independent
+// 差：test2.hml 依赖于 test1.hml 的输出
+// 测试应该是独立的
 ```
 
-❌ **Don't use random values in tests**
+**不要在测试中使用随机值**
 ```hemlock
-// BAD: Non-deterministic
+// 差：不确定性
 let x = random();
-print(x);  // Can't predict output
+print(x);  // 无法预测输出
 
-// GOOD: Deterministic
+// 好：确定性
 let x = 42;
 print(x);  // Expect: 42
 ```
 
-❌ **Don't test implementation details**
+**不要测试实现细节**
 ```hemlock
-// BAD: Testing internal structure
+// 差：测试内部结构
 let obj = { x: 10 };
-// Don't check internal field order, capacity, etc.
+// 不要检查内部字段顺序、容量等
 
-// GOOD: Testing behavior
+// 好：测试行为
 print(obj.x);  // Expect: 10
 ```
 
-❌ **Don't ignore memory leaks**
-- All tests should be valgrind-clean
-- Document known/acceptable leaks
-- Fix leaks before merging
+**不要忽略内存泄漏**
+- 所有测试应该是 valgrind 清洁的
+- 记录已知/可接受的泄漏
+- 在合并前修复泄漏
 
-### Test Maintenance
+### 测试维护
 
-**When to update tests:**
-- Feature behavior changes
-- Bug fixes require new test cases
-- Edge cases discovered
-- Performance improvements
+**何时更新测试：**
+- 功能行为更改
+- 错误修复需要新的测试用例
+- 发现边界情况
+- 性能改进
 
-**When to remove tests:**
-- Feature removed from language
-- Test duplicates existing coverage
-- Test was incorrect
+**何时删除测试：**
+- 功能从语言中删除
+- 测试重复了现有覆盖
+- 测试是错误的
 
-**Refactoring tests:**
-- Group related tests together
-- Extract common setup code
-- Use consistent naming
-- Keep tests simple and readable
+**重构测试：**
+- 将相关测试分组在一起
+- 提取公共设置代码
+- 使用一致的命名
+- 保持测试简单和可读
 
 ---
 
-## Example Test Session
+## 示例测试会话
 
-Here's a complete example of adding a feature with tests:
+这是添加带有测试的功能的完整示例：
 
-### Feature: Add `array.first()` method
+### 功能：添加 `array.first()` 方法
 
-**1. Write the test first:**
+**1. 先编写测试：**
 
 ```bash
-# Create test file
+# 创建测试文件
 cat > tests/arrays/first_method.hml << 'EOF'
-// Test array.first() method
+// 测试 array.first() 方法
 
-// Basic case
+// 基本情况
 let arr = [1, 2, 3];
 print(arr.first());  // Expect: 1
 
-// Single element
+// 单个元素
 let single = [42];
 print(single.first());  // Expect: 42
 
-// Empty array (should error - separate test file)
+// 空数组（应该出错 - 单独的测试文件）
 // let empty = [];
-// print(empty.first());  // Error
+// print(empty.first());  // 错误
 EOF
 ```
 
-**2. Run the test (should fail):**
+**2. 运行测试（应该失败）：**
 
 ```bash
 ./hemlock tests/arrays/first_method.hml
 # Error: Method 'first' not found on array
 ```
 
-**3. Implement the feature:**
+**3. 实现功能：**
 
-Edit `src/interpreter/builtins.c`:
+编辑 `src/interpreter/builtins.c`：
 
 ```c
-// Add array_first method
+// 添加 array_first 方法
 Value *array_first(Value *self, Value **args, int arg_count)
 {
     if (self->array_value->length == 0) {
@@ -868,36 +868,36 @@ Value *array_first(Value *self, Value **args, int arg_count)
     return value_copy(&self->array_value->elements[0]);
 }
 
-// Register in array method table
-// ... add to array method registration
+// 在数组方法表中注册
+// ... 添加到数组方法注册
 ```
 
-**4. Run the test (should pass):**
+**4. 运行测试（应该通过）：**
 
 ```bash
 ./hemlock tests/arrays/first_method.hml
 1
 42
-# Success!
+# 成功！
 ```
 
-**5. Check for memory leaks:**
+**5. 检查内存泄漏：**
 
 ```bash
 valgrind --leak-check=full ./hemlock tests/arrays/first_method.hml
 # All heap blocks were freed -- no leaks are possible
 ```
 
-**6. Run full test suite:**
+**6. 运行完整测试套件：**
 
 ```bash
 make test
-# Total: 252 tests (251 + new one)
+# Total: 252 tests（251 + 新的）
 # Passed: 252
 # Failed: 0
 ```
 
-**7. Commit:**
+**7. 提交：**
 
 ```bash
 git add tests/arrays/first_method.hml src/interpreter/builtins.c
@@ -906,14 +906,14 @@ git commit -m "Add array.first() method with tests"
 
 ---
 
-## Summary
+## 总结
 
-**Remember:**
-- Write tests first (TDD)
-- Test success and failure cases
-- Run all tests before committing
-- Check for memory leaks
-- Document known issues
-- Keep tests simple and focused
+**记住：**
+- 先编写测试（TDD）
+- 测试成功和失败情况
+- 在提交前运行所有测试
+- 检查内存泄漏
+- 记录已知问题
+- 保持测试简单和专注
 
-**Test quality is just as important as code quality!**
+**测试质量与代码质量同样重要！**
