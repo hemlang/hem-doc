@@ -42,6 +42,27 @@ if (llms_txt == null) {
     print("Warning: llms.txt not found, /llms.txt endpoint will be unavailable");
 }
 
+// Read language-specific LLM documentation files
+let llms_de = read_file("llms-de.txt");
+if (llms_de == null) {
+    print("Warning: llms-de.txt not found, German LLM docs will fall back to English");
+}
+
+let llms_es = read_file("llms-es.txt");
+if (llms_es == null) {
+    print("Warning: llms-es.txt not found, Spanish LLM docs will fall back to English");
+}
+
+let llms_zh = read_file("llms-zh.txt");
+if (llms_zh == null) {
+    print("Warning: llms-zh.txt not found, Chinese LLM docs will fall back to English");
+}
+
+let llms_ja = read_file("llms-ja.txt");
+if (llms_ja == null) {
+    print("Warning: llms-ja.txt not found, Japanese LLM docs will fall back to English");
+}
+
 let app = App(null);
 
 // Serve the documentation (English at root and /docs.html)
@@ -98,6 +119,50 @@ app.get("/llms.txt", fn(req, res, next) {
     }
 });
 
+// Serve German LLM documentation
+app.get("/llms-de.txt", fn(req, res, next) {
+    if (llms_de != null) {
+        res.type("text").send(llms_de);
+    } else if (llms_txt != null) {
+        res.type("text").send(llms_txt);
+    } else {
+        res.status(404).type("text").send("llms-de.txt not found. Run 'make docs' to generate it.");
+    }
+});
+
+// Serve Spanish LLM documentation
+app.get("/llms-es.txt", fn(req, res, next) {
+    if (llms_es != null) {
+        res.type("text").send(llms_es);
+    } else if (llms_txt != null) {
+        res.type("text").send(llms_txt);
+    } else {
+        res.status(404).type("text").send("llms-es.txt not found. Run 'make docs' to generate it.");
+    }
+});
+
+// Serve Chinese LLM documentation
+app.get("/llms-zh.txt", fn(req, res, next) {
+    if (llms_zh != null) {
+        res.type("text").send(llms_zh);
+    } else if (llms_txt != null) {
+        res.type("text").send(llms_txt);
+    } else {
+        res.status(404).type("text").send("llms-zh.txt not found. Run 'make docs' to generate it.");
+    }
+});
+
+// Serve Japanese LLM documentation
+app.get("/llms-ja.txt", fn(req, res, next) {
+    if (llms_ja != null) {
+        res.type("text").send(llms_ja);
+    } else if (llms_txt != null) {
+        res.type("text").send(llms_txt);
+    } else {
+        res.status(404).type("text").send("llms-ja.txt not found. Run 'make docs' to generate it.");
+    }
+});
+
 // Health check endpoint
 app.get("/health", fn(req, res, next) {
     res.json({
@@ -107,7 +172,11 @@ app.get("/health", fn(req, res, next) {
         docs_es_size: docs_es != null ? docs_es.length : 0,
         docs_ja_size: docs_ja != null ? docs_ja.length : 0,
         docs_zh_size: docs_zh != null ? docs_zh.length : 0,
-        llms_size: llms_txt != null ? llms_txt.length : 0
+        llms_size: llms_txt != null ? llms_txt.length : 0,
+        llms_de_size: llms_de != null ? llms_de.length : 0,
+        llms_es_size: llms_es != null ? llms_es.length : 0,
+        llms_ja_size: llms_ja != null ? llms_ja.length : 0,
+        llms_zh_size: llms_zh != null ? llms_zh.length : 0
     });
 });
 
@@ -122,5 +191,10 @@ app.listen(port, fn() {
     print("  Spanish:  http://localhost:" + port + "/docs-es.html");
     print("  Japanese: http://localhost:" + port + "/docs-ja.html");
     print("  Chinese:  http://localhost:" + port + "/docs-zh.html");
-    print("LLM docs at http://localhost:" + port + "/llms.txt");
+    print("LLM docs:");
+    print("  English:  http://localhost:" + port + "/llms.txt");
+    print("  German:   http://localhost:" + port + "/llms-de.txt");
+    print("  Spanish:  http://localhost:" + port + "/llms-es.txt");
+    print("  Japanese: http://localhost:" + port + "/llms-ja.txt");
+    print("  Chinese:  http://localhost:" + port + "/llms-zh.txt");
 });
