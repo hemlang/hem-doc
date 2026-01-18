@@ -180,8 +180,8 @@ Use a navegação à esquerda para explorar a documentação, ou use a barra de 
 
 > "Uma linguagem pequena e não-segura, para escrever código não-seguro de forma segura."
 
-Este documento registra os princípios de design centrais que assistentes de IA precisam conhecer ao trabalhar com Hemlock.
-Para documentação detalhada, consulte `docs/README.md` e o diretório `stdlib/docs/`.
+Este documento fornece uma visao geral da filosofia de design do Hemlock e uma referencia rapida da linguagem.
+Explore as outras secoes de documentacao para guias detalhados e referencias de API.
 
 ---
 

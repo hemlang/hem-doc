@@ -180,8 +180,8 @@ Utilisez la navigation à gauche pour explorer la documentation, ou utilisez la 
 
 > "Un petit langage non securise pour ecrire des choses non securisees en toute securite."
 
-Ce document presente les principes fondamentaux de conception pour les assistants IA travaillant avec Hemlock.
-Pour une documentation detaillee, consultez `docs/README.md` et le repertoire `stdlib/docs/`.
+Ce document fournit un apercu de la philosophie de conception de Hemlock et une reference rapide du langage.
+Explorez les autres sections de documentation pour des guides detailles et des references API.
 
 ---
 

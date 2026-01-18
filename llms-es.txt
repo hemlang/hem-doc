@@ -180,8 +180,8 @@ Usa la navegación a la izquierda para explorar la documentación, o utiliza la 
 
 > "Un lenguaje pequeno e inseguro para escribir cosas inseguras de manera segura."
 
-Este documento captura los principios de diseno fundamentales para asistentes de IA que trabajan con Hemlock.
-Para documentacion detallada, consulte `docs/README.md` y el directorio `stdlib/docs/`.
+Este documento proporciona una vision general de la filosofia de diseno de Hemlock y una referencia rapida del lenguaje.
+Explore las otras secciones de documentacion para guias detalladas y referencias de API.
 
 ---
 
