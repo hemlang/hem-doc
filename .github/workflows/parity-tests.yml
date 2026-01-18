@@ -60,11 +60,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libev4
 
-      - name: Install Hemlock and hpm
+      - name: Install Hemlock
         run: |
-          # Use official install script which handles hemlock + hpm installation
           curl -fsSL https://raw.githubusercontent.com/hemlang/hemlock/main/install.sh | bash
           echo "$HOME/.hemlock/bin" >> $GITHUB_PATH
+
+      - name: Install hpm
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/hemlang/hpm/main/install.sh | sh
 
       - name: Verify installation
         run: |
@@ -117,11 +120,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libev4
 
-      - name: Install Hemlock and hpm
+      - name: Install Hemlock
         run: |
-          # Use official install script which handles hemlock + hpm installation
           curl -fsSL https://raw.githubusercontent.com/hemlang/hemlock/main/install.sh | bash
           echo "$HOME/.hemlock/bin" >> $GITHUB_PATH
+
+      - name: Install hpm
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/hemlang/hpm/main/install.sh | sh
 
       - name: Verify installation
         run: |
