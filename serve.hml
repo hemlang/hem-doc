@@ -4,10 +4,20 @@
 import { App } from "hemlang/sprout";
 import { read_file } from "@stdlib/fs";
 
-// Supported languages for documentation
-let supported_langs = ["en", "de", "es", "fr", "ja", "pt", "zh"];
+// Supported languages for documentation (excluding English which is the default)
+let non_english_langs = ["de", "es", "fr", "ja", "pt", "zh"];
 
-// Read the docs HTML at startup
+// Language display names for logging
+let lang_names = {
+    de: "German",
+    es: "Spanish",
+    fr: "French",
+    ja: "Japanese",
+    pt: "Portuguese",
+    zh: "Chinese"
+};
+
+// Read the docs HTML at startup (English is required)
 let docs_html = read_file("docs.html");
 if (docs_html == null) {
     print("Error: docs.html not found");
@@ -15,72 +25,28 @@ if (docs_html == null) {
     exit(1);
 }
 
-// Read language-specific documentation files
-let docs_de = read_file("docs-de.html");
-if (docs_de == null) {
-    print("Warning: docs-de.html not found, German docs will fall back to English");
-}
+// Read language-specific documentation files into objects
+let docs = {};
+let llms = {};
 
-let docs_es = read_file("docs-es.html");
-if (docs_es == null) {
-    print("Warning: docs-es.html not found, Spanish docs will fall back to English");
-}
+for (let lang in non_english_langs) {
+    let doc_file = read_file("docs-" + lang + ".html");
+    if (doc_file == null) {
+        print("Warning: docs-" + lang + ".html not found, " + lang_names[lang] + " docs will fall back to English");
+    }
+    docs[lang] = doc_file;
 
-let docs_fr = read_file("docs-fr.html");
-if (docs_fr == null) {
-    print("Warning: docs-fr.html not found, French docs will fall back to English");
-}
-
-let docs_zh = read_file("docs-zh.html");
-if (docs_zh == null) {
-    print("Warning: docs-zh.html not found, Chinese docs will fall back to English");
-}
-
-let docs_ja = read_file("docs-ja.html");
-if (docs_ja == null) {
-    print("Warning: docs-ja.html not found, Japanese docs will fall back to English");
-}
-
-let docs_pt = read_file("docs-pt.html");
-if (docs_pt == null) {
-    print("Warning: docs-pt.html not found, Portuguese docs will fall back to English");
+    let llm_file = read_file("llms-" + lang + ".txt");
+    if (llm_file == null) {
+        print("Warning: llms-" + lang + ".txt not found, " + lang_names[lang] + " LLM docs will fall back to English");
+    }
+    llms[lang] = llm_file;
 }
 
 // Read the LLM-friendly documentation at startup
 let llms_txt = read_file("llms.txt");
 if (llms_txt == null) {
     print("Warning: llms.txt not found, /llms.txt endpoint will be unavailable");
-}
-
-// Read language-specific LLM documentation files
-let llms_de = read_file("llms-de.txt");
-if (llms_de == null) {
-    print("Warning: llms-de.txt not found, German LLM docs will fall back to English");
-}
-
-let llms_es = read_file("llms-es.txt");
-if (llms_es == null) {
-    print("Warning: llms-es.txt not found, Spanish LLM docs will fall back to English");
-}
-
-let llms_fr = read_file("llms-fr.txt");
-if (llms_fr == null) {
-    print("Warning: llms-fr.txt not found, French LLM docs will fall back to English");
-}
-
-let llms_zh = read_file("llms-zh.txt");
-if (llms_zh == null) {
-    print("Warning: llms-zh.txt not found, Chinese LLM docs will fall back to English");
-}
-
-let llms_ja = read_file("llms-ja.txt");
-if (llms_ja == null) {
-    print("Warning: llms-ja.txt not found, Japanese LLM docs will fall back to English");
-}
-
-let llms_pt = read_file("llms-pt.txt");
-if (llms_pt == null) {
-    print("Warning: llms-pt.txt not found, Portuguese LLM docs will fall back to English");
 }
 
 let app = App(null);
@@ -94,55 +60,50 @@ app.get("/docs.html", fn(req, res, next) {
     res.type("html").send(docs_html);
 });
 
-// Serve German documentation
+// Serve language-specific documentation
 app.get("/docs-de.html", fn(req, res, next) {
-    if (docs_de != null) {
-        res.type("html").send(docs_de);
+    if (docs["de"] != null) {
+        res.type("html").send(docs["de"]);
     } else {
         res.type("html").send(docs_html);
     }
 });
 
-// Serve Spanish documentation
 app.get("/docs-es.html", fn(req, res, next) {
-    if (docs_es != null) {
-        res.type("html").send(docs_es);
+    if (docs["es"] != null) {
+        res.type("html").send(docs["es"]);
     } else {
         res.type("html").send(docs_html);
     }
 });
 
-// Serve French documentation
 app.get("/docs-fr.html", fn(req, res, next) {
-    if (docs_fr != null) {
-        res.type("html").send(docs_fr);
+    if (docs["fr"] != null) {
+        res.type("html").send(docs["fr"]);
     } else {
         res.type("html").send(docs_html);
     }
 });
 
-// Serve Chinese documentation
-app.get("/docs-zh.html", fn(req, res, next) {
-    if (docs_zh != null) {
-        res.type("html").send(docs_zh);
-    } else {
-        res.type("html").send(docs_html);
-    }
-});
-
-// Serve Japanese documentation
 app.get("/docs-ja.html", fn(req, res, next) {
-    if (docs_ja != null) {
-        res.type("html").send(docs_ja);
+    if (docs["ja"] != null) {
+        res.type("html").send(docs["ja"]);
     } else {
         res.type("html").send(docs_html);
     }
 });
 
-// Serve Portuguese documentation
 app.get("/docs-pt.html", fn(req, res, next) {
-    if (docs_pt != null) {
-        res.type("html").send(docs_pt);
+    if (docs["pt"] != null) {
+        res.type("html").send(docs["pt"]);
+    } else {
+        res.type("html").send(docs_html);
+    }
+});
+
+app.get("/docs-zh.html", fn(req, res, next) {
+    if (docs["zh"] != null) {
+        res.type("html").send(docs["zh"]);
     } else {
         res.type("html").send(docs_html);
     }
@@ -157,10 +118,10 @@ app.get("/llms.txt", fn(req, res, next) {
     }
 });
 
-// Serve German LLM documentation
+// Serve language-specific LLM documentation
 app.get("/llms-de.txt", fn(req, res, next) {
-    if (llms_de != null) {
-        res.type("text").send(llms_de);
+    if (llms["de"] != null) {
+        res.type("text").send(llms["de"]);
     } else if (llms_txt != null) {
         res.type("text").send(llms_txt);
     } else {
@@ -168,10 +129,9 @@ app.get("/llms-de.txt", fn(req, res, next) {
     }
 });
 
-// Serve Spanish LLM documentation
 app.get("/llms-es.txt", fn(req, res, next) {
-    if (llms_es != null) {
-        res.type("text").send(llms_es);
+    if (llms["es"] != null) {
+        res.type("text").send(llms["es"]);
     } else if (llms_txt != null) {
         res.type("text").send(llms_txt);
     } else {
@@ -179,10 +139,9 @@ app.get("/llms-es.txt", fn(req, res, next) {
     }
 });
 
-// Serve French LLM documentation
 app.get("/llms-fr.txt", fn(req, res, next) {
-    if (llms_fr != null) {
-        res.type("text").send(llms_fr);
+    if (llms["fr"] != null) {
+        res.type("text").send(llms["fr"]);
     } else if (llms_txt != null) {
         res.type("text").send(llms_txt);
     } else {
@@ -190,21 +149,9 @@ app.get("/llms-fr.txt", fn(req, res, next) {
     }
 });
 
-// Serve Chinese LLM documentation
-app.get("/llms-zh.txt", fn(req, res, next) {
-    if (llms_zh != null) {
-        res.type("text").send(llms_zh);
-    } else if (llms_txt != null) {
-        res.type("text").send(llms_txt);
-    } else {
-        res.status(404).type("text").send("llms-zh.txt not found. Run 'make docs' to generate it.");
-    }
-});
-
-// Serve Japanese LLM documentation
 app.get("/llms-ja.txt", fn(req, res, next) {
-    if (llms_ja != null) {
-        res.type("text").send(llms_ja);
+    if (llms["ja"] != null) {
+        res.type("text").send(llms["ja"]);
     } else if (llms_txt != null) {
         res.type("text").send(llms_txt);
     } else {
@@ -212,14 +159,23 @@ app.get("/llms-ja.txt", fn(req, res, next) {
     }
 });
 
-// Serve Portuguese LLM documentation
 app.get("/llms-pt.txt", fn(req, res, next) {
-    if (llms_pt != null) {
-        res.type("text").send(llms_pt);
+    if (llms["pt"] != null) {
+        res.type("text").send(llms["pt"]);
     } else if (llms_txt != null) {
         res.type("text").send(llms_txt);
     } else {
         res.status(404).type("text").send("llms-pt.txt not found. Run 'make docs' to generate it.");
+    }
+});
+
+app.get("/llms-zh.txt", fn(req, res, next) {
+    if (llms["zh"] != null) {
+        res.type("text").send(llms["zh"]);
+    } else if (llms_txt != null) {
+        res.type("text").send(llms_txt);
+    } else {
+        res.status(404).type("text").send("llms-zh.txt not found. Run 'make docs' to generate it.");
     }
 });
 
@@ -228,19 +184,19 @@ app.get("/health", fn(req, res, next) {
     res.json({
         status: "ok",
         docs_size: docs_html.length,
-        docs_de_size: docs_de != null ? docs_de.length : 0,
-        docs_es_size: docs_es != null ? docs_es.length : 0,
-        docs_fr_size: docs_fr != null ? docs_fr.length : 0,
-        docs_ja_size: docs_ja != null ? docs_ja.length : 0,
-        docs_pt_size: docs_pt != null ? docs_pt.length : 0,
-        docs_zh_size: docs_zh != null ? docs_zh.length : 0,
+        docs_de_size: docs["de"] != null ? docs["de"].length : 0,
+        docs_es_size: docs["es"] != null ? docs["es"].length : 0,
+        docs_fr_size: docs["fr"] != null ? docs["fr"].length : 0,
+        docs_ja_size: docs["ja"] != null ? docs["ja"].length : 0,
+        docs_pt_size: docs["pt"] != null ? docs["pt"].length : 0,
+        docs_zh_size: docs["zh"] != null ? docs["zh"].length : 0,
         llms_size: llms_txt != null ? llms_txt.length : 0,
-        llms_de_size: llms_de != null ? llms_de.length : 0,
-        llms_es_size: llms_es != null ? llms_es.length : 0,
-        llms_fr_size: llms_fr != null ? llms_fr.length : 0,
-        llms_ja_size: llms_ja != null ? llms_ja.length : 0,
-        llms_pt_size: llms_pt != null ? llms_pt.length : 0,
-        llms_zh_size: llms_zh != null ? llms_zh.length : 0
+        llms_de_size: llms["de"] != null ? llms["de"].length : 0,
+        llms_es_size: llms["es"] != null ? llms["es"].length : 0,
+        llms_fr_size: llms["fr"] != null ? llms["fr"].length : 0,
+        llms_ja_size: llms["ja"] != null ? llms["ja"].length : 0,
+        llms_pt_size: llms["pt"] != null ? llms["pt"].length : 0,
+        llms_zh_size: llms["zh"] != null ? llms["zh"].length : 0
     });
 });
 

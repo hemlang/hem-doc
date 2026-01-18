@@ -35,6 +35,7 @@ let SUPPORTED_LANGUAGES = {
     zh: "中文",
     de: "Deutsch",
     es: "Español",
+    fr: "Français",
     ja: "日本語",
     pt: "Português"
 };
@@ -110,6 +111,20 @@ let SECTION_TRANSLATIONS = {
         "hpm: Package Development": "hpm: Desenvolvimento de Pacotes",
         "hpm: Reference": "hpm: Referência",
         "hpm: Other": "hpm: Outros"
+    },
+    fr: {
+        "Language Reference": "Référence du Langage",
+        "Getting Started": "Prise en Main",
+        "Language Guide": "Guide du Langage",
+        "Advanced Topics": "Sujets Avancés",
+        "API Reference": "Référence API",
+        "Design & Philosophy": "Conception et Philosophie",
+        "Contributing": "Contribuer",
+        "hpm: Getting Started": "hpm : Prise en Main",
+        "hpm: User Guide": "hpm : Guide Utilisateur",
+        "hpm: Package Development": "hpm : Développement de Paquets",
+        "hpm: Reference": "hpm : Référence",
+        "hpm: Other": "hpm : Autres"
     }
 };
 
@@ -359,6 +374,55 @@ let TITLE_TRANSLATIONS = {
         "Versioning": "Versionamento",
         "Architecture": "Arquitetura",
         "Exit Codes": "Códigos de Saída"
+    },
+    fr: {
+        "Installation": "Installation",
+        "Quick Start": "Démarrage Rapide",
+        "Tutorial": "Tutoriel",
+        "Learning Paths": "Parcours d'Apprentissage",
+        "Syntax": "Syntaxe",
+        "Types": "Types",
+        "Functions": "Fonctions",
+        "Arrays": "Tableaux",
+        "Strings": "Chaînes de Caractères",
+        "Objects": "Objets",
+        "Control Flow": "Flux de Contrôle",
+        "Error Handling": "Gestion des Erreurs",
+        "Modules": "Modules",
+        "Memory": "Gestion de la Mémoire",
+        "Pattern Matching": "Filtrage par Motif",
+        "Runes": "Runes",
+        "Async Concurrency": "Asynchronisme et Concurrence",
+        "Atomics": "Opérations Atomiques",
+        "Bundling Packaging": "Empaquetage et Distribution",
+        "Command Execution": "Exécution de Commandes",
+        "Command Line Args": "Arguments en Ligne de Commande",
+        "FFI": "FFI (Interface de Fonctions Étrangères)",
+        "File IO": "E/S de Fichiers",
+        "Profiling": "Profilage",
+        "Signals": "Signaux",
+        "Array API": "API des Tableaux",
+        "String API": "API des Chaînes",
+        "File API": "API des Fichiers",
+        "Memory API": "API Mémoire",
+        "Concurrency API": "API de Concurrence",
+        "Builtins": "Fonctions Intégrées",
+        "Operators": "Opérateurs",
+        "Type System": "Système de Types",
+        "Philosophy": "Philosophie",
+        "Implementation": "Implémentation",
+        "Signature Syntax": "Syntaxe des Signatures",
+        "Guidelines": "Directives",
+        "Testing": "Tests",
+        "Commands": "Commandes",
+        "Configuration": "Configuration",
+        "Project Setup": "Configuration du Projet",
+        "Troubleshooting": "Dépannage",
+        "Creating Packages": "Création de Paquets",
+        "Package Spec": "Spécification des Paquets",
+        "Versioning": "Gestion des Versions",
+        "Architecture": "Architecture",
+        "Exit Codes": "Codes de Sortie"
     }
 };
 
@@ -368,6 +432,7 @@ let PAGE_TITLES = {
     zh: "Hemlock 语言手册",
     de: "Hemlock-Sprachhandbuch",
     es: "Manual del Lenguaje Hemlock",
+    fr: "Manuel du Langage Hemlock",
     ja: "Hemlock言語マニュアル",
     pt: "Manual da Linguagem Hemlock"
 };
@@ -378,6 +443,7 @@ let WELCOME_TITLE_TRANSLATIONS = {
     zh: "欢迎",
     de: "Willkommen",
     es: "Bienvenido",
+    fr: "Bienvenue",
     ja: "ようこそ",
     pt: "Bem-vindo"
 };
@@ -2684,12 +2750,12 @@ fn main() {
     // Determine which languages to build
     let languages = [];
     if (lang == "all") {
-        languages = ["en", "zh", "de", "es", "ja", "pt"];
+        languages = ["en", "zh", "de", "es", "fr", "ja", "pt"];
     } else if (SUPPORTED_LANGUAGES[lang] != null) {
         languages = [lang];
     } else {
         print("Error: Unknown language '" + lang + "'");
-        print("Supported languages: en, zh, de, es, ja, pt");
+        print("Supported languages: en, zh, de, es, fr, ja, pt");
         exit(1);
     }
 
