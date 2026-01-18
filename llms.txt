@@ -179,8 +179,8 @@ Use the navigation on the left to explore the documentation, or use the search b
 
 > "A small, unsafe language for writing unsafe things safely."
 
-This document captures the core design principles for AI assistants working with Hemlock.
-For detailed documentation, see `docs/README.md` and the `stdlib/docs/` directory.
+This document provides an overview of Hemlock's design philosophy and a quick reference for the language.
+Explore the other documentation sections for detailed guides and API references.
 
 ---
 
