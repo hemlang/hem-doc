@@ -180,8 +180,8 @@ Verwenden Sie die Navigation auf der linken Seite, um die Dokumentation zu erkun
 
 > "Eine kleine, unsichere Sprache, um unsichere Dinge sicher zu schreiben."
 
-Dieses Dokument erfasst die grundlegenden Designprinzipien für KI-Assistenten, die mit Hemlock arbeiten.
-Für detaillierte Dokumentation siehe `docs/README.md` und das `stdlib/docs/`-Verzeichnis.
+Dieses Dokument bietet einen Überblick über Hemlocks Designphilosophie und eine Kurzreferenz für die Sprache.
+Erkunden Sie die anderen Dokumentationsabschnitte für detaillierte Anleitungen und API-Referenzen.
 
 ---
 

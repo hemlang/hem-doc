@@ -487,6 +487,81 @@ WELCOME_TITLE_TRANSLATIONS = {
     'pt': 'Bem-vindo',
 }
 
+# Transformations to convert AI-directed CLAUDE.md content to human-readable documentation
+# Each tuple contains (AI-directed pattern, human-readable replacement)
+CLAUDE_MD_TRANSFORMATIONS = {
+    'en': [
+        (
+            "This document captures the core design principles for AI assistants working with Hemlock.",
+            "This document provides an overview of Hemlock's design philosophy and a quick reference for the language."
+        ),
+        (
+            "For detailed documentation, see `docs/README.md` and the `stdlib/docs/` directory.",
+            "Explore the other documentation sections for detailed guides and API references."
+        ),
+    ],
+    'zh': [
+        (
+            "本文档记录了 AI 助手在使用 Hemlock 时需要了解的核心设计原则。",
+            "本文档概述了 Hemlock 的设计理念，并提供语言快速参考。"
+        ),
+        (
+            "如需详细文档，请参阅 `docs/README.md` 和 `stdlib/docs/` 目录。",
+            "请浏览其他文档章节，获取详细指南和 API 参考。"
+        ),
+    ],
+    'de': [
+        (
+            "Dieses Dokument erfasst die grundlegenden Designprinzipien für KI-Assistenten, die mit Hemlock arbeiten.",
+            "Dieses Dokument bietet einen Überblick über Hemlocks Designphilosophie und eine Kurzreferenz für die Sprache."
+        ),
+        (
+            "Für detaillierte Dokumentation siehe `docs/README.md` und das `stdlib/docs/`-Verzeichnis.",
+            "Erkunden Sie die anderen Dokumentationsabschnitte für detaillierte Anleitungen und API-Referenzen."
+        ),
+    ],
+    'es': [
+        (
+            "Este documento captura los principios de diseno fundamentales para asistentes de IA que trabajan con Hemlock.",
+            "Este documento proporciona una vision general de la filosofia de diseno de Hemlock y una referencia rapida del lenguaje."
+        ),
+        (
+            "Para documentacion detallada, consulte `docs/README.md` y el directorio `stdlib/docs/`.",
+            "Explore las otras secciones de documentacion para guias detalladas y referencias de API."
+        ),
+    ],
+    'fr': [
+        (
+            "Ce document presente les principes fondamentaux de conception pour les assistants IA travaillant avec Hemlock.",
+            "Ce document fournit un apercu de la philosophie de conception de Hemlock et une reference rapide du langage."
+        ),
+        (
+            "Pour une documentation detaillee, consultez `docs/README.md` et le repertoire `stdlib/docs/`.",
+            "Explorez les autres sections de documentation pour des guides detailles et des references API."
+        ),
+    ],
+    'ja': [
+        (
+            "このドキュメントは、Hemlockを使用するAIアシスタント向けのコア設計原則を記載しています。",
+            "このドキュメントは、Hemlockの設計思想の概要と言語のクイックリファレンスを提供します。"
+        ),
+        (
+            "詳細なドキュメントについては、`docs/README.md` と `stdlib/docs/` ディレクトリを参照してください。",
+            "詳細なガイドとAPIリファレンスについては、他のドキュメントセクションをご覧ください。"
+        ),
+    ],
+    'pt': [
+        (
+            "Este documento registra os princípios de design centrais que assistentes de IA precisam conhecer ao trabalhar com Hemlock.",
+            "Este documento fornece uma visao geral da filosofia de design do Hemlock e uma referencia rapida da linguagem."
+        ),
+        (
+            "Para documentação detalhada, consulte `docs/README.md` e o diretório `stdlib/docs/`.",
+            "Explore as outras secoes de documentacao para guias detalhados e referencias de API."
+        ),
+    ],
+}
+
 
 def translate_section(section_name, lang):
     """Translate a section name to the target language."""
@@ -502,6 +577,19 @@ def translate_title(title, lang):
         return title
     translations = TITLE_TRANSLATIONS.get(lang, {})
     return translations.get(title, title)
+
+
+def transform_claude_md_for_humans(content, lang):
+    """Transform AI-directed CLAUDE.md content into human-readable documentation.
+
+    CLAUDE.md is written as instructions for AI assistants, but we use it as the
+    Language Reference page in the documentation. This function replaces AI-directed
+    phrases with human-readable equivalents.
+    """
+    transformations = CLAUDE_MD_TRANSFORMATIONS.get(lang, CLAUDE_MD_TRANSFORMATIONS['en'])
+    for ai_text, human_text in transformations:
+        content = content.replace(ai_text, human_text)
+    return content
 
 
 def read_file(path):
@@ -670,6 +758,8 @@ def collect_docs(lang='en'):
     claude_path = HEMLOCK_DIR / 'CLAUDE.md'
     if claude_path.exists():
         content, is_translated = read_file_with_translation(claude_path, lang)
+        # Transform AI-directed content to human-readable documentation
+        content = transform_claude_md_for_humans(content, lang)
         content = convert_md_links(content, 'language-reference')
         title = translate_section('Language Reference', lang)
         docs[title] = {
