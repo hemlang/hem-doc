@@ -531,6 +531,19 @@
             font-size: 0.9rem;
         }
 
+        .search-phonetic-badge {
+            display: inline-block;
+            margin-left: 0.5rem;
+            padding: 0.15rem 0.4rem;
+            background: var(--sage);
+            color: var(--pine);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-style: italic;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
         .search-shortcut {
             display: none;
             margin-left: 0.5rem;
@@ -1217,6 +1230,197 @@
         let selectedIndex = -1;
         let currentResults = [];
 
+        // Metaphone phonetic encoding algorithm
+        // Converts words to phonetic codes for fuzzy matching
+        function metaphone(word) {
+            if (!word) return '';
+            word = word.toUpperCase();
+            let result = '';
+            let i = 0;
+
+            // Skip initial silent letters
+            if (word.length >= 2) {
+                const start = word.substring(0, 2);
+                if (['KN', 'GN', 'PN', 'AE', 'WR'].includes(start)) {
+                    i = 1;
+                }
+            }
+
+            while (i < word.length && result.length < 6) {
+                const c = word[i];
+                const prev = i > 0 ? word[i - 1] : '';
+                const next = i < word.length - 1 ? word[i + 1] : '';
+                const next2 = i < word.length - 2 ? word[i + 2] : '';
+
+                // Skip duplicates except CC
+                if (c === prev && c !== 'C') {
+                    i++;
+                    continue;
+                }
+
+                switch (c) {
+                    case 'A': case 'E': case 'I': case 'O': case 'U':
+                        // Vowels only kept at start
+                        if (i === 0) result += c;
+                        break;
+
+                    case 'B':
+                        // B silent after M at end
+                        if (!(prev === 'M' && i === word.length - 1)) result += 'B';
+                        break;
+
+                    case 'C':
+                        if (next === 'I' && next2 === 'A') {
+                            result += 'X';  // CIA -> X
+                        } else if (['I', 'E', 'Y'].includes(next)) {
+                            result += 'S';  // Soft C
+                        } else if (next === 'H') {
+                            result += 'X';  // CH -> X
+                            i++;
+                        } else {
+                            result += 'K';  // Hard C
+                        }
+                        break;
+
+                    case 'D':
+                        if (next === 'G' && ['I', 'E', 'Y'].includes(next2)) {
+                            result += 'J';  // DGE, DGI, DGY -> J
+                            i++;
+                        } else {
+                            result += 'T';
+                        }
+                        break;
+
+                    case 'F':
+                        result += 'F';
+                        break;
+
+                    case 'G':
+                        if (next === 'H') {
+                            if (!['A', 'E', 'I', 'O', 'U'].includes(next2)) {
+                                i++;  // GH silent
+                            } else {
+                                result += 'K';
+                            }
+                        } else if (next === 'N' && (i === word.length - 2 || (next2 === 'E' && i === word.length - 3))) {
+                            // GN at end or GNE at end is silent
+                        } else if (['I', 'E', 'Y'].includes(next)) {
+                            result += 'J';  // Soft G
+                        } else {
+                            result += 'K';  // Hard G
+                        }
+                        break;
+
+                    case 'H':
+                        // H only if followed by vowel and not after vowel
+                        if (['A', 'E', 'I', 'O', 'U'].includes(next) && !['A', 'E', 'I', 'O', 'U'].includes(prev)) {
+                            result += 'H';
+                        }
+                        break;
+
+                    case 'J':
+                        result += 'J';
+                        break;
+
+                    case 'K':
+                        if (prev !== 'C') result += 'K';
+                        break;
+
+                    case 'L':
+                        result += 'L';
+                        break;
+
+                    case 'M':
+                        result += 'M';
+                        break;
+
+                    case 'N':
+                        result += 'N';
+                        break;
+
+                    case 'P':
+                        if (next === 'H') {
+                            result += 'F';
+                            i++;
+                        } else {
+                            result += 'P';
+                        }
+                        break;
+
+                    case 'Q':
+                        result += 'K';
+                        break;
+
+                    case 'R':
+                        result += 'R';
+                        break;
+
+                    case 'S':
+                        if (next === 'H') {
+                            result += 'X';
+                            i++;
+                        } else if (next === 'I' && ['O', 'A'].includes(next2)) {
+                            result += 'X';  // SIO, SIA -> X
+                        } else {
+                            result += 'S';
+                        }
+                        break;
+
+                    case 'T':
+                        if (next === 'I' && ['O', 'A'].includes(next2)) {
+                            result += 'X';  // TIO, TIA -> X
+                        } else if (next === 'H') {
+                            result += '0';  // TH -> 0 (theta)
+                            i++;
+                        } else if (next !== 'C' || next2 !== 'H') {
+                            result += 'T';
+                        }
+                        break;
+
+                    case 'V':
+                        result += 'F';
+                        break;
+
+                    case 'W':
+                        if (['A', 'E', 'I', 'O', 'U'].includes(next)) result += 'W';
+                        break;
+
+                    case 'X':
+                        result += 'KS';
+                        break;
+
+                    case 'Y':
+                        if (['A', 'E', 'I', 'O', 'U'].includes(next)) result += 'Y';
+                        break;
+
+                    case 'Z':
+                        result += 'S';
+                        break;
+                }
+                i++;
+            }
+            return result;
+        }
+
+        // Get phonetic codes for all words in a string
+        function getPhoneticCodes(text) {
+            if (!text) return [];
+            const words = text.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
+            return words.filter(w => w.length > 2).map(w => ({ word: w, code: metaphone(w) }));
+        }
+
+        // Check if query matches any word phonetically
+        function phoneticMatch(queryCodes, targetCodes) {
+            for (const qc of queryCodes) {
+                for (const tc of targetCodes) {
+                    if (qc.code && tc.code && qc.code === tc.code && qc.word !== tc.word) {
+                        return tc.word;  // Return the matched word for highlighting
+                    }
+                }
+            }
+            return null;
+        }
+
         // Build search index from PAGES
         function buildSearchIndex() {
             const index = [];
@@ -1248,13 +1452,19 @@
                     .trim()
                     .substring(0, 200);
 
+                // Compute phonetic codes for title and headings
+                const titleCodes = getPhoneticCodes(title);
+                const headingCodes = headings.flatMap(h => getPhoneticCodes(h));
+
                 index.push({
                     title: title,
                     pageId: page.id,
                     section: section,
                     headings: headings,
                     content: page.content.toLowerCase(),
-                    preview: preview
+                    preview: preview,
+                    titleCodes: titleCodes,
+                    headingCodes: headingCodes
                 });
             }
             return index;
@@ -1267,12 +1477,14 @@
             if (!query || query.length < 2) return [];
 
             const q = query.toLowerCase().trim();
+            const queryCodes = getPhoneticCodes(q);
             const results = [];
 
             for (const item of searchIndex) {
                 let score = 0;
                 let matchedHeading = null;
                 let matchContext = '';
+                let phoneticMatchWord = null;
 
                 // Check title (highest priority)
                 const titleLower = item.title.toLowerCase();
@@ -1309,6 +1521,32 @@
                     if (end < item.content.length) matchContext = matchContext + '...';
                 }
 
+                // Phonetic matching (finds similar-sounding words even with typos)
+                if (score === 0 && queryCodes.length > 0) {
+                    // Check title phonetically
+                    const titleMatch = phoneticMatch(queryCodes, item.titleCodes);
+                    if (titleMatch) {
+                        score = 35;  // Phonetic title match
+                        phoneticMatchWord = titleMatch;
+                    }
+
+                    // Check headings phonetically
+                    if (!titleMatch) {
+                        const headingMatch = phoneticMatch(queryCodes, item.headingCodes);
+                        if (headingMatch) {
+                            score = Math.max(score, 25);  // Phonetic heading match
+                            phoneticMatchWord = headingMatch;
+                            // Find the heading containing this match
+                            for (const heading of item.headings) {
+                                if (heading.toLowerCase().includes(headingMatch)) {
+                                    matchedHeading = heading;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (score > 0) {
                     results.push({
                         title: item.title,
@@ -1317,7 +1555,8 @@
                         score: score,
                         matchedHeading: matchedHeading,
                         preview: matchContext || item.preview,
-                        query: q
+                        query: q,
+                        phoneticMatch: phoneticMatchWord
                     });
                 }
             }
@@ -1343,13 +1582,20 @@
             }
 
             const html = results.map((result, index) => {
-                const titleHtml = highlightText(result.title, query);
-                const previewHtml = highlightText(result.preview, query);
+                // Highlight both query and phonetic match word
+                let titleHtml = highlightText(result.title, query);
+                let previewHtml = highlightText(result.preview, query);
+                if (result.phoneticMatch) {
+                    titleHtml = highlightText(titleHtml, result.phoneticMatch);
+                    previewHtml = highlightText(previewHtml, result.phoneticMatch);
+                }
                 const selectedClass = index === selectedIndex ? ' selected' : '';
+                const phoneticIndicator = result.phoneticMatch ?
+                    `<span class="search-phonetic-badge">sounds like "${result.phoneticMatch}"</span>` : '';
 
                 return `
                     <div class="search-result${selectedClass}" data-index="${index}" data-page="${result.pageId}">
-                        ${result.section ? `<div class="search-result-section">${result.section}</div>` : ''}
+                        ${result.section ? `<div class="search-result-section">${result.section}${phoneticIndicator}</div>` : phoneticIndicator}
                         <div class="search-result-title">${titleHtml}</div>
                         ${result.matchedHeading ? `<div class="search-result-preview">${highlightText(result.matchedHeading, query)}</div>` : ''}
                         <div class="search-result-preview">${previewHtml}</div>
