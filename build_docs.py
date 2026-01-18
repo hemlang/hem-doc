@@ -41,6 +41,7 @@ SUPPORTED_LANGUAGES = {
     'de': 'Deutsch',
     'es': 'Español',
     'fr': 'Français',
+    'it': 'Italiano',
     'ja': '日本語',
     'pt': 'Português',
 }
@@ -130,6 +131,20 @@ SECTION_TRANSLATIONS = {
         'hpm: Package Development': 'hpm : Développement de Paquets',
         'hpm: Reference': 'hpm : Référence',
         'hpm: Other': 'hpm : Autres',
+    },
+    'it': {
+        'Language Reference': 'Riferimento del Linguaggio',
+        'Getting Started': 'Primi Passi',
+        'Language Guide': 'Guida al Linguaggio',
+        'Advanced Topics': 'Argomenti Avanzati',
+        'API Reference': 'Riferimento API',
+        'Design & Philosophy': 'Design e Filosofia',
+        'Contributing': 'Contribuire',
+        'hpm: Getting Started': 'hpm: Primi Passi',
+        'hpm: User Guide': 'hpm: Guida Utente',
+        'hpm: Package Development': 'hpm: Sviluppo Pacchetti',
+        'hpm: Reference': 'hpm: Riferimento',
+        'hpm: Other': 'hpm: Altro',
     }
 }
 
@@ -470,6 +485,62 @@ TITLE_TRANSLATIONS = {
         'Versioning': 'Gestion des Versions',
         'Architecture': 'Architecture',
         'Exit Codes': 'Codes de Sortie',
+    },
+    'it': {
+        # Getting Started
+        'Installation': 'Installazione',
+        'Quick Start': 'Avvio Rapido',
+        'Tutorial': 'Tutorial',
+        'Learning Paths': 'Percorsi di Apprendimento',
+        # Language Guide
+        'Syntax': 'Sintassi',
+        'Types': 'Tipi',
+        'Functions': 'Funzioni',
+        'Arrays': 'Array',
+        'Strings': 'Stringhe',
+        'Objects': 'Oggetti',
+        'Control Flow': 'Flusso di Controllo',
+        'Error Handling': 'Gestione degli Errori',
+        'Modules': 'Moduli',
+        'Memory': 'Gestione della Memoria',
+        'Pattern Matching': 'Pattern Matching',
+        'Runes': 'Rune',
+        # Advanced
+        'Async Concurrency': 'Async e Concorrenza',
+        'Atomics': 'Operazioni Atomiche',
+        'Bundling Packaging': 'Impacchettamento e Distribuzione',
+        'Command Execution': 'Esecuzione di Comandi',
+        'Command Line Args': 'Argomenti da Riga di Comando',
+        'Ffi': 'FFI (Interfaccia Funzioni Esterne)',
+        'File Io': 'I/O su File',
+        'Profiling': 'Profilazione',
+        'Signals': 'Segnali',
+        # Reference
+        'Array API': 'API degli Array',
+        'String API': 'API delle Stringhe',
+        'File API': 'API dei File',
+        'Memory API': 'API della Memoria',
+        'Concurrency API': 'API di Concorrenza',
+        'Builtins': 'Funzioni Integrate',
+        'Operators': 'Operatori',
+        'Type System': 'Sistema di Tipi',
+        # Design
+        'Philosophy': 'Filosofia',
+        'Implementation': 'Implementazione',
+        'Signature Syntax': 'Sintassi delle Firme',
+        # Contributing
+        'Guidelines': 'Linee Guida',
+        'Testing': 'Test',
+        # hpm docs
+        'Commands': 'Comandi',
+        'Configuration': 'Configurazione',
+        'Project Setup': 'Configurazione del Progetto',
+        'Troubleshooting': 'Risoluzione dei Problemi',
+        'Creating Packages': 'Creazione di Pacchetti',
+        'Package Spec': 'Specifiche dei Pacchetti',
+        'Versioning': 'Versionamento',
+        'Architecture': 'Architettura',
+        'Exit Codes': 'Codici di Uscita',
     }
 }
 
@@ -483,6 +554,7 @@ WELCOME_TITLE_TRANSLATIONS = {
     'de': 'Willkommen',
     'es': 'Bienvenido',
     'fr': 'Bienvenue',
+    'it': 'Benvenuto',
     'ja': 'ようこそ',
     'pt': 'Bem-vindo',
 }
@@ -558,6 +630,16 @@ CLAUDE_MD_TRANSFORMATIONS = {
         (
             "Para documentação detalhada, consulte `docs/README.md` e o diretório `stdlib/docs/`.",
             "Explore as outras secoes de documentacao para guias detalhados e referencias de API."
+        ),
+    ],
+    'it': [
+        (
+            "Questo documento cattura i principi fondamentali di progettazione per gli assistenti AI che lavorano con Hemlock.",
+            "Questo documento fornisce una panoramica della filosofia di design di Hemlock e un riferimento rapido del linguaggio."
+        ),
+        (
+            "Per documentazione dettagliata, consultare `docs/README.md` e la directory `stdlib/docs/`.",
+            "Esplora le altre sezioni della documentazione per guide dettagliate e riferimenti API."
         ),
     ],
 }
