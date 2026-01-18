@@ -1,0 +1,154 @@
+name: Generator Parity Tests
+
+on:
+  # Run on PRs to ensure parity before merge
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'build_docs.py'
+      - 'build_docs.hml'
+      - 'test_generator_parity.py'
+      - '.github/workflows/parity-tests.yml'
+
+  # Run on pushes to main
+  push:
+    branches: [main, master]
+    paths:
+      - 'build_docs.py'
+      - 'build_docs.hml'
+      - 'test_generator_parity.py'
+      - '.github/workflows/parity-tests.yml'
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      language:
+        description: 'Language to test (en, zh, de, es, fr, ja, pt, or all)'
+        required: false
+        default: 'en'
+      verbose:
+        description: 'Enable verbose output'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  parity-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test English by default, can be overridden by workflow_dispatch
+        language: ${{ github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', inputs.language || 'en')) || fromJson('["en"]') }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Hemlock
+        run: |
+          # Download and install Hemlock from official releases
+          HEMLOCK_VERSION="1.0.0"
+          curl -fsSL "https://github.com/hemlang/hemlock/releases/download/v${HEMLOCK_VERSION}/hemlock-linux-x64.tar.gz" -o hemlock.tar.gz
+          tar -xzf hemlock.tar.gz
+          sudo mv hemlock /usr/local/bin/
+          sudo chmod +x /usr/local/bin/hemlock
+          hemlock --version
+
+      - name: Install hpm
+        run: |
+          # Download and install hpm package manager
+          HPM_VERSION="1.0.0"
+          curl -fsSL "https://github.com/hemlang/hpm/releases/download/v${HPM_VERSION}/hpm-linux-x64.tar.gz" -o hpm.tar.gz
+          tar -xzf hpm.tar.gz
+          sudo mv hpm /usr/local/bin/
+          sudo chmod +x /usr/local/bin/hpm
+          hpm --version
+
+      - name: Install dependencies
+        run: |
+          hpm install
+
+      - name: Run parity tests
+        run: |
+          VERBOSE_FLAG=""
+          if [ "${{ inputs.verbose }}" = "true" ]; then
+            VERBOSE_FLAG="--verbose"
+          fi
+          python test_generator_parity.py --lang ${{ matrix.language }} $VERBOSE_FLAG
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-test-outputs-${{ matrix.language }}
+          path: |
+            docs*.html
+            llms*.txt
+          retention-days: 7
+
+  # Run full language tests on schedule or manual trigger
+  full-parity-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.language == 'all'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Hemlock
+        run: |
+          HEMLOCK_VERSION="1.0.0"
+          curl -fsSL "https://github.com/hemlang/hemlock/releases/download/v${HEMLOCK_VERSION}/hemlock-linux-x64.tar.gz" -o hemlock.tar.gz
+          tar -xzf hemlock.tar.gz
+          sudo mv hemlock /usr/local/bin/
+          sudo chmod +x /usr/local/bin/hemlock
+          hemlock --version
+
+      - name: Install hpm
+        run: |
+          HPM_VERSION="1.0.0"
+          curl -fsSL "https://github.com/hemlang/hpm/releases/download/v${HPM_VERSION}/hpm-linux-x64.tar.gz" -o hpm.tar.gz
+          tar -xzf hpm.tar.gz
+          sudo mv hpm /usr/local/bin/
+          sudo chmod +x /usr/local/bin/hpm
+          hpm --version
+
+      - name: Install dependencies
+        run: |
+          hpm install
+
+      - name: Run full parity tests
+        run: |
+          VERBOSE_FLAG=""
+          if [ "${{ inputs.verbose }}" = "true" ]; then
+            VERBOSE_FLAG="--verbose"
+          fi
+          python test_generator_parity.py --lang all $VERBOSE_FLAG
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-test-outputs-all
+          path: |
+            docs*.html
+            llms*.txt
+          retention-days: 7
