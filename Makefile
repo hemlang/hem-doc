@@ -6,7 +6,7 @@ HPM ?= hpm
 PYTHON ?= python3
 VERSION := 1.0.5
 
-.PHONY: all deps docs docs-py server package dist clean help
+.PHONY: all deps docs docs-py server package dist clean help test test-parity
 
 all: docs
 
@@ -29,6 +29,23 @@ docs-py:
 	@$(PYTHON) build_docs.py
 	@echo "Done: docs.html ($(shell wc -c < docs.html | tr -d ' ') bytes)"
 	@echo "Done: llms.txt ($(shell wc -c < llms.txt | tr -d ' ') bytes)"
+
+# Run parity tests between Python and Hemlock generators
+test: test-parity
+
+test-parity:
+	@echo "Running generator parity tests..."
+	@$(PYTHON) test_generator_parity.py
+
+# Run parity tests for all languages
+test-parity-all:
+	@echo "Running generator parity tests for all languages..."
+	@$(PYTHON) test_generator_parity.py --lang all
+
+# Run parity tests with verbose output
+test-parity-verbose:
+	@echo "Running generator parity tests (verbose)..."
+	@$(PYTHON) test_generator_parity.py --verbose
 
 # Package the documentation server
 server: docs
@@ -59,14 +76,18 @@ help:
 	@echo "Hemlock Documentation $(VERSION)"
 	@echo ""
 	@echo "Usage:"
-	@echo "  make deps    - Install dependencies via hpm"
-	@echo "  make docs    - Generate docs.html and llms.txt using Hemlock"
-	@echo "  make docs-py - Generate docs.html and llms.txt using Python (fallback)"
-	@echo "  make server  - Package the documentation server executable"
-	@echo "  make dist    - Create distribution zip (server + docs + llms.txt)"
-	@echo "  make run     - Run the documentation server locally"
-	@echo "  make clean   - Remove build artifacts"
-	@echo "  make help    - Show this help message"
+	@echo "  make deps              - Install dependencies via hpm"
+	@echo "  make docs              - Generate docs.html and llms.txt using Hemlock"
+	@echo "  make docs-py           - Generate docs.html and llms.txt using Python (fallback)"
+	@echo "  make test              - Run generator parity tests (English only)"
+	@echo "  make test-parity       - Run generator parity tests (English only)"
+	@echo "  make test-parity-all   - Run generator parity tests for all languages"
+	@echo "  make test-parity-verbose - Run parity tests with verbose output"
+	@echo "  make server            - Package the documentation server executable"
+	@echo "  make dist              - Create distribution zip (server + docs + llms.txt)"
+	@echo "  make run               - Run the documentation server locally"
+	@echo "  make clean             - Remove build artifacts"
+	@echo "  make help              - Show this help message"
 	@echo ""
 	@echo "Output files:"
 	@echo "  docs.html    - Interactive HTML documentation"

@@ -1,0 +1,160 @@
+name: Generator Parity Tests
+
+on:
+  # Run on PRs to ensure parity before merge
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'build_docs.py'
+      - 'build_docs.hml'
+      - 'test_generator_parity.py'
+      - '.github/workflows/parity-tests.yml'
+
+  # Run on pushes to main
+  push:
+    branches: [main, master]
+    paths:
+      - 'build_docs.py'
+      - 'build_docs.hml'
+      - 'test_generator_parity.py'
+      - '.github/workflows/parity-tests.yml'
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      language:
+        description: 'Language to test (en, zh, de, es, fr, ja, pt, or all)'
+        required: false
+        default: 'en'
+      verbose:
+        description: 'Enable verbose output'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  parity-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test English by default, can be overridden by workflow_dispatch
+        language: ${{ github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', inputs.language || 'en')) || fromJson('["en"]') }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libev4
+
+      - name: Install Hemlock
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/hemlang/hemlock/main/install.sh | bash
+          echo "$HOME/.hemlock/bin" >> $GITHUB_PATH
+
+      - name: Install hpm
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/hemlang/hpm/main/install.sh | sh
+
+      - name: Verify installation
+        run: |
+          export PATH="$HOME/.hemlock/bin:$PATH"
+          hemlock --version
+          hpm --version
+
+      - name: Install dependencies
+        run: |
+          export PATH="$HOME/.hemlock/bin:$PATH"
+          hpm install
+
+      - name: Run parity tests
+        run: |
+          export PATH="$HOME/.hemlock/bin:$PATH"
+          VERBOSE_FLAG=""
+          if [ "${{ inputs.verbose }}" = "true" ]; then
+            VERBOSE_FLAG="--verbose"
+          fi
+          python test_generator_parity.py --lang ${{ matrix.language }} $VERBOSE_FLAG
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-test-outputs-${{ matrix.language }}
+          path: |
+            docs*.html
+            llms*.txt
+          retention-days: 7
+
+  # Run full language tests on schedule or manual trigger
+  full-parity-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.language == 'all'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libev4
+
+      - name: Install Hemlock
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/hemlang/hemlock/main/install.sh | bash
+          echo "$HOME/.hemlock/bin" >> $GITHUB_PATH
+
+      - name: Install hpm
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/hemlang/hpm/main/install.sh | sh
+
+      - name: Verify installation
+        run: |
+          export PATH="$HOME/.hemlock/bin:$PATH"
+          hemlock --version
+          hpm --version
+
+      - name: Install dependencies
+        run: |
+          export PATH="$HOME/.hemlock/bin:$PATH"
+          hpm install
+
+      - name: Run full parity tests
+        run: |
+          export PATH="$HOME/.hemlock/bin:$PATH"
+          VERBOSE_FLAG=""
+          if [ "${{ inputs.verbose }}" = "true" ]; then
+            VERBOSE_FLAG="--verbose"
+          fi
+          python test_generator_parity.py --lang all $VERBOSE_FLAG
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-test-outputs-all
+          path: |
+            docs*.html
+            llms*.txt
+          retention-days: 7
