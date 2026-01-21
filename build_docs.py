@@ -1123,6 +1123,12 @@ def generate_html(docs, logo_data, lang='en'):
             margin-right: auto;
         }}
 
+        @media (max-width: 768px) {{
+            .header h1 {{
+                display: none;
+            }}
+        }}
+
         /* Layout */
         .container {{
             display: flex;
@@ -1195,27 +1201,21 @@ def generate_html(docs, logo_data, lang='en'):
 
         /* Mobile Menu Toggle */
         .menu-toggle {{
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 56px;
-            height: 56px;
-            background: var(--pine);
-            color: white;
+            display: none;
+            background: transparent;
             border: none;
-            border-radius: 50%;
+            color: white;
             font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 0.5rem;
+            margin-right: 0.5rem;
         }}
 
-        @media (min-width: 1024px) {{
+        @media (max-width: 1023px) {{
             .menu-toggle {{
-                display: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }}
         }}
 
@@ -1723,6 +1723,7 @@ def generate_html(docs, logo_data, lang='en'):
 <body>
     <!-- Header -->
     <div class="header">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu" aria-expanded="false">&#9776;</button>
         <img src="{logo_data}" alt="Hemlock Logo" class="header-logo">
         <h1>{page_title}</h1>
         <!-- Search -->
@@ -1761,9 +1762,6 @@ def generate_html(docs, logo_data, lang='en'):
             </svg>
         </button>
     </div>
-
-    <!-- Mobile Menu Toggle -->
-    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu" aria-expanded="false">&#9776;</button>
 
     <!-- Container -->
     <div class="container">
