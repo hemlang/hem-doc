@@ -1188,7 +1188,7 @@ def generate_html(docs, logo_data, lang='en'):
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            padding: 0 2rem;
+            padding: 0 1rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
         }}
@@ -1726,15 +1726,14 @@ def generate_html(docs, logo_data, lang='en'):
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            margin-left: 0.5rem;
         }}
 
         .theme-toggle:hover {{
@@ -1774,11 +1773,10 @@ def generate_html(docs, logo_data, lang='en'):
 
         /* Language Switcher */
         .lang-switcher {{
-            margin-left: 0.5rem;
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            padding: 0.4rem 0.8rem;
+            padding: 0.4rem 0.4rem;
             border-radius: 8px;
             font-size: 0.85rem;
             cursor: pointer;
