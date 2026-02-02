@@ -1517,7 +1517,7 @@ def generate_html(docs, logo_data, lang='en'):
         }}
 
         /* Mobile adjustments */
-        @media (max-width: 768px) {{
+        @media (max-width: 1023px) {{
             .main-content {{
                 padding: 2rem 1rem;
             }}
@@ -1661,13 +1661,13 @@ def generate_html(docs, logo_data, lang='en'):
             color: rgba(255, 255, 255, 0.8);
         }}
 
-        @media (min-width: 768px) {{
+        @media (min-width: 1024px) {{
             .search-shortcut {{
                 display: inline-block;
             }}
         }}
 
-        @media (max-width: 768px) {{
+        @media (max-width: 1023px) {{
             .search-container {{
                 position: fixed;
                 top: 70px;
@@ -1715,7 +1715,7 @@ def generate_html(docs, logo_data, lang='en'):
             }}
         }}
 
-        @media (min-width: 769px) {{
+        @media (min-width: 1024px) {{
             .search-toggle {{
                 display: none;
             }}
