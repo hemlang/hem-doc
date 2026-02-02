@@ -52,8 +52,18 @@ make dist
 
 3. Build the documentation:
    ```bash
+   # Build English only (default)
    python3 build_docs.py
+
+   # Build a specific language
+   python3 build_docs.py --lang zh    # Chinese
+   python3 build_docs.py --lang ru    # Russian
+
+   # Build all 9 languages
+   python3 build_docs.py --lang all
    ```
+
+   Supported languages: `en`, `zh`, `de`, `es`, `fr`, `it`, `ja`, `pt`, `ru`
 
 4. Open `docs.html` in your browser, or run the server:
    ```bash
@@ -139,7 +149,10 @@ hem-doc/
 │   └── logo.png           # Logo embedded in docs
 ├── hpm/                   # Git submodule (hpm source)
 │   └── docs/              # hpm documentation
-├── docs.html              # Generated output
+├── docs.html              # Generated output (English)
+├── docs-*.html            # Generated output (other languages)
+├── llms.txt               # LLM-friendly plain text (English)
+├── llms-*.txt             # LLM-friendly plain text (other languages)
 └── .github/workflows/
     ├── build-docs.yml     # Builds and deploys to GitHub Pages
     └── sync-submodule.yml # Daily sync of submodules
@@ -150,7 +163,8 @@ hem-doc/
 | Target | Description |
 |--------|-------------|
 | `make deps` | Install dependencies via hpm |
-| `make docs` | Generate docs.html from hemlock source |
+| `make docs` | Generate docs.html (English) from hemlock source |
+| `make docs-all` | Generate docs for all 9 languages |
 | `make server` | Package the documentation server executable |
 | `make dist` | Create distribution zip (server + docs.html) |
 | `make run` | Run the documentation server locally |

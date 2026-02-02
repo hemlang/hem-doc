@@ -35,8 +35,11 @@ let SUPPORTED_LANGUAGES = {
     zh: "中文",
     de: "Deutsch",
     es: "Español",
+    fr: "Français",
+    it: "Italiano",
     ja: "日本語",
-    pt: "Português"
+    pt: "Português",
+    ru: "Русский"
 };
 
 // Section name translations
@@ -110,6 +113,48 @@ let SECTION_TRANSLATIONS = {
         "hpm: Package Development": "hpm: Desenvolvimento de Pacotes",
         "hpm: Reference": "hpm: Referência",
         "hpm: Other": "hpm: Outros"
+    },
+    fr: {
+        "Language Reference": "Référence du Langage",
+        "Getting Started": "Prise en Main",
+        "Language Guide": "Guide du Langage",
+        "Advanced Topics": "Sujets Avancés",
+        "API Reference": "Référence API",
+        "Design & Philosophy": "Conception et Philosophie",
+        "Contributing": "Contribuer",
+        "hpm: Getting Started": "hpm : Prise en Main",
+        "hpm: User Guide": "hpm : Guide Utilisateur",
+        "hpm: Package Development": "hpm : Développement de Paquets",
+        "hpm: Reference": "hpm : Référence",
+        "hpm: Other": "hpm : Autres"
+    },
+    it: {
+        "Language Reference": "Riferimento del Linguaggio",
+        "Getting Started": "Primi Passi",
+        "Language Guide": "Guida al Linguaggio",
+        "Advanced Topics": "Argomenti Avanzati",
+        "API Reference": "Riferimento API",
+        "Design & Philosophy": "Design e Filosofia",
+        "Contributing": "Contribuire",
+        "hpm: Getting Started": "hpm: Primi Passi",
+        "hpm: User Guide": "hpm: Guida Utente",
+        "hpm: Package Development": "hpm: Sviluppo Pacchetti",
+        "hpm: Reference": "hpm: Riferimento",
+        "hpm: Other": "hpm: Altro"
+    },
+    ru: {
+        "Language Reference": "Справочник языка",
+        "Getting Started": "Начало работы",
+        "Language Guide": "Руководство по языку",
+        "Advanced Topics": "Продвинутые темы",
+        "API Reference": "Справочник API",
+        "Design & Philosophy": "Дизайн и философия",
+        "Contributing": "Участие в разработке",
+        "hpm: Getting Started": "hpm: Начало работы",
+        "hpm: User Guide": "hpm: Руководство пользователя",
+        "hpm: Package Development": "hpm: Разработка пакетов",
+        "hpm: Reference": "hpm: Справочник",
+        "hpm: Other": "hpm: Прочее"
     }
 };
 
@@ -359,6 +404,153 @@ let TITLE_TRANSLATIONS = {
         "Versioning": "Versionamento",
         "Architecture": "Arquitetura",
         "Exit Codes": "Códigos de Saída"
+    },
+    fr: {
+        "Installation": "Installation",
+        "Quick Start": "Démarrage Rapide",
+        "Tutorial": "Tutoriel",
+        "Learning Paths": "Parcours d'Apprentissage",
+        "Syntax": "Syntaxe",
+        "Types": "Types",
+        "Functions": "Fonctions",
+        "Arrays": "Tableaux",
+        "Strings": "Chaînes de Caractères",
+        "Objects": "Objets",
+        "Control Flow": "Flux de Contrôle",
+        "Error Handling": "Gestion des Erreurs",
+        "Modules": "Modules",
+        "Memory": "Gestion de la Mémoire",
+        "Pattern Matching": "Filtrage par Motif",
+        "Runes": "Runes",
+        "Async Concurrency": "Asynchronisme et Concurrence",
+        "Atomics": "Opérations Atomiques",
+        "Bundling Packaging": "Empaquetage et Distribution",
+        "Command Execution": "Exécution de Commandes",
+        "Command Line Args": "Arguments en Ligne de Commande",
+        "FFI": "FFI (Interface de Fonctions Étrangères)",
+        "File IO": "E/S de Fichiers",
+        "Profiling": "Profilage",
+        "Signals": "Signaux",
+        "Array API": "API des Tableaux",
+        "String API": "API des Chaînes",
+        "File API": "API des Fichiers",
+        "Memory API": "API Mémoire",
+        "Concurrency API": "API de Concurrence",
+        "Builtins": "Fonctions Intégrées",
+        "Operators": "Opérateurs",
+        "Type System": "Système de Types",
+        "Philosophy": "Philosophie",
+        "Implementation": "Implémentation",
+        "Signature Syntax": "Syntaxe des Signatures",
+        "Guidelines": "Directives",
+        "Testing": "Tests",
+        "Commands": "Commandes",
+        "Configuration": "Configuration",
+        "Project Setup": "Configuration du Projet",
+        "Troubleshooting": "Dépannage",
+        "Creating Packages": "Création de Paquets",
+        "Package Spec": "Spécification des Paquets",
+        "Versioning": "Gestion des Versions",
+        "Architecture": "Architecture",
+        "Exit Codes": "Codes de Sortie"
+    },
+    it: {
+        "Installation": "Installazione",
+        "Quick Start": "Avvio Rapido",
+        "Tutorial": "Tutorial",
+        "Learning Paths": "Percorsi di Apprendimento",
+        "Syntax": "Sintassi",
+        "Types": "Tipi",
+        "Functions": "Funzioni",
+        "Arrays": "Array",
+        "Strings": "Stringhe",
+        "Objects": "Oggetti",
+        "Control Flow": "Flusso di Controllo",
+        "Error Handling": "Gestione degli Errori",
+        "Modules": "Moduli",
+        "Memory": "Gestione della Memoria",
+        "Pattern Matching": "Pattern Matching",
+        "Runes": "Rune",
+        "Async Concurrency": "Async e Concorrenza",
+        "Atomics": "Operazioni Atomiche",
+        "Bundling Packaging": "Impacchettamento e Distribuzione",
+        "Command Execution": "Esecuzione di Comandi",
+        "Command Line Args": "Argomenti da Riga di Comando",
+        "FFI": "FFI (Interfaccia Funzioni Esterne)",
+        "File IO": "I/O su File",
+        "Profiling": "Profilazione",
+        "Signals": "Segnali",
+        "Array API": "API degli Array",
+        "String API": "API delle Stringhe",
+        "File API": "API dei File",
+        "Memory API": "API della Memoria",
+        "Concurrency API": "API di Concorrenza",
+        "Builtins": "Funzioni Integrate",
+        "Operators": "Operatori",
+        "Type System": "Sistema di Tipi",
+        "Philosophy": "Filosofia",
+        "Implementation": "Implementazione",
+        "Signature Syntax": "Sintassi delle Firme",
+        "Guidelines": "Linee Guida",
+        "Testing": "Test",
+        "Commands": "Comandi",
+        "Configuration": "Configurazione",
+        "Project Setup": "Configurazione del Progetto",
+        "Troubleshooting": "Risoluzione dei Problemi",
+        "Creating Packages": "Creazione di Pacchetti",
+        "Package Spec": "Specifiche dei Pacchetti",
+        "Versioning": "Versionamento",
+        "Architecture": "Architettura",
+        "Exit Codes": "Codici di Uscita"
+    },
+    ru: {
+        "Installation": "Установка",
+        "Quick Start": "Быстрый старт",
+        "Tutorial": "Учебник",
+        "Learning Paths": "Пути обучения",
+        "Syntax": "Синтаксис",
+        "Types": "Типы",
+        "Functions": "Функции",
+        "Arrays": "Массивы",
+        "Strings": "Строки",
+        "Objects": "Объекты",
+        "Control Flow": "Управление потоком",
+        "Error Handling": "Обработка ошибок",
+        "Modules": "Модули",
+        "Memory": "Управление памятью",
+        "Pattern Matching": "Сопоставление с образцом",
+        "Runes": "Руны",
+        "Async Concurrency": "Асинхронность и параллелизм",
+        "Atomics": "Атомарные операции",
+        "Bundling Packaging": "Сборка и упаковка",
+        "Command Execution": "Выполнение команд",
+        "Command Line Args": "Аргументы командной строки",
+        "FFI": "FFI (интерфейс внешних функций)",
+        "File IO": "Файловый ввод/вывод",
+        "Profiling": "Профилирование",
+        "Signals": "Сигналы",
+        "Array API": "API массивов",
+        "String API": "API строк",
+        "File API": "API файлов",
+        "Memory API": "API памяти",
+        "Concurrency API": "API параллелизма",
+        "Builtins": "Встроенные функции",
+        "Operators": "Операторы",
+        "Type System": "Система типов",
+        "Philosophy": "Философия",
+        "Implementation": "Реализация",
+        "Signature Syntax": "Синтаксис сигнатур",
+        "Guidelines": "Руководство",
+        "Testing": "Тестирование",
+        "Commands": "Команды",
+        "Configuration": "Конфигурация",
+        "Project Setup": "Настройка проекта",
+        "Troubleshooting": "Устранение неполадок",
+        "Creating Packages": "Создание пакетов",
+        "Package Spec": "Спецификация пакетов",
+        "Versioning": "Версионирование",
+        "Architecture": "Архитектура",
+        "Exit Codes": "Коды выхода"
     }
 };
 
@@ -368,8 +560,11 @@ let PAGE_TITLES = {
     zh: "Hemlock 语言手册",
     de: "Hemlock-Sprachhandbuch",
     es: "Manual del Lenguaje Hemlock",
+    fr: "Manuel du Langage Hemlock",
+    it: "Manuale del Linguaggio Hemlock",
     ja: "Hemlock言語マニュアル",
-    pt: "Manual da Linguagem Hemlock"
+    pt: "Manual da Linguagem Hemlock",
+    ru: "Руководство по языку Hemlock"
 };
 
 // Welcome page title translations
@@ -378,8 +573,11 @@ let WELCOME_TITLE_TRANSLATIONS = {
     zh: "欢迎",
     de: "Willkommen",
     es: "Bienvenido",
+    fr: "Bienvenue",
+    it: "Benvenuto",
     ja: "ようこそ",
-    pt: "Bem-vindo"
+    pt: "Bem-vindo",
+    ru: "Добро пожаловать"
 };
 
 // Transformations to convert AI-directed CLAUDE.md content to human-readable documentation
@@ -412,6 +610,14 @@ let CLAUDE_MD_TRANSFORMATIONS = {
     pt: [
         ["Este documento registra os princípios de design centrais que assistentes de IA precisam conhecer ao trabalhar com Hemlock.", "Este documento fornece uma visao geral da filosofia de design do Hemlock e uma referencia rapida da linguagem."],
         ["Para documentação detalhada, consulte `docs/README.md` e o diretório `stdlib/docs/`.", "Explore as outras secoes de documentacao para guias detalhados e referencias de API."]
+    ],
+    it: [
+        ["Questo documento cattura i principi fondamentali di progettazione per gli assistenti AI che lavorano con Hemlock.", "Questo documento fornisce una panoramica della filosofia di design di Hemlock e un riferimento rapido del linguaggio."],
+        ["Per documentazione dettagliata, consultare `docs/README.md` e la directory `stdlib/docs/`.", "Esplora le altre sezioni della documentazione per guide dettagliate e riferimenti API."]
+    ],
+    ru: [
+        ["Этот документ содержит основные принципы проектирования для ИИ-ассистентов, работающих с Hemlock.", "Этот документ содержит обзор философии дизайна Hemlock и краткий справочник по языку."],
+        ["Подробную документацию см. в `docs/README.md` и каталоге `stdlib/docs/`.", "Изучите другие разделы документации для получения подробных руководств и справочников API."]
     ]
 };
 
@@ -1004,7 +1210,7 @@ fn generate_pages_json(docs: object, sorted_keys: array): string {
 // Generate language switcher options HTML
 fn generate_lang_options(current_lang: string): string {
     let options = [];
-    let langs = ["en", "zh", "de", "es", "ja", "pt"];
+    let langs = ["en", "zh", "de", "es", "fr", "it", "ja", "pt", "ru"];
 
     let i = 0;
     while (i < langs.length) {
@@ -1110,7 +1316,7 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            padding: 0 2rem;
+            padding: 0 1rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
         }
@@ -1436,7 +1642,7 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
         }
 
         /* Mobile adjustments */
-        @media (max-width: 768px) {
+        @media (max-width: 1023px) {
             .main-content {
                 padding: 2rem 1rem;
             }
@@ -1580,13 +1786,13 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
             color: rgba(255, 255, 255, 0.8);
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 1024px) {
             .search-shortcut {
                 display: inline-block;
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 1023px) {
             .search-container {
                 position: fixed;
                 top: 70px;
@@ -1634,7 +1840,7 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
             }
         }
 
-        @media (min-width: 769px) {
+        @media (min-width: 1024px) {
             .search-toggle {
                 display: none;
             }
@@ -1645,15 +1851,15 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
-            margin-left: 0.5rem;
+            margin-left: 4px;
         }
 
         .theme-toggle:hover {
@@ -1693,11 +1899,10 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
 
         /* Language Switcher */
         .lang-switcher {
-            margin-left: 0.5rem;
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            padding: 0.4rem 0.8rem;
+            padding: 0.4rem 0.4rem;
             border-radius: 8px;
             font-size: 0.85rem;
             cursor: pointer;
@@ -2684,12 +2889,12 @@ fn main() {
     // Determine which languages to build
     let languages = [];
     if (lang == "all") {
-        languages = ["en", "zh", "de", "es", "ja", "pt"];
+        languages = ["en", "zh", "de", "es", "fr", "it", "ja", "pt", "ru"];
     } else if (SUPPORTED_LANGUAGES[lang] != null) {
         languages = [lang];
     } else {
         print("Error: Unknown language '" + lang + "'");
-        print("Supported languages: en, zh, de, es, ja, pt");
+        print("Supported languages: en, zh, de, es, fr, it, ja, pt, ru");
         exit(1);
     }
 
@@ -2714,7 +2919,7 @@ fn main() {
     // Generate LLM-friendly documentation for all languages
     if (success_count > 0) {
         print("\nGenerating LLM-friendly documentation...");
-        let langs_built = ["en", "zh", "de", "es", "ja", "pt"];
+        let langs_built = ["en", "zh", "de", "es", "fr", "it", "ja", "pt", "ru"];
         let j = 0;
         while (j < langs_built.length) {
             let llm_lang = langs_built[j];

@@ -1734,6 +1734,7 @@ def generate_html(docs, logo_data, lang='en'):
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
+            margin-left: 4px;
         }}
 
         .theme-toggle:hover {{
