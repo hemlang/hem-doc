@@ -5,7 +5,7 @@ import { App } from "hemlang/sprout";
 import { read_file } from "@stdlib/fs";
 
 // Supported languages for documentation
-let supported_langs = ["en", "de", "es", "fr", "it", "ja", "pt", "zh"];
+let supported_langs = ["en", "de", "es", "fr", "it", "ja", "pt", "ru", "zh"];
 
 // Read the docs HTML at startup
 let docs_html = read_file("docs.html");
@@ -51,6 +51,11 @@ if (docs_it == null) {
     print("Warning: docs-it.html not found, Italian docs will fall back to English");
 }
 
+let docs_ru = read_file("docs-ru.html");
+if (docs_ru == null) {
+    print("Warning: docs-ru.html not found, Russian docs will fall back to English");
+}
+
 // Read the LLM-friendly documentation at startup
 let llms_txt = read_file("llms.txt");
 if (llms_txt == null) {
@@ -91,6 +96,11 @@ if (llms_pt == null) {
 let llms_it = read_file("llms-it.txt");
 if (llms_it == null) {
     print("Warning: llms-it.txt not found, Italian LLM docs will fall back to English");
+}
+
+let llms_ru = read_file("llms-ru.txt");
+if (llms_ru == null) {
+    print("Warning: llms-ru.txt not found, Russian LLM docs will fall back to English");
 }
 
 let app = App(null);
@@ -162,6 +172,15 @@ app.get("/docs-pt.html", fn(req, res, next) {
 app.get("/docs-it.html", fn(req, res, next) {
     if (docs_it != null) {
         res.type("html").send(docs_it);
+    } else {
+        res.type("html").send(docs_html);
+    }
+});
+
+// Serve Russian documentation
+app.get("/docs-ru.html", fn(req, res, next) {
+    if (docs_ru != null) {
+        res.type("html").send(docs_ru);
     } else {
         res.type("html").send(docs_html);
     }
@@ -253,6 +272,17 @@ app.get("/llms-it.txt", fn(req, res, next) {
     }
 });
 
+// Serve Russian LLM documentation
+app.get("/llms-ru.txt", fn(req, res, next) {
+    if (llms_ru != null) {
+        res.type("text").send(llms_ru);
+    } else if (llms_txt != null) {
+        res.type("text").send(llms_txt);
+    } else {
+        res.status(404).type("text").send("llms-ru.txt not found. Run 'make docs' to generate it.");
+    }
+});
+
 // Health check endpoint
 app.get("/health", fn(req, res, next) {
     res.json({
@@ -264,6 +294,7 @@ app.get("/health", fn(req, res, next) {
         docs_it_size: docs_it != null ? docs_it.length : 0,
         docs_ja_size: docs_ja != null ? docs_ja.length : 0,
         docs_pt_size: docs_pt != null ? docs_pt.length : 0,
+        docs_ru_size: docs_ru != null ? docs_ru.length : 0,
         docs_zh_size: docs_zh != null ? docs_zh.length : 0,
         llms_size: llms_txt != null ? llms_txt.length : 0,
         llms_de_size: llms_de != null ? llms_de.length : 0,
@@ -272,6 +303,7 @@ app.get("/health", fn(req, res, next) {
         llms_it_size: llms_it != null ? llms_it.length : 0,
         llms_ja_size: llms_ja != null ? llms_ja.length : 0,
         llms_pt_size: llms_pt != null ? llms_pt.length : 0,
+        llms_ru_size: llms_ru != null ? llms_ru.length : 0,
         llms_zh_size: llms_zh != null ? llms_zh.length : 0
     });
 });
@@ -289,6 +321,7 @@ app.listen(port, fn() {
     print("  Italian:    http://localhost:" + port + "/docs-it.html");
     print("  Japanese:   http://localhost:" + port + "/docs-ja.html");
     print("  Portuguese: http://localhost:" + port + "/docs-pt.html");
+    print("  Russian:    http://localhost:" + port + "/docs-ru.html");
     print("  Chinese:    http://localhost:" + port + "/docs-zh.html");
     print("LLM docs:");
     print("  English:    http://localhost:" + port + "/llms.txt");
@@ -298,5 +331,6 @@ app.listen(port, fn() {
     print("  Italian:    http://localhost:" + port + "/llms-it.txt");
     print("  Japanese:   http://localhost:" + port + "/llms-ja.txt");
     print("  Portuguese: http://localhost:" + port + "/llms-pt.txt");
+    print("  Russian:    http://localhost:" + port + "/llms-ru.txt");
     print("  Chinese:    http://localhost:" + port + "/llms-zh.txt");
 });
