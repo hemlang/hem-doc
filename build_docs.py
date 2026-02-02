@@ -1205,7 +1205,10 @@ def generate_html(docs, logo_data, lang='en'):
             margin-right: auto;
         }}
 
-        @media (max-width: 768px) {{
+        @media (max-width: 1023px) {{
+            .header {{
+                justify-content: flex-start;
+            }}
             .header h1 {{
                 display: none;
             }}
