@@ -6,7 +6,7 @@ HPM ?= hpm
 PYTHON ?= python3
 VERSION := 1.0.5
 
-.PHONY: all deps docs docs-py server package dist clean help
+.PHONY: all deps docs docs-all docs-py docs-py-all server package dist clean help
 
 all: docs
 
@@ -23,12 +23,24 @@ docs:
 	@echo "Done: docs.html ($(shell wc -c < docs.html | tr -d ' ') bytes)"
 	@echo "Done: llms.txt ($(shell wc -c < llms.txt | tr -d ' ') bytes)"
 
+# Generate documentation for all 9 languages using Hemlock
+docs-all:
+	@echo "Generating docs for all languages..."
+	@$(HEMLOCK) build_docs.hml --lang all
+	@echo "Done"
+
 # Generate documentation HTML and LLM-friendly text using Python (fallback)
 docs-py:
 	@echo "Generating docs.html and llms.txt (Python fallback)..."
 	@$(PYTHON) build_docs.py
 	@echo "Done: docs.html ($(shell wc -c < docs.html | tr -d ' ') bytes)"
 	@echo "Done: llms.txt ($(shell wc -c < llms.txt | tr -d ' ') bytes)"
+
+# Generate documentation for all 9 languages using Python (fallback)
+docs-py-all:
+	@echo "Generating docs for all languages (Python fallback)..."
+	@$(PYTHON) build_docs.py --lang all
+	@echo "Done"
 
 # Package the documentation server
 server: docs
@@ -60,8 +72,10 @@ help:
 	@echo ""
 	@echo "Usage:"
 	@echo "  make deps    - Install dependencies via hpm"
-	@echo "  make docs    - Generate docs.html and llms.txt using Hemlock"
-	@echo "  make docs-py - Generate docs.html and llms.txt using Python (fallback)"
+	@echo "  make docs        - Generate docs.html and llms.txt using Hemlock"
+	@echo "  make docs-all    - Generate docs for all 9 languages using Hemlock"
+	@echo "  make docs-py     - Generate docs.html and llms.txt using Python (fallback)"
+	@echo "  make docs-py-all - Generate docs for all 9 languages using Python"
 	@echo "  make server  - Package the documentation server executable"
 	@echo "  make dist    - Create distribution zip (server + docs + llms.txt)"
 	@echo "  make run     - Run the documentation server locally"
