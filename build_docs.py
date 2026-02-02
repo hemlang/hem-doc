@@ -44,6 +44,7 @@ SUPPORTED_LANGUAGES = {
     'it': 'Italiano',
     'ja': '日本語',
     'pt': 'Português',
+    'ru': 'Русский',
 }
 
 # Section name translations
@@ -145,6 +146,20 @@ SECTION_TRANSLATIONS = {
         'hpm: Package Development': 'hpm: Sviluppo Pacchetti',
         'hpm: Reference': 'hpm: Riferimento',
         'hpm: Other': 'hpm: Altro',
+    },
+    'ru': {
+        'Language Reference': 'Справочник языка',
+        'Getting Started': 'Начало работы',
+        'Language Guide': 'Руководство по языку',
+        'Advanced Topics': 'Продвинутые темы',
+        'API Reference': 'Справочник API',
+        'Design & Philosophy': 'Дизайн и философия',
+        'Contributing': 'Участие в разработке',
+        'hpm: Getting Started': 'hpm: Начало работы',
+        'hpm: User Guide': 'hpm: Руководство пользователя',
+        'hpm: Package Development': 'hpm: Разработка пакетов',
+        'hpm: Reference': 'hpm: Справочник',
+        'hpm: Other': 'hpm: Прочее',
     }
 }
 
@@ -541,6 +556,62 @@ TITLE_TRANSLATIONS = {
         'Versioning': 'Versionamento',
         'Architecture': 'Architettura',
         'Exit Codes': 'Codici di Uscita',
+    },
+    'ru': {
+        # Getting Started
+        'Installation': 'Установка',
+        'Quick Start': 'Быстрый старт',
+        'Tutorial': 'Учебник',
+        'Learning Paths': 'Пути обучения',
+        # Language Guide
+        'Syntax': 'Синтаксис',
+        'Types': 'Типы',
+        'Functions': 'Функции',
+        'Arrays': 'Массивы',
+        'Strings': 'Строки',
+        'Objects': 'Объекты',
+        'Control Flow': 'Управление потоком',
+        'Error Handling': 'Обработка ошибок',
+        'Modules': 'Модули',
+        'Memory': 'Управление памятью',
+        'Pattern Matching': 'Сопоставление с образцом',
+        'Runes': 'Руны',
+        # Advanced
+        'Async Concurrency': 'Асинхронность и параллелизм',
+        'Atomics': 'Атомарные операции',
+        'Bundling Packaging': 'Сборка и упаковка',
+        'Command Execution': 'Выполнение команд',
+        'Command Line Args': 'Аргументы командной строки',
+        'Ffi': 'FFI (интерфейс внешних функций)',
+        'File Io': 'Файловый ввод/вывод',
+        'Profiling': 'Профилирование',
+        'Signals': 'Сигналы',
+        # Reference
+        'Array API': 'API массивов',
+        'String API': 'API строк',
+        'File API': 'API файлов',
+        'Memory API': 'API памяти',
+        'Concurrency API': 'API параллелизма',
+        'Builtins': 'Встроенные функции',
+        'Operators': 'Операторы',
+        'Type System': 'Система типов',
+        # Design
+        'Philosophy': 'Философия',
+        'Implementation': 'Реализация',
+        'Signature Syntax': 'Синтаксис сигнатур',
+        # Contributing
+        'Guidelines': 'Руководство',
+        'Testing': 'Тестирование',
+        # hpm docs
+        'Commands': 'Команды',
+        'Configuration': 'Конфигурация',
+        'Project Setup': 'Настройка проекта',
+        'Troubleshooting': 'Устранение неполадок',
+        'Creating Packages': 'Создание пакетов',
+        'Package Spec': 'Спецификация пакетов',
+        'Versioning': 'Версионирование',
+        'Architecture': 'Архитектура',
+        'Exit Codes': 'Коды выхода',
     }
 }
 
@@ -557,6 +628,7 @@ WELCOME_TITLE_TRANSLATIONS = {
     'it': 'Benvenuto',
     'ja': 'ようこそ',
     'pt': 'Bem-vindo',
+    'ru': 'Добро пожаловать',
 }
 
 # Transformations to convert AI-directed CLAUDE.md content to human-readable documentation
@@ -640,6 +712,16 @@ CLAUDE_MD_TRANSFORMATIONS = {
         (
             "Per documentazione dettagliata, consultare `docs/README.md` e la directory `stdlib/docs/`.",
             "Esplora le altre sezioni della documentazione per guide dettagliate e riferimenti API."
+        ),
+    ],
+    'ru': [
+        (
+            "Этот документ содержит основные принципы проектирования для ИИ-ассистентов, работающих с Hemlock.",
+            "Этот документ содержит обзор философии дизайна Hemlock и краткий справочник по языку."
+        ),
+        (
+            "Подробную документацию см. в `docs/README.md` и каталоге `stdlib/docs/`.",
+            "Изучите другие разделы документации для получения подробных руководств и справочников API."
         ),
     ],
 }
