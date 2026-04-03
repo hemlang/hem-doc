@@ -76,13 +76,13 @@ try {
 ```
 
 **Verhalten:**
-- Fuehrt Anweisungen der Reihe nach aus
+- Führt Anweisungen der Reihe nach aus
 - Wenn Ausnahme geworfen: springt zu `catch` oder `finally`
 - Wenn keine Ausnahme: führt `finally` aus (falls vorhanden), dann weiter
 
 ### Catch-Block
 
-Der catch-Block empfaengt den geworfenen Wert:
+Der catch-Block empfängt den geworfenen Wert:
 
 ```hemlock
 try {
@@ -95,7 +95,7 @@ try {
 ```
 
 **Catch-Parameter:**
-- Empfaengt den geworfenen Wert (beliebiger Typ)
+- Empfängt den geworfenen Wert (beliebiger Typ)
 - Auf den catch-Block beschränkt
 - Kann beliebig benannt werden (konventionell `e`, `err` oder `error`)
 
@@ -270,14 +270,14 @@ fn foo() {
     throw "nicht gefangen!";
 }
 
-foo();  // Stuerzt ab mit: Laufzeitfehler: nicht gefangen!
+foo();  // Stürzt ab mit: Laufzeitfehler: nicht gefangen!
 ```
 
 **Verhalten:**
-- Programm stuerzt ab
+- Programm stürzt ab
 - Gibt Fehlermeldung auf stderr aus
 - Beendet mit nicht-null Statuscode
-- Stack-Trace wird in zukuenftigen Versionen hinzugefügt
+- Stack-Trace wird in zukünftigen Versionen hinzugefügt
 
 ## Panic - Nicht behebbare Fehler
 
@@ -319,7 +319,7 @@ try {
 
 **Panic verwenden für:**
 - **Bugs**: Unerreichbarer Code wurde erreicht
-- **Ungueltiger Zustand**: Datenstrukturkorruption erkannt
+- **Ungültiger Zustand**: Datenstrukturkorruption erkannt
 - **Nicht behebbare Fehler**: Kritische Ressource nicht verfügbar
 - **Assertionsfehler**: Wenn `assert()` nicht ausreicht
 
@@ -334,11 +334,11 @@ fn process_state(state: i32) {
     } else if (state == 3) {
         return "stopped";
     } else {
-        panic("ungueltiger Zustand: " + typeof(state));  // Sollte nie passieren
+        panic("ungültiger Zustand: " + typeof(state));  // Sollte nie passieren
     }
 }
 
-// Kritische Ressourcenpruefung
+// Kritische Ressourcenprüfung
 fn init_system() {
     let config = read_file("config.json");
     if (config == null) {
@@ -404,7 +404,7 @@ fn example2() {
 }
 ```
 
-**Regel:** Finally-Block-Rueckgabewerte ueberschreiben try/catch-Rueckgabewerte.
+**Regel:** Finally-Block-Rückgabewerte überschreiben try/catch-Rückgabewerte.
 
 ### Break/Continue innerhalb Try/Catch/Finally
 
@@ -503,10 +503,10 @@ fn validate_user(user) {
         throw "Name ist erforderlich";
     }
     if (user.age < 0 || user.age > 150) {
-        throw "Ungueltiges Alter";
+        throw "Ungültiges Alter";
     }
     if (user.email == null || !user.email.contains("@")) {
-        throw "Ungueltige E-Mail";
+        throw "Ungültige E-Mail";
     }
 }
 
@@ -553,8 +553,8 @@ try {
 
 ## Best Practices
 
-1. **Ausnahmen für Ausnahmefaelle verwenden** - Nicht für normalen Kontrollfluss
-2. **Aussagekraeftige Fehler werfen** - Strings oder Objekte mit Kontext verwenden
+1. **Ausnahmen für Ausnahmefälle verwenden** - Nicht für normalen Kontrollfluss
+2. **Aussagekräftige Fehler werfen** - Strings oder Objekte mit Kontext verwenden
 3. **Immer finally für Bereinigung verwenden** - Stellt sicher, dass Ressourcen freigegeben werden
 4. **Nicht fangen und ignorieren** - Mindestens den Fehler protokollieren
 5. **Bei Bedarf erneut werfen** - Aufrufer behandeln lassen, wenn Sie nicht können
@@ -582,7 +582,7 @@ try {
 }
 ```
 
-### Fallstrick: Finally-Ueberschreibung
+### Fallstrick: Finally-Überschreibung
 
 ```hemlock
 // SCHLECHT: Finally überschreibt return
@@ -607,7 +607,7 @@ fn get_value() {
 ### Fallstrick: Bereinigung vergessen
 
 ```hemlock
-// SCHLECHT: Datei wird bei Fehler moeglicherweise nicht geschlossen
+// SCHLECHT: Datei wird bei Fehler möglicherweise nicht geschlossen
 fn process() {
     let file = open("data.txt");
     let content = file.read();  // Kann werfen
@@ -773,7 +773,7 @@ fn retry(operation, max_attempts) {
 }
 
 fn unreliable_operation() {
-    // Simulierte unzuverlaessige Operation
+    // Simulierte unzuverlässige Operation
     if (random() < 0.7) {
         throw "Operation fehlgeschlagen";
     }
@@ -788,9 +788,9 @@ try {
 }
 ```
 
-## Ausfuehrungsreihenfolge
+## Ausführungsreihenfolge
 
-Verständnis der Ausfuehrungsreihenfolge:
+Verständnis der Ausführungsreihenfolge:
 
 ```hemlock
 try {
@@ -819,12 +819,12 @@ print("5: nach try/catch/finally");
 
 ## Verwandte Themen
 
-- [Functions](functions.md) - Ausnahmen und Funktionsrueckgaben
+- [Functions](functions.md) - Ausnahmen und Funktionsrückgaben
 - [Control Flow](control-flow.md) - Wie Ausnahmen den Kontrollfluss beeinflussen
 - [Memory](memory.md) - Finally für Speicherbereinigung verwenden
 
 ## Siehe auch
 
 - **Ausnahmesemantik**: Siehe CLAUDE.md Abschnitt "Error Handling"
-- **Panic vs. Throw**: Verschiedene Anwendungsfaelle für verschiedene Fehlertypen
+- **Panic vs. Throw**: Verschiedene Anwendungsfälle für verschiedene Fehlertypen
 - **Finally-Garantie**: Wird immer ausgeführt, auch bei return/break/continue

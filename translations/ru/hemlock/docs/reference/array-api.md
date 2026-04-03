@@ -336,12 +336,12 @@ let has3 = words.contains("hello");  // true
 
 **Сигнатура:**
 ```hemlock
-array.slice(start: i32, end: i32): array
+array.slice(start: i32, end?: i32): array
 ```
 
 **Параметры:**
 - `start` - Начальный индекс (с 0, включительно)
-- `end` - Конечный индекс (не включается)
+- `end` - Конечный индекс (не включается). По умолчанию `array.length`, если опущен.
 
 **Возвращает:** Новый массив с элементами из [start, end)
 
@@ -353,6 +353,10 @@ let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4]
 let first_three = arr.slice(0, 3);  // [1, 2, 3]
 let last_two = arr.slice(3, 5);     // [4, 5]
+
+// Один аргумент: от индекса до конца
+let tail = arr.slice(2);     // [3, 4, 5]
+let copy = arr.slice(0);     // [1, 2, 3, 4, 5] (неглубокая копия)
 
 // Пустой срез
 let empty = arr.slice(2, 2); // []
@@ -620,7 +624,18 @@ let arr = ["a", "b", "c"];
 let s = arr.join("");          // "abc"
 ```
 
-**Поведение:** Автоматически преобразует все элементы в строки.
+**Поведение:** Автоматически преобразует все элементы в строки, включая значения рун, возвращаемые `string.chars()`.
+
+```hemlock
+// join для массивов рун (из chars())
+let chars = "hello".chars();
+print(chars.join("-"));   // "h-e-l-l-o"
+
+// Идиома разворота строки
+let reversed = "hello".chars();
+reversed.reverse();
+print(reversed.join(""));  // "olleh"
+```
 
 ---
 
@@ -675,7 +690,7 @@ let result2 = words
 |------------|----------------------------|------------|--------------------------------|
 | `find`     | `(value: any)`             | `i32`      | Найти первое вхождение         |
 | `contains` | `(value: any)`             | `bool`     | Проверить наличие значения     |
-| `slice`    | `(start: i32, end: i32)`   | `array`    | Извлечь подмассив              |
+| `slice`    | `(start: i32, end?: i32)`  | `array`    | Извлечь подмассив              |
 | `first`    | `()`                       | `any`      | Получить первый элемент        |
 | `last`     | `()`                       | `any`      | Получить последний элемент     |
 | `concat`   | `(other: array)`           | `array`    | Объединить массивы             |

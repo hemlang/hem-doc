@@ -42,8 +42,47 @@ print("x =", 10, "y =", 20);
 **Verhalten:**
 - Konvertiert alle Werte zu Strings
 - Trennt mehrere Werte mit Leerzeichen
-- Fuegt Zeilenumbruch am Ende hinzu
+- Fügt Zeilenumbruch am Ende hinzu
 - Leert stdout
+
+---
+
+### write
+
+Gibt einen Wert auf stdout ohne abschliessenden Zeilenumbruch aus.
+
+**Signatur:**
+```hemlock
+write(value: any): null
+```
+
+**Parameter:**
+- `value` - Ein Wert zum Ausgeben
+
+**Rückgabe:** `null`
+
+**Beispiele:**
+```hemlock
+// Ausgabe auf einer einzelnen Zeile aufbauen
+write("hello");
+write(" ");
+write("world");
+print("");  // nur der Zeilenumbruch
+
+// Eine verkettete Liste inline ausgeben
+let parts = [1, 2, 3];
+for (let i = 0; i < parts.length; i++) {
+    if (i > 0) { write(" -> "); }
+    write(parts[i]);
+}
+print("");  // Ausgabe: 1 -> 2 -> 3
+```
+
+**Verhalten:**
+- Konvertiert den Wert zu String und gibt ihn auf stdout aus
+- Fügt KEINEN abschliessenden Zeilenumbruch hinzu
+- Leert stdout sofort
+- Verwende `print("")` nach einer Reihe von `write()`-Aufrufen, um einen Zeilenumbruch hinzuzufügen
 
 ---
 
@@ -93,8 +132,8 @@ while (true) {
 ```
 
 **Verhalten:**
-- Blockiert bis Benutzer Enter drueckt
-- Entfernt nachfolgenden Zeilenumbruch (`\n`) und Wagenruecklauf (`\r`)
+- Blockiert bis Benutzer Enter drückt
+- Entfernt nachfolgenden Zeilenumbruch (`\n`) und Wagenrücklauf (`\r`)
 - Gibt `null` bei EOF zurück (Strg+D auf Unix, Strg+Z auf Windows)
 - Liest nur von stdin (nicht von Dateien)
 
@@ -173,7 +212,7 @@ fn load_config(path: string) {
 
 **Verhalten:**
 - Gibt auf stderr aus (Standardfehlerausgabe)
-- Fuegt Zeilenumbruch am Ende hinzu
+- Fügt Zeilenumbruch am Ende hinzu
 - Akzeptiert nur ein Argument (anders als `print`)
 - Nützlich für Fehlermeldungen die sich nicht mit normaler Ausgabe vermischen sollen
 
@@ -236,11 +275,11 @@ print(typeof(open("file.txt"))); // "file"
 
 ---
 
-## Befehlsausfuehrung
+## Befehlsausführung
 
 ### exec
 
-Fuehrt Shell-Befehl aus und erfasst Ausgabe.
+Führt Shell-Befehl aus und erfasst Ausgabe.
 
 **Signatur:**
 ```hemlock
@@ -248,7 +287,7 @@ exec(command: string): object
 ```
 
 **Parameter:**
-- `command` - Auszufuehrender Shell-Befehl
+- `command` - Auszuführender Shell-Befehl
 
 **Rückgabe:** Objekt mit Feldern:
 - `output` (string) - stdout des Befehls
@@ -274,7 +313,7 @@ let lines = r2.output.split("\n");
 ```
 
 **Verhalten:**
-- Fuehrt Befehl über `/bin/sh` aus
+- Führt Befehl über `/bin/sh` aus
 - Erfasst nur stdout (stderr geht zum Terminal)
 - Blockiert bis Befehl abgeschlossen ist
 - Gibt leeren String zurück wenn keine Ausgabe
@@ -288,7 +327,7 @@ try {
 }
 ```
 
-**Sicherheitswarnung:** Anfaellig für Shell-Injection. Validieren/bereinigen Sie immer Benutzereingaben.
+**Sicherheitswarnung:** Anfällig für Shell-Injection. Validieren/bereinigen Sie immer Benutzereingaben.
 
 **Einschränkungen:**
 - Keine stderr-Erfassung
@@ -300,7 +339,7 @@ try {
 
 ### exec_argv
 
-Fuehrt einen Befehl mit explizitem Argument-Array aus (keine Shell-Interpretation).
+Führt einen Befehl mit explizitem Argument-Array aus (keine Shell-Interpretation).
 
 **Signatur:**
 ```hemlock
@@ -394,11 +433,11 @@ panic();                          // Standard: "panic!"
 panic("Unerreichbarer Code erreicht");
 panic(42);
 
-// Haeufiger Anwendungsfall
+// Häufiger Anwendungsfall
 fn process_state(state: i32): string {
     if (state == 1) { return "bereit"; }
     if (state == 2) { return "läuft"; }
-    panic("Ungueltiger Status: " + typeof(state));
+    panic("Ungültiger Status: " + typeof(state));
 }
 ```
 
@@ -424,7 +463,7 @@ assert(condition: any, message?: string): null
 ```
 
 **Parameter:**
-- `condition` - Auf Wahrheit zu pruefender Wert
+- `condition` - Auf Wahrheit zu prüfender Wert
 - `message` (optional) - Benutzerdefinierte Fehlermeldung bei fehlgeschlagener Prüfung
 
 **Rückgabe:** `null` (wenn Prüfung erfolgreich)
@@ -464,11 +503,11 @@ Assertion failed: Array darf nicht leer sein
 **Wann verwenden:**
 - Validierung von Funktionsvorbedingungen
 - Prüfen von Invarianten während der Entwicklung
-- Fruehzeitiges Erkennen von Programmierfehlern
+- Frühzeitiges Erkennen von Programmierfehlern
 
 **assert vs panic:**
-- `assert(cond, msg)` - Prueft eine Bedingung, schlaegt fehl wenn falsch
-- `panic(msg)` - Schlaegt immer bedingungslos fehl
+- `assert(cond, msg)` - Prüft eine Bedingung, schlägt fehl wenn falsch
+- `panic(msg)` - Schlägt immer bedingungslos fehl
 
 ---
 
@@ -591,7 +630,7 @@ Standard-POSIX-Signalkonstanten (i32-Werte):
 | `SIGINT`   | 2     | Unterbrechung von Tastatur (Strg+C)         |
 | `SIGTERM`  | 15    | Beendigungsanforderung                      |
 | `SIGQUIT`  | 3     | Beenden von Tastatur (Strg+\)               |
-| `SIGHUP`   | 1     | Aufhaengen am steuernden Terminal erkannt   |
+| `SIGHUP`   | 1     | Aufhängen am steuernden Terminal erkannt   |
 | `SIGABRT`  | 6     | Abbruchsignal                               |
 
 ### Benutzerdefiniert
@@ -606,7 +645,7 @@ Standard-POSIX-Signalkonstanten (i32-Werte):
 | Konstante  | Wert  | Beschreibung                      |
 |------------|-------|-----------------------------------|
 | `SIGALRM`  | 14    | Wecker-Timer                      |
-| `SIGCHLD`  | 17    | Kindprozess-Statusaenderung       |
+| `SIGCHLD`  | 17    | Kindprozess-Statusänderung       |
 | `SIGCONT`  | 18    | Fortsetzen wenn gestoppt          |
 | `SIGSTOP`  | 19    | Prozess stoppen (nicht abfangbar) |
 | `SIGTSTP`  | 20    | Terminal-Stopp (Strg+Z)           |
@@ -703,9 +742,9 @@ Siehe [Speicher-API](memory-api.md) für vollständige Referenz:
 - `alloc(size)` - Rohen Speicher allokieren
 - `free(ptr)` - Speicher freigeben
 - `buffer(size)` - Sicheren Buffer allokieren
-- `memset(ptr, byte, size)` - Speicher fuellen
+- `memset(ptr, byte, size)` - Speicher füllen
 - `memcpy(dest, src, size)` - Speicher kopieren
-- `realloc(ptr, new_size)` - Allokation vergroessern/verkleinern
+- `realloc(ptr, new_size)` - Allokation vergrößern/verkleinern
 
 ### sizeof
 
@@ -741,7 +780,7 @@ print(sizeof(number));   // 8 (gleich wie f64)
 print(sizeof("i32"));    // 4
 ```
 
-**Unterstuetzte Typen:**
+**Unterstützte Typen:**
 | Typ | Größe | Aliase |
 |-----|---------|--------|
 | `i8` | 1 | - |
@@ -802,13 +841,13 @@ free(byte_arr);
 let p1 = talloc(i32, 10);      // Typbewusst: 10 i32s
 let p2 = alloc(sizeof(i32) * 10);  // Manuelle Berechnung
 
-// talloc ist klarer und weniger fehleranfaellig
+// talloc ist klarer und weniger fehleranfällig
 ```
 
 **Fehlerbehandlung:**
-- Gibt `null` zurück wenn Allokation fehlschlaegt
+- Gibt `null` zurück wenn Allokation fehlschlägt
 - Beendet mit Fehler wenn count nicht positiv ist
-- Prueft auf Groessenueberlauf (count * element_size)
+- Prüft auf Größenüberlauf (count * element_size)
 
 **Siehe auch:** `alloc()`, `sizeof()`, `free()`
 
@@ -925,6 +964,35 @@ free(p);
 
 ---
 
+### Pointer-Lesefunktionen
+
+Liest typisierte Werte aus dem Speicher.
+
+| Funktion | Signatur | Rückgabe | Beschreibung |
+|----------|----------|-----------|--------------|
+| `ptr_read_i8` | `(ptr)` | `i8` | Liest vorzeichenbehaftete 8-Bit-Ganzzahl |
+| `ptr_read_i16` | `(ptr)` | `i16` | Liest vorzeichenbehaftete 16-Bit-Ganzzahl |
+| `ptr_read_i32` | `(ptr)` | `i32` | Liest vorzeichenbehaftete 32-Bit-Ganzzahl |
+| `ptr_read_i64` | `(ptr)` | `i64` | Liest vorzeichenbehaftete 64-Bit-Ganzzahl |
+| `ptr_read_u8` | `(ptr)` | `u8` | Liest vorzeichenlose 8-Bit-Ganzzahl |
+| `ptr_read_u16` | `(ptr)` | `u16` | Liest vorzeichenlose 16-Bit-Ganzzahl |
+| `ptr_read_u32` | `(ptr)` | `u32` | Liest vorzeichenlose 32-Bit-Ganzzahl |
+| `ptr_read_u64` | `(ptr)` | `u64` | Liest vorzeichenlose 64-Bit-Ganzzahl |
+| `ptr_read_f32` | `(ptr)` | `f32` | Liest 32-Bit-Gleitkommazahl |
+| `ptr_read_f64` | `(ptr)` | `f64` | Liest 64-Bit-Gleitkommazahl |
+| `ptr_read_ptr` | `(ptr)` | `ptr` | Liest Pointer-Wert |
+
+**Beispiel:**
+```hemlock
+let p = alloc(8);
+ptr_write_f64(p, 3.14159);
+let value = ptr_read_f64(p);
+print(value);  // 3.14159
+free(p);
+```
+
+---
+
 ### Buffer/Pointer-Konvertierung
 
 #### buffer_ptr
@@ -969,9 +1037,9 @@ Siehe [Datei-API](file-api.md) für vollständige Referenz:
 
 ---
 
-## Nebenlaeufigkeitsfunktionen
+## Nebenläufigkeitsfunktionen
 
-Siehe [Nebenlaeufigkeits-API](concurrency-api.md) für vollständige Referenz:
+Siehe [Nebenläufigkeits-API](concurrency-api.md) für vollständige Referenz:
 - `spawn(fn, args...)` - Task starten
 - `join(task)` - Auf Task warten
 - `detach(task)` - Task ablösen
@@ -1030,7 +1098,7 @@ let numbers = [1, 2, 3, 4, 5];
 print(apply(sum, numbers));  // 15
 ```
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Dynamischer Funktionsdispatch basierend auf Laufzeitwerten
 - Aufrufen von Funktionen mit variablen Argumentlisten
 - Implementierung von Higher-Order-Utilities (map, filter, etc.)
@@ -1040,7 +1108,7 @@ print(apply(sum, numbers));  // 15
 
 ### select
 
-Wartet auf Daten von mehreren Kanaelen, gibt zurück wenn einer Daten hat.
+Wartet auf Daten von mehreren Kanälen, gibt zurück wenn einer Daten hat.
 
 **Signatur:**
 ```hemlock
@@ -1087,7 +1155,7 @@ if (result2 == null) {
 while (true) {
     let msg = select([ch1, ch2], 5000);
     if (msg == null) {
-        print("Keine Aktivitaet für 5 Sekunden");
+        print("Keine Aktivität für 5 Sekunden");
         break;
     }
     print("Nachricht erhalten:", msg.value);
@@ -1098,9 +1166,9 @@ while (true) {
 - Blockiert bis ein Kanal Daten hat oder Timeout abläuft
 - Gibt sofort zurück wenn ein Kanal bereits Daten hat
 - Wenn Kanal geschlossen und leer ist, gibt `{ channel, value: null }` zurück
-- Prueft Kanäle der Reihe nach (erster bereiter Kanal gewinnt)
+- Prüft Kanäle der Reihe nach (erster bereiter Kanal gewinnt)
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Multiplexen mehrerer Produzenten
 - Implementierung von Timeouts bei Kanaloperationen
 - Aufbau von Event-Loops mit mehreren Quellen
@@ -1125,16 +1193,16 @@ while (true) {
 | `raise`    | Signal          | `null`       | Signal an Prozess senden         |
 | `alloc`    | Speicher        | `ptr`        | Rohen Speicher allokieren        |
 | `talloc`   | Speicher        | `ptr`        | Typisierte Allokation            |
-| `sizeof`   | Speicher        | `i32`        | Typgroesse in Bytes holen        |
+| `sizeof`   | Speicher        | `i32`        | Typgröße in Bytes holen        |
 | `free`     | Speicher        | `null`       | Speicher freigeben               |
 | `buffer`   | Speicher        | `buffer`     | Sicheren Buffer allokieren       |
-| `memset`   | Speicher        | `null`       | Speicher fuellen                 |
+| `memset`   | Speicher        | `null`       | Speicher füllen                 |
 | `memcpy`   | Speicher        | `null`       | Speicher kopieren                |
-| `realloc`  | Speicher        | `ptr`        | Allokation vergroessern          |
+| `realloc`  | Speicher        | `ptr`        | Allokation vergrößern          |
 | `open`     | Datei-I/O       | `file`       | Datei öffnen                    |
-| `spawn`    | Nebenläufigkeit| `task`       | Nebenlaeufigen Task starten      |
+| `spawn`    | Nebenläufigkeit| `task`       | Nebenläufigen Task starten      |
 | `join`     | Nebenläufigkeit| `any`        | Auf Task-Ergebnis warten         |
-| `detach`   | Nebenläufigkeit| `null`       | Task abloesen                    |
+| `detach`   | Nebenläufigkeit| `null`       | Task ablösen                    |
 | `channel`  | Nebenläufigkeit| `channel`    | Kommunikationskanal erstellen    |
 | `select`   | Nebenläufigkeit| `object?`    | Auf mehrere Kanäle warten       |
 | `apply`    | Funktionen      | `any`        | Funktion mit Args-Array aufrufen |
@@ -1152,12 +1220,12 @@ while (true) {
 | `SIGINT`   | `i32` | Signal    | 2     | Tastatur-Unterbrechung    |
 | `SIGTERM`  | `i32` | Signal    | 15    | Beendigungsanforderung    |
 | `SIGQUIT`  | `i32` | Signal    | 3     | Tastatur-Beenden          |
-| `SIGHUP`   | `i32` | Signal    | 1     | Aufhaengen                |
+| `SIGHUP`   | `i32` | Signal    | 1     | Aufhängen                |
 | `SIGABRT`  | `i32` | Signal    | 6     | Abbruch                   |
 | `SIGUSR1`  | `i32` | Signal    | 10    | Benutzerdefiniert 1       |
 | `SIGUSR2`  | `i32` | Signal    | 12    | Benutzerdefiniert 2       |
 | `SIGALRM`  | `i32` | Signal    | 14    | Wecker-Timer              |
-| `SIGCHLD`  | `i32` | Signal    | 17    | Kind-Statusaenderung      |
+| `SIGCHLD`  | `i32` | Signal    | 17    | Kind-Statusänderung      |
 | `SIGCONT`  | `i32` | Signal    | 18    | Fortsetzen                |
 | `SIGSTOP`  | `i32` | Signal    | 19    | Stopp (nicht abfangbar)   |
 | `SIGTSTP`  | `i32` | Signal    | 20    | Terminal-Stopp            |
@@ -1172,6 +1240,6 @@ while (true) {
 - [Typsystem](type-system.md) - Typen und Konvertierungen
 - [Speicher-API](memory-api.md) - Speicherallokationsfunktionen
 - [Datei-API](file-api.md) - Datei-I/O-Funktionen
-- [Nebenlaeufigkeits-API](concurrency-api.md) - Async/Nebenlaeufigkeitsfunktionen
+- [Nebenläufigkeits-API](concurrency-api.md) - Async/Nebenläufigkeitsfunktionen
 - [String-API](string-api.md) - String-Methoden
 - [Array-API](array-api.md) - Array-Methoden

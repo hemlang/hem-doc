@@ -1,6 +1,6 @@
 # Référence de l'API Array
 
-Référence complète pour le type array de Hemlock et ses 18 méthodes.
+Référence complète pour le type array de Hemlock et ses 23 méthodes.
 
 ---
 
@@ -12,7 +12,7 @@ Les tableaux (arrays) dans Hemlock sont des séquences **dynamiques, allouées s
 - Dimensionnement dynamique (croissance automatique)
 - Indexation à partir de zéro
 - Types mixtes autorisés
-- 18 méthodes intégrées
+- 23 méthodes intégrées
 - Alloués sur le tas avec suivi de la capacité
 
 ---
@@ -336,12 +336,12 @@ Extrait un sous-tableau par plage (fin exclusive).
 
 **Signature :**
 ```hemlock
-array.slice(start: i32, end: i32): array
+array.slice(start: i32, end?: i32): array
 ```
 
 **Paramètres :**
 - `start` - Index de départ (base 0, inclusif)
-- `end` - Index de fin (exclusif)
+- `end` - Index de fin (exclusif). Par défaut `array.length` si omis.
 
 **Retourne :** Nouveau tableau avec les éléments de [start, end)
 
@@ -353,6 +353,10 @@ let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4]
 let first_three = arr.slice(0, 3);  // [1, 2, 3]
 let last_two = arr.slice(3, 5);     // [4, 5]
+
+// Un seul argument : de l'index jusqu'à la fin
+let tail = arr.slice(2);     // [3, 4, 5]
+let copy = arr.slice(0);     // [1, 2, 3, 4, 5] (copie superficielle)
 
 // Tranche vide
 let empty = arr.slice(2, 2); // []
@@ -620,7 +624,18 @@ let arr = ["a", "b", "c"];
 let s = arr.join("");          // "abc"
 ```
 
-**Comportement :** Convertit automatiquement tous les éléments en chaînes.
+**Comportement :** Convertit automatiquement tous les éléments en chaînes, y compris les valeurs de rune retournées par `string.chars()`.
+
+```hemlock
+// Joindre des tableaux de runes (depuis chars())
+let chars = "hello".chars();
+print(chars.join("-"));   // "h-e-l-l-o"
+
+// Idiome d'inversion de chaîne
+let reversed = "hello".chars();
+reversed.reverse();
+print(reversed.join(""));  // "olleh"
+```
 
 ---
 
@@ -675,7 +690,7 @@ Méthodes qui retournent de nouvelles valeurs sans modifier l'original :
 |------------|----------------------------------|-----------|-------------------------------------|
 | `find`     | `(value: any)`                   | `i32`     | Trouver la première occurrence      |
 | `contains` | `(value: any)`                   | `bool`    | Vérifier si contient la valeur      |
-| `slice`    | `(start: i32, end: i32)`         | `array`   | Extraire un sous-tableau            |
+| `slice`    | `(start: i32, end?: i32)`        | `array`   | Extraire un sous-tableau            |
 | `first`    | `()`                             | `any`     | Obtenir le premier élément          |
 | `last`     | `()`                             | `any`     | Obtenir le dernier élément          |
 | `concat`   | `(other: array)`                 | `array`   | Concaténer les tableaux             |

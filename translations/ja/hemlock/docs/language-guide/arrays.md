@@ -287,6 +287,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // 混合型でも動作
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
+
+// rune配列でも動作（chars()から取得）
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - 別の配列と連結：

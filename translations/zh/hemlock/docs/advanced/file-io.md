@@ -137,6 +137,22 @@ print(first_byte);
 f.close();
 ```
 
+**示例 - 读取整个二进制文件：**
+```hemlock
+let f = open("data.bin", "r");
+let size = 10240;  // 预期大小
+let data = f.read_bytes(size);
+f.close();
+
+// 处理二进制数据
+let i = 0;
+while (i < data.length) {
+    let byte = data[i];
+    // ... 处理字节
+    i = i + 1;
+}
+```
+
 ### 写入
 
 #### write(data: string): i32
@@ -196,6 +212,21 @@ print("Wrote " + typeof(bytes) + " bytes");
 f.close();
 ```
 
+**示例 - 复制二进制文件：**
+```hemlock
+let src = open("input.bin", "r");
+let dst = open("output.bin", "w");
+
+let data = src.read_bytes(1024);
+while (data.length > 0) {
+    dst.write_bytes(data);
+    data = src.read_bytes(1024);
+}
+
+src.close();
+dst.close();
+```
+
 ### 定位
 
 #### seek(position: i32): i32
@@ -253,6 +284,20 @@ let pos2 = f.tell();  // 100（读取 100 字节后）
 
 f.seek(500);
 let pos3 = f.tell();  // 500（定位后）
+
+f.close();
+```
+
+**示例 - 测量读取量：**
+```hemlock
+let f = open("data.txt", "r");
+
+let start = f.tell();
+let content = f.read();
+let end = f.tell();
+
+let bytes_read = end - start;
+print("Read " + typeof(bytes_read) + " bytes");
 
 f.close();
 ```
@@ -607,6 +652,43 @@ fn read_at_offset(path: string, offset: i32, size: i32): string {
 }
 
 let data = read_at_offset("records.dat", 1000, 100);
+```
+
+### 文件大小
+
+```hemlock
+fn file_size(path: string): i32 {
+    let f = open(path, "r");
+    try {
+        // 定位到末尾
+        let end = f.seek(999999999);  // 大数字
+        f.seek(0);  // 重置
+        return end;
+    } finally {
+        f.close();
+    }
+}
+
+let size = file_size("data.txt");
+print("File size: " + typeof(size) + " bytes");
+```
+
+### 条件读写
+
+```hemlock
+fn update_file(path: string, condition, new_content: string) {
+    let f = open(path, "r+");
+    try {
+        let content = f.read();
+
+        if (condition(content)) {
+            f.seek(0);  // 重置到开头
+            f.write(new_content);
+        }
+    } finally {
+        f.close();
+    }
+}
 ```
 
 ## 最佳实践

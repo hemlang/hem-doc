@@ -535,6 +535,24 @@ Hemlock bietet umfassende Hilfsfunktionen für die Arbeit mit Rohpointern. Diese
 | `ptr_read_i32(ptr)` | i32 durch Pointer-zu-Pointer lesen (für qsort-Callbacks) |
 | `ptr_null()` | Null-Pointer-Konstante erhalten |
 
+#### Pointer-Lese-Funktionen
+
+Typisierte Werte direkt aus dem Speicher lesen (ergänzt `ptr_write_*`).
+
+| Funktion | Beschreibung |
+|----------|--------------|
+| `ptr_read_i8(ptr)` | i8 vom Pointer lesen |
+| `ptr_read_i16(ptr)` | i16 vom Pointer lesen |
+| `ptr_read_i32(ptr)` | i32 vom Pointer lesen |
+| `ptr_read_i64(ptr)` | i64 vom Pointer lesen |
+| `ptr_read_u8(ptr)` | u8 vom Pointer lesen |
+| `ptr_read_u16(ptr)` | u16 vom Pointer lesen |
+| `ptr_read_u32(ptr)` | u32 vom Pointer lesen |
+| `ptr_read_u64(ptr)` | u64 vom Pointer lesen |
+| `ptr_read_f32(ptr)` | f32 vom Pointer lesen |
+| `ptr_read_f64(ptr)` | f64 vom Pointer lesen |
+| `ptr_read_ptr(ptr)` | Pointer vom Pointer lesen (gibt null zurück wenn gespeicherter Wert NULL ist) |
+
 #### Buffer-Konvertierungs-Helfer
 
 | Funktion | Beschreibung |

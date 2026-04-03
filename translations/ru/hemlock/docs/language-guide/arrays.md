@@ -287,6 +287,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Работает со смешанными типами
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
+
+// Работает с массивами рун (из chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Объединить с другим массивом:

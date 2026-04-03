@@ -1,12 +1,12 @@
 # Operatoren-Referenz
 
-Vollständige Referenz für alle Operatoren in Hemlock, einschließlich Präzedenz, Assoziativitaet und Verhalten.
+Vollständige Referenz für alle Operatoren in Hemlock, einschließlich Präzedenz, Assoziativität und Verhalten.
 
 ---
 
 ## Übersicht
 
-Hemlock bietet C-ähnliche Operatoren mit expliziten Praezedenzregeln. Alle Operatoren folgen strikten Typisierungsregeln mit automatischer Typpromovierung wo anwendbar.
+Hemlock bietet C-ähnliche Operatoren mit expliziten Präzedenzregeln. Alle Operatoren folgen strikten Typisierungsregeln mit automatischer Typpromovierung wo anwendbar.
 
 ---
 
@@ -46,7 +46,7 @@ let h = f + g;         // 30 (i32, promoviert)
 
 ---
 
-### Unaere Arithmetik
+### Unäre Arithmetik
 
 | Operator | Name     | Beispiel | Beschreibung          |
 |----------|----------|----------|-----------------------|
@@ -178,7 +178,7 @@ print(c ^ d);          // 8  (00001000)
 
 ---
 
-### Unaere Bitweise
+### Unäre Bitweise
 
 | Operator | Name          | Beispiel | Beschreibung              |
 |----------|---------------|----------|---------------------------|
@@ -457,15 +457,15 @@ print("message");
 
 ---
 
-## Operatorpraezedenz
+## Operatorpräzedenz
 
-Operatoren von hoechster zu niedrigster Präzedenz:
+Operatoren von höchster zu niedrigster Präzedenz:
 
-| Präzedenz | Operatoren                 | Beschreibung                    | Assoziativitaet |
+| Präzedenz | Operatoren                 | Beschreibung                    | Assoziativität |
 |------------|----------------------------|--------------------------------|----------------|
 | 1          | `()` `[]` `.` `?.`         | Aufruf, Index, Elementzugriff, optionale Verkettung | Links-nach-rechts |
 | 2          | `++` `--`                  | Postfix-Inkrement/Dekrement    | Links-nach-rechts |
-| 3          | `!` `~` `-` (unaer) `+` (unaer) | Logisches NICHT, bitweises NICHT, Negation | Rechts-nach-links |
+| 3          | `!` `~` `-` (unär) `+` (unär) | Logisches NICHT, bitweises NICHT, Negation | Rechts-nach-links |
 | 4          | `*` `/` `%`                | Multiplikation, Division, Modulo | Links-nach-rechts |
 | 5          | `+` `-`                    | Addition, Subtraktion          | Links-nach-rechts |
 | 6          | `<<` `>>`                  | Bitverschiebungen              | Links-nach-rechts |
@@ -547,7 +547,7 @@ print(10.0 / 4.0);         // 2.5 (f64)
 print(-7 / 3);             // -2.333... (f64)
 ```
 
-Dies verhindert den haeufigen Bug unerwarteter Ganzzahl-Trunkierung.
+Dies verhindert den häufigen Bug unerwarteter Ganzzahl-Trunkierung.
 
 ### Ganzzahl-Division (div / divi)
 
@@ -564,7 +564,7 @@ print(divi(-7, 3));        // -3 (i64)
 print(typeof(divi(5, 2))); // i64
 ```
 
-**Ganzzahl-zurueckgebende Mathematikfunktionen:**
+**Ganzzahl-zurückgebende Mathematikfunktionen:**
 Für andere Rundungsoperationen die Ganzzahlen zurückgeben:
 
 ```hemlock

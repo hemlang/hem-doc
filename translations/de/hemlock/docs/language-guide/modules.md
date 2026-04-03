@@ -101,14 +101,14 @@ import { add as sum, subtract as diff } from "./math.hml";
 print(sum(1, 2));  // 3
 ```
 
-## Modulaufloesung
+## Modulauflösung
 
 ### Pfadtypen
 
 **Relative Pfade:**
 ```hemlock
 import { foo } from "./module.hml";       // Gleiches Verzeichnis
-import { bar } from "../parent.hml";      // Uebergeordnetes Verzeichnis
+import { bar } from "../parent.hml";      // Übergeordnetes Verzeichnis
 import { baz } from "./sub/nested.hml";   // Unterverzeichnis
 ```
 
@@ -123,9 +123,9 @@ import { foo } from "/absolute/path/to/module.hml";
 
 ## Funktionen
 
-### Erkennung zirkulaerer Abhängigkeiten
+### Erkennung zirkulärer Abhängigkeiten
 
-Das Modulsystem erkennt zirkulaere Abhängigkeiten und meldet einen Fehler:
+Das Modulsystem erkennt zirkuläre Abhängigkeiten und meldet einen Fehler:
 
 ```
 Error: Circular dependency detected when loading '/path/to/a.hml'
@@ -171,19 +171,19 @@ add = fn() { };  // FEHLER: kann importierte Bindung nicht neu zuweisen
 - Parser-Unterstützung in `src/parser.c`
 - Laufzeit-Unterstützung in `src/interpreter/runtime.c`
 
-**Schluesselkomponenten:**
+**Schlüsselkomponenten:**
 1. **ModuleCache**: Verwaltet geladene Module, indiziert nach absolutem Pfad
-2. **Module**: Repraesentiert ein geladenes Modul mit seinem AST und Exports
-3. **Pfadaufloesung**: Loest relative/absolute Pfade zu kanonischen Pfaden auf
-4. **Topologische Ausführung**: Fuehrt Module in Abhaengigkeitsreihenfolge aus
+2. **Module**: Repräsentiert ein geladenes Modul mit seinem AST und Exports
+3. **Pfadauflösung**: Löst relative/absolute Pfade zu kanonischen Pfaden auf
+4. **Topologische Ausführung**: Führt Module in Abhängigkeitsreihenfolge aus
 
 ### Modulladeprozess
 
 1. **Parse-Phase**: Tokenisieren und Parsen der Moduldatei
-2. **Abhaengigkeitsaufloesung**: Rekursives Laden importierter Module
+2. **Abhängigkeitsauflösung**: Rekursives Laden importierter Module
 3. **Zykluserkennung**: Prüfen, ob das Modul bereits geladen wird
 4. **Caching**: Modul im Cache nach absolutem Pfad speichern
-5. **Ausfuehrungsphase**: Ausführung in topologischer Reihenfolge (Abhängigkeiten zuerst)
+5. **Ausführungsphase**: Ausführung in topologischer Reihenfolge (Abhängigkeiten zuerst)
 
 ### API
 
@@ -231,7 +231,7 @@ Pakete werden in `hem_modules/` installiert und mit GitHub `owner/repo`-Syntax a
 # Ein Paket installieren
 hpm install hemlang/sprout
 
-# Mit Versionsbeschraenkung installieren
+# Mit Versionsbeschränkung installieren
 hpm install hemlang/sprout@^1.0.0
 ```
 
@@ -243,7 +243,7 @@ Siehe die [hpm-Dokumentation](https://github.com/hemlang/hpm) für vollständige
 2. **Keine bedingten Exports**: Exports müssen auf oberster Ebene sein
 3. **Statische Bibliothekspfade**: FFI-Bibliotheksimports verwenden statische Pfade (plattformspezifisch)
 
-## Zukuenftige Arbeit
+## Zukünftige Arbeit
 
 - Dynamische Imports mit `import()`-Funktion
 - Bedingte Exports

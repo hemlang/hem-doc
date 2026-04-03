@@ -478,6 +478,7 @@ ch.close();
 ```hemlock
 let name = read_line();          // Zeile von stdin lesen (blockiert)
 print("Hallo, " + name);
+write("kein Zeilenumbruch");     // Ohne abschließenden Zeilenumbruch ausgeben
 eprint("Fehlermeldung");         // Auf stderr ausgeben
 
 // read_line() gibt null bei EOF zurück
@@ -522,16 +523,39 @@ print(s.length);       // 7 (Zeichen-/Rune-Anzahl)
 print(s.byte_length);  // 10 (Byte-Anzahl - Emoji ist 4 Bytes UTF-8)
 ```
 
-## Array-Methoden (18)
+## Array-Methoden (23)
 
 `push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
-`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`
+`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
+`every`, `some`, `indexOf`, `sort`, `fill`
+
+```hemlock
+// every(predicate) - true wenn alle Elemente das Prädikat erfüllen
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+
+// some(predicate) - true wenn ein Element das Prädikat erfüllt
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+
+// indexOf(value) - findet ersten Index des Werts, oder -1
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+
+// sort(comparator?) - sortiert in-place, optionaler Comparator
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // absteigend
+
+// fill(value, start?, end?) - füllt mit Wert
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 Typisierte Arrays: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Standardbibliothek (40 Module)
+## Standardbibliothek (42 Module)
 
 Importieren mit `@stdlib/`-Präfix:
 ```hemlock
@@ -577,11 +601,13 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `sqlite` | SQLite-Datenbank, query, exec, Transaktionen |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | ANSI-Farben und -Stile |
+| `termios` | Rohe Terminal-Eingabe, Tastenerkennung |
 | `testing` | describe, test, expect |
 | `time` | now, time_ms, sleep, clock |
 | `toml` | TOML-Parsing und -Generierung |
 | `url` | URL-Parsing und -Manipulation |
 | `uuid` | UUID-Generierung |
+| `vector` | Vektor-Ähnlichkeitssuche (USearch ANN) |
 | `websocket` | WebSocket-Client |
 
 Siehe `stdlib/docs/` für detaillierte Moduldokumentation.
@@ -626,7 +652,7 @@ Typen: `FFI_INT`, `FFI_DOUBLE`, `FFI_POINTER`, `FFI_STRING`, `FFI_VOID`, etc.
 
 ## Atomare Operationen
 
-Lock-freie nebenlaeufige Programmierung mit atomaren Operationen:
+Lock-freie nebenläufige Programmierung mit atomaren Operationen:
 
 ```hemlock
 // Speicher für atomares i32 allokieren
@@ -676,7 +702,7 @@ hemlock/
 │   │   ├── lsp/          # Language Server Protocol
 │   │   └── bundler/      # Bundle-/Paket-Tools
 ├── runtime/              # Kompilierte Programm-Laufzeit (libhemlock_runtime.a)
-├── stdlib/               # Standardbibliothek (40 Module)
+├── stdlib/               # Standardbibliothek (42 Module)
 │   └── docs/             # Moduldokumentation
 ├── docs/                 # Vollständige Dokumentation
 │   ├── language-guide/   # Typen, Strings, Arrays, etc.
@@ -694,20 +720,20 @@ hemlock/
 
 Beim Hinzufügen von numerischen Konstanten zur C-Codebasis folge diesen Richtlinien:
 
-1. **Definiere Konstanten in `include/hemlock_limits.h`** - Diese Datei ist der zentrale Ort für alle Kompilierzeit- und Laufzeitlimits, Kapazitaeten und benannte Konstanten.
+1. **Definiere Konstanten in `include/hemlock_limits.h`** - Diese Datei ist der zentrale Ort für alle Kompilierzeit- und Laufzeitlimits, Kapazitäten und benannte Konstanten.
 
 2. **Verwende beschreibende Namen mit `HML_`-Präfix** - Alle Konstanten sollten mit `HML_` präfixiert werden für Namensraum-Klarheit.
 
 3. **Vermeide magische Zahlen** - Ersetze hart-codierte numerische Werte durch benannte Konstanten. Beispiele:
    - Typbereichslimits: `HML_I8_MIN`, `HML_I8_MAX`, `HML_U32_MAX`
-   - Pufferkapazitaeten: `HML_INITIAL_ARRAY_CAPACITY`, `HML_INITIAL_LEXER_BUFFER_CAPACITY`
+   - Pufferkapazitäten: `HML_INITIAL_ARRAY_CAPACITY`, `HML_INITIAL_LEXER_BUFFER_CAPACITY`
    - Zeitumrechnungen: `HML_NANOSECONDS_PER_SECOND`, `HML_MILLISECONDS_PER_SECOND`
    - Hash-Seeds: `HML_DJB2_HASH_SEED`
    - ASCII-Werte: `HML_ASCII_CASE_OFFSET`, `HML_ASCII_PRINTABLE_START`
 
 4. **Inkludiere `hemlock_limits.h`** - Quelldateien sollten diesen Header einbinden (oft via `internal.h`) um auf Konstanten zuzugreifen.
 
-5. **Dokumentiere den Zweck** - Fuege einen Kommentar hinzu, der erklärt, was jede Konstante repraesentiert.
+5. **Dokumentiere den Zweck** - Füge einen Kommentar hinzu, der erklärt, was jede Konstante repräsentiert.
 
 ---
 
@@ -726,11 +752,11 @@ Beim Hinzufügen von numerischen Konstanten zur C-Codebasis folge diesen Richtli
 ```bash
 make test              # Interpreter-Tests ausführen
 make test-compiler     # Compiler-Tests ausführen
-make parity            # Paritaetstests ausführen (beide müssen übereinstimmen)
+make parity            # Paritätstests ausführen (beide müssen übereinstimmen)
 make test-all          # Alle Testsuiten ausführen
 ```
 
-**Wichtig:** Tests können aufgrund von async/Nebenlaeufigkeitsproblemen haengen bleiben. Verwende immer einen Timeout beim Ausführen von Tests:
+**Wichtig:** Tests können aufgrund von async/Nebenläufigkeitsproblemen hängen bleiben. Verwende immer einen Timeout beim Ausführen von Tests:
 ```bash
 timeout 60 make test   # 60 Sekunden Timeout
 timeout 120 make parity
@@ -742,7 +768,7 @@ Testkategorien: primitives, memory, strings, arrays, functions, objects, async, 
 
 ## Compiler/Interpreter-Architektur
 
-Hemlock hat zwei Ausfuehrungsbackends, die ein gemeinsames Frontend teilen:
+Hemlock hat zwei Ausführungsbackends, die ein gemeinsames Frontend teilen:
 
 ```
 Quellcode (.hml)
@@ -769,7 +795,7 @@ Quellcode (.hml)
 Der Compiler (`hemlockc`) beinhaltet Kompilierzeit-Typprüfung, **standardmäßig aktiviert**:
 
 ```bash
-hemlockc program.hml -o program    # Typprueft, dann kompiliert
+hemlockc program.hml -o program    # Typprüft, dann kompiliert
 hemlockc --check program.hml       # Nur Typprüfung, nicht kompilieren
 hemlockc --no-type-check prog.hml  # Typprüfung deaktivieren
 hemlockc --strict-types prog.hml   # Warnung bei impliziten 'any'-Typen
@@ -805,14 +831,14 @@ hemlock/
 ├── runtime/                # libhemlock_runtime.a für kompilierte Programme
 ├── stdlib/                 # Gemeinsame Standardbibliothek
 └── tests/
-    ├── parity/             # Tests die BEIDE Backends bestehen MUESSEN
+    ├── parity/             # Tests die BEIDE Backends bestehen MÜSSEN
     ├── interpreter/        # Interpreter-spezifische Tests
     └── compiler/           # Compiler-spezifische Tests
 ```
 
 ---
 
-## Paritaets-zuerst-Entwicklung
+## Paritäts-zuerst-Entwicklung
 
 **Sowohl der Interpreter als auch der Compiler müssen identische Ausgabe für die gleiche Eingabe produzieren.**
 
@@ -823,10 +849,10 @@ Beim Hinzufügen oder Modifizieren von Sprachfeatures:
 1. **Design** - Definiere die AST-/semantische Änderung im gemeinsamen Frontend
 2. **Interpreter implementieren** - Tree-Walking-Auswertung hinzufügen
 3. **Compiler implementieren** - C-Code-Generierung hinzufügen
-4. **Paritaetstest hinzufügen** - Test in `tests/parity/` mit `.expected`-Datei schreiben
-5. **Verifizieren** - Fuehre `make parity` vor dem Mergen aus
+4. **Paritätstest hinzufügen** - Test in `tests/parity/` mit `.expected`-Datei schreiben
+5. **Verifizieren** - Führe `make parity` vor dem Mergen aus
 
-### Paritaetsteststruktur
+### Paritätsteststruktur
 
 ```
 tests/parity/
@@ -840,7 +866,7 @@ Jeder Test hat zwei Dateien:
 - `feature.hml` - Das Testprogramm
 - `feature.expected` - Erwartete Ausgabe (muss für beide Backends übereinstimmen)
 
-### Paritaetstestergebnisse
+### Paritätstestergebnisse
 
 | Status | Bedeutung |
 |--------|-----------|
@@ -849,7 +875,7 @@ Jeder Test hat zwei Dateien:
 | `◑ COMPILER_ONLY` | Compiler funktioniert, Interpreter scheitert (selten) |
 | `✗ FAILED` | Beide scheitern (Test- oder Implementierungsfehler) |
 
-### Was Paritaet erfordert
+### Was Parität erfordert
 
 - Alle Sprachkonstrukte (if, while, for, switch, defer, try/catch)
 - Alle Operatoren (arithmetisch, bitweise, logisch, Vergleich)
@@ -865,7 +891,7 @@ Jeder Test hat zwei Dateien:
 - Debug-/Stacktrace-Format
 - Kompilierungsfehler (Compiler kann mehr zur Kompilierzeit erkennen)
 
-### Einen Paritaetstest hinzufügen
+### Einen Paritätstest hinzufügen
 
 ```bash
 # 1. Testdatei erstellen
@@ -878,7 +904,7 @@ EOF
 # 2. Erwartete Ausgabe vom Interpreter generieren
 ./hemlock tests/parity/language/my_feature.hml > tests/parity/language/my_feature.expected
 
-# 3. Paritaet verifizieren
+# 3. Parität verifizieren
 make parity
 ```
 
@@ -886,7 +912,41 @@ make parity
 
 ## Version
 
-**v1.8.0** - Aktuelles Release mit:
+**v1.9.2** - Aktuelles Release mit:
+- **Compiler Unboxed-Loop-Counter-Fix** - Ein kritischer Codegen-Bug wurde behoben, bei dem optimierte Loop-Counter (native `int32_t`) direkt als `HmlValue`-Initialisierer ohne Boxing verwendet wurden. Die `codegen_is_main_var`-Prüfung verhinderte fälschlicherweise die Emission des Boxing-Wrappers (`hml_val_i32()`), wenn eine Main-Level-Variable einen Unboxed-Loop-Counter innerhalb einer Modul-/Closure-Funktion überdeckte. Behebt Kompilierung von `@stdlib/collections` und `@stdlib/encoding`.
+- **`clear()` Objekt-Methoden-Dispatch** - Der Compiler dispatcht `.clear()` jetzt korrekt an Objektmethoden, wenn es auf Nicht-Array-Typen aufgerufen wird. Zuvor generierte `.clear()` immer `hml_array_clear()` unabhängig vom Empfängertyp.
+- **`exec()` Import-Shadowing-Fix** - Der Builtin-`exec()`-Handler des Compilers prüft jetzt Import-Bindings und modullokale Funktionen, bevor er an das System-exec-Builtin dispatcht. Behebt `@stdlib/sqlite`, das seine eigene `exec()`-Funktion exportiert.
+
+**v1.9.1** - Vorheriges Release mit:
+- **`write()` Builtin** - Ausgabe ohne abschließenden Zeilenumbruch (`write("hello"); write(" world");` gibt in einer Zeile aus). Beinhaltet `fflush(stdout)` für sofortige Ausgabe. Volle Parität zwischen Interpreter und Compiler.
+- **Einargument-`slice()`** - `arr.slice(n)` und `str.slice(n)` setzen Ende jetzt standardmäßig auf Länge, entsprechend JS/Python-Verhalten. Zweiargument-Form unverändert.
+- **`join()` auf Rune-Arrays** - `"hello".chars().join("")` produziert jetzt korrekt `"hello"` statt `"[object][object]..."`. Ermöglicht idiomatische String-Umkehrung: `str.chars().reverse().join("")`.
+- **HashMap numerische Schlüssel-Koersion** - Schlüssel verschiedener numerischer Typen stimmen jetzt überein (z.B. `i32`-Schlüssel durch `i64`-Lookup gefunden). Zuvor lehnte der `typeof()`-Guard in `keys_equal()` gültige Cross-Type-Matches ab.
+- **HemBench-Verbesserungen** - Task-Definitionen korrigiert (L1-M-02 Rundung, L2-E-01 Präzision), kein Leak von erwarteter Ausgabe an L5/L6-Benchmark-Tasks mehr.
+- **Vollständige `ptr_read_*`-Builtins** - `ptr_read_i8`, `ptr_read_i16`, `ptr_read_i64`, `ptr_read_u8`, `ptr_read_u16`, `ptr_read_u32`, `ptr_read_u64`, `ptr_read_f32`, `ptr_read_f64`, `ptr_read_ptr` hinzugefügt als Ergänzung zu bestehenden `ptr_write_*`-Funktionen. `ptr_read_i32` auf direkte Dereferenzierung korrigiert (war doppelte Dereferenzierung). Volle Parität zwischen Interpreter und Compiler.
+- **macOS FFI-Bibliotheksladung** - `dlopen` durchsucht jetzt `/usr/local/lib` und `/opt/homebrew/lib` als Fallback-Pfade auf macOS, behebt Bibliothek-nicht-gefunden-Fehler für vom Benutzer installierte Shared Libraries (z.B. libusearch_c).
+- **`@stdlib/vector` USearch v2-Fix** - `create_index()` ruft jetzt `usearch_reserve()` nach Init auf, behebt Segfault mit USearch v2.24+, das Vorab-Allokation vor dem Hinzufügen von Vektoren erfordert.
+
+**v1.9.0** - Vorheriges Release mit:
+- **WASM-Interpreter-Release-Artefakt** - Vorgefertigter WASM-Interpreter in GitHub-Releases für Browser-/Node.js-Nutzung
+- **Compiler-Inlining-Fixes** - Fehler bei verschachtelter Aufruf-Argument-Korruption und Unboxing-Kollision mit Loop-Countern während Funktions-Inlining behoben (behebt hemloco-Kompilierung)
+- **Zeiger-Subtraktion** - Compiler-Typchecker erlaubt jetzt `ptr - integer` für Zeigerarithmetik
+- **Fangbare `open()`-Ausnahmen** - `open()` wirft jetzt via `hml_throw()` statt `exit(1)`, ermöglicht try/catch-Fehlerbehandlung
+- **Mehrargument-print/eprint-Fix** - Compiler-Codegen für `print()` und `eprint()` mit mehreren Argumenten korrigiert (z.B. `print("x:", x, y)`)
+- **SSO-String-Fix** - Segfault in `hml_string_append_inplace` beim Wachsen von Strings mit Small String Optimization behoben
+- **`@stdlib/termios`-Modul** - Plattformübergreifende rohe Terminal-Eingabe (Linux/macOS):
+  - `enable_raw_mode()` / `disable_raw_mode()` für sofortige Tastendrücke
+  - `read_key()` / `read_key_timeout(ms)` zum Lesen einzelner Tastendrücke
+  - Pfeiltasten-, Funktionstasten-, Steuerungstasten-Erkennung
+  - `is_terminal()` zum Prüfen ob stdin ein TTY ist
+  - Dokumentation unter `stdlib/docs/termios.md`
+- **Speicherleck-Prävention** - Umfassende Fixes, die sicherstellen, dass die Laufzeit leckfrei ist:
+  - Ausnahmesichere Ausdrucksauswertung (Arrays, Objekte, Funktionsaufrufe)
+  - Task-Ergebnis korrektes Retain/Release bei join()
+  - Kanal-Drain bei close (gibt gepufferte Werte frei)
+  - Optimierer-Cleanup für Null-Koaleszenz-Konstantenfaltung
+  - Leck-Regressions-Testsuite (`make leak-regression`)
+  - Speicherbesitz-Dokumentation (`docs/advanced/memory-ownership.md`)
 - **Musterabgleich** (`match`-Ausdrücke) - Mächtige Destrukturierung und Kontrollfluss:
   - Literal-, Platzhalter- und Variablenbindungsmuster
   - ODER-Muster (`1 | 2 | 3`)
@@ -894,16 +954,16 @@ make parity
   - Objekt-Destrukturierung (`{ x, y }`)
   - Array-Destrukturierung mit Rest (`[first, ...rest]`)
   - Typmuster (`n: i32`)
-  - Volle Paritaet zwischen Interpreter und Compiler
+  - Volle Parität zwischen Interpreter und Compiler
 - **Compiler-Hilfsannotationen** - 11 Optimierungsannotationen für GCC/Clang-Kontrolle:
   - `@inline`, `@noinline` - Funktions-Inlining-Kontrolle
   - `@hot`, `@cold` - Branch-Prediction-Hinweise
   - `@pure`, `@const` - Seiteneffekt-Annotationen
   - `@flatten` - alle Aufrufe innerhalb der Funktion inlinen
   - `@optimize(level)` - Pro-Funktion-Optimierungsstufe ("0", "1", "2", "3", "s", "fast")
-  - `@warn_unused` - Warnung bei ignorierten Rueckgabewerten
+  - `@warn_unused` - Warnung bei ignorierten Rückgabewerten
   - `@section(name)` - Benutzerdefinierte ELF-Sektionsplatzierung (z.B. `@section(".text.hot")`)
-- **Ausdruckskörper-Funktionen** (`fn double(x): i32 => x * 2;`) - praegnante Einzelausdruck-Funktionssyntax
+- **Ausdruckskörper-Funktionen** (`fn double(x): i32 => x * 2;`) - prägnante Einzelausdruck-Funktionssyntax
 - **Einzeilige Anweisungen** - klammerlose `if`, `while`, `for`-Syntax (z.B. `if (x > 0) print(x);`)
 - **Typaliase** (`type Name = Type;`) - benannte Abkürzungen für komplexe Typen
 - **Funktionstyp-Annotationen** (`fn(i32): i32`) - erstklassige Funktionstypen
@@ -914,7 +974,7 @@ make parity
 - **Loop-Schlüsselwort** (`loop { }`) - sauberere Endlosschleifen, ersetzt `while (true)`
 - **Schleifenlabels** (`outer: while`) - gezieltes break/continue für verschachtelte Schleifen
 - **Objekt-Kurzschreibweise** (`{ name }`) - ES6-Stil-Kurzeigenschaften-Syntax
-- **Objekt-Spread** (`{ ...obj }`) - Objektfelder kopieren und zusammenfuehren
+- **Objekt-Spread** (`{ ...obj }`) - Objektfelder kopieren und zusammenführen
 - **Zusammengesetzte Duck-Typen** (`A & B & C`) - Schnittmengentypen für strukturelle Typisierung
 - **Benannte Argumente** für Funktionsaufrufe (`foo(name: "value", age: 30)`)
 - **Null-Koaleszenz-Operatoren** (`??`, `??=`, `?.`) für sichere Null-Behandlung
@@ -928,27 +988,27 @@ make parity
 - **LSP-Integration** mit Typprüfung für Echtzeit-Diagnosen
 - **Zusammengesetzte Zuweisungsoperatoren** (`+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`)
 - **Inkrement/Dekrement-Operatoren** (`++x`, `x++`, `--x`, `x--`)
-- **Typ-Praezisions-Fix**: i64/u64 + f32 → f64 um Präzision zu erhalten
+- **Typ-Präzisions-Fix**: i64/u64 + f32 → f64 um Präzision zu erhalten
 - Vereinheitlichtes Typsystem mit Unboxing-Optimierungshinweisen
 - Volles Typsystem (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
 - UTF-8-Strings mit 19 Methoden
-- Arrays mit 18 Methoden einschließlich map/filter/reduce
+- Arrays mit 23 Methoden einschließlich map/filter/reduce/every/some/indexOf/sort/fill
 - Manuelle Speicherverwaltung mit `talloc()` und `sizeof()`
 - Async/await mit echter pthread-Parallelität
-- Atomare Operationen für lock-freie nebenlaeufige Programmierung
-- 40 Stdlib-Module (+ arena, assert, semver, toml, retry, iter, random, shell)
+- Atomare Operationen für lock-freie nebenläufige Programmierung
+- 42 Stdlib-Module (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
 - FFI für C-Interop mit `export extern fn` für wiederverwendbare Bibliotheks-Wrapper
 - FFI-Struct-Unterstützung im Compiler (C-Structs per Wert übergeben)
 - FFI-Zeiger-Helfer (`ptr_null`, `ptr_read_*`, `ptr_write_*`)
 - defer, try/catch/finally/throw, panic
-- Datei-I/O, Signalbehandlung, Befehlsausfuehrung
+- Datei-I/O, Signalbehandlung, Befehlsausführung
 - [hpm](https://github.com/hemlang/hpm) Paketmanager mit GitHub-basierter Registry
-- Compiler-Backend (C-Code-Generierung) mit 100% Interpreter-Paritaet
+- Compiler-Backend (C-Code-Generierung) mit 100% Interpreter-Parität
 - LSP-Server mit Go-to-Definition und Find-References
-- AST-Optimierungspass und Variablenaufloesung für O(1)-Lookup
+- AST-Optimierungspass und Variablenauflösung für O(1)-Lookup
 - apply()-Builtin für dynamische Funktionsaufrufe
 - Ungepufferte Kanäle und Many-Params-Unterstützung
-- 159 Paritaetstests (100% Erfolgsrate)
+- 159 Paritätstests (100% Erfolgsrate)
 
 ---
 

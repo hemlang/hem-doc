@@ -119,8 +119,9 @@ typeof(42);              // "i32"
 typeof("hello");         // "string"
 typeof([1, 2, 3]);       // "array"
 typeof(null);            // "null"
-len("hello");            // 5 (字符串字节长度)
-len([1, 2, 3]);          // 3 (数组长度)
+"hello".length;          // 5 (字符串长度，按 rune 计)
+"hello".byte_length;     // 5 (字符串长度，按字节计)
+[1, 2, 3].length;        // 3 (数组长度)
 ```
 
 ### 内存
@@ -480,6 +481,7 @@ ch.close();
 ```hemlock
 let name = read_line();          // 从 stdin 读取行（阻塞）
 print("Hello, " + name);
+write("无换行");                  // 输出不带尾部换行
 eprint("Error message");         // 输出到 stderr
 
 // read_line() 在 EOF 时返回 null
@@ -525,16 +527,39 @@ print(s.length);       // 7 (字符/rune 计数)
 print(s.byte_length);  // 10 (字节计数 - emoji 是 4 字节 UTF-8)
 ```
 
-## 数组方法 (18 个)
+## 数组方法 (23 个)
 
 `push`、`pop`、`shift`、`unshift`、`insert`、`remove`、`find`、`contains`、
-`slice`、`join`、`concat`、`reverse`、`first`、`last`、`clear`、`map`、`filter`、`reduce`
+`slice`、`join`、`concat`、`reverse`、`first`、`last`、`clear`、`map`、`filter`、`reduce`、
+`every`、`some`、`indexOf`、`sort`、`fill`
+
+```hemlock
+// every(predicate) - 如果所有元素满足谓词则为 true
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+
+// some(predicate) - 如果任一元素满足谓词则为 true
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+
+// indexOf(value) - 查找值的第一个索引，未找到返回 -1
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+
+// sort(comparator?) - 原地排序，可选比较器
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // 降序
+
+// fill(value, start?, end?) - 用值填充
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 类型化数组：`let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## 标准库 (40 个模块)
+## 标准库 (42 个模块)
 
 使用 `@stdlib/` 前缀导入：
 ```hemlock
@@ -580,11 +605,13 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `sqlite` | SQLite 数据库、query、exec、事务 |
 | `strings` | pad_left、is_alpha、reverse、lines |
 | `terminal` | ANSI 颜色和样式 |
+| `termios` | 原始终端输入、按键检测 |
 | `testing` | describe、test、expect |
 | `time` | now、time_ms、sleep、clock |
 | `toml` | TOML 解析和生成 |
 | `url` | URL 解析和操作 |
 | `uuid` | UUID 生成 |
+| `vector` | 向量相似性搜索 (USearch ANN) |
 | `websocket` | WebSocket 客户端 |
 
 详细模块文档请参阅 `stdlib/docs/`。
@@ -679,7 +706,7 @@ hemlock/
 │   │   ├── lsp/          # 语言服务器协议
 │   │   └── bundler/      # 打包/包工具
 ├── runtime/              # 编译程序运行时 (libhemlock_runtime.a)
-├── stdlib/               # 标准库 (40 个模块)
+├── stdlib/               # 标准库 (42 个模块)
 │   └── docs/             # 模块文档
 ├── docs/                 # 完整文档
 │   ├── language-guide/   # 类型、字符串、数组等
@@ -889,7 +916,41 @@ make parity
 
 ## 版本
 
-**v1.8.0** - 当前版本特性：
+**v1.9.2** - 当前版本特性：
+- **编译器未装箱循环计数器修复** - 修复了一个关键的代码生成错误，优化的循环计数器（原生 `int32_t`）被直接用作 `HmlValue` 初始化器而没有装箱。`codegen_is_main_var` 检查错误地阻止了在模块/闭包函数中主级变量遮蔽未装箱循环计数器时 boxing 包装器（`hml_val_i32()`）的发出。修复了 `@stdlib/collections` 和 `@stdlib/encoding` 的编译。
+- **`clear()` 对象方法分派** - 编译器现在在非数组类型上调用 `.clear()` 时正确分派到对象方法。之前 `.clear()` 无论接收者类型如何都总是生成 `hml_array_clear()`。
+- **`exec()` 导入遮蔽修复** - 编译器的内置 `exec()` 处理器现在在分派到系统 exec 内置函数之前检查导入绑定和模块本地函数。修复了导出自己的 `exec()` 函数的 `@stdlib/sqlite`。
+
+**v1.9.1** - 上一版本特性：
+- **`write()` 内置函数** - 不带尾部换行的打印（`write("hello"); write(" world");` 在一行输出）。包含 `fflush(stdout)` 用于即时输出。解释器和编译器完全对等。
+- **单参数 `slice()`** - `arr.slice(n)` 和 `str.slice(n)` 现在默认结束位置为长度，匹配 JS/Python 行为。双参数形式不变。
+- **rune 数组的 `join()`** - `"hello".chars().join("")` 现在正确产生 `"hello"` 而不是 `"[object][object]..."`。支持惯用字符串反转：`str.chars().reverse().join("")`。
+- **HashMap 数字键强制转换** - 不同数值类型的键现在可以匹配（例如，`i32` 键可通过 `i64` 查找找到）。之前 `keys_equal()` 中的 `typeof()` 守卫拒绝了有效的跨类型匹配。
+- **HemBench 改进** - 修复了任务定义（L1-M-02 舍入、L2-E-01 精度），停止向 L5/L6 基准测试任务泄露预期输出。
+- **完整的 `ptr_read_*` 内置函数** - 添加了 `ptr_read_i8`、`ptr_read_i16`、`ptr_read_i64`、`ptr_read_u8`、`ptr_read_u16`、`ptr_read_u32`、`ptr_read_u64`、`ptr_read_f32`、`ptr_read_f64`、`ptr_read_ptr` 以补充现有的 `ptr_write_*` 函数。修复了 `ptr_read_i32` 为直接解引用（之前是双重解引用）。解释器和编译器完全对等。
+- **macOS FFI 库加载** - `dlopen` 现在在 macOS 上搜索 `/usr/local/lib` 和 `/opt/homebrew/lib` 作为回退路径，修复了用户安装的共享库（例如 libusearch_c）的库未找到错误。
+- **`@stdlib/vector` USearch v2 修复** - `create_index()` 现在在初始化后调用 `usearch_reserve()`，修复了 USearch v2.24+ 中需要在添加向量之前预分配的段错误。
+
+**v1.9.0** - 上一版本特性：
+- **WASM 解释器发布制品** - GitHub 发布中包含预构建的 WASM 解释器，用于浏览器/Node.js 使用
+- **编译器内联修复** - 修复了函数内联期间嵌套调用参数损坏和循环计数器的拆箱冲突（修复 hemloco 编译）
+- **指针减法** - 编译器类型检查器现在允许 `ptr - integer` 用于指针运算
+- **可捕获的 `open()` 异常** - `open()` 现在通过 `hml_throw()` 抛出而不是 `exit(1)`，启用 try/catch 错误处理
+- **多参数 print/eprint 修复** - 修复了带多个参数的 `print()` 和 `eprint()` 的编译器代码生成（例如 `print("x:", x, y)`）
+- **SSO 字符串修复** - 修复了使用小字符串优化增长字符串时 `hml_string_append_inplace` 中的段错误
+- **`@stdlib/termios` 模块** - 跨平台原始终端输入（Linux/macOS）：
+  - `enable_raw_mode()` / `disable_raw_mode()` 用于即时按键
+  - `read_key()` / `read_key_timeout(ms)` 用于单次按键读取
+  - 箭头键、功能键、控制键检测
+  - `is_terminal()` 检查 stdin 是否为 TTY
+  - 文档位于 `stdlib/docs/termios.md`
+- **内存泄漏预防** - 全面修复确保运行时无泄漏：
+  - 异常安全的表达式求值（数组、对象、函数调用）
+  - join() 时任务结果的正确 retain/release
+  - 关闭时的 channel 排空（释放缓冲值）
+  - 空值合并常量折叠的优化器清理
+  - 泄漏回归测试套件（`make leak-regression`）
+  - 内存所有权文档（`docs/advanced/memory-ownership.md`）
 - **模式匹配**（`match` 表达式）- 强大的解构和控制流：
   - 字面量、通配符和变量绑定模式
   - OR 模式（`1 | 2 | 3`）
@@ -935,11 +996,11 @@ make parity
 - 带拆箱优化提示的统一类型系统
 - 完整类型系统（i8-i64、u8-u64、f32/f64、bool、string、rune、ptr、buffer、array、object、enum、file、task、channel）
 - 带 19 个方法的 UTF-8 字符串
-- 带 18 个方法的数组，包括 map/filter/reduce
+- 带 23 个方法的数组，包括 map/filter/reduce/every/some/indexOf/sort/fill
 - 带 `talloc()` 和 `sizeof()` 的手动内存管理
 - 带真正 pthread 并行的 async/await
 - 用于无锁并发编程的原子操作
-- 40 个 stdlib 模块（+ arena、assert、semver、toml、retry、iter、random、shell）
+- 42 个 stdlib 模块（+ arena、assert、semver、toml、retry、iter、random、shell、termios、vector）
 - C 互操作的 FFI，带 `export extern fn` 用于可重用库包装
 - 编译器中的 FFI 结构支持（按值传递 C 结构）
 - FFI 指针辅助函数（`ptr_null`、`ptr_read_*`、`ptr_write_*`）

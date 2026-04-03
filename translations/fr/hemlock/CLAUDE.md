@@ -478,6 +478,7 @@ ch.close();
 ```hemlock
 let name = read_line();          // Lit une ligne depuis stdin (bloquant)
 print("Bonjour, " + name);
+write("sans saut de ligne");     // Affiche sans saut de ligne final
 eprint("Message d'erreur");      // Affiche sur stderr
 
 // read_line() retourne null en fin de fichier (EOF)
@@ -522,16 +523,39 @@ print(s.length);       // 7 (nombre de caracteres/runes)
 print(s.byte_length);  // 10 (nombre d'octets - l'emoji fait 4 octets UTF-8)
 ```
 
-## Methodes de tableau (18)
+## Methodes de tableau (23)
 
 `push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
-`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`
+`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
+`every`, `some`, `indexOf`, `sort`, `fill`
+
+```hemlock
+// every(predicate) - true si tous les elements satisfont le predicat
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+
+// some(predicate) - true si un element satisfait le predicat
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+
+// indexOf(value) - trouve le premier index de la valeur, ou -1
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+
+// sort(comparator?) - trie sur place, comparateur optionnel
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // descendant
+
+// fill(value, start?, end?) - remplit avec la valeur
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 Tableaux types : `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Bibliotheque standard (40 modules)
+## Bibliotheque standard (42 modules)
 
 Importer avec le prefixe `@stdlib/` :
 ```hemlock
@@ -577,11 +601,13 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `sqlite` | Base de donnees SQLite, query, exec, transactions |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | Couleurs et styles ANSI |
+| `termios` | Entree terminal brute, detection de touches |
 | `testing` | describe, test, expect |
 | `time` | now, time_ms, sleep, clock |
 | `toml` | Analyse et generation TOML |
 | `url` | Analyse et manipulation d'URL |
 | `uuid` | Generation d'UUID |
+| `vector` | Recherche de similarite vectorielle (USearch ANN) |
 | `websocket` | Client WebSocket |
 
 Voir `stdlib/docs/` pour la documentation detaillee des modules.
@@ -676,7 +702,7 @@ hemlock/
 │   │   ├── lsp/          # Language Server Protocol
 │   │   └── bundler/      # Outils de bundle/package
 ├── runtime/              # Runtime du programme compile (libhemlock_runtime.a)
-├── stdlib/               # Bibliotheque standard (40 modules)
+├── stdlib/               # Bibliotheque standard (42 modules)
 │   └── docs/             # Documentation des modules
 ├── docs/                 # Documentation complete
 │   ├── language-guide/   # Types, chaines, tableaux, etc.
@@ -886,7 +912,41 @@ make parity
 
 ## Version
 
-**v1.8.1** - Version actuelle avec :
+**v1.9.2** - Version actuelle avec :
+- **Correction du compteur de boucle unboxed du compilateur** - Correction d'un bug critique de codegen ou les compteurs de boucle optimises (native `int32_t`) etaient utilises directement comme initialiseurs `HmlValue` sans boxing. La verification `codegen_is_main_var` empechait incorrectement l'emission du wrapper de boxing (`hml_val_i32()`) quand une variable de niveau principal masquait un compteur de boucle unboxed dans une fonction module/closure. Corrige la compilation de `@stdlib/collections` et `@stdlib/encoding`.
+- **Dispatch de methode objet `clear()`** - Le compilateur dispatche maintenant correctement `.clear()` aux methodes d'objet lorsqu'il est appele sur des types non-tableau. Auparavant, `.clear()` generait toujours `hml_array_clear()` quel que soit le type du recepteur.
+- **Correction du shadowing d'import `exec()`** - Le handler builtin `exec()` du compilateur verifie maintenant les bindings d'import et les fonctions locales du module avant de dispatcher vers le builtin exec systeme. Corrige `@stdlib/sqlite` qui exporte sa propre fonction `exec()`.
+
+**v1.9.1** - Version precedente avec :
+- **Builtin `write()`** - Affichage sans saut de ligne final (`write("hello"); write(" world");` affiche sur une seule ligne). Inclut `fflush(stdout)` pour une sortie immediate. Parite complete entre interpreteur et compilateur.
+- **`slice()` a un argument** - `arr.slice(n)` et `str.slice(n)` utilisent maintenant la longueur comme fin par defaut, correspondant au comportement JS/Python. La forme a deux arguments est inchangee.
+- **`join()` sur les tableaux de runes** - `"hello".chars().join("")` produit maintenant correctement `"hello"` au lieu de `"[object][object]..."`. Permet l'inversion idiomatique de chaine : `str.chars().reverse().join("")`.
+- **Coercition des cles numeriques HashMap** - Les cles de differents types numeriques correspondent maintenant (ex : cle `i32` trouvee par recherche `i64`). Auparavant, le guard `typeof()` dans `keys_equal()` rejetait les correspondances cross-type valides.
+- **Ameliorations HemBench** - Definitions de taches corrigees (arrondi L1-M-02, precision L2-E-01), plus de fuite de sortie attendue vers les taches benchmark L5/L6.
+- **Builtins `ptr_read_*` complets** - Ajout de `ptr_read_i8`, `ptr_read_i16`, `ptr_read_i64`, `ptr_read_u8`, `ptr_read_u16`, `ptr_read_u32`, `ptr_read_u64`, `ptr_read_f32`, `ptr_read_f64`, `ptr_read_ptr` pour complementer les fonctions `ptr_write_*` existantes. Correction de `ptr_read_i32` pour dereferencement direct (etait double dereferencement). Parite complete entre interpreteur et compilateur.
+- **Chargement de bibliotheques FFI macOS** - `dlopen` recherche maintenant dans `/usr/local/lib` et `/opt/homebrew/lib` comme chemins de repli sur macOS, corrigeant les erreurs de bibliotheque introuvable pour les bibliotheques partagees installees par l'utilisateur (ex : libusearch_c).
+- **Correction `@stdlib/vector` USearch v2** - `create_index()` appelle maintenant `usearch_reserve()` apres l'initialisation, corrigeant le segfault avec USearch v2.24+ qui necessite une pre-allocation avant l'ajout de vecteurs.
+
+**v1.9.0** - Version precedente avec :
+- **Artefact de release interpreteur WASM** - Interpreteur WASM pre-compile inclus dans les releases GitHub pour utilisation navigateur/Node.js
+- **Corrections d'inlining du compilateur** - Correction de la corruption d'arguments d'appels imbriques et de la collision d'unboxing avec les compteurs de boucle pendant l'inlining de fonctions (corrige la compilation de hemloco)
+- **Soustraction de pointeurs** - Le verificateur de types du compilateur autorise maintenant `ptr - integer` pour l'arithmetique de pointeurs
+- **Exceptions `open()` capturables** - `open()` lance maintenant via `hml_throw()` au lieu de `exit(1)`, permettant la gestion d'erreurs par try/catch
+- **Correction print/eprint multi-arguments** - Correction du codegen compilateur pour `print()` et `eprint()` avec plusieurs arguments (ex : `print("x:", x, y)`)
+- **Correction string SSO** - Correction du segfault dans `hml_string_append_inplace` lors de l'agrandissement de chaines utilisant Small String Optimization
+- **Module `@stdlib/termios`** - Entree terminal brute multiplateforme (Linux/macOS) :
+  - `enable_raw_mode()` / `disable_raw_mode()` pour les pressions de touches instantanees
+  - `read_key()` / `read_key_timeout(ms)` pour la lecture d'une seule touche
+  - Detection des touches flechees, touches de fonction, touches de controle
+  - `is_terminal()` pour verifier si stdin est un TTY
+  - Documentation dans `stdlib/docs/termios.md`
+- **Prevention des fuites memoire** - Corrections completes garantissant que le runtime est sans fuite :
+  - Evaluation d'expressions securisee contre les exceptions (tableaux, objets, appels de fonction)
+  - Retain/release correct du resultat de tache lors de join()
+  - Drainage du canal a la fermeture (libere les valeurs bufferisees)
+  - Nettoyage de l'optimiseur pour le pliage constant de coalescence null
+  - Suite de tests de regression de fuites (`make leak-regression`)
+  - Documentation de propriete memoire (`docs/advanced/memory-ownership.md`)
 - **Pattern matching** (expressions `match`) - Destructuration et flux de controle puissants :
   - Motifs litteral, joker et liaison de variable
   - Motifs OU (`1 | 2 | 3`)
@@ -932,11 +992,11 @@ make parity
 - Systeme de type unifie avec indications d'optimisation de deballage
 - Systeme de type complet (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
 - Chaines UTF-8 avec 19 methodes
-- Tableaux avec 18 methodes incluant map/filter/reduce
+- Tableaux avec 23 methodes incluant map/filter/reduce/every/some/indexOf/sort/fill
 - Gestion manuelle de la memoire avec `talloc()` et `sizeof()`
 - Async/await avec vrai parallelisme pthread
 - Operations atomiques pour la programmation concurrente sans verrou
-- 40 modules stdlib (+ arena, assert, semver, toml, retry, iter, random, shell)
+- 42 modules stdlib (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
 - FFI pour l'interoperabilite C avec `export extern fn` pour les wrappers de bibliotheque reutilisables
 - Support des structures FFI dans le compilateur (passer des structures C par valeur)
 - Helpers de pointeur FFI (`ptr_null`, `ptr_read_*`, `ptr_write_*`)

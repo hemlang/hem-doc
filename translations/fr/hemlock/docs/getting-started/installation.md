@@ -182,6 +182,141 @@ hemlock/
 └── README.md         # README du projet
 ```
 
+## Compilation WebAssembly (WASM)
+
+Hemlock peut etre compile en WebAssembly via [Emscripten](https://emscripten.org/), permettant a l'interpreteur complet de fonctionner dans un navigateur web ou Node.js.
+
+### Installation d'Emscripten
+
+Le SDK Emscripten (`emsdk`) fournit le compilateur `emcc` utilise pour compiler l'interpreteur WASM.
+
+**Toutes les plateformes (Linux, macOS, Windows WSL) :**
+
+```bash
+# Clone the emsdk repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate the latest SDK
+./emsdk install latest
+./emsdk activate latest
+
+# Add emcc to your PATH (run this in every new terminal, or add to your shell profile)
+source ./emsdk_env.sh
+```
+
+Verifiez l'installation :
+
+```bash
+emcc --version
+```
+
+Vous devriez voir une sortie comme `emcc (Emscripten gcc/clang-like replacement ...) 3.x.x`.
+
+Pour des instructions detaillees, consultez le [guide de demarrage d'Emscripten](https://emscripten.org/docs/getting_started/downloads.html).
+
+**Optionnel : Ajouter au profil du shell**
+
+Pour eviter d'executer `source emsdk_env.sh` a chaque fois, ajoutez-le a votre profil de shell :
+
+```bash
+# For bash (~/.bashrc or ~/.bash_profile)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.bashrc
+
+# For zsh (~/.zshrc)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.zshrc
+```
+
+### Dependances WASM
+
+La compilation WASM a moins de dependances que la compilation native. Emscripten fournit ses propres versions des bibliotheques C standard. Les bibliotheques natives suivantes ne sont **pas necessaires** (et ne sont pas disponibles) dans la compilation WASM :
+
+| Bibliotheque | Native | WASM | Notes |
+|---------|--------|------|-------|
+| libffi | Requise | Stub | FFI n'est pas disponible en WASM |
+| OpenSSL | Requise | Stub | Les builtins de cryptographie retournent des erreurs en WASM |
+| libwebsockets | Optionnelle | Stub | Support WebSocket non disponible |
+| zlib | Requise | Emscripten la fournit | Liee automatiquement avec `-sUSE_ZLIB=1` |
+| pthreads | Requise | Optionnelle | Disponible avec une compilation threadee (necessite SharedArrayBuffer) |
+
+**En resume :** Vous avez seulement besoin du SDK Emscripten installe. Aucune bibliotheque systeme supplementaire n'est requise pour la compilation WASM.
+
+### Compilation de l'interpreteur WASM
+
+```bash
+# Build the interpreter as WebAssembly
+make wasm-interpreter
+```
+
+Cela produit deux fichiers dans le repertoire `wasm/` :
+
+| Fichier | Description |
+|------|-------------|
+| `wasm/hemlock.js` | Chargeur JavaScript et code de liaison Emscripten |
+| `wasm/hemlock.wasm` | Module binaire WebAssembly |
+
+### Execution dans Node.js
+
+```bash
+node -- wasm/hemlock.js -e 'print("Hello from WASM!");'
+node -- wasm/hemlock.js examples/fibonacci.hml
+```
+
+### Execution dans un navigateur
+
+Les fichiers WASM doivent etre servis via HTTP avec le type MIME correct (`application/wasm`). L'ouverture directe du fichier HTML via `file://` ne fonctionnera pas.
+
+**En utilisant l'exemple inclus :**
+
+```bash
+make wasm-browser-example
+# Opens http://localhost:8080/examples/wasm-browser/index.html
+```
+
+**Ou manuellement avec Python :**
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/wasm/playground.html
+```
+
+**Ou manuellement avec Node.js :**
+
+```bash
+npx serve .
+# Open the URL shown in the terminal
+```
+
+Voir `examples/wasm-browser/` pour un exemple complet d'integration navigateur avec un editeur de code interactif.
+
+### Limitations WASM
+
+Certaines fonctionnalites ne sont pas disponibles dans l'environnement WASM :
+
+- **FFI** - Pas de chargement de bibliotheques partagees (`dlopen`/`dlsym`)
+- **Cryptographie** - Pas d'OpenSSL (`sha256`, `md5`, etc. retournent des erreurs)
+- **E/S fichier** - Pas d'acces au systeme de fichiers natif (uniquement le FS virtuel d'Emscripten)
+- **Reseau** - Pas de sockets bruts ni de client HTTP
+- **Signaux** - Pas de gestion des signaux POSIX
+- **Processus** - Pas de `fork`, `exec` ni de gestion de processus
+- **Threading** - `spawn`/`join`/canaux necessitent une compilation WASM threadee avec `SharedArrayBuffer`
+
+Toutes les fonctionnalites principales du langage fonctionnent : variables, fonctions, closures, objets, tableaux, pattern matching, annotations de type, try/catch et la bibliotheque standard complete des modules Hemlock purs.
+
+### Compilation de programmes Hemlock en WASM
+
+En plus d'executer l'interpreteur en WASM, vous pouvez compiler des programmes Hemlock individuels en binaires WASM autonomes en utilisant le backend du compilateur :
+
+```bash
+# Compile a Hemlock program to WASM (requires both hemlockc and Emscripten)
+make wasm-compile FILE=program.hml
+
+# With threading support
+make wasm-compile-threaded FILE=program.hml
+```
+
+Cela utilise `hemlockc` pour generer du code C, puis Emscripten pour le compiler en WASM.
+
 ## Options de compilation
 
 ### Compilation de debogage

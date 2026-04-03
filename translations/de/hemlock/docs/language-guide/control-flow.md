@@ -4,7 +4,7 @@ Hemlock bietet vertrauten C-ähnlichen Kontrollfluss mit obligatorischen geschwe
 
 ## Überblick
 
-Verfuegbare Kontrollfluss-Funktionen:
+Verfügbare Kontrollfluss-Funktionen:
 
 - `if`/`else`/`else if` - Bedingte Verzweigungen
 - `while`-Schleifen - Bedingungsbasierte Iteration
@@ -182,7 +182,7 @@ loop {
 ### Wann Loop verwenden
 
 - **`loop` verwenden** für absichtlich unendliche Schleifen, die via `break` beendet werden
-- **`while` verwenden** wenn es eine natuerliche Abbruchbedingung gibt
+- **`while` verwenden** wenn es eine natürliche Abbruchbedingung gibt
 - **`for` verwenden** beim Iterieren einer bekannten Anzahl von Malen oder über eine Sammlung
 
 ## For-Schleifen
@@ -279,7 +279,7 @@ switch (color) {
 
 ### Fall-Through-Verhalten
 
-Faelle ohne `break` fallen durch zum nächsten Fall (C-artiges Verhalten). Dies ist **beabsichtigt** und kann zum Gruppieren von Faellen verwendet werden:
+Fälle ohne `break` fallen durch zum nächsten Fall (C-artiges Verhalten). Dies ist **beabsichtigt** und kann zum Gruppieren von Fällen verwendet werden:
 
 ```hemlock
 let grade = 85;
@@ -319,7 +319,7 @@ switch (day) {
 }
 ```
 
-**Wichtig:** Anders als einige moderne Sprachen erfordert Hemlock KEIN explizites `fallthrough`-Schlüsselwort. Faelle fallen automatisch durch, es sei denn, sie werden durch `break`, `return` oder `throw` beendet. Verwenden Sie immer `break`, um unbeabsichtigtes Fall-Through zu verhindern.
+**Wichtig:** Anders als einige moderne Sprachen erfordert Hemlock KEIN explizites `fallthrough`-Schlüsselwort. Fälle fallen automatisch durch, es sei denn, sie werden durch `break`, `return` oder `throw` beendet. Verwenden Sie immer `break`, um unbeabsichtigtes Fall-Through zu verhindern.
 
 ### Switch mit Return
 
@@ -364,7 +364,7 @@ switch (flag) {
 }
 ```
 
-**Hinweis:** Faelle werden mittels Wertgleichheit verglichen.
+**Hinweis:** Fälle werden mittels Wertgleichheit verglichen.
 
 ## Break und Continue
 
@@ -568,7 +568,7 @@ example();
 ```
 
 **Kernverhalten:**
-- Deferred-Anweisungen werden **nach** Abschluss des Funktionskoerpers ausgeführt
+- Deferred-Anweisungen werden **nach** Abschluss des Funktionskörpers ausgeführt
 - Deferred-Anweisungen werden **vor** der Rückkehr der Funktion an ihren Aufrufer ausgeführt
 - Deferred-Anweisungen werden immer ausgeführt, auch wenn die Funktion eine Ausnahme wirft
 
@@ -592,7 +592,7 @@ example();
 // erstes
 ```
 
-Diese LIFO-Reihenfolge ist beabsichtigt - sie entspricht der natuerlichen Reihenfolge für verschachtelte Ressourcenbereinigung (innere Ressourcen vor äußeren schließen).
+Diese LIFO-Reihenfolge ist beabsichtigt - sie entspricht der natürlichen Reihenfolge für verschachtelte Ressourcenbereinigung (innere Ressourcen vor äußeren schließen).
 
 ### Defer mit Return
 
@@ -654,7 +654,7 @@ fn process_file(filename: string) {
 }
 ```
 
-**Ohne defer (fehleranfaellig):**
+**Ohne defer (fehleranfällig):**
 ```hemlock
 fn process_file_bad(filename: string) {
     let file = open(filename, "r");
@@ -713,7 +713,7 @@ fn example() {
    // Beide Dateien werden in umgekehrter Reihenfolge geschlossen
    ```
 
-3. **LIFO-Reihenfolge für abhaengige Ressourcen beachten:**
+3. **LIFO-Reihenfolge für abhängige Ressourcen beachten:**
    ```hemlock
    let outer = acquire_outer();
    defer release_outer(outer);
@@ -721,7 +721,7 @@ fn example() {
    let inner = acquire_inner(outer);
    defer release_inner(inner);
 
-   // inner wird vor outer freigegeben (korrekte Abhaengigkeitsreihenfolge)
+   // inner wird vor outer freigegeben (korrekte Abhängigkeitsreihenfolge)
    ```
 
 ## Boolesche Operatoren
@@ -839,7 +839,7 @@ print(a << 2);  // 48 (110000) - 2 nach links schieben
 print(a >> 1);  // 6 (110) - 1 nach rechts schieben
 ```
 
-### Unaerer bitweiser Operator
+### Unärer bitweiser Operator
 
 **Bitweises NICHT (`~`)**
 ```hemlock
@@ -890,11 +890,11 @@ flags = flags & ~0x02;
 flags = flags ^ 0x01;
 ```
 
-### Operatorpraezedenz
+### Operatorpräzedenz
 
 Bitweise Operatoren folgen C-artiger Präzedenz:
 
-1. `~` (unaeres NICHT) - hoechste, gleiche Ebene wie `!` und `-`
+1. `~` (unäres NICHT) - höchste, gleiche Ebene wie `!` und `-`
 2. `<<`, `>>` (Shifts) - höher als Vergleiche, niedriger als `+`/`-`
 3. `&` (bitweises UND) - höher als `^` und `|`
 4. `^` (bitweises XOR) - zwischen `&` und `|`
@@ -915,15 +915,15 @@ let result3 = (5 & 3) | (2 << 1);  // 1 | 4 = 5
 
 **Wichtige Hinweise:**
 - Bitweise Operatoren funktionieren nur mit Ganzzahltypen (nicht Floats, Strings, etc.)
-- Typpromotion folgt Standardregeln (kleinere Typen werden zu groesseren befördert)
+- Typpromotion folgt Standardregeln (kleinere Typen werden zu größeren befördert)
 - Rechtsshift (`>>`) ist arithmetisch für vorzeichenbehaftete Typen, logisch für vorzeichenlose
-- Shift-Betraege werden nicht bereichsgeprueft (Verhalten ist plattformabhaengig für große Shifts)
+- Shift-Beträge werden nicht bereichsgeprüft (Verhalten ist plattformabhängig für große Shifts)
 
-## Operatorpraezedenz (Vollständig)
+## Operatorpräzedenz (Vollständig)
 
-Von hoechster zu niedrigster Präzedenz:
+Von höchster zu niedrigster Präzedenz:
 
-1. **Unaer**: `!`, `-`, `~`
+1. **Unär**: `!`, `-`, `~`
 2. **Multiplikativ**: `*`, `/`, `%`
 3. **Additiv**: `+`, `-`
 4. **Shift**: `<<`, `>>`
@@ -966,7 +966,7 @@ fn in_range(value: i32, min: i32, max: i32): bool {
 }
 
 if (in_range(score, 0, 100)) {
-    print("gueltige Punktzahl");
+    print("gültige Punktzahl");
 }
 ```
 
@@ -1021,13 +1021,13 @@ for (let i = 0; i < arr.length; i = i + 1) {
 }
 ```
 
-### Muster: Fruehes Beenden
+### Muster: Frühes Beenden
 
 ```hemlock
 fn find_first_negative(arr: array): i32 {
     for (let i = 0; i < arr.length; i = i + 1) {
         if (arr[i] < 0) {
-            return i;  // Fruehes Beenden
+            return i;  // Frühes Beenden
         }
     }
     return -1;  // Nicht gefunden
@@ -1039,7 +1039,7 @@ fn find_first_negative(arr: array): i32 {
 1. **Immer geschweifte Klammern verwenden** - Auch für einzeilige Blöcke (durch Syntax erzwungen)
 2. **Explizite Bedingungen** - `x == 0` statt `!x` für Klarheit verwenden
 3. **Tiefe Verschachtelung vermeiden** - Verschachtelte Bedingungen in Funktionen extrahieren
-4. **Fruehe Returns verwenden** - Verschachtelung mit Guard-Klauseln reduzieren
+4. **Frühe Returns verwenden** - Verschachtelung mit Guard-Klauseln reduzieren
 5. **Komplexe Bedingungen aufteilen** - In benannte boolesche Variablen aufteilen
 6. **Default in Switch** - Immer einen Default-Fall einschliessen
 7. **Fall-Through kommentieren** - Beabsichtigtes Fall-Through explizit machen
@@ -1063,7 +1063,7 @@ if (x == 10) { }  // OK
 switch (x) {
     case 1:
         print("eins");
-        // Fehlendes break - faellt durch!
+        // Fehlendes break - fällt durch!
     case 2:
         print("zwei");  // Wird für 1 und 2 ausgeführt
         break;
@@ -1108,7 +1108,7 @@ for (let i = 1; i <= 100; i = i + 1) {
 }
 ```
 
-### Beispiel: Primzahlpruefung
+### Beispiel: Primzahlprüfung
 
 ```hemlock
 fn is_prime(n: i32): bool {
@@ -1128,7 +1128,7 @@ fn is_prime(n: i32): bool {
 }
 ```
 
-### Beispiel: Menuesystem
+### Beispiel: Menüsystem
 
 ```hemlock
 fn menu() {
@@ -1150,7 +1150,7 @@ fn menu() {
                 print("Auf Wiedersehen!");
                 return;
             default:
-                print("Ungueltige Auswahl");
+                print("Ungültige Auswahl");
                 break;
         }
     }

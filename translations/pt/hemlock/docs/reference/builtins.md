@@ -47,6 +47,45 @@ print("x =", 10, "y =", 20);
 
 ---
 
+### write
+
+Imprime um valor na saida padrao sem nova linha ao final.
+
+**Assinatura:**
+```hemlock
+write(value: any): null
+```
+
+**Parametros:**
+- `value` - Um valor para imprimir
+
+**Retorna:** `null`
+
+**Exemplo:**
+```hemlock
+// Construir saida em uma unica linha
+write("hello");
+write(" ");
+write("world");
+print("");  // apenas a nova linha
+
+// Imprimir uma lista encadeada em linha
+let parts = [1, 2, 3];
+for (let i = 0; i < parts.length; i++) {
+    if (i > 0) { write(" -> "); }
+    write(parts[i]);
+}
+print("");  // Saida: 1 -> 2 -> 3
+```
+
+**Comportamento:**
+- Converte o valor para string e imprime na saida padrao
+- NAO adiciona nova linha ao final
+- Libera a saida padrao imediatamente
+- Use `print("")` apos uma serie de chamadas `write()` para adicionar uma nova linha
+
+---
+
 ### read_line
 
 Le uma linha de texto da entrada padrao (entrada do usuario).
@@ -920,6 +959,35 @@ Escreve valores tipados na memoria.
 let p = alloc(4);
 ptr_write_i32(p, 42);
 print(ptr_read_i32(p));  // 42
+free(p);
+```
+
+---
+
+### Funcoes de Leitura de Ponteiro
+
+Le valores tipados da memoria.
+
+| Funcao | Assinatura | Retorna | Descricao |
+|--------|------------|---------|-----------|
+| `ptr_read_i8` | `(ptr)` | `i8` | Le inteiro 8-bit com sinal |
+| `ptr_read_i16` | `(ptr)` | `i16` | Le inteiro 16-bit com sinal |
+| `ptr_read_i32` | `(ptr)` | `i32` | Le inteiro 32-bit com sinal |
+| `ptr_read_i64` | `(ptr)` | `i64` | Le inteiro 64-bit com sinal |
+| `ptr_read_u8` | `(ptr)` | `u8` | Le inteiro 8-bit sem sinal |
+| `ptr_read_u16` | `(ptr)` | `u16` | Le inteiro 16-bit sem sinal |
+| `ptr_read_u32` | `(ptr)` | `u32` | Le inteiro 32-bit sem sinal |
+| `ptr_read_u64` | `(ptr)` | `u64` | Le inteiro 64-bit sem sinal |
+| `ptr_read_f32` | `(ptr)` | `f32` | Le float 32-bit |
+| `ptr_read_f64` | `(ptr)` | `f64` | Le float 64-bit |
+| `ptr_read_ptr` | `(ptr)` | `ptr` | Le valor de ponteiro |
+
+**Exemplo:**
+```hemlock
+let p = alloc(8);
+ptr_write_f64(p, 3.14159);
+let value = ptr_read_f64(p);
+print(value);  // 3.14159
 free(p);
 ```
 

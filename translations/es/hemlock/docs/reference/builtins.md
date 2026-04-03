@@ -47,6 +47,45 @@ print("x =", 10, "y =", 20);
 
 ---
 
+### write
+
+Imprime un valor a stdout sin nueva linea al final.
+
+**Firma:**
+```hemlock
+write(value: any): null
+```
+
+**Parametros:**
+- `value` - Un valor a imprimir
+
+**Retorna:** `null`
+
+**Ejemplos:**
+```hemlock
+// Construir salida en una sola linea
+write("hello");
+write(" ");
+write("world");
+print("");  // solo la nueva linea
+
+// Imprimir una lista enlazada en linea
+let parts = [1, 2, 3];
+for (let i = 0; i < parts.length; i++) {
+    if (i > 0) { write(" -> "); }
+    write(parts[i]);
+}
+print("");  // Salida: 1 -> 2 -> 3
+```
+
+**Comportamiento:**
+- Convierte el valor a string y lo imprime a stdout
+- NO agrega nueva linea al final
+- Vacia stdout inmediatamente
+- Use `print("")` despues de una serie de llamadas a `write()` para agregar una nueva linea
+
+---
+
 ### read_line
 
 Lee una linea de texto desde stdin (entrada del usuario).

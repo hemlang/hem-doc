@@ -287,6 +287,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // 适用于混合类型
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
+
+// 适用于 rune 数组（来自 chars()）
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - 与另一个数组连接：

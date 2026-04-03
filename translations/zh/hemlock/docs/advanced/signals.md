@@ -705,6 +705,42 @@ while (!should_exit) {
 }
 ```
 
+### 示例 4：超时模式
+
+```hemlock
+let operation_complete = false;
+let timed_out = false;
+
+fn timeout_handler(sig) {
+    timed_out = true;
+}
+
+signal(SIGALRM, timeout_handler);
+
+// 开始长时间操作
+async fn long_operation() {
+    // ... 工作
+    operation_complete = true;
+}
+
+let task = spawn(long_operation);
+
+// 带超时等待（手动检查）
+let elapsed = 0;
+while (!operation_complete && elapsed < 1000) {
+    // 休眠或检查
+    elapsed = elapsed + 1;
+}
+
+if (!operation_complete) {
+    print("Operation timed out");
+    detach(task);  // 放弃等待
+} else {
+    join(task);
+    print("Operation completed");
+}
+```
+
 ## 调试信号处理器
 
 ### 添加诊断打印

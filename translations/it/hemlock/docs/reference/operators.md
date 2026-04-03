@@ -533,6 +533,88 @@ i8 + f64    → f64    // Float + più grande vince
 
 ---
 
+## Comportamento degli Operatori Specifico per Tipo
+
+### Divisione (Sempre Float)
+
+L'operatore `/` restituisce **sempre un float** (f64), indipendentemente dai tipi degli operandi:
+
+```hemlock
+print(10 / 3);             // 3.333... (f64)
+print(5 / 2);              // 2.5 (f64)
+print(10.0 / 4.0);         // 2.5 (f64)
+print(-7 / 3);             // -2.333... (f64)
+```
+
+Questo previene il bug comune di troncamento intero inatteso.
+
+### Divisione Intera (div / divi)
+
+Per la divisione intera (come la divisione intera in altri linguaggi), usa le funzioni `div()` e `divi()`:
+
+```hemlock
+// div(a, b) - divisione intera che restituisce float
+print(div(5, 2));          // 2 (f64)
+print(div(-7, 3));         // -3 (f64)  -- arrotonda verso -infinito
+
+// divi(a, b) - divisione intera che restituisce intero
+print(divi(5, 2));         // 2 (i64)
+print(divi(-7, 3));        // -3 (i64)
+print(typeof(divi(5, 2))); // i64
+```
+
+**Funzioni matematiche che restituiscono interi:**
+Per altre operazioni di arrotondamento che restituiscono interi:
+
+```hemlock
+print(floori(3.7));        // 3 (i64)
+print(ceili(3.2));         // 4 (i64)
+print(roundi(3.5));        // 4 (i64)
+print(trunci(3.9));        // 3 (i64)
+
+// Possono essere usati direttamente come indici di array
+let arr = [10, 20, 30, 40];
+print(arr[floori(1.9)]);   // 20 (indice 1)
+```
+
+### Confronto di Stringhe
+
+Le stringhe vengono confrontate lessicograficamente:
+
+```hemlock
+print("abc" < "def");      // true
+print("apple" > "banana"); // false
+print("hello" == "hello"); // true
+```
+
+### Confronto con Null
+
+```hemlock
+let x = null;
+
+print(x == null);          // true
+print(x != null);          // false
+```
+
+### Errori di Tipo
+
+Alcune operazioni non sono permesse tra tipi incompatibili:
+
+```hemlock
+// ERRORE: Non è possibile usare operatori bit a bit su float
+let x = 3.14 & 2.71;
+
+// ERRORE: Non è possibile usare operatori bit a bit su stringhe
+let y = "hello" & "world";
+
+// OK: Promozione di tipo per aritmetica
+let a: u8 = 10;
+let b: i32 = 20;
+let c = a + b;             // i32 (promosso)
+```
+
+---
+
 ## Vedi Anche
 
 - [Sistema di Tipi](type-system.md) - Regole di promozione dei tipi

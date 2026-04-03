@@ -535,6 +535,24 @@ Hemlock proporciona funciones auxiliares completas para trabajar con punteros cr
 | `ptr_read_i32(ptr)` | Leer i32 a traves de puntero a puntero (para callbacks qsort) |
 | `ptr_null()` | Obtener una constante de puntero nulo |
 
+#### Funciones de Lectura de Puntero
+
+Leer valores tipados directamente desde memoria (complementa `ptr_write_*`).
+
+| Funcion | Descripcion |
+|---------|-------------|
+| `ptr_read_i8(ptr)` | Leer i8 desde puntero |
+| `ptr_read_i16(ptr)` | Leer i16 desde puntero |
+| `ptr_read_i32(ptr)` | Leer i32 desde puntero |
+| `ptr_read_i64(ptr)` | Leer i64 desde puntero |
+| `ptr_read_u8(ptr)` | Leer u8 desde puntero |
+| `ptr_read_u16(ptr)` | Leer u16 desde puntero |
+| `ptr_read_u32(ptr)` | Leer u32 desde puntero |
+| `ptr_read_u64(ptr)` | Leer u64 desde puntero |
+| `ptr_read_f32(ptr)` | Leer f32 desde puntero |
+| `ptr_read_f64(ptr)` | Leer f64 desde puntero |
+| `ptr_read_ptr(ptr)` | Leer puntero desde puntero (retorna null si el valor almacenado es NULL) |
+
 #### Auxiliares de Conversion de Buffer
 
 | Funcion | Descripcion |

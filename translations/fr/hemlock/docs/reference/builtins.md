@@ -47,6 +47,45 @@ print("x =", 10, "y =", 20);
 
 ---
 
+### write
+
+Affiche une valeur sur stdout sans saut de ligne final.
+
+**Signature :**
+```hemlock
+write(value: any): null
+```
+
+**Paramètres :**
+- `value` - Une valeur à afficher
+
+**Retourne :** `null`
+
+**Exemples :**
+```hemlock
+// Construire la sortie sur une seule ligne
+write("hello");
+write(" ");
+write("world");
+print("");  // juste le saut de ligne
+
+// Afficher une liste chaînée en ligne
+let parts = [1, 2, 3];
+for (let i = 0; i < parts.length; i++) {
+    if (i > 0) { write(" -> "); }
+    write(parts[i]);
+}
+print("");  // Sortie : 1 -> 2 -> 3
+```
+
+**Comportement :**
+- Convertit la valeur en chaîne et l'affiche sur stdout
+- N'ajoute PAS de saut de ligne final
+- Vide stdout immédiatement
+- Utilisez `print("")` après une série d'appels à `write()` pour ajouter un saut de ligne
+
+---
+
 ### read_line
 
 Lit une ligne de texte depuis stdin (entrée utilisateur).
@@ -1114,6 +1153,7 @@ while (true) {
 | Fonction   | Catégorie        | Retourne     | Description                          |
 |------------|------------------|--------------|--------------------------------------|
 | `print`    | E/S              | `null`       | Afficher sur stdout                  |
+| `write`    | E/S              | `null`       | Afficher sur stdout sans saut de ligne |
 | `read_line`| E/S              | `string?`    | Lire une ligne depuis stdin          |
 | `eprint`   | E/S              | `null`       | Afficher sur stderr                  |
 | `typeof`   | Type             | `string`     | Obtenir le nom du type               |
