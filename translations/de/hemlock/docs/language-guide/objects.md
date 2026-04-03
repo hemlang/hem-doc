@@ -98,7 +98,7 @@ print(person.age);    // 30
 print(person.active); // true
 ```
 
-**Kurzschreibweise mit regulaeren Eigenschaften mischen:**
+**Kurzschreibweise mit regulären Eigenschaften mischen:**
 ```hemlock
 let city = "NYC";
 let obj = { name, age, city, role: "admin" };
@@ -117,7 +117,7 @@ print(extended.y);  // 2
 print(extended.z);  // 3
 ```
 
-**Werte mit Spread ueberschreiben:**
+**Werte mit Spread überschreiben:**
 ```hemlock
 let defaults = { theme: "light", size: "medium", debug: false };
 let custom = { ...defaults, theme: "dark" };
@@ -127,7 +127,7 @@ print(custom.size);   // "medium" (von defaults)
 print(custom.debug);  // false (von defaults)
 ```
 
-**Mehrere Spreads (spätere Spreads ueberschreiben fruehere):**
+**Mehrere Spreads (spätere Spreads überschreiben frühere):**
 ```hemlock
 let a = { x: 1 };
 let b = { y: 2 };
@@ -137,7 +137,7 @@ print(merged.x);  // 1
 print(merged.y);  // 2
 print(merged.z);  // 3
 
-// Spaeterer Spread überschreibt frueheren
+// Späterer Spread überschreibt früheren
 let first = { val: "first" };
 let second = { val: "second" };
 let combined = { ...first, ...second };
@@ -155,7 +155,7 @@ print(full.name);    // "Item"
 print(full.status);  // "active"
 ```
 
-**Konfigurationsueberschreibungsmuster:**
+**Konfigurationsüberschreibungsmuster:**
 ```hemlock
 let defaultConfig = {
     debug: false,
@@ -207,9 +207,9 @@ person.phone = "555-1234";
 print(person.email);  // "alice@example.com"
 ```
 
-### Feldloeschung
+### Feldlöschung
 
-**Hinweis:** Feldloeschung wird derzeit nicht unterstützt. Setzen Sie stattdessen auf `null`:
+**Hinweis:** Feldlöschung wird derzeit nicht unterstützt. Setzen Sie stattdessen auf `null`:
 
 ```hemlock
 let obj = { x: 10, y: 20 };
@@ -261,7 +261,7 @@ print(counter.count);  // 1
 **Funktionsweise:**
 - Methodenaufrufe werden erkannt, indem geprüft wird, ob der Funktionsausdruck ein Eigenschaftszugriff ist
 - `self` wird automatisch zum Aufrufzeitpunkt an das Objekt gebunden
-- `self` ist schreibgeschuetzt (man kann `self` selbst nicht neu zuweisen)
+- `self` ist schreibgeschützt (man kann `self` selbst nicht neu zuweisen)
 
 ### Methodenaufruf-Erkennung
 
@@ -329,7 +329,7 @@ print(typeof(typed_p));  // "Person"
 
 ### Duck-Typing
 
-Objekte werden gegen `define` mittels **struktureller Kompatibilitaet** validiert:
+Objekte werden gegen `define` mittels **struktureller Kompatibilität** validiert:
 
 ```hemlock
 define Person {
@@ -561,16 +561,16 @@ print(obj.x);      // 10
 
 ### Zyklenerkennung
 
-Zirkulaere Referenzen werden erkannt und verursachen Fehler:
+Zirkuläre Referenzen werden erkannt und verursachen Fehler:
 
 ```hemlock
 let obj = { x: 10 };
-obj.me = obj;  // Zirkulaere Referenz erstellen
+obj.me = obj;  // Zirkuläre Referenz erstellen
 
-obj.serialize();  // FEHLER: serialize() hat zirkulaere Referenz erkannt
+obj.serialize();  // FEHLER: serialize() hat zirkuläre Referenz erkannt
 ```
 
-### Unterstuetzte Typen
+### Unterstützte Typen
 
 JSON-Serialisierung unterstützt:
 
@@ -591,9 +591,9 @@ JSON-Serialisierung unterstützt:
 Serialisierung und Deserialisierung können Fehler werfen:
 
 ```hemlock
-// Ungueltiges JSON wirft einen Fehler
+// Ungültiges JSON wirft einen Fehler
 try {
-    let bad = "kein gueltiges json".deserialize();
+    let bad = "kein gültiges json".deserialize();
 } catch (e) {
     print("Parse-Fehler:", e);
 }
@@ -609,7 +609,7 @@ try {
 
 ### Round-Trip-Beispiel
 
-Vollstaendiges Beispiel für Serialisierung und Deserialisierung:
+Vollständiges Beispiel für Serialisierung und Deserialisierung:
 
 ```hemlock
 define Config {
@@ -648,7 +648,7 @@ let p: Person = { name: "Alice", age: 30 };
 print(typeof(p));    // "Person"
 ```
 
-**Rueckgabewerte:**
+**Rückgabewerte:**
 - Anonyme Objekte: `"object"`
 - Typisierte Objekte: Benutzerdefinierter Typname (z.B. `"Person"`)
 
@@ -787,8 +787,8 @@ let config = {
 2. **Factory-Funktionen bevorzugen** - Objekte mit Konstruktoren erstellen
 3. **Objekte einfach halten** - Nicht zu tief verschachteln
 4. **`self`-Verwendung dokumentieren** - Methodenverhalten klar machen
-5. **Bei Zuweisung validieren** - Duck-Typing verwenden, um Fehler frueh zu erkennen
-6. **Zirkulaere Referenzen vermeiden** - Verursachen Serialisierungsfehler
+5. **Bei Zuweisung validieren** - Duck-Typing verwenden, um Fehler früh zu erkennen
+6. **Zirkuläre Referenzen vermeiden** - Verursachen Serialisierungsfehler
 7. **Optionale Felder verwenden** - Sinnvolle Standardwerte bereitstellen
 
 ## Häufige Fallstricke
@@ -800,7 +800,7 @@ let obj1 = { x: 10 };
 let obj2 = obj1;  // Flache Kopie
 
 obj2.x = 20;
-print(obj1.x);  // 20 (Ueberraschung! Beide haben sich geändert)
+print(obj1.x);  // 20 (Überraschung! Beide haben sich geändert)
 
 // Um das zu vermeiden: Neues Objekt erstellen
 let obj3 = { x: obj1.x };  // Tiefe Kopie (manuell)
@@ -962,17 +962,17 @@ emitter.emit("message", "Hallo!");
 Aktuelle Einschränkungen:
 
 - **Keine tiefe Kopie** - Verschachtelte Objekte müssen manuell kopiert werden (Spread ist flach)
-- **Keine Wertuebergabe** - Objekte werden immer als Referenz übergeben
+- **Keine Wertübergabe** - Objekte werden immer als Referenz übergeben
 - **Keine berechneten Eigenschaften** - Keine `{[key]: value}`-Syntax
-- **`self` ist schreibgeschuetzt** - Kann `self` in Methoden nicht neu zuweisen
-- **Keine Eigenschaftsloeschung** - Felder können nicht entfernt werden, sobald sie hinzugefügt sind
+- **`self` ist schreibgeschützt** - Kann `self` in Methoden nicht neu zuweisen
+- **Keine Eigenschaftslöschung** - Felder können nicht entfernt werden, sobald sie hinzugefügt sind
 
 **Hinweis:** Objekte sind referenzgezählt und werden automatisch freigegeben, wenn der Gültigkeitsbereich endet. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
 
 ## Verwandte Themen
 
 - [Functions](functions.md) - Methoden sind Funktionen, die in Objekten gespeichert sind
-- [Arrays](arrays.md) - Arrays sind ebenfalls objektaehnlich
+- [Arrays](arrays.md) - Arrays sind ebenfalls objektähnlich
 - [Types](types.md) - Duck-Typing und Typdefinitionen
 - [Error Handling](error-handling.md) - Fehlerobjekte werfen
 

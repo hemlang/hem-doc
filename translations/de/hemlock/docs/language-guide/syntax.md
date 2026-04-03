@@ -132,10 +132,10 @@ print(~a);      // -13 - Bitweises NICHT
 
 ### Operatorrangfolge
 
-Von hoechster zu niedrigster Priorität:
+Von höchster zu niedrigster Priorität:
 
 1. `()` - Gruppierung
-2. `!`, `~`, `-` (unaer) - Unaere Operatoren
+2. `!`, `~`, `-` (unär) - Unäre Operatoren
 3. `*`, `/` - Multiplikation, Division
 4. `+`, `-` - Addition, Subtraktion
 5. `<<`, `>>` - Bitverschiebungen
@@ -440,7 +440,7 @@ try {
 } catch (e) {
     // Fehler behandeln
 } finally {
-    // Aufraeumen
+    // Aufräumen
 }
 ```
 
@@ -591,7 +591,7 @@ let mixed = "Hallo \u{1F30D}!";        // Hallo (Erde)!
 **Escape-Sequenzen:**
 - `\n` - Zeilenumbruch
 - `\t` - Tabulator
-- `\r` - Wagenruecklauf
+- `\r` - Wagenrücklauf
 - `\\` - Backslash
 - `\"` - Anführungszeichen
 - `\'` - Apostroph
@@ -622,17 +622,17 @@ let f = false;
 let nothing = null;
 ```
 
-## Gueltigkeitsbereichsregeln
+## Gültigkeitsbereichsregeln
 
 ### Block-Gültigkeitsbereich
 
 Variablen sind auf den nächsten umschliessenden Block beschränkt:
 
 ```hemlock
-let x = 1;  // Aeusserer Gültigkeitsbereich
+let x = 1;  // Äußerer Gültigkeitsbereich
 
 if (true) {
-    let x = 2;  // Innerer Gültigkeitsbereich (ueberdeckt äußeren)
+    let x = 2;  // Innerer Gültigkeitsbereich (überdeckt äußeren)
     print(x);   // 2
 }
 
@@ -675,19 +675,19 @@ print(counter());  // 2
 
 ## Whitespace und Formatierung
 
-### Einrueckung
+### Einrückung
 
-Hemlock erzwingt keine bestimmte Einrueckung, aber 4 Leerzeichen werden empfohlen:
+Hemlock erzwingt keine bestimmte Einrückung, aber 4 Leerzeichen werden empfohlen:
 
 ```hemlock
 fn example() {
     if (true) {
-        print("eingerueckt");
+        print("eingerückt");
     }
 }
 ```
 
-### Zeilenumbrueche
+### Zeilenumbrüche
 
 Anweisungen können mehrere Zeilen umfassen:
 

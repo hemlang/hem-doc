@@ -12,20 +12,20 @@ Hemlock bietet **manuelle Speicherverwaltung** mit expliziter Allokation und Dea
 - Explizite Allokation und Deallokation
 - Keine Garbage Collection
 - Benutzer verantwortlich für Aufruf von `free()`
-- Interne Referenzzaehlung für Scope/Neuzuweisungssicherheit (siehe unten)
+- Interne Referenzzählung für Scope/Neuzuweisungssicherheit (siehe unten)
 
-### Interne Referenzzaehlung
+### Interne Referenzzählung
 
-Die Laufzeit verwendet Referenzzaehlung intern zur Verwaltung von Objektlebenszeiten über Scopes. Für die meisten lokalen Variablen ist die Bereinigung automatisch.
+Die Laufzeit verwendet Referenzzählung intern zur Verwaltung von Objektlebenszeiten über Scopes. Für die meisten lokalen Variablen ist die Bereinigung automatisch.
 
 **Automatisch (kein `free()` nötig):**
-- Lokale Variablen von referenzgezaehlten Typen (buffer, array, object, string) werden freigegeben wenn Scope endet
+- Lokale Variablen von referenzgezählten Typen (buffer, array, object, string) werden freigegeben wenn Scope endet
 - Alte Werte werden freigegeben wenn Variablen neu zugewiesen werden
 - Container-Elemente werden freigegeben wenn Container freigegeben werden
 
 **Manuelles `free()` erforderlich:**
 - Roh-Pointer von `alloc()` - immer
-- Fruehe Bereinigung vor Scope-Ende
+- Frühe Bereinigung vor Scope-Ende
 - Langlebige/globale Daten
 
 Siehe [Speicherverwaltungs-Leitfaden](../language-guide/memory.md#internal-reference-counting) für Details.
@@ -42,7 +42,7 @@ Siehe [Speicherverwaltungs-Leitfaden](../language-guide/memory.md#internal-refer
 
 **Größe:** 8 Bytes
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Low-Level-Speicheroperationen
 - FFI (Foreign Function Interface)
 - Maximale Leistung (kein Overhead)
@@ -64,20 +64,20 @@ free(p);
 
 **Beschreibung:** Sicherer Pointer-Wrapper mit Grenzenprüfung.
 
-**Struktur:** Pointer + Länge + Kapazität + Referenzzaehler
+**Struktur:** Pointer + Länge + Kapazität + Referenzzähler
 
 **Eigenschaften:**
-- `.length` - Buffergroesse (i32)
+- `.length` - Buffergröße (i32)
 - `.capacity` - Allokierte Kapazität (i32)
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Die meisten Speicherallokationen
 - Wenn Sicherheit wichtig ist
 - Dynamische Arrays
 
 **Sicherheit:** Grenzenprüfung bei Indexzugriff
 
-**Referenzzaehlung:** Buffer sind intern referenzgezählt. Automatisch freigegeben wenn Scope endet oder Variable neu zugewiesen wird. Verwenden Sie `free()` für fruehe Bereinigung oder langlebige Daten.
+**Referenzzählung:** Buffer sind intern referenzgezählt. Automatisch freigegeben wenn Scope endet oder Variable neu zugewiesen wird. Verwenden Sie `free()` für frühe Bereinigung oder langlebige Daten.
 
 **Beispiele:**
 ```hemlock
@@ -135,7 +135,7 @@ buffer(size: i32): buffer
 ```
 
 **Parameter:**
-- `size` - Buffergroesse in Bytes
+- `size` - Buffergröße in Bytes
 
 **Rückgabe:** Buffer-Objekt
 
@@ -201,7 +201,7 @@ free(buf);
 
 ### realloc
 
-Aendert Größe von allokiertem Speicher.
+Ändert Größe von allokiertem Speicher.
 
 **Signatur:**
 ```hemlock
@@ -209,10 +209,10 @@ realloc(ptr: ptr, new_size: i32): ptr
 ```
 
 **Parameter:**
-- `ptr` - Pointer zur Groessenaenderung
+- `ptr` - Pointer zur Größenänderung
 - `new_size` - Neue Größe in Bytes
 
-**Rückgabe:** Pointer zum vergroesserten Speicher (kann andere Adresse sein)
+**Rückgabe:** Pointer zum vergrößerten Speicher (kann andere Adresse sein)
 
 **Beispiele:**
 ```hemlock
@@ -229,7 +229,7 @@ free(p);
 **Verhalten:**
 - Kann Speicher an neue Position verschieben
 - Erhält vorhandene Daten (bis Minimum aus alter/neuer Größe)
-- Alter Pointer ist nach erfolgreichem realloc ungültig (zurueckgegebenen Pointer verwenden)
+- Alter Pointer ist nach erfolgreichem realloc ungültig (zurückgegebenen Pointer verwenden)
 - Wenn new_size kleiner, werden Daten abgeschnitten
 - Gibt `null` bei Allokationsfehler zurück (Original-Pointer bleibt gültig)
 
@@ -241,7 +241,7 @@ free(p);
 
 ### memset
 
-Fuellt Speicher mit Byte-Wert.
+Füllt Speicher mit Byte-Wert.
 
 **Signatur:**
 ```hemlock
@@ -250,8 +250,8 @@ memset(ptr: ptr, byte: i32, size: i32): null
 
 **Parameter:**
 - `ptr` - Pointer zum Speicher
-- `byte` - Byte-Wert zum Fuellen (0-255)
-- `size` - Anzahl der zu fuellenden Bytes
+- `byte` - Byte-Wert zum Füllen (0-255)
+- `size` - Anzahl der zu füllenden Bytes
 
 **Rückgabe:** `null`
 
@@ -262,12 +262,12 @@ let p = alloc(100);
 // Speicher nullen
 memset(p, 0, 100);
 
-// Mit bestimmtem Wert fuellen
+// Mit bestimmtem Wert füllen
 memset(p, 0xFF, 100);
 
 // Buffer initialisieren
 let buf = alloc(256);
-memset(buf, 65, 256);       // Mit 'A' fuellen
+memset(buf, 65, 256);       // Mit 'A' füllen
 
 free(p);
 free(buf);
@@ -316,7 +316,7 @@ free(dest);
 **Verhalten:**
 - Kopiert Byte für Byte von src zu dest
 - Keine Grenzenprüfung (unsicher)
-- Ueberlappende Bereiche haben undefiniertes Verhalten (vorsichtig verwenden)
+- Überlappende Bereiche haben undefiniertes Verhalten (vorsichtig verwenden)
 
 ---
 
@@ -336,7 +336,7 @@ sizeof(type): i32
 
 **Rückgabe:** Größe in Bytes (i32)
 
-**Typgroessen:**
+**Typgrößen:**
 
 | Typ | Größe (Bytes) |
 |-----|-----------------|
@@ -362,7 +362,7 @@ let float_size = sizeof(f64);    // 8
 let byte_size = sizeof(u8);      // 1
 let rune_size = sizeof(rune);    // 4
 
-// Array-Allokationsgroesse berechnen
+// Array-Allokationsgröße berechnen
 let count = 100;
 let total = sizeof(i32) * count; // 400 Bytes
 ```
@@ -420,7 +420,7 @@ free(bytes);
 
 ### .length
 
-Gibt Buffergroesse zurück.
+Gibt Buffergröße zurück.
 
 **Typ:** `i32`
 
@@ -439,7 +439,7 @@ print(buf2.length);         // 1024
 
 ### .capacity
 
-Gibt Bufferkapazitaet zurück.
+Gibt Bufferkapazität zurück.
 
 **Typ:** `i32`
 
@@ -507,7 +507,7 @@ if (p == null) {
 // Mehr Platz benötigt - auf Fehler prüfen
 let new_p = realloc(p, 200);
 if (new_p == null) {
-    // Original-Pointer noch gültig, aufraeumen
+    // Original-Pointer noch gültig, aufräumen
     free(p);
     panic("Realloc fehlgeschlagen");
 }
@@ -535,7 +535,7 @@ free(copy);
 
 ---
 
-## Sicherheitsueberlegungen
+## Sicherheitsüberlegungen
 
 **Hemlocks Speicherverwaltung ist UNSICHER by Design:**
 
@@ -549,7 +549,7 @@ fn create_buffer() {
     return null;  // Speicher geleakt!
 }
 
-// GUT: Ordnungsgemaesse Bereinigung
+// GUT: Ordnungsgemäße Bereinigung
 fn create_buffer() {
     let p = alloc(1024);
     // ... Speicher verwenden ...
@@ -569,7 +569,7 @@ memset(p, 0, 100);  // ABSTURZ: Verwendung von freigegebenem Speicher
 let p2 = alloc(100);
 memset(p2, 0, 100);
 free(p2);
-// p2 nach hier nicht beruehren
+// p2 nach hier nicht berühren
 ```
 
 **3. Doppelte Freigabe**
@@ -592,18 +592,18 @@ memset(p, 65, 100);  // ABSTURZ: Schreiben über Allokation hinaus
 
 // GUT: Buffer für Grenzenprüfung verwenden
 let buf = buffer(10);
-// buf[100] = 65;  // FEHLER: Grenzenprüfung schlaegt fehl
+// buf[100] = 65;  // FEHLER: Grenzenprüfung schlägt fehl
 ```
 
-**5. Haengende Pointer**
+**5. Hängende Pointer**
 ```hemlock
-// SCHLECHT: Haengender Pointer
+// SCHLECHT: Hängender Pointer
 let p1 = alloc(100);
 let p2 = p1;
 free(p1);
-memset(p2, 0, 100);  // ABSTURZ: p2 haengt
+memset(p2, 0, 100);  // ABSTURZ: p2 hängt
 
-// GUT: Eigentum sorgfaeltig verfolgen
+// GUT: Eigentum sorgfältig verfolgen
 let p = alloc(100);
 // ... p verwenden ...
 free(p);
@@ -619,7 +619,7 @@ memset(p, 0, 1000000000);   // ABSTURZ: p ist null
 // GUT: Immer Allokationsergebnis prüfen
 let p2 = alloc(1000000000);
 if (p2 == null) {
-    panic("Speicher erschoepft");
+    panic("Speicher erschöpft");
 }
 memset(p2, 0, 1000000000);
 free(p2);
@@ -642,23 +642,23 @@ free(p2);
 - Sie ein Experte sind
 
 ### `realloc()` verwenden wenn:
-- Allokationen vergroessern/verkleinern
+- Allokationen vergrößern/verkleinern
 - Dynamische Arrays
 - Sie Daten erhalten müssen
 
 ---
 
-## Vollständige Funktionsuebersicht
+## Vollständige Funktionsübersicht
 
 | Funktion  | Signatur                               | Rückgabe | Beschreibung               |
 |-----------|----------------------------------------|-----------|----------------------------|
 | `alloc`   | `(size: i32)`                          | `ptr`     | Roh-Speicher allokieren    |
 | `buffer`  | `(size: i32)`                          | `buffer`  | Sicheren Buffer allokieren |
 | `free`    | `(ptr: ptr \| buffer)`                 | `null`    | Speicher freigeben         |
-| `realloc` | `(ptr: ptr, new_size: i32)`            | `ptr`     | Allokation vergroessern    |
-| `memset`  | `(ptr: ptr, byte: i32, size: i32)`     | `null`    | Speicher fuellen           |
+| `realloc` | `(ptr: ptr, new_size: i32)`            | `ptr`     | Allokation vergrößern    |
+| `memset`  | `(ptr: ptr, byte: i32, size: i32)`     | `null`    | Speicher füllen           |
 | `memcpy`  | `(dest: ptr, src: ptr, size: i32)`     | `null`    | Speicher kopieren          |
-| `sizeof`  | `(type)`                               | `i32`     | Typgroesse in Bytes holen  |
+| `sizeof`  | `(type)`                               | `i32`     | Typgröße in Bytes holen  |
 | `talloc`  | `(type, count: i32)`                   | `ptr`     | Typisiertes Array allokieren |
 
 ---

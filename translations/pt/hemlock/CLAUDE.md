@@ -480,6 +480,7 @@ ou use channels para sinalizar conclusão.
 ```hemlock
 let name = read_line();          // Lê linha de stdin (bloqueante)
 print("Hello, " + name);
+write("sem quebra de linha");    // Imprimir sem quebra de linha final
 eprint("Error message");         // Saída para stderr
 
 // read_line() retorna null em EOF
@@ -526,16 +527,39 @@ print(s.length);       // 7 (contagem de caracteres/runes)
 print(s.byte_length);  // 10 (contagem de bytes - emoji é 4 bytes UTF-8)
 ```
 
-## Métodos de Array (18)
+## Métodos de Array (23)
 
 `push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
-`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`
+`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
+`every`, `some`, `indexOf`, `sort`, `fill`
+
+```hemlock
+// every(predicate) - true se todos os elementos satisfazem o predicado
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+
+// some(predicate) - true se algum elemento satisfaz o predicado
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+
+// indexOf(value) - encontra primeiro indice do valor, ou -1
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+
+// sort(comparator?) - ordena in-place, comparador opcional
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // descendente
+
+// fill(value, start?, end?) - preenche com valor
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 Arrays tipados: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Biblioteca Padrão (40 módulos)
+## Biblioteca Padrão (42 módulos)
 
 Importar com prefixo `@stdlib/`:
 ```hemlock
@@ -581,11 +605,13 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `sqlite` | SQLite database, query, exec, transações |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | Cores e estilos ANSI |
+| `termios` | Entrada de terminal bruta, detecção de teclas |
 | `testing` | describe, test, expect |
 | `time` | now, time_ms, sleep, clock |
 | `toml` | Parsing e geração de TOML |
 | `url` | Parsing e manipulação de URL |
 | `uuid` | Geração de UUID |
+| `vector` | Busca de similaridade vetorial (USearch ANN) |
 | `websocket` | Cliente WebSocket |
 
 Veja `stdlib/docs/` para documentação detalhada dos módulos.
@@ -680,7 +706,7 @@ hemlock/
 │   │   ├── lsp/          # Language Server Protocol
 │   │   └── bundler/      # Ferramenta de bundling/pacotes
 ├── runtime/              # Runtime de programas compilados (libhemlock_runtime.a)
-├── stdlib/               # Biblioteca padrão (40 módulos)
+├── stdlib/               # Biblioteca padrão (42 módulos)
 │   └── docs/             # Documentação dos módulos
 ├── docs/                 # Documentação completa
 │   ├── language-guide/   # Tipos, strings, arrays, etc.
@@ -890,7 +916,41 @@ make parity
 
 ## Versão
 
-**v1.8.0** - Recursos da versão atual:
+**v1.9.2** - Recursos da versão atual:
+- **Correção do contador de loop unboxed do compilador** - Corrigido um bug crítico de codegen onde contadores de loop otimizados (native `int32_t`) eram usados diretamente como inicializadores `HmlValue` sem boxing. A verificação `codegen_is_main_var` impedia incorretamente a emissão do wrapper de boxing (`hml_val_i32()`) quando uma variável de nível main sombreava um contador de loop unboxed dentro de uma função módulo/closure. Corrige compilação de `@stdlib/collections` e `@stdlib/encoding`.
+- **Dispatch de método de objeto `clear()`** - O compilador agora despacha corretamente `.clear()` para métodos de objeto quando chamado em tipos não-array. Anteriormente, `.clear()` sempre gerava `hml_array_clear()` independentemente do tipo do receptor.
+- **Correção de shadowing de import `exec()`** - O handler builtin `exec()` do compilador agora verifica bindings de import e funções locais do módulo antes de despachar para o builtin exec do sistema. Corrige `@stdlib/sqlite` que exporta sua própria função `exec()`.
+
+**v1.9.1** - Versão anterior com:
+- **Builtin `write()`** - Imprimir sem quebra de linha final (`write("hello"); write(" world");` imprime em uma linha). Inclui `fflush(stdout)` para saída imediata. Paridade total entre interpretador e compilador.
+- **`slice()` de argumento único** - `arr.slice(n)` e `str.slice(n)` agora usam o comprimento como fim padrão, correspondendo ao comportamento JS/Python. A forma de dois argumentos permanece inalterada.
+- **`join()` em arrays de runes** - `"hello".chars().join("")` agora produz corretamente `"hello"` em vez de `"[object][object]..."`. Permite inversão idiomática de string: `str.chars().reverse().join("")`.
+- **Coerção de chaves numéricas HashMap** - Chaves de tipos numéricos diferentes agora correspondem (ex.: chave `i32` encontrada por lookup `i64`). Anteriormente, o guard `typeof()` em `keys_equal()` rejeitava correspondências cross-type válidas.
+- **Melhorias HemBench** - Definições de tarefas corrigidas (arredondamento L1-M-02, precisão L2-E-01), parou de vazar saída esperada para tarefas benchmark L5/L6.
+- **Builtins `ptr_read_*` completos** - Adicionados `ptr_read_i8`, `ptr_read_i16`, `ptr_read_i64`, `ptr_read_u8`, `ptr_read_u16`, `ptr_read_u32`, `ptr_read_u64`, `ptr_read_f32`, `ptr_read_f64`, `ptr_read_ptr` para complementar funções `ptr_write_*` existentes. Corrigido `ptr_read_i32` para dereferência direta (era dereferência dupla). Paridade total entre interpretador e compilador.
+- **Carregamento de bibliotecas FFI macOS** - `dlopen` agora busca em `/usr/local/lib` e `/opt/homebrew/lib` como caminhos de fallback no macOS, corrigindo erros de biblioteca não encontrada para bibliotecas compartilhadas instaladas pelo usuário (ex.: libusearch_c).
+- **Correção `@stdlib/vector` USearch v2** - `create_index()` agora chama `usearch_reserve()` após init, corrigindo segfault com USearch v2.24+ que requer pré-alocação antes de adicionar vetores.
+
+**v1.9.0** - Versão anterior com:
+- **Artefato de release do interpretador WASM** - Interpretador WASM pré-compilado incluído nas releases do GitHub para uso em navegador/Node.js
+- **Correções de inlining do compilador** - Corrigida corrupção de argumentos de chamada aninhada e colisão de unboxing com contadores de loop durante inlining de função (corrige compilação do hemloco)
+- **Subtração de ponteiros** - O verificador de tipos do compilador agora permite `ptr - integer` para aritmética de ponteiros
+- **Exceções `open()` capturáveis** - `open()` agora lança via `hml_throw()` em vez de `exit(1)`, habilitando tratamento de erros com try/catch
+- **Correção de print/eprint multi-argumento** - Corrigido codegen do compilador para `print()` e `eprint()` com múltiplos argumentos (ex.: `print("x:", x, y)`)
+- **Correção de string SSO** - Corrigido segfault em `hml_string_append_inplace` ao crescer strings usando Small String Optimization
+- **Módulo `@stdlib/termios`** - Entrada de terminal bruta cross-platform (Linux/macOS):
+  - `enable_raw_mode()` / `disable_raw_mode()` para teclas instantâneas
+  - `read_key()` / `read_key_timeout(ms)` para leitura de tecla única
+  - Detecção de teclas de seta, teclas de função, teclas de controle
+  - `is_terminal()` para verificar se stdin é um TTY
+  - Documentação em `stdlib/docs/termios.md`
+- **Prevenção de vazamento de memória** - Correções abrangentes garantindo que o runtime é livre de vazamentos:
+  - Avaliação de expressão segura contra exceções (arrays, objetos, chamadas de função)
+  - Retain/release correto do resultado de task em join()
+  - Drenagem de channel ao fechar (libera valores bufferizados)
+  - Limpeza do otimizador para constant folding de coalescência nula
+  - Suite de testes de regressão de vazamentos (`make leak-regression`)
+  - Documentação de ownership de memória (`docs/advanced/memory-ownership.md`)
 - **Pattern Matching** (expressões `match`) - Desestruturação poderosa e fluxo de controle:
   - Padrões literal, wildcard e binding de variável
   - Padrões OR (`1 | 2 | 3`)
@@ -936,11 +996,11 @@ make parity
 - Sistema de tipos unificado com dicas de otimização de unboxing
 - Sistema de tipos completo (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
 - Strings UTF-8 com 19 métodos
-- Arrays com 18 métodos incluindo map/filter/reduce
+- Arrays com 23 métodos incluindo map/filter/reduce/every/some/indexOf/sort/fill
 - Gerenciamento manual de memória com `talloc()` e `sizeof()`
 - Async/await com paralelismo pthread real
 - Operações atômicas para programação concorrente sem locks
-- 40 módulos de stdlib (+ arena, assert, semver, toml, retry, iter, random, shell)
+- 42 módulos de stdlib (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
 - FFI para interop com C, com `export extern fn` para wrappers de biblioteca reutilizáveis
 - Suporte a struct FFI no compilador (passando structs C por valor)
 - Helpers de ponteiro FFI (`ptr_null`, `ptr_read_*`, `ptr_write_*`)

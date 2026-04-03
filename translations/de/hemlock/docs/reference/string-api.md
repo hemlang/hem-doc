@@ -6,11 +6,11 @@ Vollständige Referenz für Hemlocks String-Typ und alle 19 String-Methoden.
 
 ## Übersicht
 
-Strings in Hemlock sind **UTF-8-kodierte, veraenderbare, heap-allokierte** Sequenzen mit vollstaendiger Unicode-Unterstützung. Alle Operationen arbeiten mit **Codepoints** (Zeichen), nicht Bytes.
+Strings in Hemlock sind **UTF-8-kodierte, veränderbare, heap-allokierte** Sequenzen mit vollständiger Unicode-Unterstützung. Alle Operationen arbeiten mit **Codepoints** (Zeichen), nicht Bytes.
 
 **Hauptmerkmale:**
 - UTF-8-Kodierung (U+0000 bis U+10FFFF)
-- Veraenderbar (kann Zeichen direkt ändern)
+- Veränderbar (kann Zeichen direkt ändern)
 - Codepoint-basierte Indizierung
 - 19 eingebaute Methoden
 - Automatische Verkettung mit `+`-Operator
@@ -226,7 +226,7 @@ let pos3 = s.find("l");         // 2 (erstes 'l')
 
 #### contains
 
-Prueft ob String Teilstring enthält.
+Prüft ob String Teilstring enthält.
 
 **Signatur:**
 ```hemlock
@@ -349,7 +349,7 @@ let lower2 = mixed.to_lower();  // "hello"
 
 #### starts_with
 
-Prueft ob String mit Präfix beginnt.
+Prüft ob String mit Präfix beginnt.
 
 **Signatur:**
 ```hemlock
@@ -357,7 +357,7 @@ string.starts_with(prefix: string): bool
 ```
 
 **Parameter:**
-- `prefix` - Zu pruefendes Präfix
+- `prefix` - Zu prüfendes Präfix
 
 **Rückgabe:** `true` wenn String mit Präfix beginnt, `false` sonst
 
@@ -372,7 +372,7 @@ let starts2 = s.starts_with("world"); // false
 
 #### ends_with
 
-Prueft ob String mit Suffix endet.
+Prüft ob String mit Suffix endet.
 
 **Signatur:**
 ```hemlock
@@ -380,7 +380,7 @@ string.ends_with(suffix: string): bool
 ```
 
 **Parameter:**
-- `suffix` - Zu pruefendes Suffix
+- `suffix` - Zu prüfendes Suffix
 
 **Rückgabe:** `true` wenn String mit Suffix endet, `false` sonst
 
@@ -601,7 +601,7 @@ let buf2 = emoji.to_bytes();
 print(buf2.length);             // 4
 ```
 
-**Hinweis:** Dies ist eine Legacy-Methode. Bevorzugen Sie `.bytes()` für die meisten Anwendungsfaelle.
+**Hinweis:** Dies ist eine Legacy-Methode. Bevorzugen Sie `.bytes()` für die meisten Anwendungsfälle.
 
 ---
 
@@ -634,7 +634,7 @@ let num = num_json.deserialize();
 print(num);                     // 42
 ```
 
-**Unterstuetzte Typen:**
+**Unterstützte Typen:**
 - Objekte: `{"key": value}`
 - Arrays: `[1, 2, 3]`
 - Zahlen: `42`, `3.14`
@@ -648,7 +648,7 @@ print(num);                     // 42
 
 ## Methoden-Verkettung
 
-String-Methoden können für praegnante Operationen verkettet werden:
+String-Methoden können für prägnante Operationen verkettet werden:
 
 **Beispiele:**
 ```hemlock
@@ -668,7 +668,7 @@ let cleaned = "  HELLO  "
 
 ---
 
-## Vollständige Methodenuebersicht
+## Vollständige Methodenübersicht
 
 | Methode        | Signatur                                     | Rückgabe | Beschreibung                          |
 |----------------|----------------------------------------------|-----------|---------------------------------------|

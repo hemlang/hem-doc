@@ -39,7 +39,7 @@ let msg = greet("Alice");  // "Hello, Alice"
 ```
 
 **Komponenten:**
-- `fn` - Funktionsschluesselwort
+- `fn` - Funktionsschlüsselwort
 - `greet` - Funktionsname
 - `(name: string)` - Parameter mit optionalen Typen
 - `: string` - Optionaler Rückgabetyp
@@ -97,13 +97,13 @@ add(5, 10.5);    // Laufzeit-Typüberprüfung konvertiert zu f64
 - Implizite Typkonvertierungen folgen Standard-Promotionsregeln
 - Typkonflikte verursachen Laufzeitfehler
 
-### Wertuebergabe (Pass-by-Value)
+### Wertübergabe (Pass-by-Value)
 
-Alle Argumente werden **kopiert** (Wertuebergabe):
+Alle Argumente werden **kopiert** (Wertübergabe):
 
 ```hemlock
 fn modify(x) {
-    x = 100;  // Aendert nur die lokale Kopie
+    x = 100;  // Ändert nur die lokale Kopie
 }
 
 let a = 10;
@@ -115,7 +115,7 @@ print(a);  // Immer noch 10 (unverändert)
 
 ```hemlock
 fn modify_array(arr) {
-    arr[0] = 99;  // Aendert das Original-Array
+    arr[0] = 99;  // Ändert das Original-Array
 }
 
 let a = [1, 2, 3];
@@ -123,7 +123,7 @@ modify_array(a);
 print(a[0]);  // 99 (geändert)
 ```
 
-## Rueckgabewerte
+## Rückgabewerte
 
 ### Return-Anweisung
 
@@ -152,7 +152,7 @@ fn get_name(): string {
 ```
 
 **Typüberprüfung:**
-- Rueckgabetypen werden beim Zurückgeben geprüft (wenn annotiert)
+- Rückgabetypen werden beim Zurückgeben geprüft (wenn annotiert)
 - Typkonvertierungen folgen Standard-Promotionsregeln
 
 ### Implizite Rückgabe
@@ -168,13 +168,13 @@ fn print_message(msg) {
 let result = print_message("hello");  // result ist null
 ```
 
-### Fruehe Rückgabe
+### Frühe Rückgabe
 
 ```hemlock
 fn find_first_negative(arr) {
     for (let i = 0; i < arr.length; i = i + 1) {
         if (arr[i] < 0) {
-            return i;  // Fruehes Beenden
+            return i;  // Frühes Beenden
         }
     }
     return -1;  // Nicht gefunden
@@ -224,7 +224,7 @@ fn double(n) {
 let result = apply(double, 5);  // 10
 ```
 
-### Funktionen als Rueckgabewerte
+### Funktionen als Rückgabewerte
 
 ```hemlock
 fn get_operation(op: string) {
@@ -264,7 +264,7 @@ print(counter());  // 3
 
 **Wie es funktioniert:**
 - Die innere Funktion erfasst `count` aus dem äußeren Scope
-- `count` bleibt über Aufrufe der zurueckgegebenen Funktion erhalten
+- `count` bleibt über Aufrufe der zurückgegebenen Funktion erhalten
 - Jeder Aufruf von `makeCounter()` erstellt eine neue Closure mit eigenem `count`
 
 ### Closure mit Parametern
@@ -480,7 +480,7 @@ print(person.greet());  // "Hi, I'm Alice"
 
 ```hemlock
 fn process_async(data, callback) {
-    // ... Verarbeitung durchfuehren
+    // ... Verarbeitung durchführen
     callback(data);
 }
 
@@ -590,7 +590,7 @@ fn outer() {
 2. **Halte Funktionen klein** - Jede Funktion sollte eine Sache tun
 3. **Bevorzuge reine Funktionen** - Vermeide Seiteneffekte wenn möglich
 4. **Benenne Funktionen klar** - Verwende beschreibende Verb-Namen
-5. **Fruehe Rückgabe** - Verwende Guard-Klauseln um Verschachtelung zu reduzieren
+5. **Frühe Rückgabe** - Verwende Guard-Klauseln um Verschachtelung zu reduzieren
 6. **Dokumentiere komplexe Closures** - Mache erfasste Variablen explizit
 7. **Vermeide tiefe Rekursion** - Noch keine Tail-Call-Optimierung
 
@@ -605,7 +605,7 @@ fn count_down(n) {
     count_down(n - 1);
 }
 
-count_down(100000);  // Kann mit Stack-Überlauf abstuerzen
+count_down(100000);  // Kann mit Stack-Überlauf abstürzen
 ```
 
 ### Fallstrick: Ändern erfasster Variablen
@@ -759,11 +759,11 @@ log("INFO", "Starting", "Running", "Done");
 **Regeln:**
 - Der Rest-Parameter muss der letzte Parameter sein
 - Der Rest-Parameter sammelt alle verbleibenden Argumente in einem Array
-- Kann mit regulaeren und optionalen Parametern kombiniert werden
+- Kann mit regulären und optionalen Parametern kombiniert werden
 
 ## Funktionstyp-Annotationen
 
-Funktionstypen ermöglichen es, die genaue Signatur für Funktionsparameter und Rueckgabewerte zu spezifizieren:
+Funktionstypen ermöglichen es, die genaue Signatur für Funktionsparameter und Rückgabewerte zu spezifizieren:
 
 ### Grundlegende Funktionstypen
 
@@ -817,13 +817,13 @@ fn filter_with(arr: array, pred: Predicate): array {
 
 ## Const-Parameter
 
-Der `const`-Modifikator verhindert, dass ein Parameter innerhalb der Funktion veraendert wird:
+Der `const`-Modifikator verhindert, dass ein Parameter innerhalb der Funktion verändert wird:
 
 ### Grundlegende Const-Parameter
 
 ```hemlock
 fn print_all(const items: array) {
-    // items.push(4);  // FEHLER: kann const-Parameter nicht veraendern
+    // items.push(4);  // FEHLER: kann const-Parameter nicht verändern
     for (item in items) {
         print(item);   // OK: Lesen ist erlaubt
     }
@@ -840,7 +840,7 @@ Const-Parameter erzwingen tiefe Unveränderlichkeit - keine Mutation über irgen
 ```hemlock
 fn describe(const person: object) {
     print(person.name);       // OK: Lesen ist erlaubt
-    // person.name = "Bob";   // FEHLER: kann nicht veraendern
+    // person.name = "Bob";   // FEHLER: kann nicht verändern
     // person.address.city = "NYC";  // FEHLER: tiefes const
 }
 ```
@@ -856,7 +856,7 @@ fn describe(const person: object) {
 
 ## Benannte Argumente
 
-Funktionen können mit benannten Argumenten aufgerufen werden für Klarheit und Flexibilitaet:
+Funktionen können mit benannten Argumenten aufgerufen werden für Klarheit und Flexibilität:
 
 ### Grundlegende benannte Argumente
 
@@ -896,8 +896,8 @@ create_user("Eve", age: 21);          // OK
 
 Aktuelle Einschränkungen, die zu beachten sind:
 
-- **Keine Referenzuebergabe** - `ref`-Schlüsselwort wird geparst aber nicht implementiert
-- **Kein Funktionsueberladen** - Eine Funktion pro Name
+- **Keine Referenzübergabe** - `ref`-Schlüsselwort wird geparst aber nicht implementiert
+- **Kein Funktionsüberladen** - Eine Funktion pro Name
 - **Keine Tail-Call-Optimierung** - Tiefe Rekursion durch Stack-Größe begrenzt
 
 ## Verwandte Themen

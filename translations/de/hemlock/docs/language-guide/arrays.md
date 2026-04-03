@@ -161,7 +161,7 @@ print(arr.length);  // 6
 
 ## Array-Methoden
 
-Hemlock bietet 18 Array-Methoden für umfassende Manipulation.
+Hemlock bietet 23 Array-Methoden für umfassende Manipulation.
 
 ### Stack-Operationen
 
@@ -287,6 +287,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Funktioniert mit gemischten Typen
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
+
+// Funktioniert mit Rune-Arrays (von chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Mit anderem Array verketten:
@@ -454,7 +459,7 @@ let second = queue.shift();  // 2
 ## Best Practices
 
 1. **Verwende Methoden statt direkter Indizierung** - Grenzprüfung und Klarheit
-2. **Pruefe Grenzen** - Direkte Indizierung prüft keine Grenzen
+2. **Prüfe Grenzen** - Direkte Indizierung prüft keine Grenzen
 3. **Bevorzuge unveränderliche Operationen** - Verwende `slice()` und `concat()` statt Mutation
 4. **Initialisiere mit Kapazität** - Wenn du die Größe kennst (derzeit nicht unterstützt)
 5. **Verwende `contains()` für Zugehörigkeit** - Klarer als manuelle Schleifen
@@ -471,7 +476,7 @@ let arr = [1, 2, 3];
 arr[10] = 99;  // Erstellt duenn besetztes Array mit nulls
 print(arr.length);  // 11 (nicht 3!)
 
-// Besser: Verwende push() oder pruefe Länge
+// Besser: Verwende push() oder prüfe Länge
 if (arr.length <= 10) {
     arr.push(99);
 }
@@ -515,9 +520,9 @@ fn add_to_cache(item) {
     global_cache.push(item);  // Wächst unbegrenzt
 }
 
-// Für langlebige Daten, erwaege:
+// Für langlebige Daten, erwäge:
 // - Array periodisch leeren: global_cache.clear();
-// - Frueh freigeben wenn fertig: free(global_cache);
+// - Früh freigeben wenn fertig: free(global_cache);
 ```
 
 ## Beispiele
@@ -648,7 +653,7 @@ fn sort(arr) {
 }
 
 let numbers = [5, 2, 8, 1, 9];
-sort(numbers);  // Aendert an Ort und Stelle
+sort(numbers);  // Ändert an Ort und Stelle
 print(numbers);  // [1, 2, 5, 8, 9]
 ```
 
@@ -666,12 +671,12 @@ Aktuelle Einschränkungen:
 ## Verwandte Themen
 
 - [Strings](strings.md) - String-Methoden ähnlich wie Array-Methoden
-- [Objekte](objects.md) - Arrays sind auch objektaehnlich
+- [Objekte](objects.md) - Arrays sind auch objektähnlich
 - [Funktionen](functions.md) - Höhere Ordnung Funktionen mit Arrays
 - [Kontrollfluss](control-flow.md) - Über Arrays iterieren
 
 ## Siehe auch
 
 - **Dynamische Größenanpassung**: Arrays wachsen automatisch mit Kapazitätsverdopplung
-- **Methoden**: 18 umfassende Methoden zur Manipulation inklusive map/filter/reduce
+- **Methoden**: 23 umfassende Methoden zur Manipulation inklusive map/filter/reduce/every/some/indexOf/sort/fill
 - **Speicher**: Siehe [Speicher](memory.md) für Array-Allokationsdetails

@@ -535,6 +535,24 @@ Hemlock fornisce funzioni helper complete per lavorare con puntatori raw. Queste
 | `ptr_read_i32(ptr)` | Leggi i32 attraverso puntatore-a-puntatore (per callback qsort) |
 | `ptr_null()` | Ottieni costante puntatore null |
 
+#### Funzioni di Lettura Puntatore
+
+Leggere valori tipizzati direttamente dalla memoria (complementa `ptr_write_*`).
+
+| Funzione | Descrizione |
+|----------|-------------|
+| `ptr_read_i8(ptr)` | Leggere i8 dal puntatore |
+| `ptr_read_i16(ptr)` | Leggere i16 dal puntatore |
+| `ptr_read_i32(ptr)` | Leggere i32 dal puntatore |
+| `ptr_read_i64(ptr)` | Leggere i64 dal puntatore |
+| `ptr_read_u8(ptr)` | Leggere u8 dal puntatore |
+| `ptr_read_u16(ptr)` | Leggere u16 dal puntatore |
+| `ptr_read_u32(ptr)` | Leggere u32 dal puntatore |
+| `ptr_read_u64(ptr)` | Leggere u64 dal puntatore |
+| `ptr_read_f32(ptr)` | Leggere f32 dal puntatore |
+| `ptr_read_f64(ptr)` | Leggere f64 dal puntatore |
+| `ptr_read_ptr(ptr)` | Leggere puntatore dal puntatore (restituisce null se il valore memorizzato è NULL) |
+
 #### Helper Conversione Buffer
 
 | Funzione | Descrizione |

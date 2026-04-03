@@ -705,6 +705,42 @@ while (!should_exit) {
 }
 ```
 
+### Exemplo 4: Padrão de Timeout
+
+```hemlock
+let operation_complete = false;
+let timed_out = false;
+
+fn timeout_handler(sig) {
+    timed_out = true;
+}
+
+signal(SIGALRM, timeout_handler);
+
+// Iniciar operação longa
+async fn long_operation() {
+    // ... trabalho
+    operation_complete = true;
+}
+
+let task = spawn(long_operation);
+
+// Aguardar com timeout (verificação manual)
+let elapsed = 0;
+while (!operation_complete && elapsed < 1000) {
+    // Sleep ou verificar
+    elapsed = elapsed + 1;
+}
+
+if (!operation_complete) {
+    print("Operation timed out");
+    detach(task);  // Desistir de aguardar
+} else {
+    join(task);
+    print("Operation completed");
+}
+```
+
 ## Depurando Handlers de Sinal
 
 ### Adicionar Prints de Diagnóstico

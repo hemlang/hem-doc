@@ -1,12 +1,12 @@
 # Strings
 
-Hemlock-Strings sind **UTF-8 erstklassige veraenderbare Sequenzen** mit voller Unicode-Unterstützung und einem umfangreichen Satz von Methoden zur Textverarbeitung. Anders als in vielen Sprachen sind Hemlock-Strings veraenderbar und arbeiten nativ mit Unicode-Codepoints.
+Hemlock-Strings sind **UTF-8 erstklassige veränderbare Sequenzen** mit voller Unicode-Unterstützung und einem umfangreichen Satz von Methoden zur Textverarbeitung. Anders als in vielen Sprachen sind Hemlock-Strings veränderbar und arbeiten nativ mit Unicode-Codepoints.
 
 ## Überblick
 
 ```hemlock
 let s = "hello";
-s[0] = 'H';             // veraendern mit Rune (jetzt "Hello")
+s[0] = 'H';             // verändern mit Rune (jetzt "Hello")
 print(s.length);        // 5 (Codepoint-Anzahl)
 let c = s[0];           // gibt Rune zurück (Unicode-Codepoint)
 let msg = s + " world"; // Verkettung
@@ -20,12 +20,12 @@ print(emoji.byte_length); // 4 (vier UTF-8-Bytes)
 Hemlock-Strings haben diese Hauptmerkmale:
 
 - **UTF-8-kodiert** - Volle Unicode-Unterstützung (U+0000 bis U+10FFFF)
-- **Veraenderbar** - Anders als Python-, JavaScript- und Java-Strings
+- **Veränderbar** - Anders als Python-, JavaScript- und Java-Strings
 - **Codepoint-basierte Indizierung** - Gibt `rune` (Unicode-Codepoint) zurück, nicht Byte
-- **Heap-allokiert** - Mit interner Kapazitaetsverfolgung
+- **Heap-allokiert** - Mit interner Kapazitätsverfolgung
 - **Zwei Längeneigenschaften**:
   - `.length` - Codepoint-Anzahl (Anzahl der Zeichen)
-  - `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgroesse)
+  - `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgröße)
 
 ## UTF-8-Verhalten
 
@@ -41,7 +41,7 @@ let h = text[0];           // 'H' (Rune)
 let rocket = text[5];      // '🚀' (Rune)
 ```
 
-**Mehrbyte-Zeichen zaehlen als eins:**
+**Mehrbyte-Zeichen zählen als eins:**
 ```hemlock
 "Hello".length;      // 5
 "🚀".length;         // 1 (ein Emoji)
@@ -57,7 +57,7 @@ let s1 = "hello";
 let s2 = "world";
 
 // Mit Escape-Sequenzen
-let s3 = "Zeile 1\nZeile 2\teingerueckt";
+let s3 = "Zeile 1\nZeile 2\teingerückt";
 let s4 = "Zitat: \"Hallo\"";
 let s5 = "Backslash: \\";
 
@@ -90,7 +90,7 @@ let upper = `Name: ${name.to_upper()}`;     // "Name: ALICE"
 let person = { name: "Bob", city: "NYC" };
 let desc = `${person.name} lebt in ${person.city}`;  // "Bob lebt in NYC"
 
-// Mehrzeilig (behält Zeilenumbrueche bei)
+// Mehrzeilig (behält Zeilenumbrüche bei)
 let multi = `Zeile 1
 Zeile 2
 Zeile 3`;
@@ -98,13 +98,13 @@ Zeile 3`;
 
 **Template-String-Funktionen:**
 - Ausdrücke innerhalb von `${...}` werden ausgewertet und in Strings konvertiert
-- Jeder gueltige Ausdruck kann verwendet werden (Variablen, Funktionsaufrufe, Arithmetik)
+- Jeder gültige Ausdruck kann verwendet werden (Variablen, Funktionsaufrufe, Arithmetik)
 - Backtick-Strings unterstützen dieselben Escape-Sequenzen wie reguläre Strings
 - Nützlich zum Erstellen dynamischer Strings ohne Verkettung
 
 ### Escaping in Template-Strings
 
-Um ein literales `${` in einem Template-String einzufuegen, escapen Sie das Dollarzeichen:
+Um ein literales `${` in einem Template-String einzufügen, escapen Sie das Dollarzeichen:
 
 ```hemlock
 let price = 100;
@@ -118,12 +118,12 @@ let code = `Verwende \` für Template-Strings`;
 
 ### Komplexe Ausdrücke
 
-Template-Strings können jeden gueltigen Ausdruck enthalten:
+Template-Strings können jeden gültigen Ausdruck enthalten:
 
 ```hemlock
-// Ternaer-ähnliche Ausdrücke
+// Ternär-ähnliche Ausdrücke
 let age = 25;
-let status = `Status: ${age >= 18 ? "erwachsen" : "minderjaehrig"}`;
+let status = `Status: ${age >= 18 ? "erwachsen" : "minderjährig"}`;
 
 // Array-Zugriff
 let items = ["Apfel", "Banane", "Kirsche"];
@@ -151,7 +151,7 @@ let msg1 = "Hallo, " + name + "! Du hast " + count + " Nachrichten.";
 let msg2 = `Hallo, ${name}! Du hast ${count} Nachrichten.`;
 ```
 
-## Indizierung und Veraenderung
+## Indizierung und Veränderung
 
 ### Zeichen lesen
 
@@ -169,7 +169,7 @@ let rocket = emoji[2];  // '🚀' (Rune an Codepoint-Index 2)
 
 ### Zeichen schreiben
 
-Strings sind veraenderbar - Sie können einzelne Zeichen modifizieren:
+Strings sind veränderbar - Sie können einzelne Zeichen modifizieren:
 
 ```hemlock
 let s = "hello";
@@ -221,7 +221,7 @@ let slice2 = s.slice(6, 11);    // "world"
 ```
 
 **Unterschied:**
-- `substr(start, length)` - Verwendet Laengenparameter
+- `substr(start, length)` - Verwendet Längenparameter
 - `slice(start, end)` - Verwendet Endindex (exklusiv)
 
 ### Suchen & Finden
@@ -270,7 +270,7 @@ let clean2 = s2.trim();         // "text"
 let s = "hello world";
 let upper = s.to_upper();       // "HELLO WORLD"
 
-// Behaelt Nicht-ASCII bei
+// Behält Nicht-ASCII bei
 let s2 = "café";
 let upper2 = s2.to_upper();     // "CAFÉ"
 ```
@@ -453,7 +453,7 @@ let csv = "Apfel, Banane , Kirsche";
 let fields = parse_csv_line(csv);  // ["Apfel", "Banane", "Kirsche"]
 ```
 
-### Beispiel: Wörter zaehlen
+### Beispiel: Wörter zählen
 
 ```hemlock
 fn count_words(text: string): i32 {
@@ -490,9 +490,9 @@ print(is_valid_email("ungültig"));         // false
 
 ## Speicherverwaltung
 
-Strings sind heap-allokiert mit interner Referenzzaehlung:
+Strings sind heap-allokiert mit interner Referenzzählung:
 
-- **Erstellung**: Auf dem Heap allokiert mit Kapazitaetsverfolgung
+- **Erstellung**: Auf dem Heap allokiert mit Kapazitätsverfolgung
 - **Verkettung**: Erzeugt neuen String (alte Strings unverändert)
 - **Methoden**: Die meisten Methoden geben neue Strings zurück
 - **Lebensdauer**: Strings sind referenzgezählt und werden automatisch freigegeben, wenn der Gültigkeitsbereich endet
@@ -505,7 +505,7 @@ fn create_strings() {
 }  // Sowohl s als auch s2 werden automatisch freigegeben, wenn die Funktion zurückkehrt
 ```
 
-**Hinweis:** Lokale String-Variablen werden automatisch bereinigt, wenn sie den Gültigkeitsbereich verlassen. Verwenden Sie `free()` nur für fruehe Bereinigung vor Bereichsende oder für langlebige/globale Daten. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
+**Hinweis:** Lokale String-Variablen werden automatisch bereinigt, wenn sie den Gültigkeitsbereich verlassen. Verwenden Sie `free()` nur für frühe Bereinigung vor Bereichsende oder für langlebige/globale Daten. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
 
 ## Best Practices
 
@@ -526,15 +526,15 @@ print(emoji.byte_length);   // 4 (Bytes)
 
 // Byte- und Codepoint-Operationen nicht mischen
 let byte = emoji.byte_at(0);  // 240 (erstes Byte)
-let char = emoji.char_at(0);  // '🚀' (vollstaendiger Codepoint)
+let char = emoji.char_at(0);  // '🚀' (vollständiger Codepoint)
 ```
 
-### Fallstrick: Mutations-Ueberraschungen
+### Fallstrick: Mutations-Überraschungen
 
 ```hemlock
 let s1 = "hello";
 let s2 = s1;       // Flache Kopie
-s1[0] = 'H';       // Veraendert s1
+s1[0] = 'H';       // Verändert s1
 print(s2);         // Immer noch "hello" (Strings sind Werttypen)
 ```
 

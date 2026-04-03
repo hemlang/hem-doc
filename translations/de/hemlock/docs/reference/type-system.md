@@ -20,7 +20,7 @@ Hemlock verwendet ein **dynamisches Typsystem** mit Laufzeit-Typ-Tags und option
 
 ## Kompilierzeit-Typprüfung (hemlockc)
 
-Der Hemlock-Compiler (`hemlockc`) enthält einen Kompilierzeit-Typchecker der Ihren Code vor der Generierung von ausfuehrbaren Dateien validiert. Dies erkennt Typfehler frueh ohne das Programm ausführen zu müssen.
+Der Hemlock-Compiler (`hemlockc`) enthält einen Kompilierzeit-Typchecker der Ihren Code vor der Generierung von ausführbaren Dateien validiert. Dies erkennt Typfehler früh ohne das Programm ausführen zu müssen.
 
 ### Standardverhalten
 
@@ -61,7 +61,7 @@ hemlockc --strict-types program.hml -o program
 
 1. **Typannotationen** - Stellt sicher dass zugewiesene Werte deklarierten Typen entsprechen
 2. **Funktionsaufrufe** - Validiert Argumenttypen gegen Parametertypen
-3. **Rueckgabetypen** - Prueft ob return-Anweisungen deklariertem Rückgabetyp entsprechen
+3. **Rückgabetypen** - Prüft ob return-Anweisungen deklariertem Rückgabetyp entsprechen
 4. **Operatorverwendung** - Verifiziert dass Operanden kompatibel sind
 5. **Eigenschaftszugriff** - Validiert Objektfeldtypen für typisierte Objekte
 
@@ -249,15 +249,15 @@ let rune_val: rune = byte;  // 'A'
 
 **Typ:** `string`
 
-**Beschreibung:** UTF-8-kodierter, veraenderbarer, heap-allokierter Text
+**Beschreibung:** UTF-8-kodierter, veränderbarer, heap-allokierter Text
 
 **Kodierung:** UTF-8 (U+0000 bis U+10FFFF)
 
-**Veraenderbarkeit:** Veraenderbar (anders als in den meisten Sprachen)
+**Veränderbarkeit:** Veränderbar (anders als in den meisten Sprachen)
 
 **Eigenschaften:**
 - `.length` - Codepoint-Anzahl (Anzahl der Zeichen)
-- `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgroesse)
+- `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgröße)
 
 **Literal-Syntax:** Doppelte Anführungszeichen `"text"`
 
@@ -394,7 +394,7 @@ free(p);
 **Struktur:** Pointer + Länge + Kapazität
 
 **Eigenschaften:**
-- `.length` - Buffergroesse
+- `.length` - Buffergröße
 - `.capacity` - Allokierte Kapazität
 
 **Beispiele:**
@@ -419,7 +419,7 @@ free(b);
 
 **Eigenschaften:**
 - `.path` - Dateipfad (string)
-- `.mode` - Oeffnungsmodus (string)
+- `.mode` - Öffnungsmodus (string)
 - `.closed` - Ob Datei geschlossen (bool)
 
 **Siehe auch:** [Datei-API](file-api.md)
@@ -430,9 +430,9 @@ free(b);
 
 **Typ:** `task`
 
-**Beschreibung:** Handle für nebenlaeufigen Task
+**Beschreibung:** Handle für nebenläufigen Task
 
-**Siehe auch:** [Nebenlaeufigkeits-API](concurrency-api.md)
+**Siehe auch:** [Nebenläufigkeits-API](concurrency-api.md)
 
 ---
 
@@ -442,7 +442,7 @@ free(b);
 
 **Beschreibung:** Thread-sicherer Kommunikationskanal
 
-**Siehe auch:** [Nebenlaeufigkeits-API](concurrency-api.md)
+**Siehe auch:** [Nebenläufigkeits-API](concurrency-api.md)
 
 ---
 
@@ -472,17 +472,17 @@ print(typeof(multiply)); // "function"
 
 **Typ:** `void`
 
-**Beschreibung:** Abwesenheit eines Rueckgabewertes (interne Verwendung)
+**Beschreibung:** Abwesenheit eines Rückgabewertes (interne Verwendung)
 
 ---
 
 ## Typpromovierungsregeln
 
-Beim Mischen von Typen in Operationen promoviert Hemlock zum "hoeheren" Typ:
+Beim Mischen von Typen in Operationen promoviert Hemlock zum "höheren" Typ:
 
 **Promovierungshierarchie:**
 ```
-f64 (hoechste Präzision)
+f64 (höchste Präzision)
  ↑
 f32
  ↑
@@ -507,11 +507,11 @@ i8 (niedrigste)
 1. Float gewinnt immer über Ganzzahl
 2. Größere Größe gewinnt innerhalb gleicher Kategorie (int/uint/float)
 3. Beide Operanden werden zum Ergebnistyp promoviert
-4. **Praezisionserhaltung:** i64/u64 + f32 promoviert zu f64 (nicht f32)
+4. **Präzisionserhaltung:** i64/u64 + f32 promoviert zu f64 (nicht f32)
 
 **Beispiele:**
 ```hemlock
-// Groessenpromovierung
+// Größenpromovierung
 u8 + i32    → i32    // Größere Größe gewinnt
 i32 + i64   → i64    // Größere Größe gewinnt
 u32 + u64   → u64    // Größere Größe gewinnt
@@ -520,12 +520,12 @@ u32 + u64   → u64    // Größere Größe gewinnt
 i32 + f32   → f32    // Float gewinnt, f32 ausreichend für i32
 i64 + f32   → f64    // Promoviert zu f64 um i64-Präzision zu erhalten
 i64 + f64   → f64    // Float gewinnt immer
-i8 + f64    → f64    // Float + groesster gewinnt
+i8 + f64    → f64    // Float + größter gewinnt
 ```
 
 **Warum i64 + f32 → f64?**
 
-f32 hat nur eine 24-Bit-Mantisse, die Ganzzahlen größer als 2^24 (16.777.216) nicht praezise darstellen kann. Da i64 Werte bis 2^63 halten kann, würde das Mischen von i64 mit f32 schweren Praezisionsverlust verursachen. Hemlock promoviert stattdessen zu f64 (53-Bit-Mantisse).
+f32 hat nur eine 24-Bit-Mantisse, die Ganzzahlen größer als 2^24 (16.777.216) nicht präzise darstellen kann. Da i64 Werte bis 2^63 halten kann, würde das Mischen von i64 mit f32 schweren Präzisionsverlust verursachen. Hemlock promoviert stattdessen zu f64 (53-Bit-Mantisse).
 
 ---
 
@@ -533,7 +533,7 @@ f32 hat nur eine 24-Bit-Mantisse, die Ganzzahlen größer als 2^24 (16.777.216) 
 
 Typannotationen erzwingen Bereichsprüfungen bei Zuweisung:
 
-**Gueltige Zuweisungen:**
+**Gültige Zuweisungen:**
 ```hemlock
 let x: u8 = 255;             // OK
 let y: i8 = 127;             // OK
@@ -541,7 +541,7 @@ let a: i64 = 2147483647;     // OK
 let b: u64 = 4294967295;     // OK
 ```
 
-**Ungueltige Zuweisungen (Laufzeitfehler):**
+**Ungültige Zuweisungen (Laufzeitfehler):**
 ```hemlock
 let x: u8 = 256;             // FEHLER: außerhalb des Bereichs
 let y: i8 = 128;             // FEHLER: max ist 127
@@ -631,7 +631,7 @@ let s: string = 'H';    // "H"
 
 Hemlock bietet eingebaute Typ-Aliase für häufige Typen:
 
-| Alias     | Tatsaechlicher Typ | Verwendung                 |
+| Alias     | Tatsächlicher Typ | Verwendung                 |
 |-----------|-------------------|----------------------------|
 | `integer` | `i32`             | Allzweck-Ganzzahlen        |
 | `number`  | `f64`             | Allzweck-Gleitkomma        |
@@ -735,12 +735,12 @@ fn describe(p: HasName & HasAge & HasEmail) {
 
 ## Zusammenfassungstabelle
 
-| Typ        | Größe   | Veraenderbar | Heap-allokiert | Beschreibung                   |
+| Typ        | Größe   | Veränderbar | Heap-allokiert | Beschreibung                   |
 |------------|-----------|--------------|----------------|--------------------------------|
 | `i8`-`i64` | 1-8 Bytes | Nein         | Nein           | Vorzeichenbehaftete Ganzzahlen |
 | `u8`-`u64` | 1-8 Bytes | Nein         | Nein           | Vorzeichenlose Ganzzahlen      |
-| `f32`      | 4 Bytes   | Nein         | Nein           | Einfach-Praezisions-Float      |
-| `f64`      | 8 Bytes   | Nein         | Nein           | Doppel-Praezisions-Float       |
+| `f32`      | 4 Bytes   | Nein         | Nein           | Einfach-Präzisions-Float      |
+| `f64`      | 8 Bytes   | Nein         | Nein           | Doppel-Präzisions-Float       |
 | `bool`     | 1 Byte    | Nein         | Nein           | Boolean                        |
 | `rune`     | 4 Bytes   | Nein         | Nein           | Unicode-Codepoint              |
 | `string`   | Variabel  | Ja           | Ja             | UTF-8-Text                     |
@@ -749,7 +749,7 @@ fn describe(p: HasName & HasAge & HasEmail) {
 | `ptr`      | 8 Bytes   | Nein         | Nein           | Roh-Pointer                    |
 | `buffer`   | Variabel  | Ja           | Ja             | Sicherer Pointer-Wrapper       |
 | `file`     | Opak      | Ja           | Ja             | Dateihandle                    |
-| `task`     | Opak      | Nein         | Ja             | Nebenlaeufiger Task-Handle     |
+| `task`     | Opak      | Nein         | Ja             | Nebenläufiger Task-Handle     |
 | `channel`  | Opak      | Ja           | Ja             | Thread-sicherer Kanal          |
 | `function` | Opak      | Nein         | Ja             | Funktionswert                  |
 | `null`     | 8 Bytes   | Nein         | Nein           | Null-Wert                      |

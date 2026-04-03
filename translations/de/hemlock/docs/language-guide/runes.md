@@ -1,6 +1,6 @@
 # Runes
 
-Runes repraesentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF) als eigenstaendigen Typ für Zeichenmanipulation in Hemlock. Im Gegensatz zu Bytes (u8) sind Runes vollständige Unicode-Zeichen, die jedes Zeichen in jeder Sprache oder Emoji darstellen können.
+Runes repräsentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF) als eigenständigen Typ für Zeichenmanipulation in Hemlock. Im Gegensatz zu Bytes (u8) sind Runes vollständige Unicode-Zeichen, die jedes Zeichen in jeder Sprache oder Emoji darstellen können.
 
 ## Überblick
 
@@ -16,9 +16,9 @@ let r = '>' + " msg";   // Rune + String Verkettung
 
 ## Was ist eine Rune?
 
-Eine Rune ist ein **32-Bit-Wert**, der einen Unicode-Codepoint repraesentiert:
+Eine Rune ist ein **32-Bit-Wert**, der einen Unicode-Codepoint repräsentiert:
 
-- **Bereich:** 0 bis 0x10FFFF (1.114.111 gueltige Codepoints)
+- **Bereich:** 0 bis 0x10FFFF (1.114.111 gültige Codepoints)
 - **Kein numerischer Typ** - Wird für Zeichendarstellung verwendet
 - **Unterschiedlich von u8/char** - Runes sind volles Unicode, u8 sind nur Bytes
 - **Von String-Indexierung zurückgegeben** - `str[0]` gibt eine Rune zurück, kein Byte
@@ -26,7 +26,7 @@ Eine Rune ist ein **32-Bit-Wert**, der einen Unicode-Codepoint repraesentiert:
 **Warum Runes?**
 - Hemlock-Strings sind UTF-8-kodiert
 - Ein einzelnes Unicode-Zeichen kann 1-4 Bytes in UTF-8 sein
-- Runes ermöglichen die Arbeit mit vollstaendigen Zeichen, nicht mit Teilbytes
+- Runes ermöglichen die Arbeit mit vollständigen Zeichen, nicht mit Teilbytes
 
 ## Rune-Literale
 
@@ -57,7 +57,7 @@ let japanese = 'あ';    // Hiragana (U+3042)
 let korean = '한';      // Hangul (U+D55C)
 
 // Symbole
-let check = '✓';        // Haekchen (U+2713)
+let check = '✓';        // Häkchen (U+2713)
 let arrow = '→';        // Pfeil nach rechts (U+2192)
 ```
 
@@ -72,13 +72,13 @@ let backslash = '\\';   // Backslash (U+005C)
 let quote = '\'';       // Einfaches Anführungszeichen (U+0027)
 let dquote = '"';       // Doppeltes Anführungszeichen (U+0022)
 let null_char = '\0';   // Null-Zeichen (U+0000)
-let cr = '\r';          // Wagenruecklauf (U+000D)
+let cr = '\r';          // Wagenrücklauf (U+000D)
 ```
 
-**Verfuegbare Escape-Sequenzen:**
+**Verfügbare Escape-Sequenzen:**
 - `\n` - Zeilenumbruch (Line Feed)
 - `\t` - Horizontaler Tabulator
-- `\r` - Wagenruecklauf
+- `\r` - Wagenrücklauf
 - `\0` - Null-Zeichen
 - `\\` - Backslash
 - `\'` - Einfaches Anführungszeichen
@@ -103,7 +103,7 @@ let b = '\u{0041}';
 - Bereich: `\u{0}` bis `\u{10FFFF}`
 - Hex-Ziffern: 1 bis 6 Ziffern
 - Groß-/Kleinschreibung egal: `\u{1F680}` oder `\u{1f680}`
-- Werte außerhalb des gueltigen Unicode-Bereichs verursachen Fehler
+- Werte außerhalb des gültigen Unicode-Bereichs verursachen Fehler
 
 ## String + Rune Verkettung
 
@@ -204,7 +204,7 @@ let emoji: string = 128640;     // Implizit i32 -> Rune -> String (🚀)
 
 ### Ausgabe
 
-Wie Runes angezeigt werden haengt vom Codepoint ab:
+Wie Runes angezeigt werden hängt vom Codepoint ab:
 
 ```hemlock
 let ascii = 'A';
@@ -404,7 +404,7 @@ let text = "abc123def456";
 let digits = filter_digits(text);  // "123456"
 ```
 
-### Muster: Zeichen zaehlen
+### Muster: Zeichen zählen
 
 ```hemlock
 fn count_char(s: string, target: rune): i32 {
@@ -451,11 +451,11 @@ let code: i32 = r;          // OK: 128640
 ```hemlock
 // NICHT: Byte-Indexierung annehmen
 let s = "🚀";
-let byte = s.byte_at(0);    // 240 (erstes UTF-8 Byte, nicht vollstaendiges Zeichen)
+let byte = s.byte_at(0);    // 240 (erstes UTF-8 Byte, nicht vollständiges Zeichen)
 
 // RICHTIG: Codepoint-Indexierung verwenden
 let s = "🚀";
-let rune = s[0];            // '🚀' (vollstaendiges Zeichen)
+let rune = s[0];            // '🚀' (vollständiges Zeichen)
 let rune2 = s.char_at(0);   // '🚀' (explizite Methode)
 ```
 

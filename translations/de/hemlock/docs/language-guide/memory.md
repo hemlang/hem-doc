@@ -10,7 +10,7 @@ Hemlock setzt auf **manuelle Speicherverwaltung** mit expliziter Kontrolle über
 
 ### Was ist Speicherverwaltung?
 
-Wenn Ihr Programm Daten speichern muss (Text, Zahlen, Listen), braucht es Platz dafuer. Dieser Platz kommt aus dem Arbeitsspeicher Ihres Computers (RAM). Bei der Speicherverwaltung geht es um:
+Wenn Ihr Programm Daten speichern muss (Text, Zahlen, Listen), braucht es Platz dafür. Dieser Platz kommt aus dem Arbeitsspeicher Ihres Computers (RAM). Bei der Speicherverwaltung geht es um:
 
 1. **Platz bekommen** - Speicher anfordern, wenn Sie ihn brauchen
 2. **Platz nutzen** - Ihre Daten lesen und schreiben
@@ -18,17 +18,17 @@ Wenn Ihr Programm Daten speichern muss (Text, Zahlen, Listen), braucht es Platz 
 
 ### Warum ist das wichtig?
 
-Stellen Sie sich eine Bibliothek mit begrenzten Buechern vor:
-- Wenn Sie ständig Buecher ausleihen und nie zurückgeben, gibt es irgendwann keine mehr
-- Wenn Sie versuchen, ein bereits zurueckgegebenes Buch zu lesen, werden Sie verwirrt oder verursachen Probleme
+Stellen Sie sich eine Bibliothek mit begrenzten Büchern vor:
+- Wenn Sie ständig Bücher ausleihen und nie zurückgeben, gibt es irgendwann keine mehr
+- Wenn Sie versuchen, ein bereits zurückgegebenes Buch zu lesen, werden Sie verwirrt oder verursachen Probleme
 
 Speicher funktioniert genauso. Wenn Sie vergessen, Speicher zurückzugeben, verbraucht Ihr Programm langsam immer mehr (ein "Speicherleck"). Wenn Sie versuchen, Speicher nach der Rückgabe zu nutzen, passieren schlimme Dinge.
 
 ### Die gute Nachricht
 
-**Meistens müssen Sie nicht darueber nachdenken!**
+**Meistens müssen Sie nicht darüber nachdenken!**
 
-Hemlock raumt die meisten gaengigen Typen automatisch auf:
+Hemlock räumt die meisten gängigen Typen automatisch auf:
 
 ```hemlock
 fn example() {
@@ -36,16 +36,16 @@ fn example() {
     let numbers = [1, 2, 3];  // Und dies
     let person = { age: 30 }; // Und dies auch
 
-    // Wenn die Funktion endet, wird alles automatisch aufgeraeumt!
+    // Wenn die Funktion endet, wird alles automatisch aufgeräumt!
 }
 ```
 
-### Wann Sie darueber nachdenken MUESSEN
+### Wann Sie darüber nachdenken MÜSSEN
 
 Sie brauchen manuelle Speicherverwaltung nur bei der Verwendung von:
 
 1. **`alloc()`** - rohe Speicherallokation (gibt `ptr` zurück)
-2. **`buffer()`** - wenn Sie frueh freigeben möchten (optional - wird am Scope-Ende automatisch freigegeben)
+2. **`buffer()`** - wenn Sie früh freigeben möchten (optional - wird am Scope-Ende automatisch freigegeben)
 
 ```hemlock
 // Dies braucht manuelle Bereinigung:
@@ -53,7 +53,7 @@ let raw = alloc(100);   // Roher Speicher - SIE müssen ihn freigeben
 // ... raw verwenden ...
 free(raw);              // Erforderlich! Sonst haben Sie ein Speicherleck
 
-// Dies wird automatisch aufgeraeumt (aber Sie KOENNEN frueh freigeben):
+// Dies wird automatisch aufgeräumt (aber Sie KÖNNEN früh freigeben):
 let buf = buffer(100);  // Sicherer Buffer
 // ... buf verwenden ...
 // free(buf);           // Optional - wird automatisch freigegeben wenn Scope endet
@@ -84,7 +84,7 @@ fn safe_example() {
     data[0] = 65;           // OK
     data[5] = 66;           // OK
     // data[100] = 67;      // FEHLER - Hemlock stoppt Sie (Bereichsprüfung)
-    free(data);             // Aufraeumen
+    free(data);             // Aufräumen
 }
 
 // FORTGESCHRITTEN: Roher Zeiger (nur wenn Sie ihn brauchen)
@@ -92,8 +92,8 @@ fn raw_example() {
     let data = alloc(10);
     *data = 65;             // OK
     *(data + 5) = 66;       // OK
-    *(data + 100) = 67;     // GEFAHR - Keine Bereichsprüfung, beschaedigt Speicher!
-    free(data);             // Aufraeumen
+    *(data + 100) = 67;     // GEFAHR - Keine Bereichsprüfung, beschädigt Speicher!
+    free(data);             // Aufräumen
 }
 ```
 
@@ -103,20 +103,20 @@ fn raw_example() {
 
 ## Philosophie
 
-Hemlock folgt dem Prinzip der expliziten Speicherverwaltung mit vernuenftigen Standardeinstellungen:
+Hemlock folgt dem Prinzip der expliziten Speicherverwaltung mit vernünftigen Standardeinstellungen:
 - Keine Garbage Collection (keine unvorhersehbaren Pausen)
-- Internes Referenzzaehlen für gängige Typen (String, Array, Object, Buffer)
+- Internes Referenzzählen für gängige Typen (String, Array, Object, Buffer)
 - Rohe Zeiger (`ptr`) erfordern manuelles `free()`
 
-Dieser hybride Ansatz gibt Ihnen vollständige Kontrolle, wenn nötig (rohe Zeiger), während er gängige Fehler für typische Anwendungsfaelle verhindert (referenzgezaehlte Typen werden beim Scope-Ende automatisch freigegeben).
+Dieser hybride Ansatz gibt Ihnen vollständige Kontrolle, wenn nötig (rohe Zeiger), während er gängige Fehler für typische Anwendungsfälle verhindert (referenzgezählte Typen werden beim Scope-Ende automatisch freigegeben).
 
-## Internes Referenzzaehlen
+## Internes Referenzzählen
 
-Die Laufzeitumgebung verwendet **internes Referenzzaehlen** zur Verwaltung von Objektlebenszeiten. Für die meisten lokalen Variablen referenzgezaehlter Typen ist die Bereinigung automatisch und deterministisch.
+Die Laufzeitumgebung verwendet **internes Referenzzählen** zur Verwaltung von Objektlebenszeiten. Für die meisten lokalen Variablen referenzgezählter Typen ist die Bereinigung automatisch und deterministisch.
 
-### Was Referenzzaehlen handhabt
+### Was Referenzzählen handhabt
 
-Die Laufzeitumgebung verwaltet Referenzzaehler automatisch, wenn:
+Die Laufzeitumgebung verwaltet Referenzzähler automatisch, wenn:
 
 1. **Variablen neu zugewiesen werden** - der alte Wert wird freigegeben:
    ```hemlock
@@ -139,7 +139,7 @@ Die Laufzeitumgebung verwaltet Referenzzaehler automatisch, wenn:
 
 ### Wann Sie `free()` brauchen vs Wann es automatisch ist
 
-**Automatisch (kein `free()` nötig):** Lokale Variablen referenzgezaehlter Typen werden freigegeben, wenn der Scope endet:
+**Automatisch (kein `free()` nötig):** Lokale Variablen referenzgezählter Typen werden freigegeben, wenn der Scope endet:
 
 ```hemlock
 fn process_data() {
@@ -152,19 +152,19 @@ fn process_data() {
 
 **Manuelles `free()` erforderlich:**
 
-1. **Rohe Zeiger** - `alloc()` hat kein Referenzzaehlen:
+1. **Rohe Zeiger** - `alloc()` hat kein Referenzzählen:
    ```hemlock
    let p = alloc(64);
    // ... p verwenden ...
    free(p);  // Immer erforderlich - leckt sonst
    ```
 
-2. **Fruehe Bereinigung** - vor Scope-Ende freigeben um Speicher frueher freizugeben:
+2. **Frühe Bereinigung** - vor Scope-Ende freigeben um Speicher früher freizugeben:
    ```hemlock
    fn long_running() {
        let big = buffer(10000000);  // 10MB
        // ... fertig mit big ...
-       free(big);  // Jetzt freigeben, nicht auf Funktionsrueckkehr warten
+       free(big);  // Jetzt freigeben, nicht auf Funktionsrückkehr warten
        // ... mehr Arbeit die big nicht braucht ...
    }
    ```
@@ -178,9 +178,9 @@ fn process_data() {
    }
    ```
 
-### Referenzzaehlen vs Garbage Collection
+### Referenzzählen vs Garbage Collection
 
-| Aspekt | Hemlock Referenzzaehlen | Garbage Collection |
+| Aspekt | Hemlock Referenzzählen | Garbage Collection |
 |--------|------------------------|-------------------|
 | Bereinigungszeitpunkt | Deterministisch (sofort wenn ref 0 erreicht) | Nicht-deterministisch (GC entscheidet wann) |
 | Benutzerverantwortung | Muss `free()` aufrufen | Vollautomatisch |
@@ -188,18 +188,18 @@ fn process_data() {
 | Sichtbarkeit | Verstecktes Implementierungsdetail | Normalerweise unsichtbar |
 | Zyklen | Mit visited-set Tracking behandelt | Durch Tracing behandelt |
 
-### Welche Typen haben Referenzzaehlen
+### Welche Typen haben Referenzzählen
 
 | Typ | Referenzgezählt | Anmerkungen |
 |-----|-----------------|-------------|
 | `ptr` | Nein | Erfordert immer manuelles `free()` |
-| `buffer` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für fruehe Bereinigung |
-| `array` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für fruehe Bereinigung |
-| `object` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für fruehe Bereinigung |
+| `buffer` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für frühe Bereinigung |
+| `array` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für frühe Bereinigung |
+| `object` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für frühe Bereinigung |
 | `string` | Ja | Vollautomatisch, kein `free()` nötig |
 | `function` | Ja | Vollautomatisch (Closure-Umgebungen) |
-| `task` | Ja | Thread-sicheres atomares Referenzzaehlen |
-| `channel` | Ja | Thread-sicheres atomares Referenzzaehlen |
+| `task` | Ja | Thread-sicheres atomares Referenzzählen |
+| `channel` | Ja | Thread-sicheres atomares Referenzzählen |
 | Primitive | Nein | Stack-allokiert, keine Heap-Allokation |
 
 ### Warum dieses Design?
@@ -216,7 +216,7 @@ Die Philosophie bleibt: Sie haben die Kontrolle, aber die Laufzeit hilft, gängi
 
 Hemlock bietet zwei unterschiedliche Zeigertypen, jeder mit verschiedenen Sicherheitseigenschaften:
 
-### `ptr` - Roher Zeiger (Gefaehrlich)
+### `ptr` - Roher Zeiger (Gefährlich)
 
 Rohe Zeiger sind **nur Adressen** mit minimalen Sicherheitsgarantien:
 
@@ -229,11 +229,11 @@ free(p);  // Sie müssen daran denken freizugeben
 **Eigenschaften:**
 - Nur eine 8-Byte-Adresse
 - Keine Bereichsprüfung
-- Keine Laengenverfolgung
+- Keine Längenverfolgung
 - Benutzer verwaltet Lebensdauer vollständig
 - Für Experten und FFI
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Low-Level-Systemprogrammierung
 - Foreign Function Interface (FFI)
 - Leistungskritischer Code
@@ -242,26 +242,26 @@ free(p);  // Sie müssen daran denken freizugeben
 **Gefahren:**
 ```hemlock
 let p = alloc(10);
-let q = p + 100;  // Weit über Allokation hinaus - erlaubt aber gefaehrlich
+let q = p + 100;  // Weit über Allokation hinaus - erlaubt aber gefährlich
 free(p);
 let x = *p;       // Dangling Pointer - undefiniertes Verhalten
-free(p);          // Double-Free - wird abstuerzen
+free(p);          // Double-Free - wird abstürzen
 ```
 
-### `buffer` - Sichere Huelle (Empfohlen)
+### `buffer` - Sichere Hülle (Empfohlen)
 
-Buffer bieten **bereichsgeprueften Zugriff** während sie weiterhin manuelle Deallokation erfordern:
+Buffer bieten **bereichsgeprüften Zugriff** während sie weiterhin manuelle Deallokation erfordern:
 
 ```hemlock
 let b: buffer = buffer(64);
-b[0] = 65;              // bereichsgeprueft
+b[0] = 65;              // bereichsgeprüft
 print(b.length);        // 64
 free(b);                // weiterhin manuell
 ```
 
 **Eigenschaften:**
 - Zeiger + Länge + Kapazität
-- Bereichsgeprueft bei Zugriff
+- Bereichsgeprüft bei Zugriff
 - Erfordert weiterhin manuelles `free()`
 - Bessere Standardwahl für den meisten Code
 
@@ -311,11 +311,11 @@ free(buf);  // Funktioniert sowohl für ptr als auch buffer
 
 ### Speicheroperationen
 
-**`memset(ptr, byte, size)` - Speicher fuellen**
+**`memset(ptr, byte, size)` - Speicher füllen**
 ```hemlock
 let p = alloc(100);
 memset(p, 0, 100);     // 100 Bytes nullen
-memset(p, 65, 10);     // Erste 10 Bytes mit 'A' fuellen
+memset(p, 65, 10);     // Erste 10 Bytes mit 'A' füllen
 free(p);
 ```
 
@@ -338,7 +338,7 @@ p = realloc(p, 200);   // Auf 200 Bytes anpassen
 free(p);
 ```
 
-**Hinweis:** Nach `realloc()` kann der alte Zeiger ungültig sein. Verwenden Sie immer den zurueckgegebenen Zeiger.
+**Hinweis:** Nach `realloc()` kann der alte Zeiger ungültig sein. Verwenden Sie immer den zurückgegebenen Zeiger.
 
 ### Typisierte Allokation
 
@@ -385,7 +385,7 @@ free(data);
 
 ### Muster: Sichere Buffer-Verwendung
 
-Bevorzugen Sie Buffer für bereichsgeprueften Zugriff:
+Bevorzugen Sie Buffer für bereichsgeprüften Zugriff:
 
 ```hemlock
 let buf = buffer(256);
@@ -414,18 +414,18 @@ try {
 }
 ```
 
-## Ueberlegungen zur Speichersicherheit
+## Überlegungen zur Speichersicherheit
 
 ### Double-Free
 
-**Erlaubt aber wird abstuerzen:**
+**Erlaubt aber wird abstürzen:**
 ```hemlock
 let p = alloc(100);
 free(p);
 free(p);  // ABSTURZ: Double-Free erkannt
 ```
 
-**Praevention:**
+**Prävention:**
 ```hemlock
 let p = alloc(100);
 free(p);
@@ -446,7 +446,7 @@ free(p);
 let x = *p;   // UNDEFINIERT: Lesen von freigegebenem Speicher
 ```
 
-**Praevention:** Greifen Sie nach der Freigabe nicht auf Speicher zu.
+**Prävention:** Greifen Sie nach der Freigabe nicht auf Speicher zu.
 
 ### Speicherlecks
 
@@ -459,7 +459,7 @@ fn leak_memory() {
 }
 ```
 
-**Praevention:** Paaren Sie immer `alloc()` mit `free()`:
+**Prävention:** Paaren Sie immer `alloc()` mit `free()`:
 ```hemlock
 fn safe_function() {
     let p = alloc(1000);
@@ -473,7 +473,7 @@ fn safe_function() {
 
 ### Zeigerarithmetik
 
-**Erlaubt aber gefaehrlich:**
+**Erlaubt aber gefährlich:**
 ```hemlock
 let p = alloc(10);
 let q = p + 100;  // Weit über Allokationsgrenze hinaus
@@ -526,7 +526,7 @@ fn process_array(size: i32) {
     let arr = buffer(size);
 
     try {
-        // Array fuellen
+        // Array füllen
         let i = 0;
         while (i < arr.length) {
             arr[i] = i * 2;
@@ -540,7 +540,7 @@ fn process_array(size: i32) {
             i = i + 1;
         }
     } finally {
-        free(arr);  // Immer aufraeumen
+        free(arr);  // Immer aufräumen
     }
 }
 ```
@@ -554,7 +554,7 @@ let pool_offset = 0;
 
 fn pool_alloc(size: i32): ptr {
     if (pool_offset + size > 10000) {
-        throw "Pool erschoepft";
+        throw "Pool erschöpft";
     }
 
     let ptr = pool + pool_offset;
@@ -574,10 +574,10 @@ free(pool);
 
 Aktuelle Einschränkungen, die zu beachten sind:
 
-- **Rohe Zeiger erfordern manuelles free** - `alloc()` gibt `ptr` ohne Referenzzaehlen zurück
+- **Rohe Zeiger erfordern manuelles free** - `alloc()` gibt `ptr` ohne Referenzzählen zurück
 - **Keine benutzerdefinierten Allokatoren** - Nur System malloc/free
 
-**Hinweis:** Referenzgezaehlte Typen (String, Array, Object, Buffer) werden automatisch freigegeben, wenn der Scope endet. Nur rohe `ptr` von `alloc()` erfordert explizites `free()`.
+**Hinweis:** Referenzgezählte Typen (String, Array, Object, Buffer) werden automatisch freigegeben, wenn der Scope endet. Nur rohe `ptr` von `alloc()` erfordert explizites `free()`.
 
 ## Verwandte Themen
 

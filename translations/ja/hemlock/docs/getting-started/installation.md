@@ -182,6 +182,141 @@ hemlock/
 └── README.md         # プロジェクトREADME
 ```
 
+## WebAssembly (WASM) ビルド
+
+Hemlockは[Emscripten](https://emscripten.org/)を介してWebAssemblyにコンパイルでき、完全なインタプリタをWebブラウザまたはNode.jsで実行できます。
+
+### Emscriptenのインストール
+
+Emscripten SDK（`emsdk`）は、WASMインタプリタのビルドに使用される`emcc`コンパイラを提供します。
+
+**すべてのプラットフォーム（Linux、macOS、Windows WSL）：**
+
+```bash
+# Clone the emsdk repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate the latest SDK
+./emsdk install latest
+./emsdk activate latest
+
+# Add emcc to your PATH (run this in every new terminal, or add to your shell profile)
+source ./emsdk_env.sh
+```
+
+インストールを確認します：
+
+```bash
+emcc --version
+```
+
+`emcc (Emscripten gcc/clang-like replacement ...) 3.x.x`のような出力が表示されるはずです。
+
+詳細な手順については、[Emscripten入門ガイド](https://emscripten.org/docs/getting_started/downloads.html)を参照してください。
+
+**オプション：シェルプロファイルに追加**
+
+毎回`source emsdk_env.sh`を実行するのを避けるには、シェルプロファイルに追加します：
+
+```bash
+# For bash (~/.bashrc or ~/.bash_profile)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.bashrc
+
+# For zsh (~/.zshrc)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.zshrc
+```
+
+### WASM依存関係
+
+WASMビルドはネイティブビルドよりも依存関係が少なくなっています。Emscriptenは標準Cライブラリの独自バージョンを提供します。以下のネイティブライブラリはWASMビルドでは**不要**（かつ利用不可）です：
+
+| ライブラリ | ネイティブ | WASM | 備考 |
+|---------|--------|------|-------|
+| libffi | 必須 | スタブ | FFIはWASMでは利用不可 |
+| OpenSSL | 必須 | スタブ | 暗号ビルトインはWASMでエラーを返す |
+| libwebsockets | オプション | スタブ | WebSocketサポートは利用不可 |
+| zlib | 必須 | Emscriptenが提供 | `-sUSE_ZLIB=1`で自動リンク |
+| pthreads | 必須 | オプション | スレッドビルドで利用可能（SharedArrayBufferが必要） |
+
+**要約：** Emscripten SDKのインストールのみが必要です。WASMビルドには追加のシステムライブラリは不要です。
+
+### WASMインタプリタのビルド
+
+```bash
+# Build the interpreter as WebAssembly
+make wasm-interpreter
+```
+
+これにより`wasm/`ディレクトリに2つのファイルが生成されます：
+
+| ファイル | 説明 |
+|------|-------------|
+| `wasm/hemlock.js` | JavaScriptローダーとEmscriptenグルーコード |
+| `wasm/hemlock.wasm` | WebAssemblyバイナリモジュール |
+
+### Node.jsでの実行
+
+```bash
+node -- wasm/hemlock.js -e 'print("Hello from WASM!");'
+node -- wasm/hemlock.js examples/fibonacci.hml
+```
+
+### ブラウザでの実行
+
+WASMファイルは正しいMIMEタイプ（`application/wasm`）でHTTP経由で配信される必要があります。`file://`でHTMLファイルを直接開いても動作しません。
+
+**付属のサンプルを使用する場合：**
+
+```bash
+make wasm-browser-example
+# Opens http://localhost:8080/examples/wasm-browser/index.html
+```
+
+**またはPythonを使って手動で：**
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/wasm/playground.html
+```
+
+**またはNode.jsを使って手動で：**
+
+```bash
+npx serve .
+# Open the URL shown in the terminal
+```
+
+インタラクティブなコードエディタを含む完全なブラウザ統合の例については、`examples/wasm-browser/`を参照してください。
+
+### WASMの制限事項
+
+WASM環境では一部の機能が利用できません：
+
+- **FFI** - 共有ライブラリの読み込み不可（`dlopen`/`dlsym`）
+- **暗号** - OpenSSLなし（`sha256`、`md5`などはエラーを返す）
+- **ファイルI/O** - ネイティブファイルシステムへのアクセス不可（Emscripten仮想FSのみ）
+- **ネットワーク** - RawソケットやHTTPクライアントなし
+- **シグナル** - POSIXシグナル処理なし
+- **プロセス** - `fork`、`exec`、プロセス管理なし
+- **スレッド** - `spawn`/`join`/チャネルには`SharedArrayBuffer`を使ったスレッドWASMビルドが必要
+
+すべてのコア言語機能が動作します：変数、関数、クロージャ、オブジェクト、配列、パターンマッチング、型注釈、try/catch、および純粋なHemlockモジュールの完全な標準ライブラリ。
+
+### HemlockプログラムのWASMコンパイル
+
+WASMでインタプリタを実行するだけでなく、コンパイラバックエンドを使用して個々のHemlockプログラムをスタンドアロンWASMバイナリにコンパイルできます：
+
+```bash
+# Compile a Hemlock program to WASM (requires both hemlockc and Emscripten)
+make wasm-compile FILE=program.hml
+
+# With threading support
+make wasm-compile-threaded FILE=program.hml
+```
+
+これは`hemlockc`を使用してCコードを生成し、その後EmscriptenでWASMにコンパイルします。
+
 ## ビルドオプション
 
 ### デバッグビルド

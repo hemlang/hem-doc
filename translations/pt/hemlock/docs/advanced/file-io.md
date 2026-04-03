@@ -137,6 +137,22 @@ print(first_byte);
 f.close();
 ```
 
+**Exemplo - Ler arquivo binário inteiro:**
+```hemlock
+let f = open("data.bin", "r");
+let size = 10240;  // Tamanho esperado
+let data = f.read_bytes(size);
+f.close();
+
+// Processar dados binários
+let i = 0;
+while (i < data.length) {
+    let byte = data[i];
+    // ... processar byte
+    i = i + 1;
+}
+```
+
 ### Escrita
 
 #### write(data: string): i32
@@ -196,6 +212,21 @@ print("Wrote " + typeof(bytes) + " bytes");
 f.close();
 ```
 
+**Exemplo - Copiar arquivo binário:**
+```hemlock
+let src = open("input.bin", "r");
+let dst = open("output.bin", "w");
+
+let data = src.read_bytes(1024);
+while (data.length > 0) {
+    dst.write_bytes(data);
+    data = src.read_bytes(1024);
+}
+
+src.close();
+dst.close();
+```
+
 ### Posicionamento
 
 #### seek(position: i32): i32
@@ -253,6 +284,20 @@ let pos2 = f.tell();  // 100 (após ler 100 bytes)
 
 f.seek(500);
 let pos3 = f.tell();  // 500 (após seek)
+
+f.close();
+```
+
+**Exemplo - Medir quantidade lida:**
+```hemlock
+let f = open("data.txt", "r");
+
+let start = f.tell();
+let content = f.read();
+let end = f.tell();
+
+let bytes_read = end - start;
+print("Read " + typeof(bytes_read) + " bytes");
 
 f.close();
 ```
@@ -607,6 +652,43 @@ fn read_at_offset(path: string, offset: i32, size: i32): string {
 }
 
 let data = read_at_offset("records.dat", 1000, 100);
+```
+
+### Tamanho do Arquivo
+
+```hemlock
+fn file_size(path: string): i32 {
+    let f = open(path, "r");
+    try {
+        // Posicionar no final
+        let end = f.seek(999999999);  // Número grande
+        f.seek(0);  // Resetar
+        return end;
+    } finally {
+        f.close();
+    }
+}
+
+let size = file_size("data.txt");
+print("File size: " + typeof(size) + " bytes");
+```
+
+### Leitura/Escrita Condicional
+
+```hemlock
+fn update_file(path: string, condition, new_content: string) {
+    let f = open(path, "r+");
+    try {
+        let content = f.read();
+
+        if (condition(content)) {
+            f.seek(0);  // Resetar para o início
+            f.write(new_content);
+        }
+    } finally {
+        f.close();
+    }
+}
 ```
 
 ## Melhores Práticas

@@ -1,6 +1,6 @@
 # Typsystem
 
-Hemlock verfuegt über ein **dynamisches Typsystem** mit optionalen Typannotationen und Laufzeit-Typüberprüfung.
+Hemlock verfügt über ein **dynamisches Typsystem** mit optionalen Typannotationen und Laufzeit-Typüberprüfung.
 
 ---
 
@@ -19,15 +19,15 @@ let name = "Alice";    // Hemlock weiß, dass dies Text ist
 let active = true;     // Hemlock weiß, dass dies ja/nein ist
 ```
 
-Hemlock waehlt automatisch den richtigen Typ für Ihre Werte. Sie *müssen* keine Typen angeben.
+Hemlock wählt automatisch den richtigen Typ für Ihre Werte. Sie *müssen* keine Typen angeben.
 
 ### Wann Typannotationen hinzufügen
 
-Fuegen Sie Typen hinzu, wenn Sie:
+Fügen Sie Typen hinzu, wenn Sie:
 
 1. **Genau über die Größe sein wollen** - `i8` vs `i64` ist wichtig für Speicher oder FFI
 2. **Ihren Code dokumentieren** - Typen zeigen, was eine Funktion erwartet
-3. **Fehler frueh erkennen wollen** - Hemlock prüft Typen zur Laufzeit
+3. **Fehler früh erkennen wollen** - Hemlock prüft Typen zur Laufzeit
 
 ```hemlock
 // Ohne Typen (funktioniert gut):
@@ -49,15 +49,15 @@ fn add(a: i32, b: i32): i32 {
 | Sehr große Zahlen | `i64` | `let population = 8000000000;` |
 | Nie-negative Zähler | `u32` | `let items: u32 = 100;` |
 | Bytes (0-255) | `u8` | `let pixel: u8 = 255;` |
-| Dezimalzahlen/Brueche | `f64` (Standard) | `let price = 19.99;` |
+| Dezimalzahlen/Brüche | `f64` (Standard) | `let price = 19.99;` |
 | Leistungskritische Dezimalzahlen | `f32` | `let x: f32 = 1.5;` |
 
 ### Schnellreferenz: Alle Typen
 
 | Kategorie | Typen | Wann verwenden |
 |-----------|-------|----------------|
-| **Ganzzahlen** | `i8`, `i16`, `i32`, `i64` | Zaehlen, IDs, Alter, usw. |
-| **Nur-positive Zahlen** | `u8`, `u16`, `u32`, `u64` | Bytes, Groessen, Array-Längen |
+| **Ganzzahlen** | `i8`, `i16`, `i32`, `i64` | Zählen, IDs, Alter, usw. |
+| **Nur-positive Zahlen** | `u8`, `u16`, `u32`, `u64` | Bytes, Größen, Array-Längen |
 | **Dezimalzahlen** | `f32`, `f64` | Geld, Messungen, Mathematik |
 | **Ja/Nein** | `bool` | Flags, Bedingungen |
 | **Text** | `string` | Namen, Nachrichten, jeder Text |
@@ -71,12 +71,12 @@ fn add(a: i32, b: i32): i32 {
 
 **"Ich brauche nur eine Zahl"**
 ```hemlock
-let x = 42;  // Fertig! Hemlock waehlt i32
+let x = 42;  // Fertig! Hemlock wählt i32
 ```
 
 **"Ich brauche Dezimalzahlen"**
 ```hemlock
-let price = 19.99;  // Fertig! Hemlock waehlt f64
+let price = 19.99;  // Fertig! Hemlock wählt f64
 ```
 
 **"Ich arbeite mit Bytes (Dateien, Netzwerk)"**
@@ -86,21 +86,21 @@ let byte: u8 = 255;  // 0-255 Bereich
 
 **"Ich brauche wirklich große Zahlen"**
 ```hemlock
-let big = 9000000000000;  // Hemlock waehlt automatisch i64 (> i32 max)
+let big = 9000000000000;  // Hemlock wählt automatisch i64 (> i32 max)
 // Oder explizit:
 let big: i64 = 9000000000000;
 ```
 
 **"Ich speichere Geld"**
 ```hemlock
-// Option 1: Float (einfach, aber hat Praezisionsgrenzen)
+// Option 1: Float (einfach, aber hat Präzisionsgrenzen)
 let price: f64 = 19.99;
 
-// Option 2: Als Cent speichern (praeziser)
+// Option 2: Als Cent speichern (präziser)
 let price_cents: i32 = 1999;  // 19.99 EUR als Ganzzahl-Cent
 ```
 
-**"Ich uebergebe Daten an C-Code (FFI)"**
+**"Ich übergebe Daten an C-Code (FFI)"**
 ```hemlock
 // C-Typen genau entsprechen
 let c_int: i32 = 100;      // C 'int'
@@ -111,7 +111,7 @@ let c_double: f64 = 3.14;  // C 'double'
 
 ### Was passiert, wenn Typen gemischt werden?
 
-Wenn Sie verschiedene Typen kombinieren, befördert Hemlock zum "groesseren" Typ:
+Wenn Sie verschiedene Typen kombinieren, befördert Hemlock zum "größeren" Typ:
 
 ```hemlock
 let a: i32 = 10;
@@ -144,7 +144,7 @@ let back = text + "";     // Bereits ein String
 
 - **Standardmäßig dynamisch** - Jeder Wert hat ein Laufzeit-Typ-Tag
 - **Typisiert nach Wahl** - Optionale Typannotationen erzwingen Laufzeitprüfungen
-- **Explizite Konvertierungen** - Implizite Konvertierungen folgen klaren Befoerderungsregeln
+- **Explizite Konvertierungen** - Implizite Konvertierungen folgen klaren Beförderungsregeln
 - **Ehrlich über Typen** - `typeof()` sagt immer die Wahrheit
 
 ## Primitive Typen
@@ -208,7 +208,7 @@ let newline: rune = '\n';
 let unicode: rune = '\u{1F680}';
 ```
 
-Runes repraesentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF).
+Runes repräsentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF).
 
 Siehe [Runes](runes.md) für vollständige Details.
 
@@ -254,7 +254,7 @@ free(p);
 **Sicherer Buffer:**
 ```hemlock
 let buf: buffer = buffer(64);
-// Grenzgeprueft, verfolgt Länge und Kapazität
+// Grenzgeprüft, verfolgt Länge und Kapazität
 free(buf);
 ```
 
@@ -375,7 +375,7 @@ let f: file = open("data.txt", "r");
 f.close();
 ```
 
-Repraesentiert ein offenes Datei-Handle.
+Repräsentiert ein offenes Datei-Handle.
 
 ### Task-Typ
 
@@ -385,7 +385,7 @@ let task = spawn(compute);
 let result: i32 = join(task);
 ```
 
-Repraesentiert ein Async-Task-Handle.
+Repräsentiert ein Async-Task-Handle.
 
 ### Channel-Typ
 
@@ -395,7 +395,7 @@ ch.send(42);
 let value = ch.recv();
 ```
 
-Repraesentiert einen Kommunikationskanal zwischen Tasks.
+Repräsentiert einen Kommunikationskanal zwischen Tasks.
 
 ### Void-Typ
 
@@ -527,11 +527,11 @@ print(typeof({ x: 10 }));  // "object"
 
 ## Typkonvertierungen
 
-### Implizite Typbefoerderung
+### Implizite Typbeförderung
 
-Beim Mischen von Typen in Operationen befördert Hemlock zum "hoeheren" Typ:
+Beim Mischen von Typen in Operationen befördert Hemlock zum "höheren" Typ:
 
-**Befoerderungshierarchie (niedrigste zu hoechste):**
+**Beförderungshierarchie (niedrigste zu höchste):**
 ```
 i8 -> i16 -> i32 -> u32 -> i64 -> u64 -> f32 -> f64
       ^      ^      ^
@@ -552,8 +552,8 @@ let b: i64 = 200;
 let sum = a + b;     // sum ist i64 (300)
 ```
 
-**Praezisionserhaltung:** Beim Mischen von 64-Bit-Ganzzahlen mit f32 befördert Hemlock
-zu f64, um Praezisionsverlust zu vermeiden (f32 hat nur 24-Bit-Mantisse, unzureichend für i64/u64):
+**Präzisionserhaltung:** Beim Mischen von 64-Bit-Ganzzahlen mit f32 befördert Hemlock
+zu f64, um Präzisionsverlust zu vermeiden (f32 hat nur 24-Bit-Mantisse, unzureichend für i64/u64):
 ```hemlock
 let big: i64 = 9007199254740993;
 let small: f32 = 1.0;
@@ -658,7 +658,7 @@ let n = i32("42");       // Typ-Konstruktor für String-Parsen verwenden
 
 **Fehlerbehandlung:**
 ```hemlock
-// Ungueltige Strings werfen Fehler bei Verwendung von Typ-Konstruktoren
+// Ungültige Strings werfen Fehler bei Verwendung von Typ-Konstruktoren
 let bad = i32("hallo");  // Laufzeitfehler: kann "hallo" nicht als i32 parsen
 let overflow = u8("256"); // Laufzeitfehler: 256 außerhalb des Bereichs für u8
 ```
@@ -672,7 +672,7 @@ let bad = bool("ja");    // Laufzeitfehler: muss "true" oder "false" sein
 
 ## Bereichsprüfung
 
-Typannotationen erzwingen Bereichspruefungen bei Zuweisung:
+Typannotationen erzwingen Bereichsprüfungen bei Zuweisung:
 
 ```hemlock
 let x: u8 = 255;    // OK
@@ -686,7 +686,7 @@ let d: u64 = 4294967295;   // OK
 let e: u64 = -1;           // FEHLER: u64 kann nicht negativ sein
 ```
 
-## Typbefoerderungs-Beispiele
+## Typbeförderungs-Beispiele
 
 ### Gemischte Ganzzahltypen
 
@@ -836,9 +836,9 @@ Aktuelle Einschränkungen:
 ### Wann Typannotationen verwenden
 
 **Verwenden Sie Annotationen, wenn:**
-- Praeziser Typ wichtig ist (z.B. `u8` für Byte-Werte)
+- Präziser Typ wichtig ist (z.B. `u8` für Byte-Werte)
 - Funktionsschnittstellen dokumentieren
-- Einschränkungen erzwingen (z.B. Bereichspruefungen)
+- Einschränkungen erzwingen (z.B. Bereichsprüfungen)
 
 ```hemlock
 fn hash(data: buffer, length: u32): u64 {
@@ -849,7 +849,7 @@ fn hash(data: buffer, length: u32): u64 {
 **Verwenden Sie keine Annotationen, wenn:**
 - Der Typ aus dem Literal offensichtlich ist
 - Interne Implementierungsdetails
-- Unnoetige Zeremonie
+- Unnötige Zeremonie
 
 ```hemlock
 // Unnötig
@@ -881,7 +881,7 @@ fn divide(a, b) {
 }
 ```
 
-**Duck Typing für Flexibilitaet verwenden:**
+**Duck Typing für Flexibilität verwenden:**
 ```hemlock
 define Printable {
     toString: fn,

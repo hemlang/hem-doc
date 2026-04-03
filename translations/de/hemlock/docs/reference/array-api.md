@@ -1,6 +1,6 @@
 # Array-API-Referenz
 
-Vollständige Referenz für Hemlocks Array-Typ und alle 18 Array-Methoden.
+Vollständige Referenz für Hemlocks Array-Typ und alle 23 Array-Methoden.
 
 ---
 
@@ -12,8 +12,8 @@ Arrays in Hemlock sind **dynamische, heap-allokierte** Sequenzen, die gemischte 
 - Dynamische Größenanpassung (automatisches Wachstum)
 - Nullbasierte Indizierung
 - Gemischte Typen erlaubt
-- 18 eingebaute Methoden
-- Heap-allokiert mit Kapazitaetsverfolgung
+- 23 eingebaute Methoden
+- Heap-allokiert mit Kapazitätsverfolgung
 
 ---
 
@@ -98,7 +98,7 @@ print(arr.length);     // 3
 
 #### push
 
-Fuegt ein Element am Ende des Arrays hinzu.
+Fügt ein Element am Ende des Arrays hinzu.
 
 **Signatur:**
 ```hemlock
@@ -180,7 +180,7 @@ print(arr);               // [3]
 
 #### unshift
 
-Fuegt ein Element am Anfang des Arrays hinzu.
+Fügt ein Element am Anfang des Arrays hinzu.
 
 **Signatur:**
 ```hemlock
@@ -203,11 +203,11 @@ arr.unshift(0);        // [0, 1, 2, 3]
 
 ---
 
-### Einfuegen & Entfernen
+### Einfügen & Entfernen
 
 #### insert
 
-Fuegt ein Element an einem bestimmten Index ein.
+Fügt ein Element an einem bestimmten Index ein.
 
 **Signatur:**
 ```hemlock
@@ -215,8 +215,8 @@ array.insert(index: i32, value: any): null
 ```
 
 **Parameter:**
-- `index` - Position zum Einfuegen (nullbasiert)
-- `value` - Element zum Einfuegen
+- `index` - Position zum Einfügen (nullbasiert)
+- `value` - Element zum Einfügen
 
 **Rückgabe:** `null`
 
@@ -303,7 +303,7 @@ let idx3 = arr2.find(2);     // 1 (erstes Vorkommen)
 
 #### contains
 
-Prueft ob das Array einen Wert enthält.
+Prüft ob das Array einen Wert enthält.
 
 **Signatur:**
 ```hemlock
@@ -524,7 +524,7 @@ print(upper);  // ["ALICE", "BOB"]
 
 #### filter
 
-Waehlt Elemente aus die einem Praedikat entsprechen.
+Wählt Elemente aus die einem Prädikat entsprechen.
 
 **Signatur:**
 ```hemlock
@@ -534,7 +534,7 @@ array.filter(predicate: fn): array
 **Parameter:**
 - `predicate` - Funktion die ein Element nimmt und bool zurückgibt
 
-**Rückgabe:** Neues Array mit Elementen wo Praedikat true zurueckgab
+**Rückgabe:** Neues Array mit Elementen wo Prädikat true zurückgab
 
 **Mutiert:** Nein (gibt neues Array zurück)
 
@@ -564,7 +564,7 @@ array.reduce(callback: fn, initial: any): any
 - `callback` - Funktion die (Akkumulator, Element) nimmt und neuen Akkumulator zurückgibt
 - `initial` - Startwert für den Akkumulator
 
-**Rückgabe:** Endgueltiger akkumulierter Wert
+**Rückgabe:** Endgültiger akkumulierter Wert
 
 **Mutiert:** Nein
 
@@ -620,13 +620,153 @@ let arr = ["a", "b", "c"];
 let s = arr.join("");          // "abc"
 ```
 
-**Verhalten:** Konvertiert automatisch alle Elemente zu Strings.
+**Verhalten:** Konvertiert automatisch alle Elemente zu Strings, einschliesslich Rune-Werte die von `string.chars()` zurückgegeben werden.
+
+```hemlock
+// Rune-Arrays verbinden (von chars())
+let chars = "hello".chars();
+print(chars.join("-"));   // "h-e-l-l-o"
+
+// String-Umkehr-Idiom
+let reversed = "hello".chars();
+reversed.reverse();
+print(reversed.join(""));  // "olleh"
+```
+
+---
+
+### Prüf-Operationen
+
+#### every
+
+Prüft ob alle Elemente ein Prädikat erfüllen.
+
+**Signatur:**
+```hemlock
+array.every(predicate: fn): bool
+```
+
+**Parameter:**
+- `predicate` - Funktion die ein Element nimmt und bool zurückgibt
+
+**Rückgabe:** `true` wenn alle Elemente das Prädikat erfüllen, `false` sonst
+
+**Mutiert:** Nein
+
+**Beispiele:**
+```hemlock
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+let allEven = [2, 4, 5].every(fn(x) { return x % 2 == 0; }); // false
+```
+
+---
+
+#### some
+
+Prüft ob mindestens ein Element ein Prädikat erfüllt.
+
+**Signatur:**
+```hemlock
+array.some(predicate: fn): bool
+```
+
+**Parameter:**
+- `predicate` - Funktion die ein Element nimmt und bool zurückgibt
+
+**Rückgabe:** `true` wenn mindestens ein Element das Prädikat erfüllt, `false` sonst
+
+**Mutiert:** Nein
+
+**Beispiele:**
+```hemlock
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+let hasNeg = [1, 2, 3].some(fn(x) { return x < 0; });         // false
+```
+
+---
+
+#### indexOf
+
+Findet den ersten Index eines Wertes.
+
+**Signatur:**
+```hemlock
+array.indexOf(value: any): i32
+```
+
+**Parameter:**
+- `value` - Zu suchender Wert
+
+**Rückgabe:** Index des ersten Vorkommens, oder `-1` wenn nicht gefunden
+
+**Mutiert:** Nein
+
+**Beispiele:**
+```hemlock
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+let idx2 = ["a", "b", "c"].indexOf("z"); // -1
+```
+
+---
+
+### Sortierung
+
+#### sort
+
+Sortiert Array an Ort und Stelle, mit optionalem Komparator.
+
+**Signatur:**
+```hemlock
+array.sort(comparator?: fn): null
+```
+
+**Parameter:**
+- `comparator` (optional) - Funktion die zwei Elemente nimmt und eine Zahl zurückgibt (negativ, null oder positiv)
+
+**Rückgabe:** `null`
+
+**Mutiert:** Ja (modifiziert Array direkt)
+
+**Beispiele:**
+```hemlock
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // [5, 4, 3, 1, 1] (absteigend)
+```
+
+---
+
+#### fill
+
+Füllt Array mit einem Wert.
+
+**Signatur:**
+```hemlock
+array.fill(value: any, start?: i32, end?: i32): null
+```
+
+**Parameter:**
+- `value` - Wert zum Füllen
+- `start` (optional) - Startindex (Standard: 0)
+- `end` (optional) - Endindex exklusiv (Standard: array.length)
+
+**Rückgabe:** `null`
+
+**Mutiert:** Ja (modifiziert Array direkt)
+
+**Beispiele:**
+```hemlock
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 ---
 
 ## Methoden-Verkettung
 
-Array-Methoden können für praegnante Operationen verkettet werden:
+Array-Methoden können für prägnante Operationen verkettet werden:
 
 **Beispiele:**
 ```hemlock
@@ -650,7 +790,7 @@ let result2 = words
 
 ---
 
-## Vollständige Methodenuebersicht
+## Vollständige Methodenübersicht
 
 ### Mutierende Methoden
 
@@ -666,6 +806,8 @@ Methoden die das Array direkt modifizieren:
 | `remove`   | `(index: i32)`             | `any`     | An Index entfernen             |
 | `reverse`  | `()`                       | `null`    | An Ort und Stelle umkehren     |
 | `clear`    | `()`                       | `null`    | Alle Elemente entfernen        |
+| `sort`     | `(comparator?: fn)`        | `null`    | An Ort und Stelle sortieren    |
+| `fill`     | `(value: any, start?: i32, end?: i32)` | `null` | Mit Wert füllen          |
 
 ### Nicht-mutierende Methoden
 
@@ -683,6 +825,9 @@ Methoden die neue Werte zurückgeben ohne das Original zu modifizieren:
 | `map`      | `(callback: fn)`           | `array`   | Jedes Element transformieren   |
 | `filter`   | `(predicate: fn)`          | `array`   | Passende Elemente auswählen   |
 | `reduce`   | `(callback: fn, initial: any)` | `any` | Auf einzelnen Wert reduzieren  |
+| `every`    | `(predicate: fn)`          | `bool`    | Prüfen ob alle übereinstimmen |
+| `some`     | `(predicate: fn)`          | `bool`    | Prüfen ob eines übereinstimmt |
+| `indexOf`  | `(value: any)`             | `i32`     | Ersten Index eines Wertes finden |
 
 ---
 
@@ -768,7 +913,7 @@ print(arr);  // [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 **Kapazitätsverwaltung:**
 - Arrays wachsen automatisch bei Bedarf
 - Kapazität verdoppelt sich bei Überschreitung
-- Keine manuelle Kapazitaetssteuerung
+- Keine manuelle Kapazitätssteuerung
 
 **Wertvergleich:**
 - `find()` und `contains()` verwenden Wertgleichheit

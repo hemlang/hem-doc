@@ -231,6 +231,43 @@ Então use em todo o seu projeto:
 import { strlen, malloc, getpid } from "./libc.hml";
 ```
 
+### Combinando com Exportações Regulares
+
+Você pode combinar funções extern exportadas com exportações de funções regulares:
+
+```hemlock
+// math_extended.hml
+import "libm.so.6";
+
+// Exportar funções C brutas
+export extern fn sin(x: f64): f64;
+export extern fn cos(x: f64): f64;
+export extern fn tan(x: f64): f64;
+
+// Exportar funções Hemlock que as utilizam
+export fn deg_to_rad(degrees: f64): f64 {
+    return degrees * 3.14159265359 / 180.0;
+}
+
+export fn sin_degrees(degrees: f64): f64 {
+    return sin(deg_to_rad(degrees));
+}
+```
+
+### Bibliotecas Específicas de Plataforma
+
+Ao exportar funções extern, lembre-se de que os nomes das bibliotecas diferem por plataforma:
+
+```hemlock
+// Para Linux
+import "libc.so.6";
+
+// Para macOS (abordagem diferente necessária)
+import "libSystem.B.dylib";
+```
+
+Atualmente, a sintaxe `import "library"` do Hemlock usa caminhos estáticos de biblioteca, então módulos específicos de plataforma podem ser necessários para código FFI multiplataforma.
+
 ## Casos de Uso
 
 ### 1. Bibliotecas do Sistema
@@ -285,6 +322,107 @@ Chamar implementações C otimizadas:
 // Operações SIMD, código vetorizado
 // Funções aceleradas por hardware
 ```
+
+### 5. Acesso a Hardware
+
+Interface com bibliotecas de hardware:
+
+```hemlock
+// Controle GPIO em sistemas embarcados
+// Comunicação com dispositivos USB
+// Acesso a porta serial
+```
+
+### 6. Integração de Código Legado
+
+Reutilizar bases de código C existentes:
+
+```hemlock
+// Chamar funções de aplicações C legadas
+// Migrar gradualmente para Hemlock
+// Preservar código C funcional
+```
+
+## Desenvolvimento Futuro
+
+### Recursos Planejados
+
+**1. Suporte a Struct**
+```hemlock
+// Futuro: Passar/retornar structs C
+define Point {
+    x: f64,
+    y: f64,
+}
+
+let p = Point { x: 1.0, y: 2.0 };
+c_function_with_struct(p);
+```
+
+**2. Manipulação de Array/Buffer**
+```hemlock
+// Futuro: Melhor passagem de arrays
+let arr = [1, 2, 3, 4, 5];
+process_array(arr);  // Passar para função C
+```
+
+**3. Callbacks com Ponteiros de Função** (Implementado!)
+```hemlock
+// Passar funções Hemlock para C como callbacks
+fn my_compare(a: ptr, b: ptr): i32 {
+    let va = ptr_deref_i32(a);
+    let vb = ptr_deref_i32(b);
+    return va - vb;
+}
+
+// Criar um ponteiro de função chamável por C
+let cmp = callback(my_compare, ["ptr", "ptr"], "i32");
+
+// Usar com qsort ou qualquer função C que espere um callback
+qsort(arr, count, elem_size, cmp);
+
+// Limpar quando terminar
+callback_free(cmp);
+```
+
+**4. Marshaling de Strings**
+```hemlock
+// Futuro: Conversão automática de strings
+let s = "hello";
+c_string_function(s);  // Conversão automática para string C
+```
+
+**5. Tratamento de Erros**
+```hemlock
+// Futuro: Melhor relatório de erros
+try {
+    let result = risky_c_function();
+} catch (e) {
+    print("FFI error: " + e);
+}
+```
+
+**6. Segurança de Tipos**
+```hemlock
+// Futuro: Anotações de tipo para FFI
+@ffi("libm.so")
+fn sqrt(x: f64): f64;
+
+let result = sqrt(16.0);  // Verificado por tipo
+```
+
+### Recursos
+
+**v1.0:**
+- Basic FFI com tipos primitivos
+- Carregamento dinâmico de bibliotecas
+- Chamada de funções
+- Suporte a callbacks via closures libffi
+
+**Futuro:**
+- Suporte a structs
+- Melhorias na manipulação de arrays
+- Geração automática de bindings
 
 ## Callbacks FFI
 
@@ -389,6 +527,24 @@ Hemlock fornece funções auxiliares abrangentes para trabalhar com ponteiros br
 | `ptr_offset(ptr, index, size)` | Calcular offset: `ptr + index * size` |
 | `ptr_read_i32(ptr)` | Ler i32 via ponteiro para ponteiro (para callbacks qsort) |
 | `ptr_null()` | Obter constante ponteiro nulo |
+
+#### Funções de Leitura de Ponteiro
+
+Ler valores tipados diretamente da memória (complementa `ptr_write_*`).
+
+| Função | Descrição |
+|--------|-----------|
+| `ptr_read_i8(ptr)` | Ler i8 do ponteiro |
+| `ptr_read_i16(ptr)` | Ler i16 do ponteiro |
+| `ptr_read_i32(ptr)` | Ler i32 do ponteiro |
+| `ptr_read_i64(ptr)` | Ler i64 do ponteiro |
+| `ptr_read_u8(ptr)` | Ler u8 do ponteiro |
+| `ptr_read_u16(ptr)` | Ler u16 do ponteiro |
+| `ptr_read_u32(ptr)` | Ler u32 do ponteiro |
+| `ptr_read_u64(ptr)` | Ler u64 do ponteiro |
+| `ptr_read_f32(ptr)` | Ler f32 do ponteiro |
+| `ptr_read_f64(ptr)` | Ler f64 do ponteiro |
+| `ptr_read_ptr(ptr)` | Ler ponteiro do ponteiro (retorna null se o valor armazenado for NULL) |
 
 #### Auxiliares de Conversão Buffer
 
@@ -615,6 +771,45 @@ print(p.y);  // 0.0
 - **Sem unions** - Apenas tipos de struct são suportados
 - **Callbacks não podem retornar structs** - Use ponteiros para valores de retorno de callback
 
+### Exportando Tipos de Struct
+
+Você pode exportar definições de tipo struct de um módulo usando `export define`:
+
+```hemlock
+// geometry.hml
+export define Vector2 {
+    x: f32,
+    y: f32,
+}
+
+export define Rectangle {
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+}
+
+export fn create_rect(x: f32, y: f32, w: f32, h: f32): Rectangle {
+    return { x: x, y: y, width: w, height: h };
+}
+```
+
+**Importante:** Tipos struct exportados são registrados **globalmente** quando o módulo é carregado. Eles ficam disponíveis automaticamente quando você importa qualquer coisa do módulo. Você NÃO precisa (e não pode) importá-los explicitamente pelo nome:
+
+```hemlock
+// main.hml
+
+// BOM - tipos struct ficam auto-disponíveis após qualquer importação do módulo
+import { create_rect } from "./geometry.hml";
+let v: Vector2 = { x: 1.0, y: 2.0 };      // Funciona - Vector2 está globalmente disponível
+let r: Rectangle = create_rect(0.0, 0.0, 100.0, 50.0);  // Funciona
+
+// RUIM - não pode importar tipos struct explicitamente pelo nome
+import { Vector2 } from "./geometry.hml";  // Erro: Variável indefinida 'Vector2'
+```
+
+Este comportamento existe porque tipos struct são registrados no registro global de tipos quando o módulo carrega, em vez de serem armazenados como valores no ambiente de exportação do módulo. O tipo fica disponível para todo código que importa do módulo.
+
 ## Limitações Atuais
 
 FFI tem as seguintes limitações:
@@ -673,6 +868,21 @@ if (result == null) {
 // Use extensões de biblioteca apropriadas (.so, .dylib, .dll)
 ```
 
+## Exemplos
+
+Para exemplos funcionais, consulte:
+- Testes de callback: `/tests/ffi_callbacks/` - exemplos de callback qsort
+- Uso de FFI na stdlib: `/stdlib/hash.hml`, `/stdlib/regex.hml`, `/stdlib/crypto.hml`
+- Programas de exemplo: `/examples/` (se disponível)
+
+## Obtendo Ajuda
+
+FFI é um recurso mais recente no Hemlock. Para perguntas ou problemas:
+
+1. Verifique a suite de testes para exemplos funcionais
+2. Consulte a documentação do libffi para detalhes de baixo nível
+3. Reporte bugs ou solicite recursos via issues do projeto
+
 ## Resumo
 
 O FFI do Hemlock oferece:
@@ -696,3 +906,13 @@ O FFI do Hemlock oferece:
 **Futuro:** Helpers de marshaling de strings
 
 **Casos de Uso:** Bibliotecas de sistema, bibliotecas de terceiros, qsort, event loops, APIs baseadas em callback, wrappers de biblioteca reutilizáveis
+
+## Contribuindo
+
+A documentação de FFI está sendo expandida. Se você está trabalhando com FFI:
+- Documente seus casos de uso
+- Compartilhe código de exemplo
+- Reporte problemas ou limitações
+- Sugira melhorias
+
+O sistema FFI foi projetado para ser prático e seguro enquanto fornece acesso de baixo nível quando necessário, seguindo a filosofia do Hemlock de "explícito sobre implícito" e "não-seguro é um recurso, não um bug."

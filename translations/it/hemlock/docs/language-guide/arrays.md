@@ -287,6 +287,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Funziona con tipi misti
 let mixed = [1, "ciao", true, null];
 print(mixed.join(" | "));  // "1 | ciao | true | null"
+
+// Funziona con array di rune (da chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Concatena con un altro array:

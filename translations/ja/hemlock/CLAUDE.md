@@ -478,6 +478,7 @@ ch.close();
 ```hemlock
 let name = read_line();          // stdinから行を読み取り（ブロック）
 print("Hello, " + name);
+write("改行なし");                // 末尾の改行なしで出力
 eprint("Error message");         // stderrに出力
 
 // read_line()はEOFでnullを返す
@@ -522,16 +523,39 @@ print(s.length);       // 7（文字/rune数）
 print(s.byte_length);  // 10（バイト数 - 絵文字はUTF-8で4バイト）
 ```
 
-## 配列メソッド（18個）
+## 配列メソッド（23個）
 
 `push`、`pop`、`shift`、`unshift`、`insert`、`remove`、`find`、`contains`、
-`slice`、`join`、`concat`、`reverse`、`first`、`last`、`clear`、`map`、`filter`、`reduce`
+`slice`、`join`、`concat`、`reverse`、`first`、`last`、`clear`、`map`、`filter`、`reduce`、
+`every`、`some`、`indexOf`、`sort`、`fill`
+
+```hemlock
+// every(predicate) - すべての要素が述語を満たす場合true
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+
+// some(predicate) - いずれかの要素が述語を満たす場合true
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+
+// indexOf(value) - 値の最初のインデックスを検索、見つからない場合-1
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+
+// sort(comparator?) - インプレースソート、オプションのコンパレータ
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // 降順
+
+// fill(value, start?, end?) - 値で充填
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 型付き配列：`let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## 標準ライブラリ（40モジュール）
+## 標準ライブラリ（42モジュール）
 
 `@stdlib/`プレフィックスでインポート：
 ```hemlock
@@ -577,11 +601,13 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `sqlite` | SQLiteデータベース、query、exec、トランザクション |
 | `strings` | pad_left、is_alpha、reverse、lines |
 | `terminal` | ANSIカラーとスタイル |
+| `termios` | 生ターミナル入力、キー検出 |
 | `testing` | describe、test、expect |
 | `time` | now、time_ms、sleep、clock |
 | `toml` | TOMLパースと生成 |
 | `url` | URLパースと操作 |
 | `uuid` | UUID生成 |
+| `vector` | ベクトル類似性検索（USearch ANN） |
 | `websocket` | WebSocketクライアント |
 
 詳細なモジュールドキュメントについては`stdlib/docs/`を参照してください。
@@ -676,7 +702,7 @@ hemlock/
 │   │   ├── lsp/          # Language Server Protocol
 │   │   └── bundler/      # バンドル/パッケージツール
 ├── runtime/              # コンパイル済みプログラムランタイム（libhemlock_runtime.a）
-├── stdlib/               # 標準ライブラリ（40モジュール）
+├── stdlib/               # 標準ライブラリ（42モジュール）
 │   └── docs/             # モジュールドキュメント
 ├── docs/                 # 完全なドキュメント
 │   ├── language-guide/   # 型、文字列、配列など
@@ -886,7 +912,41 @@ make parity
 
 ## バージョン
 
-**v1.8.0** - 以下を含む現在のリリース：
+**v1.9.2** - 以下を含む現在のリリース：
+- **コンパイラUnboxedループカウンタ修正** - 最適化されたループカウンタ（ネイティブ`int32_t`）がboxingなしで直接`HmlValue`初期化子として使用されるクリティカルなcodgenバグを修正。`codegen_is_main_var`チェックが、メインレベル変数がモジュール/クロージャ関数内のunboxedループカウンタをシャドウした場合にboxingラッパー（`hml_val_i32()`）の出力を誤って阻止していました。`@stdlib/collections`と`@stdlib/encoding`のコンパイルを修正。
+- **`clear()`オブジェクトメソッドディスパッチ** - 非配列型で呼び出された場合、コンパイラが`.clear()`をオブジェクトメソッドに正しくディスパッチするようになりました。以前は`.clear()`はレシーバ型に関係なく常に`hml_array_clear()`を生成していました。
+- **`exec()`インポートシャドウイング修正** - コンパイラのビルトイン`exec()`ハンドラがシステムexecビルトインにディスパッチする前にインポートバインディングとモジュールローカル関数をチェックするようになりました。独自の`exec()`関数をエクスポートする`@stdlib/sqlite`を修正。
+
+**v1.9.1** - 以下を含む前のリリース：
+- **`write()`ビルトイン** - 末尾改行なしの出力（`write("hello"); write(" world");`は1行で出力）。即時出力のための`fflush(stdout)`を含む。インタプリタとコンパイラ間の完全なパリティ。
+- **単一引数`slice()`** - `arr.slice(n)`と`str.slice(n)`はデフォルトで終了を長さに設定、JS/Pythonの動作に一致。2引数形式は変更なし。
+- **Rune配列での`join()`** - `"hello".chars().join("")`が`"[object][object]..."`の代わりに正しく`"hello"`を生成。慣用的な文字列反転を可能に：`str.chars().reverse().join("")`。
+- **HashMap数値キー強制変換** - 異なる数値型のキーが一致するようになりました（例：`i32`キーが`i64`ルックアップで発見）。以前は`keys_equal()`の`typeof()`ガードが有効なクロスタイプマッチを拒否していました。
+- **HemBench改善** - タスク定義を修正（L1-M-02丸め、L2-E-01精度）、L5/L6ベンチマークタスクへの期待出力のリークを停止。
+- **完全な`ptr_read_*`ビルトイン** - 既存の`ptr_write_*`関数を補完するために`ptr_read_i8`、`ptr_read_i16`、`ptr_read_i64`、`ptr_read_u8`、`ptr_read_u16`、`ptr_read_u32`、`ptr_read_u64`、`ptr_read_f32`、`ptr_read_f64`、`ptr_read_ptr`を追加。`ptr_read_i32`を直接デリファレンスに修正（二重デリファレンスだった）。インタプリタとコンパイラ間の完全なパリティ。
+- **macOS FFIライブラリロード** - `dlopen`がmacOSでフォールバックパスとして`/usr/local/lib`と`/opt/homebrew/lib`を検索するようになり、ユーザーインストールの共有ライブラリ（例：libusearch_c）のライブラリ未検出エラーを修正。
+- **`@stdlib/vector` USearch v2修正** - `create_index()`がinit後に`usearch_reserve()`を呼び出すようになり、ベクトル追加前にプリアロケーションを必要とするUSearch v2.24+でのセグフォルトを修正。
+
+**v1.9.0** - 以下を含む前のリリース：
+- **WASMインタプリタリリースアーティファクト** - ブラウザ/Node.js使用のためのビルド済みWASMインタプリタをGitHubリリースに含む
+- **コンパイラインライン化修正** - 関数インライン化中のネストされた呼び出し引数の破損とループカウンタとのアンボックス化衝突を修正（hemloco コンパイルを修正）
+- **ポインタ減算** - コンパイラ型チェッカーがポインタ演算のための`ptr - integer`を許可するようになりました
+- **キャッチ可能な`open()`例外** - `open()`が`exit(1)`の代わりに`hml_throw()`でスローし、try/catchエラーハンドリングを有効に
+- **多引数print/eprint修正** - 複数引数を持つ`print()`と`eprint()`のコンパイラcodgenを修正（例：`print("x:", x, y)`）
+- **SSO文字列修正** - Small String Optimizationを使用した文字列の拡大時の`hml_string_append_inplace`のセグフォルトを修正
+- **`@stdlib/termios`モジュール** - クロスプラットフォーム生ターミナル入力（Linux/macOS）：
+  - 即時キー入力のための`enable_raw_mode()` / `disable_raw_mode()`
+  - 単一キー読み取りのための`read_key()` / `read_key_timeout(ms)`
+  - 矢印キー、ファンクションキー、コントロールキーの検出
+  - stdinがTTYかどうかを確認する`is_terminal()`
+  - `stdlib/docs/termios.md`にドキュメント
+- **メモリリーク防止** - ランタイムのリークフリーを保証する包括的な修正：
+  - 例外安全な式評価（配列、オブジェクト、関数呼び出し）
+  - join()でのタスク結果の適切なretain/release
+  - close時のチャネルドレイン（バッファされた値を解放）
+  - null合体定数畳み込みのオプティマイザクリーンアップ
+  - リーク回帰テストスイート（`make leak-regression`）
+  - メモリ所有権ドキュメント（`docs/advanced/memory-ownership.md`）
 - **パターンマッチング**（`match`式）- 強力な分解と制御フロー：
   - リテラル、ワイルドカード、変数バインディングパターン
   - ORパターン（`1 | 2 | 3`）
@@ -932,11 +992,11 @@ make parity
 - アンボックス化最適化ヒント付き統一型システム
 - 完全な型システム（i8-i64、u8-u64、f32/f64、bool、string、rune、ptr、buffer、array、object、enum、file、task、channel）
 - 19メソッド付きUTF-8文字列
-- map/filter/reduceを含む18メソッド付き配列
+- map/filter/reduce/every/some/indexOf/sort/fillを含む23メソッド付き配列
 - `talloc()`と`sizeof()`を使った手動メモリ管理
 - 真のpthread並列処理を持つAsync/await
 - ロックフリー並行プログラミング用アトミック操作
-- 40 stdlibモジュール（+ arena、assert、semver、toml、retry、iter、random、shell）
+- 42 stdlibモジュール（+ arena、assert、semver、toml、retry、iter、random、shell、termios、vector）
 - 再利用可能なライブラリラッパー用の`export extern fn`を持つCインターオペ用FFI
 - コンパイラでのFFI構造体サポート（C構造体を値渡し）
 - FFIポインタヘルパー（`ptr_null`、`ptr_read_*`、`ptr_write_*`）

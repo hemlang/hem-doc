@@ -336,12 +336,12 @@ let has3 = words.contains("hello");  // true
 
 **签名：**
 ```hemlock
-array.slice(start: i32, end: i32): array
+array.slice(start: i32, end?: i32): array
 ```
 
 **参数：**
 - `start` - 起始索引（从 0 开始，包含）
-- `end` - 结束索引（不包含）
+- `end` - 结束索引（不包含）。省略时默认为 `array.length`。
 
 **返回值：** 包含 [start, end) 范围内元素的新数组
 
@@ -353,6 +353,10 @@ let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4]
 let first_three = arr.slice(0, 3);  // [1, 2, 3]
 let last_two = arr.slice(3, 5);     // [4, 5]
+
+// 单参数：从索引到末尾
+let tail = arr.slice(2);     // [3, 4, 5]
+let copy = arr.slice(0);     // [1, 2, 3, 4, 5]（浅拷贝）
 
 // 空切片
 let empty = arr.slice(2, 2); // []
@@ -620,7 +624,18 @@ let arr = ["a", "b", "c"];
 let s = arr.join("");          // "abc"
 ```
 
-**行为：** 自动将所有元素转换为字符串。
+**行为：** 自动将所有元素转换为字符串，包括 `string.chars()` 返回的 rune 值。
+
+```hemlock
+// 连接 rune 数组（来自 chars()）
+let chars = "hello".chars();
+print(chars.join("-"));   // "h-e-l-l-o"
+
+// 字符串反转惯用法
+let reversed = "hello".chars();
+reversed.reverse();
+print(reversed.join(""));  // "olleh"
+```
 
 ---
 

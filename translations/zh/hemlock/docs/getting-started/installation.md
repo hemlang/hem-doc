@@ -182,6 +182,141 @@ hemlock/
 └── README.md         # 项目说明
 ```
 
+## WebAssembly (WASM) 构建
+
+Hemlock 可以通过 [Emscripten](https://emscripten.org/) 编译为 WebAssembly，使完整的解释器能够在 Web 浏览器或 Node.js 中运行。
+
+### 安装 Emscripten
+
+Emscripten SDK（`emsdk`）提供了用于构建 WASM 解释器的 `emcc` 编译器。
+
+**所有平台（Linux、macOS、Windows WSL）：**
+
+```bash
+# Clone the emsdk repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate the latest SDK
+./emsdk install latest
+./emsdk activate latest
+
+# Add emcc to your PATH (run this in every new terminal, or add to your shell profile)
+source ./emsdk_env.sh
+```
+
+验证安装：
+
+```bash
+emcc --version
+```
+
+您应该看到类似 `emcc (Emscripten gcc/clang-like replacement ...) 3.x.x` 的输出。
+
+详细说明请参阅 [Emscripten 入门指南](https://emscripten.org/docs/getting_started/downloads.html)。
+
+**可选：添加到 shell 配置文件**
+
+为避免每次都运行 `source emsdk_env.sh`，将其添加到您的 shell 配置文件：
+
+```bash
+# For bash (~/.bashrc or ~/.bash_profile)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.bashrc
+
+# For zsh (~/.zshrc)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.zshrc
+```
+
+### WASM 依赖项
+
+WASM 构建的依赖项比原生构建少。Emscripten 提供了自己版本的标准 C 库。以下原生库在 WASM 构建中**不需要**（且不可用）：
+
+| 库 | 原生 | WASM | 说明 |
+|---------|--------|------|-------|
+| libffi | 必需 | 桩模块 | FFI 在 WASM 中不可用 |
+| OpenSSL | 必需 | 桩模块 | 加密内置函数在 WASM 中返回错误 |
+| libwebsockets | 可选 | 桩模块 | WebSocket 支持不可用 |
+| zlib | 必需 | Emscripten 提供 | 通过 `-sUSE_ZLIB=1` 自动链接 |
+| pthreads | 必需 | 可选 | 通过线程构建可用（需要 SharedArrayBuffer） |
+
+**简而言之：** 您只需要安装 Emscripten SDK。WASM 构建不需要额外的系统库。
+
+### 构建 WASM 解释器
+
+```bash
+# Build the interpreter as WebAssembly
+make wasm-interpreter
+```
+
+这会在 `wasm/` 目录中生成两个文件：
+
+| 文件 | 描述 |
+|------|-------------|
+| `wasm/hemlock.js` | JavaScript 加载器和 Emscripten 胶水代码 |
+| `wasm/hemlock.wasm` | WebAssembly 二进制模块 |
+
+### 在 Node.js 中运行
+
+```bash
+node -- wasm/hemlock.js -e 'print("Hello from WASM!");'
+node -- wasm/hemlock.js examples/fibonacci.hml
+```
+
+### 在浏览器中运行
+
+WASM 文件必须通过 HTTP 以正确的 MIME 类型（`application/wasm`）提供服务。直接通过 `file://` 打开 HTML 文件将无法工作。
+
+**使用包含的示例：**
+
+```bash
+make wasm-browser-example
+# Opens http://localhost:8080/examples/wasm-browser/index.html
+```
+
+**或使用 Python 手动操作：**
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/wasm/playground.html
+```
+
+**或使用 Node.js 手动操作：**
+
+```bash
+npx serve .
+# Open the URL shown in the terminal
+```
+
+请参阅 `examples/wasm-browser/` 获取包含交互式代码编辑器的完整浏览器集成示例。
+
+### WASM 限制
+
+某些功能在 WASM 环境中不可用：
+
+- **FFI** - 无法加载共享库（`dlopen`/`dlsym`）
+- **加密** - 无 OpenSSL（`sha256`、`md5` 等返回错误）
+- **文件 I/O** - 无原生文件系统访问（仅 Emscripten 虚拟文件系统）
+- **网络** - 无原始套接字或 HTTP 客户端
+- **信号** - 无 POSIX 信号处理
+- **进程** - 无 `fork`、`exec` 或进程管理
+- **线程** - `spawn`/`join`/通道需要使用 `SharedArrayBuffer` 的线程化 WASM 构建
+
+所有核心语言功能都可以工作：变量、函数、闭包、对象、数组、模式匹配、类型注解、try/catch 以及纯 Hemlock 模块的完整标准库。
+
+### 将 Hemlock 程序编译为 WASM
+
+除了在 WASM 中运行解释器外，您还可以使用编译器后端将单个 Hemlock 程序编译为独立的 WASM 二进制文件：
+
+```bash
+# Compile a Hemlock program to WASM (requires both hemlockc and Emscripten)
+make wasm-compile FILE=program.hml
+
+# With threading support
+make wasm-compile-threaded FILE=program.hml
+```
+
+这使用 `hemlockc` 生成 C 代码，然后使用 Emscripten 将其编译为 WASM。
+
 ## 构建选项
 
 ### 调试构建

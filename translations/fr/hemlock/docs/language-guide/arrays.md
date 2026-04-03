@@ -161,7 +161,7 @@ print(arr.length);  // 6
 
 ## Methodes de tableau
 
-Hemlock fournit 18 methodes de tableau pour une manipulation complete.
+Hemlock fournit 23 methodes de tableau pour une manipulation complete.
 
 ### Operations de pile
 
@@ -287,6 +287,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Fonctionne avec les types mixtes
 let mixed = [1, "bonjour", true, null];
 print(mixed.join(" | "));  // "1 | bonjour | true | null"
+
+// Fonctionne avec les tableaux de runes (depuis chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Concatener avec un autre tableau :
@@ -673,5 +678,5 @@ Limitations actuelles :
 ## Voir aussi
 
 - **Dimensionnement dynamique** : Les tableaux croissent automatiquement avec doublement de la capacite
-- **Methodes** : 18 methodes completes pour la manipulation incluant map/filter/reduce
+- **Methodes** : 23 methodes completes pour la manipulation incluant map/filter/reduce/every/some/indexOf/sort/fill
 - **Memoire** : Voir [Memoire](memory.md) pour les details d'allocation de tableau

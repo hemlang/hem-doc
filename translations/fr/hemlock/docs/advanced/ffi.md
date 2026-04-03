@@ -535,6 +535,24 @@ Hemlock fournit des fonctions d'assistance completes pour travailler avec les po
 | `ptr_read_i32(ptr)` | Lire i32 a travers pointeur-vers-pointeur (pour callbacks qsort) |
 | `ptr_null()` | Obtenir une constante pointeur null |
 
+#### Fonctions de lecture de pointeur
+
+Lire des valeurs typees directement depuis la memoire (complete `ptr_write_*`).
+
+| Fonction | Description |
+|----------|-------------|
+| `ptr_read_i8(ptr)` | Lire i8 depuis le pointeur |
+| `ptr_read_i16(ptr)` | Lire i16 depuis le pointeur |
+| `ptr_read_i32(ptr)` | Lire i32 depuis le pointeur |
+| `ptr_read_i64(ptr)` | Lire i64 depuis le pointeur |
+| `ptr_read_u8(ptr)` | Lire u8 depuis le pointeur |
+| `ptr_read_u16(ptr)` | Lire u16 depuis le pointeur |
+| `ptr_read_u32(ptr)` | Lire u32 depuis le pointeur |
+| `ptr_read_u64(ptr)` | Lire u64 depuis le pointeur |
+| `ptr_read_f32(ptr)` | Lire f32 depuis le pointeur |
+| `ptr_read_f64(ptr)` | Lire f64 depuis le pointeur |
+| `ptr_read_ptr(ptr)` | Lire pointeur depuis le pointeur (retourne null si la valeur stockee est NULL) |
+
 #### Assistants de conversion de buffer
 
 | Fonction | Description |

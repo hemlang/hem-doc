@@ -6,13 +6,13 @@ Vollständige Referenz für Hemlocks Datei-I/O-System.
 
 ## Übersicht
 
-Hemlock bietet eine **Dateiobjekt-API** für Dateioperationen mit ordnungsgemaesser Fehlerbehandlung und Ressourcenverwaltung. Dateien müssen manuell geöffnet und geschlossen werden.
+Hemlock bietet eine **Dateiobjekt-API** für Dateioperationen mit ordnungsgemäßer Fehlerbehandlung und Ressourcenverwaltung. Dateien müssen manuell geöffnet und geschlossen werden.
 
 **Hauptmerkmale:**
 - Dateiobjekt mit Methoden
-- Text- und Binaerdaten lesen/schreiben
+- Text- und Binärdaten lesen/schreiben
 - Positionierung und Suchen
-- Ordnungsgemaesse Fehlermeldungen
+- Ordnungsgemäße Fehlermeldungen
 - Manuelle Ressourcenverwaltung (kein RAII)
 
 ---
@@ -25,7 +25,7 @@ Hemlock bietet eine **Dateiobjekt-API** für Dateioperationen mit ordnungsgemaes
 
 **Eigenschaften (Nur-Lesen):**
 - `.path` - Dateipfad (string)
-- `.mode` - Oeffnungsmodus (string)
+- `.mode` - Öffnungsmodus (string)
 - `.closed` - Ob Datei geschlossen (bool)
 
 ---
@@ -34,7 +34,7 @@ Hemlock bietet eine **Dateiobjekt-API** für Dateioperationen mit ordnungsgemaes
 
 ### open
 
-Oeffnet eine Datei zum Lesen, Schreiben oder beides.
+Öffnet eine Datei zum Lesen, Schreiben oder beides.
 
 **Signatur:**
 ```hemlock
@@ -43,17 +43,17 @@ open(path: string, mode?: string): file
 
 **Parameter:**
 - `path` - Dateipfad (relativ oder absolut)
-- `mode` (optional) - Oeffnungsmodus (Standard: `"r"`)
+- `mode` (optional) - Öffnungsmodus (Standard: `"r"`)
 
 **Rückgabe:** Dateiobjekt
 
 **Modi:**
 - `"r"` - Lesen (Standard)
 - `"w"` - Schreiben (bestehende Datei abschneiden)
-- `"a"` - Anhaengen
+- `"a"` - Anhängen
 - `"r+"` - Lesen und Schreiben
 - `"w+"` - Lesen und Schreiben (abschneiden)
-- `"a+"` - Lesen und Anhaengen
+- `"a+"` - Lesen und Anhängen
 
 **Beispiele:**
 ```hemlock
@@ -64,7 +64,7 @@ let f_read = open("data.txt", "r");
 // Schreibmodus (abschneiden)
 let f_write = open("output.txt", "w");
 
-// Anhaengemodus
+// Anhängemodus
 let f_append = open("log.txt", "a");
 
 // Lesen/Schreiben-Modus
@@ -73,7 +73,7 @@ let f_rw = open("data.bin", "r+");
 // Lesen/Schreiben (abschneiden)
 let f_rw_trunc = open("output.bin", "w+");
 
-// Lesen/Anhaengen
+// Lesen/Anhängen
 let f_ra = open("log.txt", "a+");
 ```
 
@@ -136,7 +136,7 @@ f.close();
 
 #### read_bytes
 
-Liest Binaerdaten aus Datei.
+Liest Binärdaten aus Datei.
 
 **Signatur:**
 ```hemlock
@@ -146,7 +146,7 @@ file.read_bytes(size: i32): buffer
 **Parameter:**
 - `size` - Anzahl der zu lesenden Bytes
 
-**Rückgabe:** Buffer mit Binaerdaten
+**Rückgabe:** Buffer mit Binärdaten
 
 **Beispiele:**
 ```hemlock
@@ -156,7 +156,7 @@ let f = open("data.bin", "r");
 let binary = f.read_bytes(256);
 print(binary.length);       // 256
 
-// Binaerdaten verarbeiten
+// Binärdaten verarbeiten
 let i = 0;
 while (i < binary.length) {
     print(binary[i]);
@@ -197,7 +197,7 @@ let f = open("output.txt", "w");
 let written = f.write("Hello, World!\n");
 print("Geschrieben", written, "Bytes");
 
-// Mehrere Schreibvorgaenge
+// Mehrere Schreibvorgänge
 f.write("Zeile 1\n");
 f.write("Zeile 2\n");
 f.write("Zeile 3\n");
@@ -218,7 +218,7 @@ f.close();
 
 #### write_bytes
 
-Schreibt Binaerdaten in Datei.
+Schreibt Binärdaten in Datei.
 
 **Signatur:**
 ```hemlock
@@ -350,7 +350,7 @@ f.close();  // Kein Fehler
 
 **Verhalten:**
 - Schliesst Dateihandle
-- Leert ausstehende Schreibvorgaenge
+- Leert ausstehende Schreibvorgänge
 - Idempotent (sicher mehrmals aufzurufen)
 - Setzt `.closed`-Eigenschaft auf `true`
 
@@ -379,7 +379,7 @@ f.close();
 
 ### .mode
 
-Gibt Oeffnungsmodus zurück.
+Gibt Öffnungsmodus zurück.
 
 **Typ:** `string`
 
@@ -400,7 +400,7 @@ f2.close();
 
 ### .closed
 
-Prueft ob Datei geschlossen ist.
+Prüft ob Datei geschlossen ist.
 
 **Typ:** `bool`
 
@@ -419,7 +419,7 @@ print(f.closed);        // true
 
 ## Fehlerbehandlung
 
-Alle Dateioperationen enthalten ordnungsgemaesse Fehlermeldungen mit Kontext:
+Alle Dateioperationen enthalten ordnungsgemäße Fehlermeldungen mit Kontext:
 
 ### Datei nicht gefunden
 ```hemlock
@@ -529,7 +529,7 @@ fn write_file(filename: string, content: string) {
 write_file("output.txt", "Hello, World!\n");
 ```
 
-### An Datei anhaengen
+### An Datei anhängen
 
 ```hemlock
 fn append_file(filename: string, line: string) {
@@ -542,7 +542,7 @@ append_file("log.txt", "Log-Eintrag 1");
 append_file("log.txt", "Log-Eintrag 2");
 ```
 
-### Binaerdatei lesen
+### Binärdatei lesen
 
 ```hemlock
 fn read_binary(filename: string, size: i32): buffer {
@@ -556,7 +556,7 @@ let binary = read_binary("data.bin", 256);
 print("Gelesen", binary.length, "Bytes");
 ```
 
-### Binaerdatei schreiben
+### Binärdatei schreiben
 
 ```hemlock
 fn write_binary(filename: string, data: buffer) {
@@ -605,7 +605,7 @@ fn copy_file(src: string, dest: string) {
 copy_file("input.txt", "output.txt");
 ```
 
-### Datei in Stuecken lesen
+### Datei in Stücken lesen
 
 ```hemlock
 fn process_chunks(filename: string) {
@@ -629,26 +629,26 @@ process_chunks("large_file.txt");
 
 ---
 
-## Vollständige Methodenuebersicht
+## Vollständige Methodenübersicht
 
 | Methode       | Signatur                 | Rückgabe | Beschreibung                 |
 |---------------|--------------------------|-----------|------------------------------|
 | `read`        | `(size?: i32)`           | `string`  | Text lesen                   |
-| `read_bytes`  | `(size: i32)`            | `buffer`  | Binaerdaten lesen            |
+| `read_bytes`  | `(size: i32)`            | `buffer`  | Binärdaten lesen            |
 | `write`       | `(data: string)`         | `i32`     | Text schreiben               |
-| `write_bytes` | `(data: buffer)`         | `i32`     | Binaerdaten schreiben        |
+| `write_bytes` | `(data: buffer)`         | `i32`     | Binärdaten schreiben        |
 | `seek`        | `(position: i32)`        | `i32`     | Dateiposition setzen         |
 | `tell`        | `()`                     | `i32`     | Dateiposition holen          |
 | `close`       | `()`                     | `null`    | Datei schließen (idempotent)|
 
 ---
 
-## Vollständige Eigenschaftsuebersicht
+## Vollständige Eigenschaftsübersicht
 
 | Eigenschaft | Typ      | Zugriff    | Beschreibung             |
 |-------------|----------|------------|--------------------------|
 | `.path`     | `string` | Nur-Lesen  | Dateipfad                |
-| `.mode`     | `string` | Nur-Lesen  | Oeffnungsmodus           |
+| `.mode`     | `string` | Nur-Lesen  | Öffnungsmodus           |
 | `.closed`   | `bool`   | Nur-Lesen  | Ob Datei geschlossen     |
 
 ---

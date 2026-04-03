@@ -1,6 +1,6 @@
 # Pattern Matching
 
-Hemlock bietet leistungsfaehiges Pattern Matching durch `match`-Ausdrücke, die eine praegnante Möglichkeit bieten, Werte zu destrukturieren, Typen zu prüfen und mehrere Faelle zu behandeln.
+Hemlock bietet leistungsfähiges Pattern Matching durch `match`-Ausdrücke, die eine prägnante Möglichkeit bieten, Werte zu destrukturieren, Typen zu prüfen und mehrere Fälle zu behandeln.
 
 ## Grundlegende Syntax
 
@@ -31,7 +31,7 @@ let msg = match (x) {
 print(msg);  // "die Antwort"
 ```
 
-Unterstuetzte Literale:
+Unterstützte Literale:
 - **Ganzzahlen**: `0`, `42`, `-5`
 - **Fliesskommazahlen**: `3.14`, `-0.5`
 - **Strings**: `"hello"`, `"world"`
@@ -123,7 +123,7 @@ let desc = match (val) {
 print(desc);  // "Ganzzahl: 42"
 ```
 
-Unterstuetzte Typen: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `bool`, `string`, `array`, `object`
+Unterstützte Typen: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `bool`, `string`, `array`, `object`
 
 ## Destrukturierungs-Patterns
 
@@ -243,7 +243,7 @@ let msg = "Note: " + match (grade) {
     _ => "durchgefallen"
 };
 
-// In Funktionsrueckgabe
+// In Funktionsrückgabe
 fn classify(n: i32): string {
     return match (n) {
         0 => "null",
@@ -256,9 +256,9 @@ fn classify(n: i32): string {
 ## Best Practices für Pattern Matching
 
 1. **Reihenfolge ist wichtig**: Patterns werden von oben nach unten geprüft; setzen Sie spezifische Patterns vor allgemeine
-2. **Wildcards für Vollstaendigkeit**: Fuegen Sie immer einen `_`-Fallback ein, außer Sie sind sicher, dass alle Faelle abgedeckt sind
+2. **Wildcards für Vollständigkeit**: Fügen Sie immer einen `_`-Fallback ein, außer Sie sind sicher, dass alle Fälle abgedeckt sind
 3. **Guards statt verschachtelter Bedingungen bevorzugen**: Guards machen die Absicht klarer
-4. **Destrukturierung statt manuellem Feldzugriff bevorzugen**: Praegnanter und sicherer
+4. **Destrukturierung statt manuellem Feldzugriff bevorzugen**: Prägnanter und sicherer
 
 ```hemlock
 // Gut: Guards für Bereichsprüfung
@@ -274,7 +274,7 @@ match (point) {
     { x, y } => "bei " + x + "," + y
 }
 
-// Vermeiden: Ueberkomplexe verschachtelte Patterns
+// Vermeiden: Überkomplexe verschachtelte Patterns
 // Stattdessen in mehrere Matches aufteilen oder Guards verwenden
 ```
 
@@ -292,4 +292,4 @@ match (point) {
 
 ## Implementierungshinweise
 
-Pattern Matching ist sowohl im Interpreter- als auch im Compiler-Backend mit voller Paritaet implementiert - beide erzeugen identische Ergebnisse für dieselbe Eingabe. Das Feature ist ab Hemlock v1.8.0 verfügbar.
+Pattern Matching ist sowohl im Interpreter- als auch im Compiler-Backend mit voller Parität implementiert - beide erzeugen identische Ergebnisse für dieselbe Eingabe. Das Feature ist ab Hemlock v1.8.0 verfügbar.
