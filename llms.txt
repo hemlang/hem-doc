@@ -297,8 +297,9 @@ typeof(42);              // "i32"
 typeof("hello");         // "string"
 typeof([1, 2, 3]);       // "array"
 typeof(null);            // "null"
-len("hello");            // 5 (string length in bytes)
-len([1, 2, 3]);          // 3 (array length)
+"hello".length;          // 5 (string length in runes)
+"hello".byte_length;     // 5 (string length in bytes)
+[1, 2, 3].length;        // 3 (array length)
 ```
 
 ### Memory
@@ -656,6 +657,7 @@ ch.close();
 ```hemlock
 let name = read_line();          // Read line from stdin (blocks)
 print("Hello, " + name);
+write("no newline");             // Print without trailing newline
 eprint("Error message");         // Print to stderr
 
 // read_line() returns null on EOF
@@ -732,7 +734,7 @@ Typed arrays: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Standard Library (41 modules)
+## Standard Library (42 modules)
 
 Import with `@stdlib/` prefix:
 ```hemlock
@@ -784,6 +786,7 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `toml` | TOML parsing and generation |
 | `url` | URL parsing and manipulation |
 | `uuid` | UUID generation |
+| `vector` | Vector similarity search (USearch ANN) |
 | `websocket` | WebSocket client |
 
 See `stdlib/docs/` for detailed module documentation.
@@ -1088,7 +1091,26 @@ make parity
 
 ## Version
 
-**v1.8.7** - Current release with:
+**v1.9.2** - Current release with:
+- **Compiler unboxed loop counter fix** - Fixed a critical codegen bug where optimized loop counters (native `int32_t`) were used directly as `HmlValue` initializers without boxing. The `codegen_is_main_var` check incorrectly prevented the boxing wrapper (`hml_val_i32()`) from being emitted when a main-level variable name shadowed an unboxed loop counter inside a module/closure function. Fixes compilation of `@stdlib/collections` and `@stdlib/encoding`.
+- **`clear()` object method dispatch** - The compiler now correctly dispatches `.clear()` to object methods when called on non-array types. Previously, `.clear()` always generated `hml_array_clear()` regardless of receiver type.
+- **`exec()` import shadowing fix** - The compiler's builtin `exec()` handler now checks for import bindings and module-local functions before dispatching to the system exec builtin. Fixes `@stdlib/sqlite` which exports its own `exec()` function.
+
+**v1.9.1** - Previous release with:
+- **`write()` builtin** - Print without trailing newline (`write("hello"); write(" world");` outputs on one line). Includes `fflush(stdout)` for immediate output. Full parity between interpreter and compiler.
+- **Single-argument `slice()`** - `arr.slice(n)` and `str.slice(n)` now default end to length, matching JS/Python behavior. Two-arg form unchanged.
+- **`join()` on rune arrays** - `"hello".chars().join("")` now correctly produces `"hello"` instead of `"[object][object]..."`. Enables idiomatic string reversal: `str.chars().reverse().join("")`.
+- **HashMap numeric key coercion** - Keys of different numeric types now match (e.g., `i32` key found by `i64` lookup). Previously, `typeof()` guard in `keys_equal()` rejected valid cross-type matches.
+- **HemBench improvements** - Fixed task definitions (L1-M-02 rounding, L2-E-01 precision), stopped leaking expected output to L5/L6 benchmark tasks.
+- **Complete `ptr_read_*` builtins** - Added `ptr_read_i8`, `ptr_read_i16`, `ptr_read_i64`, `ptr_read_u8`, `ptr_read_u16`, `ptr_read_u32`, `ptr_read_u64`, `ptr_read_f32`, `ptr_read_f64`, `ptr_read_ptr` to complement existing `ptr_write_*` functions. Fixed `ptr_read_i32` to do direct dereference (was double-dereference). Full parity between interpreter and compiler.
+- **macOS FFI library loading** - `dlopen` now searches `/usr/local/lib` and `/opt/homebrew/lib` as fallback paths on macOS, fixing library-not-found errors for user-installed shared libraries (e.g., libusearch_c).
+- **`@stdlib/vector` USearch v2 fix** - `create_index()` now calls `usearch_reserve()` after init, fixing segfault with USearch v2.24+ which requires pre-allocation before adding vectors.
+
+**v1.9.0** - Previous release with:
+- **WASM interpreter release artifact** - Pre-built WASM interpreter included in GitHub releases for browser/Node.js usage
+- **Compiler inlining fixes** - Fixed nested call argument corruption and unboxing collision with loop counters during function inlining (fixes hemloco compilation)
+- **Pointer subtraction** - Compiler type checker now allows `ptr - integer` for pointer arithmetic
+- **Catchable `open()` exceptions** - `open()` throws via `hml_throw()` instead of `exit(1)`, enabling try/catch error handling
 - **Multi-argument print/eprint fix** - Fixed compiler codegen for `print()` and `eprint()` with multiple arguments (e.g., `print("x:", x, y)`)
 - **SSO string fix** - Fixed segfault in `hml_string_append_inplace` when growing strings using Small String Optimization
 - **`@stdlib/termios` module** - Cross-platform raw terminal input (Linux/macOS):
@@ -1153,7 +1175,7 @@ make parity
 - Manual memory management with `talloc()` and `sizeof()`
 - Async/await with true pthread parallelism
 - Atomic operations for lock-free concurrent programming
-- 41 stdlib modules (+ arena, assert, semver, toml, retry, iter, random, shell, termios)
+- 42 stdlib modules (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
 - FFI for C interop with `export extern fn` for reusable library wrappers
 - FFI struct support in compiler (pass C structs by value)
 - FFI pointer helpers (`ptr_null`, `ptr_read_*`, `ptr_write_*`)
@@ -1370,6 +1392,141 @@ hemlock/
 ├── Makefile          # Build configuration
 └── README.md         # Project README
 ```
+
+## WebAssembly (WASM) Build
+
+Hemlock can be compiled to WebAssembly via [Emscripten](https://emscripten.org/), allowing the full interpreter to run in a web browser or Node.js.
+
+### Installing Emscripten
+
+The Emscripten SDK (`emsdk`) provides the `emcc` compiler used to build the WASM interpreter.
+
+**All platforms (Linux, macOS, Windows WSL):**
+
+```bash
+# Clone the emsdk repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate the latest SDK
+./emsdk install latest
+./emsdk activate latest
+
+# Add emcc to your PATH (run this in every new terminal, or add to your shell profile)
+source ./emsdk_env.sh
+```
+
+Verify the installation:
+
+```bash
+emcc --version
+```
+
+You should see output like `emcc (Emscripten gcc/clang-like replacement ...) 3.x.x`.
+
+For detailed instructions, see the [Emscripten Getting Started guide](https://emscripten.org/docs/getting_started/downloads.html).
+
+**Optional: Add to shell profile**
+
+To avoid running `source emsdk_env.sh` every time, add it to your shell profile:
+
+```bash
+# For bash (~/.bashrc or ~/.bash_profile)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.bashrc
+
+# For zsh (~/.zshrc)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.zshrc
+```
+
+### WASM Dependencies
+
+The WASM build has fewer dependencies than the native build. Emscripten provides its own versions of standard C libraries. The following native libraries are **not needed** (and not available) in the WASM build:
+
+| Library | Native | WASM | Notes |
+|---------|--------|------|-------|
+| libffi | Required | Stubbed | FFI is not available in WASM |
+| OpenSSL | Required | Stubbed | Crypto builtins return errors in WASM |
+| libwebsockets | Optional | Stubbed | WebSocket support not available |
+| zlib | Required | Emscripten provides | Automatically linked with `-sUSE_ZLIB=1` |
+| pthreads | Required | Optional | Available with threaded build (requires SharedArrayBuffer) |
+
+**In short:** You only need the Emscripten SDK installed. No additional system libraries are required for the WASM build.
+
+### Building the WASM Interpreter
+
+```bash
+# Build the interpreter as WebAssembly
+make wasm-interpreter
+```
+
+This produces two files in the `wasm/` directory:
+
+| File | Description |
+|------|-------------|
+| `wasm/hemlock.js` | JavaScript loader and Emscripten glue code |
+| `wasm/hemlock.wasm` | WebAssembly binary module |
+
+### Running in Node.js
+
+```bash
+node -- wasm/hemlock.js -e 'print("Hello from WASM!");'
+node -- wasm/hemlock.js examples/fibonacci.hml
+```
+
+### Running in a Browser
+
+WASM files must be served over HTTP with the correct MIME type (`application/wasm`). Opening the HTML file directly via `file://` will not work.
+
+**Using the included example:**
+
+```bash
+make wasm-browser-example
+# Opens http://localhost:8080/examples/wasm-browser/index.html
+```
+
+**Or manually with Python:**
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/wasm/playground.html
+```
+
+**Or manually with Node.js:**
+
+```bash
+npx serve .
+# Open the URL shown in the terminal
+```
+
+See `examples/wasm-browser/` for a complete browser integration example with an interactive code editor.
+
+### WASM Limitations
+
+Some features are unavailable in the WASM environment:
+
+- **FFI** - No shared library loading (`dlopen`/`dlsym`)
+- **Crypto** - No OpenSSL (`sha256`, `md5`, etc. return errors)
+- **File I/O** - No native filesystem access (Emscripten virtual FS only)
+- **Networking** - No raw sockets or HTTP client
+- **Signals** - No POSIX signal handling
+- **Process** - No `fork`, `exec`, or process management
+- **Threading** - `spawn`/`join`/channels require a threaded WASM build with `SharedArrayBuffer`
+
+All core language features work: variables, functions, closures, objects, arrays, pattern matching, type annotations, try/catch, and the full standard library of pure-Hemlock modules.
+
+### Compiling Hemlock Programs to WASM
+
+In addition to running the interpreter in WASM, you can compile individual Hemlock programs to standalone WASM binaries using the compiler backend:
+
+```bash
+# Compile a Hemlock program to WASM (requires both hemlockc and Emscripten)
+make wasm-compile FILE=program.hml
+
+# With threading support
+make wasm-compile-threaded FILE=program.hml
+```
+
+This uses `hemlockc` to generate C code, then Emscripten to compile it to WASM.
 
 ## Build Options
 
@@ -1786,7 +1943,7 @@ No matter your goal, start with these fundamentals:
 | `for i in range(10):` | `for (let i = 0; i < 10; i++) { }` | C-style for loops |
 | `for item in list:` | `for (item in array) { }` | For-in works same |
 | `list.append(x)` | `array.push(x);` | Different method name |
-| `len(s)` | `s.length` or `len(s)` | Both work |
+| `len(s)` | `s.length` | Use `.length` property |
 | Automatic memory | Manual for `ptr` | Most types auto-cleanup |
 
 ### From JavaScript
@@ -3159,11 +3316,12 @@ let has2 = arr.contains(99); // false
 
 ### Extraction Operations
 
-**`slice(start, end)`** - Extract subarray (end exclusive):
+**`slice(start, end?)`** - Extract subarray (end exclusive, defaults to length):
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4] (indices 1, 2, 3)
 let first = arr.slice(0, 2); // [1, 2]
+let tail = arr.slice(2);     // [3, 4, 5] (from index 2 to end)
 
 // Original unchanged
 print(arr);                  // [1, 2, 3, 4, 5]
@@ -3204,6 +3362,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Works with mixed types
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
+
+// Works with rune arrays (from chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Concatenate with another array:
@@ -9398,16 +9561,17 @@ let text = "Hi🚀!";
 let emoji = text.substr(2, 1);  // "🚀" (position 2, length 1)
 ```
 
-**`slice(start, end)`** - Extract substring by range (end exclusive):
+**`slice(start, end?)`** - Extract substring by range (end exclusive, defaults to length):
 ```hemlock
 let s = "hello world";
 let slice = s.slice(0, 5);      // "hello" (index 0 to 4)
 let slice2 = s.slice(6, 11);    // "world"
+let tail = s.slice(6);          // "world" (from index 6 to end)
 ```
 
 **Difference:**
 - `substr(start, length)` - Uses length parameter
-- `slice(start, end)` - Uses end index (exclusive)
+- `slice(start, end?)` - Uses end index (exclusive), end defaults to string length
 
 ### Search & Find
 
@@ -15386,8 +15550,25 @@ Hemlock provides comprehensive helper functions for working with raw pointers. T
 | `ptr_deref_ptr(ptr)` | Dereference pointer-to-pointer |
 | `ptr_write_ptr(ptr, value)` | Write pointer to pointer location |
 | `ptr_offset(ptr, index, size)` | Calculate offset: `ptr + index * size` |
-| `ptr_read_i32(ptr)` | Read i32 through pointer-to-pointer (for qsort callbacks) |
 | `ptr_null()` | Get a null pointer constant |
+
+#### Pointer Read Functions
+
+Read typed values directly from memory (complements `ptr_write_*`).
+
+| Function | Description |
+|----------|-------------|
+| `ptr_read_i8(ptr)` | Read i8 from pointer |
+| `ptr_read_i16(ptr)` | Read i16 from pointer |
+| `ptr_read_i32(ptr)` | Read i32 from pointer |
+| `ptr_read_i64(ptr)` | Read i64 from pointer |
+| `ptr_read_u8(ptr)` | Read u8 from pointer |
+| `ptr_read_u16(ptr)` | Read u16 from pointer |
+| `ptr_read_u32(ptr)` | Read u32 from pointer |
+| `ptr_read_u64(ptr)` | Read u64 from pointer |
+| `ptr_read_f32(ptr)` | Read f32 from pointer |
+| `ptr_read_f64(ptr)` | Read f64 from pointer |
+| `ptr_read_ptr(ptr)` | Read pointer from pointer (returns null if stored value is NULL) |
 
 #### Buffer Conversion Helpers
 
@@ -18610,12 +18791,12 @@ Extract subarray by range (end exclusive).
 
 **Signature:**
 ```hemlock
-array.slice(start: i32, end: i32): array
+array.slice(start: i32, end?: i32): array
 ```
 
 **Parameters:**
 - `start` - Starting index (0-based, inclusive)
-- `end` - Ending index (exclusive)
+- `end` - Ending index (exclusive). Defaults to `array.length` if omitted.
 
 **Returns:** New array with elements from [start, end)
 
@@ -18627,6 +18808,10 @@ let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4]
 let first_three = arr.slice(0, 3);  // [1, 2, 3]
 let last_two = arr.slice(3, 5);     // [4, 5]
+
+// Single-arg: from index to end
+let tail = arr.slice(2);     // [3, 4, 5]
+let copy = arr.slice(0);     // [1, 2, 3, 4, 5] (shallow copy)
 
 // Empty slice
 let empty = arr.slice(2, 2); // []
@@ -18894,7 +19079,18 @@ let arr = ["a", "b", "c"];
 let s = arr.join("");          // "abc"
 ```
 
-**Behavior:** Automatically converts all elements to strings.
+**Behavior:** Automatically converts all elements to strings, including rune values returned by `string.chars()`.
+
+```hemlock
+// Join rune arrays (from chars())
+let chars = "hello".chars();
+print(chars.join("-"));   // "h-e-l-l-o"
+
+// String reversal idiom
+let reversed = "hello".chars();
+reversed.reverse();
+print(reversed.join(""));  // "olleh"
+```
 
 ---
 
@@ -19113,6 +19309,45 @@ print("x =", 10, "y =", 20);
 - Separates multiple values with spaces
 - Adds newline at end
 - Flushes stdout
+
+---
+
+### write
+
+Print a value to stdout without a trailing newline.
+
+**Signature:**
+```hemlock
+write(value: any): null
+```
+
+**Parameters:**
+- `value` - A value to print
+
+**Returns:** `null`
+
+**Examples:**
+```hemlock
+// Build output on a single line
+write("hello");
+write(" ");
+write("world");
+print("");  // just the newline
+
+// Print a linked list inline
+let parts = [1, 2, 3];
+for (let i = 0; i < parts.length; i++) {
+    if (i > 0) { write(" -> "); }
+    write(parts[i]);
+}
+print("");  // Output: 1 -> 2 -> 3
+```
+
+**Behavior:**
+- Converts value to string and prints to stdout
+- Does NOT add a trailing newline
+- Flushes stdout immediately
+- Use `print("")` after a series of `write()` calls to add a newline
 
 ---
 
@@ -23099,12 +23334,12 @@ Extract substring by range (end exclusive).
 
 **Signature:**
 ```hemlock
-string.slice(start: i32, end: i32): string
+string.slice(start: i32, end?: i32): string
 ```
 
 **Parameters:**
 - `start` - Starting codepoint index (0-based)
-- `end` - Ending codepoint index (exclusive)
+- `end` - Ending codepoint index (exclusive). Defaults to `string.length` if omitted.
 
 **Returns:** New string
 
@@ -23113,6 +23348,9 @@ string.slice(start: i32, end: i32): string
 let s = "hello world";
 let sub = s.slice(0, 5);        // "hello"
 let world = s.slice(6, 11);     // "world"
+
+// Single-arg: from index to end
+let tail = s.slice(6);          // "world"
 
 // UTF-8 example
 let text = "Hi🚀!";
@@ -26062,7 +26300,7 @@ fn bad(const arr: array) {
 
 fn ok(const arr: array) {
     let x = arr[0];      // OK: reading
-    let len = len(arr);  // OK: length check
+    let n = arr.length;  // OK: length check
     let copy = arr.slice(0, 10);  // OK: creates new array
     for (item in arr) {  // OK: iteration
         print(item);
