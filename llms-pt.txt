@@ -659,6 +659,7 @@ ou use channels para sinalizar conclusão.
 ```hemlock
 let name = read_line();          // Lê linha de stdin (bloqueante)
 print("Hello, " + name);
+write("sem quebra de linha");    // Imprimir sem quebra de linha final
 eprint("Error message");         // Saída para stderr
 
 // read_line() retorna null em EOF
@@ -705,16 +706,39 @@ print(s.length);       // 7 (contagem de caracteres/runes)
 print(s.byte_length);  // 10 (contagem de bytes - emoji é 4 bytes UTF-8)
 ```
 
-## Métodos de Array (18)
+## Métodos de Array (23)
 
 `push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
-`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`
+`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
+`every`, `some`, `indexOf`, `sort`, `fill`
+
+```hemlock
+// every(predicate) - true se todos os elementos satisfazem o predicado
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+
+// some(predicate) - true se algum elemento satisfaz o predicado
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+
+// indexOf(value) - encontra primeiro indice do valor, ou -1
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+
+// sort(comparator?) - ordena in-place, comparador opcional
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // descendente
+
+// fill(value, start?, end?) - preenche com valor
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 Arrays tipados: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Biblioteca Padrão (40 módulos)
+## Biblioteca Padrão (42 módulos)
 
 Importar com prefixo `@stdlib/`:
 ```hemlock
@@ -760,11 +784,13 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `sqlite` | SQLite database, query, exec, transações |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | Cores e estilos ANSI |
+| `termios` | Entrada de terminal bruta, detecção de teclas |
 | `testing` | describe, test, expect |
 | `time` | now, time_ms, sleep, clock |
 | `toml` | Parsing e geração de TOML |
 | `url` | Parsing e manipulação de URL |
 | `uuid` | Geração de UUID |
+| `vector` | Busca de similaridade vetorial (USearch ANN) |
 | `websocket` | Cliente WebSocket |
 
 Veja `stdlib/docs/` para documentação detalhada dos módulos.
@@ -859,7 +885,7 @@ hemlock/
 │   │   ├── lsp/          # Language Server Protocol
 │   │   └── bundler/      # Ferramenta de bundling/pacotes
 ├── runtime/              # Runtime de programas compilados (libhemlock_runtime.a)
-├── stdlib/               # Biblioteca padrão (40 módulos)
+├── stdlib/               # Biblioteca padrão (42 módulos)
 │   └── docs/             # Documentação dos módulos
 ├── docs/                 # Documentação completa
 │   ├── language-guide/   # Tipos, strings, arrays, etc.
@@ -1069,7 +1095,41 @@ make parity
 
 ## Versão
 
-**v1.8.0** - Recursos da versão atual:
+**v1.9.2** - Recursos da versão atual:
+- **Correção do contador de loop unboxed do compilador** - Corrigido um bug crítico de codegen onde contadores de loop otimizados (native `int32_t`) eram usados diretamente como inicializadores `HmlValue` sem boxing. A verificação `codegen_is_main_var` impedia incorretamente a emissão do wrapper de boxing (`hml_val_i32()`) quando uma variável de nível main sombreava um contador de loop unboxed dentro de uma função módulo/closure. Corrige compilação de `@stdlib/collections` e `@stdlib/encoding`.
+- **Dispatch de método de objeto `clear()`** - O compilador agora despacha corretamente `.clear()` para métodos de objeto quando chamado em tipos não-array. Anteriormente, `.clear()` sempre gerava `hml_array_clear()` independentemente do tipo do receptor.
+- **Correção de shadowing de import `exec()`** - O handler builtin `exec()` do compilador agora verifica bindings de import e funções locais do módulo antes de despachar para o builtin exec do sistema. Corrige `@stdlib/sqlite` que exporta sua própria função `exec()`.
+
+**v1.9.1** - Versão anterior com:
+- **Builtin `write()`** - Imprimir sem quebra de linha final (`write("hello"); write(" world");` imprime em uma linha). Inclui `fflush(stdout)` para saída imediata. Paridade total entre interpretador e compilador.
+- **`slice()` de argumento único** - `arr.slice(n)` e `str.slice(n)` agora usam o comprimento como fim padrão, correspondendo ao comportamento JS/Python. A forma de dois argumentos permanece inalterada.
+- **`join()` em arrays de runes** - `"hello".chars().join("")` agora produz corretamente `"hello"` em vez de `"[object][object]..."`. Permite inversão idiomática de string: `str.chars().reverse().join("")`.
+- **Coerção de chaves numéricas HashMap** - Chaves de tipos numéricos diferentes agora correspondem (ex.: chave `i32` encontrada por lookup `i64`). Anteriormente, o guard `typeof()` em `keys_equal()` rejeitava correspondências cross-type válidas.
+- **Melhorias HemBench** - Definições de tarefas corrigidas (arredondamento L1-M-02, precisão L2-E-01), parou de vazar saída esperada para tarefas benchmark L5/L6.
+- **Builtins `ptr_read_*` completos** - Adicionados `ptr_read_i8`, `ptr_read_i16`, `ptr_read_i64`, `ptr_read_u8`, `ptr_read_u16`, `ptr_read_u32`, `ptr_read_u64`, `ptr_read_f32`, `ptr_read_f64`, `ptr_read_ptr` para complementar funções `ptr_write_*` existentes. Corrigido `ptr_read_i32` para dereferência direta (era dereferência dupla). Paridade total entre interpretador e compilador.
+- **Carregamento de bibliotecas FFI macOS** - `dlopen` agora busca em `/usr/local/lib` e `/opt/homebrew/lib` como caminhos de fallback no macOS, corrigindo erros de biblioteca não encontrada para bibliotecas compartilhadas instaladas pelo usuário (ex.: libusearch_c).
+- **Correção `@stdlib/vector` USearch v2** - `create_index()` agora chama `usearch_reserve()` após init, corrigindo segfault com USearch v2.24+ que requer pré-alocação antes de adicionar vetores.
+
+**v1.9.0** - Versão anterior com:
+- **Artefato de release do interpretador WASM** - Interpretador WASM pré-compilado incluído nas releases do GitHub para uso em navegador/Node.js
+- **Correções de inlining do compilador** - Corrigida corrupção de argumentos de chamada aninhada e colisão de unboxing com contadores de loop durante inlining de função (corrige compilação do hemloco)
+- **Subtração de ponteiros** - O verificador de tipos do compilador agora permite `ptr - integer` para aritmética de ponteiros
+- **Exceções `open()` capturáveis** - `open()` agora lança via `hml_throw()` em vez de `exit(1)`, habilitando tratamento de erros com try/catch
+- **Correção de print/eprint multi-argumento** - Corrigido codegen do compilador para `print()` e `eprint()` com múltiplos argumentos (ex.: `print("x:", x, y)`)
+- **Correção de string SSO** - Corrigido segfault em `hml_string_append_inplace` ao crescer strings usando Small String Optimization
+- **Módulo `@stdlib/termios`** - Entrada de terminal bruta cross-platform (Linux/macOS):
+  - `enable_raw_mode()` / `disable_raw_mode()` para teclas instantâneas
+  - `read_key()` / `read_key_timeout(ms)` para leitura de tecla única
+  - Detecção de teclas de seta, teclas de função, teclas de controle
+  - `is_terminal()` para verificar se stdin é um TTY
+  - Documentação em `stdlib/docs/termios.md`
+- **Prevenção de vazamento de memória** - Correções abrangentes garantindo que o runtime é livre de vazamentos:
+  - Avaliação de expressão segura contra exceções (arrays, objetos, chamadas de função)
+  - Retain/release correto do resultado de task em join()
+  - Drenagem de channel ao fechar (libera valores bufferizados)
+  - Limpeza do otimizador para constant folding de coalescência nula
+  - Suite de testes de regressão de vazamentos (`make leak-regression`)
+  - Documentação de ownership de memória (`docs/advanced/memory-ownership.md`)
 - **Pattern Matching** (expressões `match`) - Desestruturação poderosa e fluxo de controle:
   - Padrões literal, wildcard e binding de variável
   - Padrões OR (`1 | 2 | 3`)
@@ -1115,11 +1175,11 @@ make parity
 - Sistema de tipos unificado com dicas de otimização de unboxing
 - Sistema de tipos completo (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
 - Strings UTF-8 com 19 métodos
-- Arrays com 18 métodos incluindo map/filter/reduce
+- Arrays com 23 métodos incluindo map/filter/reduce/every/some/indexOf/sort/fill
 - Gerenciamento manual de memória com `talloc()` e `sizeof()`
 - Async/await com paralelismo pthread real
 - Operações atômicas para programação concorrente sem locks
-- 40 módulos de stdlib (+ arena, assert, semver, toml, retry, iter, random, shell)
+- 42 módulos de stdlib (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
 - FFI para interop com C, com `export extern fn` para wrappers de biblioteca reutilizáveis
 - Suporte a struct FFI no compilador (passando structs C por valor)
 - Helpers de ponteiro FFI (`ptr_null`, `ptr_read_*`, `ptr_write_*`)
@@ -1686,7 +1746,142 @@ hemlock/
 └── README.md         # Descricao do projeto
 ```
 
-## Opcoes de Compilacao
+## Compilacao WebAssembly (WASM)
+
+O Hemlock pode ser compilado para WebAssembly via [Emscripten](https://emscripten.org/), permitindo que o interpretador completo seja executado em um navegador web ou Node.js.
+
+### Instalando o Emscripten
+
+O SDK do Emscripten (`emsdk`) fornece o compilador `emcc` usado para compilar o interpretador WASM.
+
+**Todas as plataformas (Linux, macOS, Windows WSL):**
+
+```bash
+# Clone the emsdk repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate the latest SDK
+./emsdk install latest
+./emsdk activate latest
+
+# Add emcc to your PATH (run this in every new terminal, or add to your shell profile)
+source ./emsdk_env.sh
+```
+
+Verifique a instalacao:
+
+```bash
+emcc --version
+```
+
+Voce devera ver uma saida como `emcc (Emscripten gcc/clang-like replacement ...) 3.x.x`.
+
+Para instrucoes detalhadas, consulte o [guia de inicio do Emscripten](https://emscripten.org/docs/getting_started/downloads.html).
+
+**Opcional: Adicionar ao perfil do shell**
+
+Para evitar executar `source emsdk_env.sh` toda vez, adicione-o ao seu perfil do shell:
+
+```bash
+# For bash (~/.bashrc or ~/.bash_profile)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.bashrc
+
+# For zsh (~/.zshrc)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.zshrc
+```
+
+### Dependencias WASM
+
+A compilacao WASM tem menos dependencias que a compilacao nativa. O Emscripten fornece suas proprias versoes das bibliotecas C padrao. As seguintes bibliotecas nativas **nao sao necessarias** (e nao estao disponiveis) na compilacao WASM:
+
+| Biblioteca | Nativa | WASM | Notas |
+|---------|--------|------|-------|
+| libffi | Necessaria | Stub | FFI nao esta disponivel em WASM |
+| OpenSSL | Necessaria | Stub | Builtins de criptografia retornam erros em WASM |
+| libwebsockets | Opcional | Stub | Suporte WebSocket nao disponivel |
+| zlib | Necessaria | Emscripten fornece | Vinculada automaticamente com `-sUSE_ZLIB=1` |
+| pthreads | Necessaria | Opcional | Disponivel com compilacao threaded (requer SharedArrayBuffer) |
+
+**Em resumo:** Voce so precisa do SDK do Emscripten instalado. Nenhuma biblioteca de sistema adicional e necessaria para a compilacao WASM.
+
+### Compilando o Interpretador WASM
+
+```bash
+# Build the interpreter as WebAssembly
+make wasm-interpreter
+```
+
+Isso produz dois arquivos no diretorio `wasm/`:
+
+| Arquivo | Descricao |
+|------|-------------|
+| `wasm/hemlock.js` | Carregador JavaScript e codigo glue do Emscripten |
+| `wasm/hemlock.wasm` | Modulo binario WebAssembly |
+
+### Execucao no Node.js
+
+```bash
+node -- wasm/hemlock.js -e 'print("Hello from WASM!");'
+node -- wasm/hemlock.js examples/fibonacci.hml
+```
+
+### Execucao no Navegador
+
+Arquivos WASM devem ser servidos via HTTP com o tipo MIME correto (`application/wasm`). Abrir o arquivo HTML diretamente via `file://` nao funcionara.
+
+**Usando o exemplo incluido:**
+
+```bash
+make wasm-browser-example
+# Opens http://localhost:8080/examples/wasm-browser/index.html
+```
+
+**Ou manualmente com Python:**
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/wasm/playground.html
+```
+
+**Ou manualmente com Node.js:**
+
+```bash
+npx serve .
+# Open the URL shown in the terminal
+```
+
+Consulte `examples/wasm-browser/` para um exemplo completo de integracao com navegador com um editor de codigo interativo.
+
+### Limitacoes do WASM
+
+Algumas funcionalidades nao estao disponiveis no ambiente WASM:
+
+- **FFI** - Sem carregamento de bibliotecas compartilhadas (`dlopen`/`dlsym`)
+- **Criptografia** - Sem OpenSSL (`sha256`, `md5`, etc. retornam erros)
+- **E/S de Arquivos** - Sem acesso ao sistema de arquivos nativo (apenas FS virtual do Emscripten)
+- **Rede** - Sem sockets raw ou cliente HTTP
+- **Sinais** - Sem tratamento de sinais POSIX
+- **Processos** - Sem `fork`, `exec` ou gerenciamento de processos
+- **Threading** - `spawn`/`join`/canais requerem compilacao WASM threaded com `SharedArrayBuffer`
+
+Todas as funcionalidades principais da linguagem funcionam: variaveis, funcoes, closures, objetos, arrays, pattern matching, anotacoes de tipo, try/catch e a biblioteca padrao completa de modulos Hemlock puros.
+
+### Compilando Programas Hemlock para WASM
+
+Alem de executar o interpretador em WASM, voce pode compilar programas Hemlock individuais em binarios WASM standalone usando o backend do compilador:
+
+```bash
+# Compile a Hemlock program to WASM (requires both hemlockc and Emscripten)
+make wasm-compile FILE=program.hml
+
+# With threading support
+make wasm-compile-threaded FILE=program.hml
+```
+
+Isso usa `hemlockc` para gerar codigo C, depois Emscripten para compila-lo em WASM.
+
+## Opcoes de Build
 
 ### Compilacao de Depuracao
 
@@ -3170,6 +3365,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Funciona com tipos mistos
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
+
+// Funciona com arrays de runes (de chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Concatena com outro array:
@@ -14411,6 +14611,43 @@ Então use em todo o seu projeto:
 import { strlen, malloc, getpid } from "./libc.hml";
 ```
 
+### Combinando com Exportações Regulares
+
+Você pode combinar funções extern exportadas com exportações de funções regulares:
+
+```hemlock
+// math_extended.hml
+import "libm.so.6";
+
+// Exportar funções C brutas
+export extern fn sin(x: f64): f64;
+export extern fn cos(x: f64): f64;
+export extern fn tan(x: f64): f64;
+
+// Exportar funções Hemlock que as utilizam
+export fn deg_to_rad(degrees: f64): f64 {
+    return degrees * 3.14159265359 / 180.0;
+}
+
+export fn sin_degrees(degrees: f64): f64 {
+    return sin(deg_to_rad(degrees));
+}
+```
+
+### Bibliotecas Específicas de Plataforma
+
+Ao exportar funções extern, lembre-se de que os nomes das bibliotecas diferem por plataforma:
+
+```hemlock
+// Para Linux
+import "libc.so.6";
+
+// Para macOS (abordagem diferente necessária)
+import "libSystem.B.dylib";
+```
+
+Atualmente, a sintaxe `import "library"` do Hemlock usa caminhos estáticos de biblioteca, então módulos específicos de plataforma podem ser necessários para código FFI multiplataforma.
+
 ## Casos de Uso
 
 ### 1. Bibliotecas do Sistema
@@ -14465,6 +14702,107 @@ Chamar implementações C otimizadas:
 // Operações SIMD, código vetorizado
 // Funções aceleradas por hardware
 ```
+
+### 5. Acesso a Hardware
+
+Interface com bibliotecas de hardware:
+
+```hemlock
+// Controle GPIO em sistemas embarcados
+// Comunicação com dispositivos USB
+// Acesso a porta serial
+```
+
+### 6. Integração de Código Legado
+
+Reutilizar bases de código C existentes:
+
+```hemlock
+// Chamar funções de aplicações C legadas
+// Migrar gradualmente para Hemlock
+// Preservar código C funcional
+```
+
+## Desenvolvimento Futuro
+
+### Recursos Planejados
+
+**1. Suporte a Struct**
+```hemlock
+// Futuro: Passar/retornar structs C
+define Point {
+    x: f64,
+    y: f64,
+}
+
+let p = Point { x: 1.0, y: 2.0 };
+c_function_with_struct(p);
+```
+
+**2. Manipulação de Array/Buffer**
+```hemlock
+// Futuro: Melhor passagem de arrays
+let arr = [1, 2, 3, 4, 5];
+process_array(arr);  // Passar para função C
+```
+
+**3. Callbacks com Ponteiros de Função** (Implementado!)
+```hemlock
+// Passar funções Hemlock para C como callbacks
+fn my_compare(a: ptr, b: ptr): i32 {
+    let va = ptr_deref_i32(a);
+    let vb = ptr_deref_i32(b);
+    return va - vb;
+}
+
+// Criar um ponteiro de função chamável por C
+let cmp = callback(my_compare, ["ptr", "ptr"], "i32");
+
+// Usar com qsort ou qualquer função C que espere um callback
+qsort(arr, count, elem_size, cmp);
+
+// Limpar quando terminar
+callback_free(cmp);
+```
+
+**4. Marshaling de Strings**
+```hemlock
+// Futuro: Conversão automática de strings
+let s = "hello";
+c_string_function(s);  // Conversão automática para string C
+```
+
+**5. Tratamento de Erros**
+```hemlock
+// Futuro: Melhor relatório de erros
+try {
+    let result = risky_c_function();
+} catch (e) {
+    print("FFI error: " + e);
+}
+```
+
+**6. Segurança de Tipos**
+```hemlock
+// Futuro: Anotações de tipo para FFI
+@ffi("libm.so")
+fn sqrt(x: f64): f64;
+
+let result = sqrt(16.0);  // Verificado por tipo
+```
+
+### Recursos
+
+**v1.0:**
+- Basic FFI com tipos primitivos
+- Carregamento dinâmico de bibliotecas
+- Chamada de funções
+- Suporte a callbacks via closures libffi
+
+**Futuro:**
+- Suporte a structs
+- Melhorias na manipulação de arrays
+- Geração automática de bindings
 
 ## Callbacks FFI
 
@@ -14569,6 +14907,24 @@ Hemlock fornece funções auxiliares abrangentes para trabalhar com ponteiros br
 | `ptr_offset(ptr, index, size)` | Calcular offset: `ptr + index * size` |
 | `ptr_read_i32(ptr)` | Ler i32 via ponteiro para ponteiro (para callbacks qsort) |
 | `ptr_null()` | Obter constante ponteiro nulo |
+
+#### Funções de Leitura de Ponteiro
+
+Ler valores tipados diretamente da memória (complementa `ptr_write_*`).
+
+| Função | Descrição |
+|--------|-----------|
+| `ptr_read_i8(ptr)` | Ler i8 do ponteiro |
+| `ptr_read_i16(ptr)` | Ler i16 do ponteiro |
+| `ptr_read_i32(ptr)` | Ler i32 do ponteiro |
+| `ptr_read_i64(ptr)` | Ler i64 do ponteiro |
+| `ptr_read_u8(ptr)` | Ler u8 do ponteiro |
+| `ptr_read_u16(ptr)` | Ler u16 do ponteiro |
+| `ptr_read_u32(ptr)` | Ler u32 do ponteiro |
+| `ptr_read_u64(ptr)` | Ler u64 do ponteiro |
+| `ptr_read_f32(ptr)` | Ler f32 do ponteiro |
+| `ptr_read_f64(ptr)` | Ler f64 do ponteiro |
+| `ptr_read_ptr(ptr)` | Ler ponteiro do ponteiro (retorna null se o valor armazenado for NULL) |
 
 #### Auxiliares de Conversão Buffer
 
@@ -14795,6 +15151,45 @@ print(p.y);  // 0.0
 - **Sem unions** - Apenas tipos de struct são suportados
 - **Callbacks não podem retornar structs** - Use ponteiros para valores de retorno de callback
 
+### Exportando Tipos de Struct
+
+Você pode exportar definições de tipo struct de um módulo usando `export define`:
+
+```hemlock
+// geometry.hml
+export define Vector2 {
+    x: f32,
+    y: f32,
+}
+
+export define Rectangle {
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+}
+
+export fn create_rect(x: f32, y: f32, w: f32, h: f32): Rectangle {
+    return { x: x, y: y, width: w, height: h };
+}
+```
+
+**Importante:** Tipos struct exportados são registrados **globalmente** quando o módulo é carregado. Eles ficam disponíveis automaticamente quando você importa qualquer coisa do módulo. Você NÃO precisa (e não pode) importá-los explicitamente pelo nome:
+
+```hemlock
+// main.hml
+
+// BOM - tipos struct ficam auto-disponíveis após qualquer importação do módulo
+import { create_rect } from "./geometry.hml";
+let v: Vector2 = { x: 1.0, y: 2.0 };      // Funciona - Vector2 está globalmente disponível
+let r: Rectangle = create_rect(0.0, 0.0, 100.0, 50.0);  // Funciona
+
+// RUIM - não pode importar tipos struct explicitamente pelo nome
+import { Vector2 } from "./geometry.hml";  // Erro: Variável indefinida 'Vector2'
+```
+
+Este comportamento existe porque tipos struct são registrados no registro global de tipos quando o módulo carrega, em vez de serem armazenados como valores no ambiente de exportação do módulo. O tipo fica disponível para todo código que importa do módulo.
+
 ## Limitações Atuais
 
 FFI tem as seguintes limitações:
@@ -14853,6 +15248,21 @@ if (result == null) {
 // Use extensões de biblioteca apropriadas (.so, .dylib, .dll)
 ```
 
+## Exemplos
+
+Para exemplos funcionais, consulte:
+- Testes de callback: `/tests/ffi_callbacks/` - exemplos de callback qsort
+- Uso de FFI na stdlib: `/stdlib/hash.hml`, `/stdlib/regex.hml`, `/stdlib/crypto.hml`
+- Programas de exemplo: `/examples/` (se disponível)
+
+## Obtendo Ajuda
+
+FFI é um recurso mais recente no Hemlock. Para perguntas ou problemas:
+
+1. Verifique a suite de testes para exemplos funcionais
+2. Consulte a documentação do libffi para detalhes de baixo nível
+3. Reporte bugs ou solicite recursos via issues do projeto
+
 ## Resumo
 
 O FFI do Hemlock oferece:
@@ -14876,6 +15286,16 @@ O FFI do Hemlock oferece:
 **Futuro:** Helpers de marshaling de strings
 
 **Casos de Uso:** Bibliotecas de sistema, bibliotecas de terceiros, qsort, event loops, APIs baseadas em callback, wrappers de biblioteca reutilizáveis
+
+## Contribuindo
+
+A documentação de FFI está sendo expandida. Se você está trabalhando com FFI:
+- Documente seus casos de uso
+- Compartilhe código de exemplo
+- Reporte problemas ou limitações
+- Sugira melhorias
+
+O sistema FFI foi projetado para ser prático e seguro enquanto fornece acesso de baixo nível quando necessário, seguindo a filosofia do Hemlock de "explícito sobre implícito" e "não-seguro é um recurso, não um bug."
 
 
 --------------------------------------------------------------------------------
@@ -15021,6 +15441,22 @@ print(first_byte);
 f.close();
 ```
 
+**Exemplo - Ler arquivo binário inteiro:**
+```hemlock
+let f = open("data.bin", "r");
+let size = 10240;  // Tamanho esperado
+let data = f.read_bytes(size);
+f.close();
+
+// Processar dados binários
+let i = 0;
+while (i < data.length) {
+    let byte = data[i];
+    // ... processar byte
+    i = i + 1;
+}
+```
+
 ### Escrita
 
 #### write(data: string): i32
@@ -15080,6 +15516,21 @@ print("Wrote " + typeof(bytes) + " bytes");
 f.close();
 ```
 
+**Exemplo - Copiar arquivo binário:**
+```hemlock
+let src = open("input.bin", "r");
+let dst = open("output.bin", "w");
+
+let data = src.read_bytes(1024);
+while (data.length > 0) {
+    dst.write_bytes(data);
+    data = src.read_bytes(1024);
+}
+
+src.close();
+dst.close();
+```
+
 ### Posicionamento
 
 #### seek(position: i32): i32
@@ -15137,6 +15588,20 @@ let pos2 = f.tell();  // 100 (após ler 100 bytes)
 
 f.seek(500);
 let pos3 = f.tell();  // 500 (após seek)
+
+f.close();
+```
+
+**Exemplo - Medir quantidade lida:**
+```hemlock
+let f = open("data.txt", "r");
+
+let start = f.tell();
+let content = f.read();
+let end = f.tell();
+
+let bytes_read = end - start;
+print("Read " + typeof(bytes_read) + " bytes");
 
 f.close();
 ```
@@ -15491,6 +15956,43 @@ fn read_at_offset(path: string, offset: i32, size: i32): string {
 }
 
 let data = read_at_offset("records.dat", 1000, 100);
+```
+
+### Tamanho do Arquivo
+
+```hemlock
+fn file_size(path: string): i32 {
+    let f = open(path, "r");
+    try {
+        // Posicionar no final
+        let end = f.seek(999999999);  // Número grande
+        f.seek(0);  // Resetar
+        return end;
+    } finally {
+        f.close();
+    }
+}
+
+let size = file_size("data.txt");
+print("File size: " + typeof(size) + " bytes");
+```
+
+### Leitura/Escrita Condicional
+
+```hemlock
+fn update_file(path: string, condition, new_content: string) {
+    let f = open(path, "r+");
+    try {
+        let content = f.read();
+
+        if (condition(content)) {
+            f.seek(0);  // Resetar para o início
+            f.write(new_content);
+        }
+    } finally {
+        f.close();
+    }
+}
 ```
 
 ## Melhores Práticas
@@ -17793,6 +18295,42 @@ while (!should_exit) {
 }
 ```
 
+### Exemplo 4: Padrão de Timeout
+
+```hemlock
+let operation_complete = false;
+let timed_out = false;
+
+fn timeout_handler(sig) {
+    timed_out = true;
+}
+
+signal(SIGALRM, timeout_handler);
+
+// Iniciar operação longa
+async fn long_operation() {
+    // ... trabalho
+    operation_complete = true;
+}
+
+let task = spawn(long_operation);
+
+// Aguardar com timeout (verificação manual)
+let elapsed = 0;
+while (!operation_complete && elapsed < 1000) {
+    // Sleep ou verificar
+    elapsed = elapsed + 1;
+}
+
+if (!operation_complete) {
+    print("Operation timed out");
+    detach(task);  // Desistir de aguardar
+} else {
+    join(task);
+    print("Operation completed");
+}
+```
+
 ## Depurando Handlers de Sinal
 
 ### Adicionar Prints de Diagnóstico
@@ -18900,12 +19438,12 @@ Extrai um sub-array por intervalo (final exclusivo).
 
 **Assinatura:**
 ```hemlock
-array.slice(start: i32, end: i32): array
+array.slice(start: i32, end?: i32): array
 ```
 
 **Parametros:**
 - `start` - Indice inicial (baseado em 0, inclusivo)
-- `end` - Indice final (exclusivo)
+- `end` - Indice final (exclusivo). Padrao e `array.length` se omitido.
 
 **Retorna:** Novo array contendo elementos no intervalo [start, end)
 
@@ -18917,6 +19455,10 @@ let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4]
 let first_three = arr.slice(0, 3);  // [1, 2, 3]
 let last_two = arr.slice(3, 5);     // [4, 5]
+
+// Argumento unico: do indice ate o final
+let tail = arr.slice(2);     // [3, 4, 5]
+let copy = arr.slice(0);     // [1, 2, 3, 4, 5] (copia rasa)
 
 // Fatia vazia
 let empty = arr.slice(2, 2); // []
@@ -19184,7 +19726,18 @@ let arr = ["a", "b", "c"];
 let s = arr.join("");          // "abc"
 ```
 
-**Comportamento:** Converte automaticamente todos os elementos para strings.
+**Comportamento:** Converte automaticamente todos os elementos para strings, incluindo valores rune retornados por `string.chars()`.
+
+```hemlock
+// Join em arrays de runes (de chars())
+let chars = "hello".chars();
+print(chars.join("-"));   // "h-e-l-l-o"
+
+// Idioma de reversao de string
+let reversed = "hello".chars();
+reversed.reverse();
+print(reversed.join(""));  // "olleh"
+```
 
 ---
 
@@ -21465,6 +22018,45 @@ print("x =", 10, "y =", 20);
 
 ---
 
+### write
+
+Imprime um valor na saida padrao sem nova linha ao final.
+
+**Assinatura:**
+```hemlock
+write(value: any): null
+```
+
+**Parametros:**
+- `value` - Um valor para imprimir
+
+**Retorna:** `null`
+
+**Exemplo:**
+```hemlock
+// Construir saida em uma unica linha
+write("hello");
+write(" ");
+write("world");
+print("");  // apenas a nova linha
+
+// Imprimir uma lista encadeada em linha
+let parts = [1, 2, 3];
+for (let i = 0; i < parts.length; i++) {
+    if (i > 0) { write(" -> "); }
+    write(parts[i]);
+}
+print("");  // Saida: 1 -> 2 -> 3
+```
+
+**Comportamento:**
+- Converte o valor para string e imprime na saida padrao
+- NAO adiciona nova linha ao final
+- Libera a saida padrao imediatamente
+- Use `print("")` apos uma serie de chamadas `write()` para adicionar uma nova linha
+
+---
+
 ### read_line
 
 Le uma linha de texto da entrada padrao (entrada do usuario).
@@ -22338,6 +22930,35 @@ Escreve valores tipados na memoria.
 let p = alloc(4);
 ptr_write_i32(p, 42);
 print(ptr_read_i32(p));  // 42
+free(p);
+```
+
+---
+
+### Funcoes de Leitura de Ponteiro
+
+Le valores tipados da memoria.
+
+| Funcao | Assinatura | Retorna | Descricao |
+|--------|------------|---------|-----------|
+| `ptr_read_i8` | `(ptr)` | `i8` | Le inteiro 8-bit com sinal |
+| `ptr_read_i16` | `(ptr)` | `i16` | Le inteiro 16-bit com sinal |
+| `ptr_read_i32` | `(ptr)` | `i32` | Le inteiro 32-bit com sinal |
+| `ptr_read_i64` | `(ptr)` | `i64` | Le inteiro 64-bit com sinal |
+| `ptr_read_u8` | `(ptr)` | `u8` | Le inteiro 8-bit sem sinal |
+| `ptr_read_u16` | `(ptr)` | `u16` | Le inteiro 16-bit sem sinal |
+| `ptr_read_u32` | `(ptr)` | `u32` | Le inteiro 32-bit sem sinal |
+| `ptr_read_u64` | `(ptr)` | `u64` | Le inteiro 64-bit sem sinal |
+| `ptr_read_f32` | `(ptr)` | `f32` | Le float 32-bit |
+| `ptr_read_f64` | `(ptr)` | `f64` | Le float 64-bit |
+| `ptr_read_ptr` | `(ptr)` | `ptr` | Le valor de ponteiro |
+
+**Exemplo:**
+```hemlock
+let p = alloc(8);
+ptr_write_f64(p, 3.14159);
+let value = ptr_read_f64(p);
+print(value);  // 3.14159
 free(p);
 ```
 

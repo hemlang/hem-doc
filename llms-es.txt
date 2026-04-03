@@ -657,6 +657,7 @@ ch.close();
 ```hemlock
 let name = read_line();          // Read line from stdin (blocks)
 print("Hello, " + name);
+write("sin salto de linea");     // Imprimir sin salto de linea final
 eprint("Error message");         // Print to stderr
 
 // read_line() returns null on EOF
@@ -701,16 +702,39 @@ print(s.length);       // 7 (character/rune count)
 print(s.byte_length);  // 10 (byte count - emoji is 4 bytes UTF-8)
 ```
 
-## Metodos de Array (18)
+## Metodos de Array (23)
 
 `push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
-`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`
+`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
+`every`, `some`, `indexOf`, `sort`, `fill`
+
+```hemlock
+// every(predicate) - true si todos los elementos satisfacen el predicado
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+
+// some(predicate) - true si algun elemento satisface el predicado
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+
+// indexOf(value) - encuentra primer indice del valor, o -1
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+
+// sort(comparator?) - ordena in-place, comparador opcional
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // descendente
+
+// fill(value, start?, end?) - rellena con valor
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 Arrays tipados: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Biblioteca Estandar (40 modulos)
+## Biblioteca Estandar (42 modulos)
 
 Importe con prefijo `@stdlib/`:
 ```hemlock
@@ -756,11 +780,13 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `sqlite` | Base de datos SQLite, query, exec, transacciones |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | Colores y estilos ANSI |
+| `termios` | Entrada de terminal cruda, deteccion de teclas |
 | `testing` | describe, test, expect |
 | `time` | now, time_ms, sleep, clock |
 | `toml` | Analisis y generacion de TOML |
 | `url` | Analisis y manipulacion de URL |
 | `uuid` | Generacion de UUID |
+| `vector` | Busqueda de similitud de vectores (USearch ANN) |
 | `websocket` | Cliente WebSocket |
 
 Consulte `stdlib/docs/` para documentacion detallada de modulos.
@@ -855,7 +881,7 @@ hemlock/
 │   │   ├── lsp/          # Language Server Protocol
 │   │   └── bundler/      # Bundle/package tools
 ├── runtime/              # Compiled program runtime (libhemlock_runtime.a)
-├── stdlib/               # Standard library (40 modules)
+├── stdlib/               # Standard library (42 modules)
 │   └── docs/             # Module documentation
 ├── docs/                 # Full documentation
 │   ├── language-guide/   # Types, strings, arrays, etc.
@@ -1065,7 +1091,41 @@ make parity
 
 ## Version
 
-**v1.8.0** - Version actual con:
+**v1.9.2** - Version actual con:
+- **Correccion de contador de bucle unboxed del compilador** - Se corrigio un error critico de codegen donde los contadores de bucle optimizados (native `int32_t`) se usaban directamente como inicializadores de `HmlValue` sin boxing. La verificacion `codegen_is_main_var` impedia incorrectamente la emision del wrapper de boxing (`hml_val_i32()`) cuando una variable de nivel principal ocultaba un contador de bucle unboxed dentro de una funcion de modulo/closure. Corrige la compilacion de `@stdlib/collections` y `@stdlib/encoding`.
+- **Despacho de metodo de objeto `clear()`** - El compilador ahora despacha correctamente `.clear()` a metodos de objeto cuando se llama en tipos no-array. Anteriormente, `.clear()` siempre generaba `hml_array_clear()` independientemente del tipo de receptor.
+- **Correccion de sombreado de importacion `exec()`** - El manejador builtin `exec()` del compilador ahora verifica bindings de importacion y funciones locales del modulo antes de despachar al builtin exec del sistema. Corrige `@stdlib/sqlite` que exporta su propia funcion `exec()`.
+
+**v1.9.1** - Version anterior con:
+- **Builtin `write()`** - Imprimir sin salto de linea final (`write("hello"); write(" world");` muestra en una linea). Incluye `fflush(stdout)` para salida inmediata. Paridad completa entre interprete y compilador.
+- **`slice()` de un argumento** - `arr.slice(n)` y `str.slice(n)` ahora usan la longitud como fin por defecto, igualando comportamiento de JS/Python. La forma de dos argumentos no cambia.
+- **`join()` en arrays de runes** - `"hello".chars().join("")` ahora produce correctamente `"hello"` en lugar de `"[object][object]..."`. Permite inversion idiomatica de strings: `str.chars().reverse().join("")`.
+- **Coercion de claves numericas en HashMap** - Claves de diferentes tipos numericos ahora coinciden (ej., clave `i32` encontrada por busqueda `i64`). Anteriormente, el guard `typeof()` en `keys_equal()` rechazaba coincidencias cross-type validas.
+- **Mejoras de HemBench** - Definiciones de tareas corregidas (redondeo L1-M-02, precision L2-E-01), se detuvo la filtracion de salida esperada a tareas de benchmark L5/L6.
+- **Builtins `ptr_read_*` completos** - Se anadieron `ptr_read_i8`, `ptr_read_i16`, `ptr_read_i64`, `ptr_read_u8`, `ptr_read_u16`, `ptr_read_u32`, `ptr_read_u64`, `ptr_read_f32`, `ptr_read_f64`, `ptr_read_ptr` para complementar funciones `ptr_write_*` existentes. Se corrigio `ptr_read_i32` para hacer desreferencia directa (era doble desreferencia). Paridad completa entre interprete y compilador.
+- **Carga de bibliotecas FFI en macOS** - `dlopen` ahora busca en `/usr/local/lib` y `/opt/homebrew/lib` como rutas de respaldo en macOS, corrigiendo errores de biblioteca no encontrada para bibliotecas compartidas instaladas por el usuario (ej., libusearch_c).
+- **Correccion de `@stdlib/vector` USearch v2** - `create_index()` ahora llama a `usearch_reserve()` despues de init, corrigiendo segfault con USearch v2.24+ que requiere pre-asignacion antes de agregar vectores.
+
+**v1.9.0** - Version anterior con:
+- **Artefacto de release del interprete WASM** - Interprete WASM precompilado incluido en releases de GitHub para uso en navegador/Node.js
+- **Correcciones de inlining del compilador** - Se corrigio corrupcion de argumentos de llamada anidada y colision de unboxing con contadores de bucle durante inlining de funciones (corrige compilacion de hemloco)
+- **Sustraccion de punteros** - El verificador de tipos del compilador ahora permite `ptr - integer` para aritmetica de punteros
+- **Excepciones `open()` capturables** - `open()` ahora lanza via `hml_throw()` en lugar de `exit(1)`, habilitando manejo de errores con try/catch
+- **Correccion de print/eprint multi-argumento** - Se corrigio codegen del compilador para `print()` y `eprint()` con multiples argumentos (ej., `print("x:", x, y)`)
+- **Correccion de string SSO** - Se corrigio segfault en `hml_string_append_inplace` al crecer strings usando Small String Optimization
+- **Modulo `@stdlib/termios`** - Entrada de terminal cruda multiplataforma (Linux/macOS):
+  - `enable_raw_mode()` / `disable_raw_mode()` para pulsaciones de tecla instantaneas
+  - `read_key()` / `read_key_timeout(ms)` para lectura de una sola tecla
+  - Deteccion de teclas de flecha, teclas de funcion, teclas de control
+  - `is_terminal()` para verificar si stdin es un TTY
+  - Documentacion en `stdlib/docs/termios.md`
+- **Prevencion de fugas de memoria** - Correcciones integrales asegurando que el runtime no tiene fugas:
+  - Evaluacion de expresiones segura ante excepciones (arrays, objetos, llamadas de funcion)
+  - Retain/release correcto del resultado de tarea en join()
+  - Drenaje de canal al cerrar (libera valores almacenados)
+  - Limpieza del optimizador para plegado constante de coalescencia nula
+  - Suite de tests de regresion de fugas (`make leak-regression`)
+  - Documentacion de ownership de memoria (`docs/advanced/memory-ownership.md`)
 - **Coincidencia de patrones** (expresiones `match`) - Desestructuracion y flujo de control poderosos:
   - Patrones literales, comodin y enlace de variables
   - Patrones OR (`1 | 2 | 3`)
@@ -1111,11 +1171,11 @@ make parity
 - Sistema de tipos unificado con sugerencias de optimizacion de unboxing
 - Sistema de tipos completo (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
 - Strings UTF-8 con 19 metodos
-- Arrays con 18 metodos incluyendo map/filter/reduce
+- Arrays con 23 metodos incluyendo map/filter/reduce/every/some/indexOf/sort/fill
 - Gestion manual de memoria con `talloc()` y `sizeof()`
 - Async/await con verdadero paralelismo pthread
 - Operaciones atomicas para programacion concurrente sin bloqueos
-- 40 modulos stdlib (+ arena, assert, semver, toml, retry, iter, random, shell)
+- 42 modulos stdlib (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
 - FFI para interoperabilidad con C con `export extern fn` para wrappers de biblioteca reutilizables
 - Soporte de struct FFI en compilador (pasar structs C por valor)
 - Helpers de puntero FFI (`ptr_null`, `ptr_read_*`, `ptr_write_*`)
@@ -1666,6 +1726,141 @@ hemlock/
 ├── Makefile          # Configuracion de compilacion
 └── README.md         # README del proyecto
 ```
+
+## Compilacion WebAssembly (WASM)
+
+Hemlock puede compilarse a WebAssembly mediante [Emscripten](https://emscripten.org/), permitiendo que el interprete completo se ejecute en un navegador web o Node.js.
+
+### Instalacion de Emscripten
+
+El SDK de Emscripten (`emsdk`) proporciona el compilador `emcc` utilizado para compilar el interprete WASM.
+
+**Todas las plataformas (Linux, macOS, Windows WSL):**
+
+```bash
+# Clone the emsdk repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate the latest SDK
+./emsdk install latest
+./emsdk activate latest
+
+# Add emcc to your PATH (run this in every new terminal, or add to your shell profile)
+source ./emsdk_env.sh
+```
+
+Verifique la instalacion:
+
+```bash
+emcc --version
+```
+
+Deberia ver una salida como `emcc (Emscripten gcc/clang-like replacement ...) 3.x.x`.
+
+Para instrucciones detalladas, consulte la [guia de inicio de Emscripten](https://emscripten.org/docs/getting_started/downloads.html).
+
+**Opcional: Agregar al perfil del shell**
+
+Para evitar ejecutar `source emsdk_env.sh` cada vez, agreguelo a su perfil del shell:
+
+```bash
+# For bash (~/.bashrc or ~/.bash_profile)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.bashrc
+
+# For zsh (~/.zshrc)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.zshrc
+```
+
+### Dependencias WASM
+
+La compilacion WASM tiene menos dependencias que la compilacion nativa. Emscripten proporciona sus propias versiones de las bibliotecas C estandar. Las siguientes bibliotecas nativas **no son necesarias** (y no estan disponibles) en la compilacion WASM:
+
+| Biblioteca | Nativa | WASM | Notas |
+|---------|--------|------|-------|
+| libffi | Requerida | Stub | FFI no esta disponible en WASM |
+| OpenSSL | Requerida | Stub | Los builtins de criptografia devuelven errores en WASM |
+| libwebsockets | Opcional | Stub | Soporte WebSocket no disponible |
+| zlib | Requerida | Emscripten la proporciona | Vinculada automaticamente con `-sUSE_ZLIB=1` |
+| pthreads | Requerida | Opcional | Disponible con compilacion con hilos (requiere SharedArrayBuffer) |
+
+**En resumen:** Solo necesita el SDK de Emscripten instalado. No se requieren bibliotecas adicionales del sistema para la compilacion WASM.
+
+### Compilar el Interprete WASM
+
+```bash
+# Build the interpreter as WebAssembly
+make wasm-interpreter
+```
+
+Esto produce dos archivos en el directorio `wasm/`:
+
+| Archivo | Descripcion |
+|------|-------------|
+| `wasm/hemlock.js` | Cargador JavaScript y codigo de enlace de Emscripten |
+| `wasm/hemlock.wasm` | Modulo binario WebAssembly |
+
+### Ejecucion en Node.js
+
+```bash
+node -- wasm/hemlock.js -e 'print("Hello from WASM!");'
+node -- wasm/hemlock.js examples/fibonacci.hml
+```
+
+### Ejecucion en un Navegador
+
+Los archivos WASM deben servirse a traves de HTTP con el tipo MIME correcto (`application/wasm`). Abrir el archivo HTML directamente via `file://` no funcionara.
+
+**Usando el ejemplo incluido:**
+
+```bash
+make wasm-browser-example
+# Opens http://localhost:8080/examples/wasm-browser/index.html
+```
+
+**O manualmente con Python:**
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/wasm/playground.html
+```
+
+**O manualmente con Node.js:**
+
+```bash
+npx serve .
+# Open the URL shown in the terminal
+```
+
+Consulte `examples/wasm-browser/` para un ejemplo completo de integracion en navegador con un editor de codigo interactivo.
+
+### Limitaciones de WASM
+
+Algunas funcionalidades no estan disponibles en el entorno WASM:
+
+- **FFI** - No se pueden cargar bibliotecas compartidas (`dlopen`/`dlsym`)
+- **Criptografia** - Sin OpenSSL (`sha256`, `md5`, etc. devuelven errores)
+- **E/S de Archivos** - Sin acceso al sistema de archivos nativo (solo FS virtual de Emscripten)
+- **Red** - Sin sockets crudos ni cliente HTTP
+- **Senales** - Sin manejo de senales POSIX
+- **Procesos** - Sin `fork`, `exec` ni gestion de procesos
+- **Hilos** - `spawn`/`join`/canales requieren una compilacion WASM con hilos y `SharedArrayBuffer`
+
+Todas las funcionalidades principales del lenguaje funcionan: variables, funciones, closures, objetos, arrays, coincidencia de patrones, anotaciones de tipo, try/catch y la biblioteca estandar completa de modulos Hemlock puros.
+
+### Compilar Programas Hemlock a WASM
+
+Ademas de ejecutar el interprete en WASM, puede compilar programas Hemlock individuales a binarios WASM independientes usando el backend del compilador:
+
+```bash
+# Compile a Hemlock program to WASM (requires both hemlockc and Emscripten)
+make wasm-compile FILE=program.hml
+
+# With threading support
+make wasm-compile-threaded FILE=program.hml
+```
+
+Esto usa `hemlockc` para generar codigo C, luego Emscripten para compilarlo a WASM.
 
 ## Opciones de Compilacion
 
@@ -3166,6 +3361,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Funciona con tipos mezclados
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
+
+// Funciona con arrays de runes (de chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Concatenar con otro array:
@@ -14716,6 +14916,24 @@ Hemlock proporciona funciones auxiliares completas para trabajar con punteros cr
 | `ptr_read_i32(ptr)` | Leer i32 a traves de puntero a puntero (para callbacks qsort) |
 | `ptr_null()` | Obtener una constante de puntero nulo |
 
+#### Funciones de Lectura de Puntero
+
+Leer valores tipados directamente desde memoria (complementa `ptr_write_*`).
+
+| Funcion | Descripcion |
+|---------|-------------|
+| `ptr_read_i8(ptr)` | Leer i8 desde puntero |
+| `ptr_read_i16(ptr)` | Leer i16 desde puntero |
+| `ptr_read_i32(ptr)` | Leer i32 desde puntero |
+| `ptr_read_i64(ptr)` | Leer i64 desde puntero |
+| `ptr_read_u8(ptr)` | Leer u8 desde puntero |
+| `ptr_read_u16(ptr)` | Leer u16 desde puntero |
+| `ptr_read_u32(ptr)` | Leer u32 desde puntero |
+| `ptr_read_u64(ptr)` | Leer u64 desde puntero |
+| `ptr_read_f32(ptr)` | Leer f32 desde puntero |
+| `ptr_read_f64(ptr)` | Leer f64 desde puntero |
+| `ptr_read_ptr(ptr)` | Leer puntero desde puntero (retorna null si el valor almacenado es NULL) |
+
 #### Auxiliares de Conversion de Buffer
 
 | Funcion | Descripcion |
@@ -19264,12 +19482,12 @@ Extrae un subarray por rango (fin exclusivo).
 
 **Firma:**
 ```hemlock
-array.slice(start: i32, end: i32): array
+array.slice(start: i32, end?: i32): array
 ```
 
 **Parametros:**
 - `start` - Indice inicial (basado en 0, inclusivo)
-- `end` - Indice final (exclusivo)
+- `end` - Indice final (exclusivo). Por defecto es `array.length` si se omite.
 
 **Retorna:** Nuevo array con elementos desde [start, end)
 
@@ -19281,6 +19499,10 @@ let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4]
 let first_three = arr.slice(0, 3);  // [1, 2, 3]
 let last_two = arr.slice(3, 5);     // [4, 5]
+
+// Un solo argumento: desde el indice hasta el final
+let tail = arr.slice(2);     // [3, 4, 5]
+let copy = arr.slice(0);     // [1, 2, 3, 4, 5] (copia superficial)
 
 // Segmento vacio
 let empty = arr.slice(2, 2); // []
@@ -19548,7 +19770,18 @@ let arr = ["a", "b", "c"];
 let s = arr.join("");          // "abc"
 ```
 
-**Comportamiento:** Convierte automaticamente todos los elementos a strings.
+**Comportamiento:** Convierte automaticamente todos los elementos a strings, incluyendo valores rune retornados por `string.chars()`.
+
+```hemlock
+// Unir arrays de runes (de chars())
+let chars = "hello".chars();
+print(chars.join("-"));   // "h-e-l-l-o"
+
+// Idioma de inversion de string
+let reversed = "hello".chars();
+reversed.reverse();
+print(reversed.join(""));  // "olleh"
+```
 
 ---
 
@@ -21824,6 +22057,45 @@ print("x =", 10, "y =", 20);
 - Separa multiples valores con espacios
 - Agrega nueva linea al final
 - Vacia stdout
+
+---
+
+### write
+
+Imprime un valor a stdout sin nueva linea al final.
+
+**Firma:**
+```hemlock
+write(value: any): null
+```
+
+**Parametros:**
+- `value` - Un valor a imprimir
+
+**Retorna:** `null`
+
+**Ejemplos:**
+```hemlock
+// Construir salida en una sola linea
+write("hello");
+write(" ");
+write("world");
+print("");  // solo la nueva linea
+
+// Imprimir una lista enlazada en linea
+let parts = [1, 2, 3];
+for (let i = 0; i < parts.length; i++) {
+    if (i > 0) { write(" -> "); }
+    write(parts[i]);
+}
+print("");  // Salida: 1 -> 2 -> 3
+```
+
+**Comportamiento:**
+- Convierte el valor a string y lo imprime a stdout
+- NO agrega nueva linea al final
+- Vacia stdout inmediatamente
+- Use `print("")` despues de una serie de llamadas a `write()` para agregar una nueva linea
 
 ---
 

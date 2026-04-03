@@ -657,6 +657,7 @@ ch.close();
 ```hemlock
 let name = read_line();          // Zeile von stdin lesen (blockiert)
 print("Hallo, " + name);
+write("kein Zeilenumbruch");     // Ohne abschließenden Zeilenumbruch ausgeben
 eprint("Fehlermeldung");         // Auf stderr ausgeben
 
 // read_line() gibt null bei EOF zurück
@@ -701,16 +702,39 @@ print(s.length);       // 7 (Zeichen-/Rune-Anzahl)
 print(s.byte_length);  // 10 (Byte-Anzahl - Emoji ist 4 Bytes UTF-8)
 ```
 
-## Array-Methoden (18)
+## Array-Methoden (23)
 
 `push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
-`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`
+`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
+`every`, `some`, `indexOf`, `sort`, `fill`
+
+```hemlock
+// every(predicate) - true wenn alle Elemente das Prädikat erfüllen
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+
+// some(predicate) - true wenn ein Element das Prädikat erfüllt
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+
+// indexOf(value) - findet ersten Index des Werts, oder -1
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+
+// sort(comparator?) - sortiert in-place, optionaler Comparator
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // absteigend
+
+// fill(value, start?, end?) - füllt mit Wert
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 Typisierte Arrays: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Standardbibliothek (40 Module)
+## Standardbibliothek (42 Module)
 
 Importieren mit `@stdlib/`-Präfix:
 ```hemlock
@@ -756,11 +780,13 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `sqlite` | SQLite-Datenbank, query, exec, Transaktionen |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | ANSI-Farben und -Stile |
+| `termios` | Rohe Terminal-Eingabe, Tastenerkennung |
 | `testing` | describe, test, expect |
 | `time` | now, time_ms, sleep, clock |
 | `toml` | TOML-Parsing und -Generierung |
 | `url` | URL-Parsing und -Manipulation |
 | `uuid` | UUID-Generierung |
+| `vector` | Vektor-Ähnlichkeitssuche (USearch ANN) |
 | `websocket` | WebSocket-Client |
 
 Siehe `stdlib/docs/` für detaillierte Moduldokumentation.
@@ -805,7 +831,7 @@ Typen: `FFI_INT`, `FFI_DOUBLE`, `FFI_POINTER`, `FFI_STRING`, `FFI_VOID`, etc.
 
 ## Atomare Operationen
 
-Lock-freie nebenlaeufige Programmierung mit atomaren Operationen:
+Lock-freie nebenläufige Programmierung mit atomaren Operationen:
 
 ```hemlock
 // Speicher für atomares i32 allokieren
@@ -855,7 +881,7 @@ hemlock/
 │   │   ├── lsp/          # Language Server Protocol
 │   │   └── bundler/      # Bundle-/Paket-Tools
 ├── runtime/              # Kompilierte Programm-Laufzeit (libhemlock_runtime.a)
-├── stdlib/               # Standardbibliothek (40 Module)
+├── stdlib/               # Standardbibliothek (42 Module)
 │   └── docs/             # Moduldokumentation
 ├── docs/                 # Vollständige Dokumentation
 │   ├── language-guide/   # Typen, Strings, Arrays, etc.
@@ -873,20 +899,20 @@ hemlock/
 
 Beim Hinzufügen von numerischen Konstanten zur C-Codebasis folge diesen Richtlinien:
 
-1. **Definiere Konstanten in `include/hemlock_limits.h`** - Diese Datei ist der zentrale Ort für alle Kompilierzeit- und Laufzeitlimits, Kapazitaeten und benannte Konstanten.
+1. **Definiere Konstanten in `include/hemlock_limits.h`** - Diese Datei ist der zentrale Ort für alle Kompilierzeit- und Laufzeitlimits, Kapazitäten und benannte Konstanten.
 
 2. **Verwende beschreibende Namen mit `HML_`-Präfix** - Alle Konstanten sollten mit `HML_` präfixiert werden für Namensraum-Klarheit.
 
 3. **Vermeide magische Zahlen** - Ersetze hart-codierte numerische Werte durch benannte Konstanten. Beispiele:
    - Typbereichslimits: `HML_I8_MIN`, `HML_I8_MAX`, `HML_U32_MAX`
-   - Pufferkapazitaeten: `HML_INITIAL_ARRAY_CAPACITY`, `HML_INITIAL_LEXER_BUFFER_CAPACITY`
+   - Pufferkapazitäten: `HML_INITIAL_ARRAY_CAPACITY`, `HML_INITIAL_LEXER_BUFFER_CAPACITY`
    - Zeitumrechnungen: `HML_NANOSECONDS_PER_SECOND`, `HML_MILLISECONDS_PER_SECOND`
    - Hash-Seeds: `HML_DJB2_HASH_SEED`
    - ASCII-Werte: `HML_ASCII_CASE_OFFSET`, `HML_ASCII_PRINTABLE_START`
 
 4. **Inkludiere `hemlock_limits.h`** - Quelldateien sollten diesen Header einbinden (oft via `internal.h`) um auf Konstanten zuzugreifen.
 
-5. **Dokumentiere den Zweck** - Fuege einen Kommentar hinzu, der erklärt, was jede Konstante repraesentiert.
+5. **Dokumentiere den Zweck** - Füge einen Kommentar hinzu, der erklärt, was jede Konstante repräsentiert.
 
 ---
 
@@ -905,11 +931,11 @@ Beim Hinzufügen von numerischen Konstanten zur C-Codebasis folge diesen Richtli
 ```bash
 make test              # Interpreter-Tests ausführen
 make test-compiler     # Compiler-Tests ausführen
-make parity            # Paritaetstests ausführen (beide müssen übereinstimmen)
+make parity            # Paritätstests ausführen (beide müssen übereinstimmen)
 make test-all          # Alle Testsuiten ausführen
 ```
 
-**Wichtig:** Tests können aufgrund von async/Nebenlaeufigkeitsproblemen haengen bleiben. Verwende immer einen Timeout beim Ausführen von Tests:
+**Wichtig:** Tests können aufgrund von async/Nebenläufigkeitsproblemen hängen bleiben. Verwende immer einen Timeout beim Ausführen von Tests:
 ```bash
 timeout 60 make test   # 60 Sekunden Timeout
 timeout 120 make parity
@@ -921,7 +947,7 @@ Testkategorien: primitives, memory, strings, arrays, functions, objects, async, 
 
 ## Compiler/Interpreter-Architektur
 
-Hemlock hat zwei Ausfuehrungsbackends, die ein gemeinsames Frontend teilen:
+Hemlock hat zwei Ausführungsbackends, die ein gemeinsames Frontend teilen:
 
 ```
 Quellcode (.hml)
@@ -948,7 +974,7 @@ Quellcode (.hml)
 Der Compiler (`hemlockc`) beinhaltet Kompilierzeit-Typprüfung, **standardmäßig aktiviert**:
 
 ```bash
-hemlockc program.hml -o program    # Typprueft, dann kompiliert
+hemlockc program.hml -o program    # Typprüft, dann kompiliert
 hemlockc --check program.hml       # Nur Typprüfung, nicht kompilieren
 hemlockc --no-type-check prog.hml  # Typprüfung deaktivieren
 hemlockc --strict-types prog.hml   # Warnung bei impliziten 'any'-Typen
@@ -984,14 +1010,14 @@ hemlock/
 ├── runtime/                # libhemlock_runtime.a für kompilierte Programme
 ├── stdlib/                 # Gemeinsame Standardbibliothek
 └── tests/
-    ├── parity/             # Tests die BEIDE Backends bestehen MUESSEN
+    ├── parity/             # Tests die BEIDE Backends bestehen MÜSSEN
     ├── interpreter/        # Interpreter-spezifische Tests
     └── compiler/           # Compiler-spezifische Tests
 ```
 
 ---
 
-## Paritaets-zuerst-Entwicklung
+## Paritäts-zuerst-Entwicklung
 
 **Sowohl der Interpreter als auch der Compiler müssen identische Ausgabe für die gleiche Eingabe produzieren.**
 
@@ -1002,10 +1028,10 @@ Beim Hinzufügen oder Modifizieren von Sprachfeatures:
 1. **Design** - Definiere die AST-/semantische Änderung im gemeinsamen Frontend
 2. **Interpreter implementieren** - Tree-Walking-Auswertung hinzufügen
 3. **Compiler implementieren** - C-Code-Generierung hinzufügen
-4. **Paritaetstest hinzufügen** - Test in `tests/parity/` mit `.expected`-Datei schreiben
-5. **Verifizieren** - Fuehre `make parity` vor dem Mergen aus
+4. **Paritätstest hinzufügen** - Test in `tests/parity/` mit `.expected`-Datei schreiben
+5. **Verifizieren** - Führe `make parity` vor dem Mergen aus
 
-### Paritaetsteststruktur
+### Paritätsteststruktur
 
 ```
 tests/parity/
@@ -1019,7 +1045,7 @@ Jeder Test hat zwei Dateien:
 - `feature.hml` - Das Testprogramm
 - `feature.expected` - Erwartete Ausgabe (muss für beide Backends übereinstimmen)
 
-### Paritaetstestergebnisse
+### Paritätstestergebnisse
 
 | Status | Bedeutung |
 |--------|-----------|
@@ -1028,7 +1054,7 @@ Jeder Test hat zwei Dateien:
 | `◑ COMPILER_ONLY` | Compiler funktioniert, Interpreter scheitert (selten) |
 | `✗ FAILED` | Beide scheitern (Test- oder Implementierungsfehler) |
 
-### Was Paritaet erfordert
+### Was Parität erfordert
 
 - Alle Sprachkonstrukte (if, while, for, switch, defer, try/catch)
 - Alle Operatoren (arithmetisch, bitweise, logisch, Vergleich)
@@ -1044,7 +1070,7 @@ Jeder Test hat zwei Dateien:
 - Debug-/Stacktrace-Format
 - Kompilierungsfehler (Compiler kann mehr zur Kompilierzeit erkennen)
 
-### Einen Paritaetstest hinzufügen
+### Einen Paritätstest hinzufügen
 
 ```bash
 # 1. Testdatei erstellen
@@ -1057,7 +1083,7 @@ EOF
 # 2. Erwartete Ausgabe vom Interpreter generieren
 ./hemlock tests/parity/language/my_feature.hml > tests/parity/language/my_feature.expected
 
-# 3. Paritaet verifizieren
+# 3. Parität verifizieren
 make parity
 ```
 
@@ -1065,7 +1091,41 @@ make parity
 
 ## Version
 
-**v1.8.0** - Aktuelles Release mit:
+**v1.9.2** - Aktuelles Release mit:
+- **Compiler Unboxed-Loop-Counter-Fix** - Ein kritischer Codegen-Bug wurde behoben, bei dem optimierte Loop-Counter (native `int32_t`) direkt als `HmlValue`-Initialisierer ohne Boxing verwendet wurden. Die `codegen_is_main_var`-Prüfung verhinderte fälschlicherweise die Emission des Boxing-Wrappers (`hml_val_i32()`), wenn eine Main-Level-Variable einen Unboxed-Loop-Counter innerhalb einer Modul-/Closure-Funktion überdeckte. Behebt Kompilierung von `@stdlib/collections` und `@stdlib/encoding`.
+- **`clear()` Objekt-Methoden-Dispatch** - Der Compiler dispatcht `.clear()` jetzt korrekt an Objektmethoden, wenn es auf Nicht-Array-Typen aufgerufen wird. Zuvor generierte `.clear()` immer `hml_array_clear()` unabhängig vom Empfängertyp.
+- **`exec()` Import-Shadowing-Fix** - Der Builtin-`exec()`-Handler des Compilers prüft jetzt Import-Bindings und modullokale Funktionen, bevor er an das System-exec-Builtin dispatcht. Behebt `@stdlib/sqlite`, das seine eigene `exec()`-Funktion exportiert.
+
+**v1.9.1** - Vorheriges Release mit:
+- **`write()` Builtin** - Ausgabe ohne abschließenden Zeilenumbruch (`write("hello"); write(" world");` gibt in einer Zeile aus). Beinhaltet `fflush(stdout)` für sofortige Ausgabe. Volle Parität zwischen Interpreter und Compiler.
+- **Einargument-`slice()`** - `arr.slice(n)` und `str.slice(n)` setzen Ende jetzt standardmäßig auf Länge, entsprechend JS/Python-Verhalten. Zweiargument-Form unverändert.
+- **`join()` auf Rune-Arrays** - `"hello".chars().join("")` produziert jetzt korrekt `"hello"` statt `"[object][object]..."`. Ermöglicht idiomatische String-Umkehrung: `str.chars().reverse().join("")`.
+- **HashMap numerische Schlüssel-Koersion** - Schlüssel verschiedener numerischer Typen stimmen jetzt überein (z.B. `i32`-Schlüssel durch `i64`-Lookup gefunden). Zuvor lehnte der `typeof()`-Guard in `keys_equal()` gültige Cross-Type-Matches ab.
+- **HemBench-Verbesserungen** - Task-Definitionen korrigiert (L1-M-02 Rundung, L2-E-01 Präzision), kein Leak von erwarteter Ausgabe an L5/L6-Benchmark-Tasks mehr.
+- **Vollständige `ptr_read_*`-Builtins** - `ptr_read_i8`, `ptr_read_i16`, `ptr_read_i64`, `ptr_read_u8`, `ptr_read_u16`, `ptr_read_u32`, `ptr_read_u64`, `ptr_read_f32`, `ptr_read_f64`, `ptr_read_ptr` hinzugefügt als Ergänzung zu bestehenden `ptr_write_*`-Funktionen. `ptr_read_i32` auf direkte Dereferenzierung korrigiert (war doppelte Dereferenzierung). Volle Parität zwischen Interpreter und Compiler.
+- **macOS FFI-Bibliotheksladung** - `dlopen` durchsucht jetzt `/usr/local/lib` und `/opt/homebrew/lib` als Fallback-Pfade auf macOS, behebt Bibliothek-nicht-gefunden-Fehler für vom Benutzer installierte Shared Libraries (z.B. libusearch_c).
+- **`@stdlib/vector` USearch v2-Fix** - `create_index()` ruft jetzt `usearch_reserve()` nach Init auf, behebt Segfault mit USearch v2.24+, das Vorab-Allokation vor dem Hinzufügen von Vektoren erfordert.
+
+**v1.9.0** - Vorheriges Release mit:
+- **WASM-Interpreter-Release-Artefakt** - Vorgefertigter WASM-Interpreter in GitHub-Releases für Browser-/Node.js-Nutzung
+- **Compiler-Inlining-Fixes** - Fehler bei verschachtelter Aufruf-Argument-Korruption und Unboxing-Kollision mit Loop-Countern während Funktions-Inlining behoben (behebt hemloco-Kompilierung)
+- **Zeiger-Subtraktion** - Compiler-Typchecker erlaubt jetzt `ptr - integer` für Zeigerarithmetik
+- **Fangbare `open()`-Ausnahmen** - `open()` wirft jetzt via `hml_throw()` statt `exit(1)`, ermöglicht try/catch-Fehlerbehandlung
+- **Mehrargument-print/eprint-Fix** - Compiler-Codegen für `print()` und `eprint()` mit mehreren Argumenten korrigiert (z.B. `print("x:", x, y)`)
+- **SSO-String-Fix** - Segfault in `hml_string_append_inplace` beim Wachsen von Strings mit Small String Optimization behoben
+- **`@stdlib/termios`-Modul** - Plattformübergreifende rohe Terminal-Eingabe (Linux/macOS):
+  - `enable_raw_mode()` / `disable_raw_mode()` für sofortige Tastendrücke
+  - `read_key()` / `read_key_timeout(ms)` zum Lesen einzelner Tastendrücke
+  - Pfeiltasten-, Funktionstasten-, Steuerungstasten-Erkennung
+  - `is_terminal()` zum Prüfen ob stdin ein TTY ist
+  - Dokumentation unter `stdlib/docs/termios.md`
+- **Speicherleck-Prävention** - Umfassende Fixes, die sicherstellen, dass die Laufzeit leckfrei ist:
+  - Ausnahmesichere Ausdrucksauswertung (Arrays, Objekte, Funktionsaufrufe)
+  - Task-Ergebnis korrektes Retain/Release bei join()
+  - Kanal-Drain bei close (gibt gepufferte Werte frei)
+  - Optimierer-Cleanup für Null-Koaleszenz-Konstantenfaltung
+  - Leck-Regressions-Testsuite (`make leak-regression`)
+  - Speicherbesitz-Dokumentation (`docs/advanced/memory-ownership.md`)
 - **Musterabgleich** (`match`-Ausdrücke) - Mächtige Destrukturierung und Kontrollfluss:
   - Literal-, Platzhalter- und Variablenbindungsmuster
   - ODER-Muster (`1 | 2 | 3`)
@@ -1073,16 +1133,16 @@ make parity
   - Objekt-Destrukturierung (`{ x, y }`)
   - Array-Destrukturierung mit Rest (`[first, ...rest]`)
   - Typmuster (`n: i32`)
-  - Volle Paritaet zwischen Interpreter und Compiler
+  - Volle Parität zwischen Interpreter und Compiler
 - **Compiler-Hilfsannotationen** - 11 Optimierungsannotationen für GCC/Clang-Kontrolle:
   - `@inline`, `@noinline` - Funktions-Inlining-Kontrolle
   - `@hot`, `@cold` - Branch-Prediction-Hinweise
   - `@pure`, `@const` - Seiteneffekt-Annotationen
   - `@flatten` - alle Aufrufe innerhalb der Funktion inlinen
   - `@optimize(level)` - Pro-Funktion-Optimierungsstufe ("0", "1", "2", "3", "s", "fast")
-  - `@warn_unused` - Warnung bei ignorierten Rueckgabewerten
+  - `@warn_unused` - Warnung bei ignorierten Rückgabewerten
   - `@section(name)` - Benutzerdefinierte ELF-Sektionsplatzierung (z.B. `@section(".text.hot")`)
-- **Ausdruckskörper-Funktionen** (`fn double(x): i32 => x * 2;`) - praegnante Einzelausdruck-Funktionssyntax
+- **Ausdruckskörper-Funktionen** (`fn double(x): i32 => x * 2;`) - prägnante Einzelausdruck-Funktionssyntax
 - **Einzeilige Anweisungen** - klammerlose `if`, `while`, `for`-Syntax (z.B. `if (x > 0) print(x);`)
 - **Typaliase** (`type Name = Type;`) - benannte Abkürzungen für komplexe Typen
 - **Funktionstyp-Annotationen** (`fn(i32): i32`) - erstklassige Funktionstypen
@@ -1093,7 +1153,7 @@ make parity
 - **Loop-Schlüsselwort** (`loop { }`) - sauberere Endlosschleifen, ersetzt `while (true)`
 - **Schleifenlabels** (`outer: while`) - gezieltes break/continue für verschachtelte Schleifen
 - **Objekt-Kurzschreibweise** (`{ name }`) - ES6-Stil-Kurzeigenschaften-Syntax
-- **Objekt-Spread** (`{ ...obj }`) - Objektfelder kopieren und zusammenfuehren
+- **Objekt-Spread** (`{ ...obj }`) - Objektfelder kopieren und zusammenführen
 - **Zusammengesetzte Duck-Typen** (`A & B & C`) - Schnittmengentypen für strukturelle Typisierung
 - **Benannte Argumente** für Funktionsaufrufe (`foo(name: "value", age: 30)`)
 - **Null-Koaleszenz-Operatoren** (`??`, `??=`, `?.`) für sichere Null-Behandlung
@@ -1107,27 +1167,27 @@ make parity
 - **LSP-Integration** mit Typprüfung für Echtzeit-Diagnosen
 - **Zusammengesetzte Zuweisungsoperatoren** (`+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`)
 - **Inkrement/Dekrement-Operatoren** (`++x`, `x++`, `--x`, `x--`)
-- **Typ-Praezisions-Fix**: i64/u64 + f32 → f64 um Präzision zu erhalten
+- **Typ-Präzisions-Fix**: i64/u64 + f32 → f64 um Präzision zu erhalten
 - Vereinheitlichtes Typsystem mit Unboxing-Optimierungshinweisen
 - Volles Typsystem (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
 - UTF-8-Strings mit 19 Methoden
-- Arrays mit 18 Methoden einschließlich map/filter/reduce
+- Arrays mit 23 Methoden einschließlich map/filter/reduce/every/some/indexOf/sort/fill
 - Manuelle Speicherverwaltung mit `talloc()` und `sizeof()`
 - Async/await mit echter pthread-Parallelität
-- Atomare Operationen für lock-freie nebenlaeufige Programmierung
-- 40 Stdlib-Module (+ arena, assert, semver, toml, retry, iter, random, shell)
+- Atomare Operationen für lock-freie nebenläufige Programmierung
+- 42 Stdlib-Module (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
 - FFI für C-Interop mit `export extern fn` für wiederverwendbare Bibliotheks-Wrapper
 - FFI-Struct-Unterstützung im Compiler (C-Structs per Wert übergeben)
 - FFI-Zeiger-Helfer (`ptr_null`, `ptr_read_*`, `ptr_write_*`)
 - defer, try/catch/finally/throw, panic
-- Datei-I/O, Signalbehandlung, Befehlsausfuehrung
+- Datei-I/O, Signalbehandlung, Befehlsausführung
 - [hpm](https://github.com/hemlang/hpm) Paketmanager mit GitHub-basierter Registry
-- Compiler-Backend (C-Code-Generierung) mit 100% Interpreter-Paritaet
+- Compiler-Backend (C-Code-Generierung) mit 100% Interpreter-Parität
 - LSP-Server mit Go-to-Definition und Find-References
-- AST-Optimierungspass und Variablenaufloesung für O(1)-Lookup
+- AST-Optimierungspass und Variablenauflösung für O(1)-Lookup
 - apply()-Builtin für dynamische Funktionsaufrufe
 - Ungepufferte Kanäle und Many-Params-Unterstützung
-- 159 Paritaetstests (100% Erfolgsrate)
+- 159 Paritätstests (100% Erfolgsrate)
 
 ---
 
@@ -1332,6 +1392,141 @@ hemlock/
 ├── Makefile          # Build-Konfiguration
 └── README.md         # Projekt-README
 ```
+
+## WebAssembly (WASM) Build
+
+Hemlock kann über [Emscripten](https://emscripten.org/) zu WebAssembly kompiliert werden, sodass der vollständige Interpreter in einem Webbrowser oder Node.js läuft.
+
+### Emscripten installieren
+
+Das Emscripten SDK (`emsdk`) stellt den `emcc`-Compiler bereit, der zum Erstellen des WASM-Interpreters verwendet wird.
+
+**Alle Plattformen (Linux, macOS, Windows WSL):**
+
+```bash
+# Clone the emsdk repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate the latest SDK
+./emsdk install latest
+./emsdk activate latest
+
+# Add emcc to your PATH (run this in every new terminal, or add to your shell profile)
+source ./emsdk_env.sh
+```
+
+Überprüfen Sie die Installation:
+
+```bash
+emcc --version
+```
+
+Sie sollten eine Ausgabe wie `emcc (Emscripten gcc/clang-like replacement ...) 3.x.x` sehen.
+
+Detaillierte Anweisungen finden Sie im [Emscripten Getting Started Guide](https://emscripten.org/docs/getting_started/downloads.html).
+
+**Optional: Zum Shell-Profil hinzufügen**
+
+Um das Ausführen von `source emsdk_env.sh` jedes Mal zu vermeiden, fügen Sie es zu Ihrem Shell-Profil hinzu:
+
+```bash
+# For bash (~/.bashrc or ~/.bash_profile)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.bashrc
+
+# For zsh (~/.zshrc)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.zshrc
+```
+
+### WASM-Abhängigkeiten
+
+Der WASM-Build hat weniger Abhängigkeiten als der native Build. Emscripten stellt eigene Versionen der Standard-C-Bibliotheken bereit. Die folgenden nativen Bibliotheken werden **nicht benötigt** (und sind nicht verfügbar) im WASM-Build:
+
+| Bibliothek | Nativ | WASM | Hinweise |
+|---------|--------|------|-------|
+| libffi | Erforderlich | Stub | FFI ist in WASM nicht verfügbar |
+| OpenSSL | Erforderlich | Stub | Krypto-Builtins geben Fehler in WASM zurück |
+| libwebsockets | Optional | Stub | WebSocket-Unterstützung nicht verfügbar |
+| zlib | Erforderlich | Emscripten stellt bereit | Automatisch verlinkt mit `-sUSE_ZLIB=1` |
+| pthreads | Erforderlich | Optional | Verfügbar mit Thread-Build (erfordert SharedArrayBuffer) |
+
+**Kurz gesagt:** Sie benötigen nur das installierte Emscripten SDK. Für den WASM-Build sind keine zusätzlichen Systembibliotheken erforderlich.
+
+### Den WASM-Interpreter erstellen
+
+```bash
+# Build the interpreter as WebAssembly
+make wasm-interpreter
+```
+
+Dies erzeugt zwei Dateien im Verzeichnis `wasm/`:
+
+| Datei | Beschreibung |
+|------|-------------|
+| `wasm/hemlock.js` | JavaScript-Loader und Emscripten-Glue-Code |
+| `wasm/hemlock.wasm` | WebAssembly-Binärmodul |
+
+### Ausführung in Node.js
+
+```bash
+node -- wasm/hemlock.js -e 'print("Hello from WASM!");'
+node -- wasm/hemlock.js examples/fibonacci.hml
+```
+
+### Ausführung im Browser
+
+WASM-Dateien müssen über HTTP mit dem korrekten MIME-Typ (`application/wasm`) bereitgestellt werden. Das direkte Öffnen der HTML-Datei über `file://` funktioniert nicht.
+
+**Mit dem enthaltenen Beispiel:**
+
+```bash
+make wasm-browser-example
+# Opens http://localhost:8080/examples/wasm-browser/index.html
+```
+
+**Oder manuell mit Python:**
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/wasm/playground.html
+```
+
+**Oder manuell mit Node.js:**
+
+```bash
+npx serve .
+# Open the URL shown in the terminal
+```
+
+Siehe `examples/wasm-browser/` für ein vollständiges Browser-Integrationsbeispiel mit einem interaktiven Code-Editor.
+
+### WASM-Einschränkungen
+
+Einige Funktionen sind in der WASM-Umgebung nicht verfügbar:
+
+- **FFI** - Kein Laden von Shared Libraries (`dlopen`/`dlsym`)
+- **Krypto** - Kein OpenSSL (`sha256`, `md5` usw. geben Fehler zurück)
+- **Datei-I/O** - Kein nativer Dateisystemzugriff (nur virtuelles Emscripten-FS)
+- **Netzwerk** - Keine Raw-Sockets oder HTTP-Client
+- **Signale** - Keine POSIX-Signalbehandlung
+- **Prozesse** - Kein `fork`, `exec` oder Prozessverwaltung
+- **Threading** - `spawn`/`join`/Kanäle erfordern einen Thread-WASM-Build mit `SharedArrayBuffer`
+
+Alle Kern-Sprachfunktionen funktionieren: Variablen, Funktionen, Closures, Objekte, Arrays, Musterabgleich, Typannotationen, try/catch und die vollständige Standardbibliothek der reinen Hemlock-Module.
+
+### Hemlock-Programme zu WASM kompilieren
+
+Zusätzlich zur Ausführung des Interpreters in WASM können Sie einzelne Hemlock-Programme zu eigenständigen WASM-Binaries kompilieren, indem Sie das Compiler-Backend verwenden:
+
+```bash
+# Compile a Hemlock program to WASM (requires both hemlockc and Emscripten)
+make wasm-compile FILE=program.hml
+
+# With threading support
+make wasm-compile-threaded FILE=program.hml
+```
+
+Dies verwendet `hemlockc` zur Erzeugung von C-Code, dann Emscripten zur Kompilierung zu WASM.
 
 ## Build-Optionen
 
@@ -3040,7 +3235,7 @@ print(arr.length);  // 6
 
 ## Array-Methoden
 
-Hemlock bietet 18 Array-Methoden für umfassende Manipulation.
+Hemlock bietet 23 Array-Methoden für umfassende Manipulation.
 
 ### Stack-Operationen
 
@@ -3166,6 +3361,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Funktioniert mit gemischten Typen
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
+
+// Funktioniert mit Rune-Arrays (von chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Mit anderem Array verketten:
@@ -3333,7 +3533,7 @@ let second = queue.shift();  // 2
 ## Best Practices
 
 1. **Verwende Methoden statt direkter Indizierung** - Grenzprüfung und Klarheit
-2. **Pruefe Grenzen** - Direkte Indizierung prüft keine Grenzen
+2. **Prüfe Grenzen** - Direkte Indizierung prüft keine Grenzen
 3. **Bevorzuge unveränderliche Operationen** - Verwende `slice()` und `concat()` statt Mutation
 4. **Initialisiere mit Kapazität** - Wenn du die Größe kennst (derzeit nicht unterstützt)
 5. **Verwende `contains()` für Zugehörigkeit** - Klarer als manuelle Schleifen
@@ -3350,7 +3550,7 @@ let arr = [1, 2, 3];
 arr[10] = 99;  // Erstellt duenn besetztes Array mit nulls
 print(arr.length);  // 11 (nicht 3!)
 
-// Besser: Verwende push() oder pruefe Länge
+// Besser: Verwende push() oder prüfe Länge
 if (arr.length <= 10) {
     arr.push(99);
 }
@@ -3394,9 +3594,9 @@ fn add_to_cache(item) {
     global_cache.push(item);  // Wächst unbegrenzt
 }
 
-// Für langlebige Daten, erwaege:
+// Für langlebige Daten, erwäge:
 // - Array periodisch leeren: global_cache.clear();
-// - Frueh freigeben wenn fertig: free(global_cache);
+// - Früh freigeben wenn fertig: free(global_cache);
 ```
 
 ## Beispiele
@@ -3527,7 +3727,7 @@ fn sort(arr) {
 }
 
 let numbers = [5, 2, 8, 1, 9];
-sort(numbers);  // Aendert an Ort und Stelle
+sort(numbers);  // Ändert an Ort und Stelle
 print(numbers);  // [1, 2, 5, 8, 9]
 ```
 
@@ -3545,14 +3745,14 @@ Aktuelle Einschränkungen:
 ## Verwandte Themen
 
 - [Strings](#language-guide-strings) - String-Methoden ähnlich wie Array-Methoden
-- [Objekte](#language-guide-objects) - Arrays sind auch objektaehnlich
+- [Objekte](#language-guide-objects) - Arrays sind auch objektähnlich
 - [Funktionen](#language-guide-functions) - Höhere Ordnung Funktionen mit Arrays
 - [Kontrollfluss](#language-guide-control-flow) - Über Arrays iterieren
 
 ## Siehe auch
 
 - **Dynamische Größenanpassung**: Arrays wachsen automatisch mit Kapazitätsverdopplung
-- **Methoden**: 18 umfassende Methoden zur Manipulation inklusive map/filter/reduce
+- **Methoden**: 23 umfassende Methoden zur Manipulation inklusive map/filter/reduce/every/some/indexOf/sort/fill
 - **Speicher**: Siehe [Speicher](#language-guide-memory) für Array-Allokationsdetails
 
 
@@ -3638,13 +3838,13 @@ try {
 ```
 
 **Verhalten:**
-- Fuehrt Anweisungen der Reihe nach aus
+- Führt Anweisungen der Reihe nach aus
 - Wenn Ausnahme geworfen: springt zu `catch` oder `finally`
 - Wenn keine Ausnahme: führt `finally` aus (falls vorhanden), dann weiter
 
 ### Catch-Block
 
-Der catch-Block empfaengt den geworfenen Wert:
+Der catch-Block empfängt den geworfenen Wert:
 
 ```hemlock
 try {
@@ -3657,7 +3857,7 @@ try {
 ```
 
 **Catch-Parameter:**
-- Empfaengt den geworfenen Wert (beliebiger Typ)
+- Empfängt den geworfenen Wert (beliebiger Typ)
 - Auf den catch-Block beschränkt
 - Kann beliebig benannt werden (konventionell `e`, `err` oder `error`)
 
@@ -3832,14 +4032,14 @@ fn foo() {
     throw "nicht gefangen!";
 }
 
-foo();  // Stuerzt ab mit: Laufzeitfehler: nicht gefangen!
+foo();  // Stürzt ab mit: Laufzeitfehler: nicht gefangen!
 ```
 
 **Verhalten:**
-- Programm stuerzt ab
+- Programm stürzt ab
 - Gibt Fehlermeldung auf stderr aus
 - Beendet mit nicht-null Statuscode
-- Stack-Trace wird in zukuenftigen Versionen hinzugefügt
+- Stack-Trace wird in zukünftigen Versionen hinzugefügt
 
 ## Panic - Nicht behebbare Fehler
 
@@ -3881,7 +4081,7 @@ try {
 
 **Panic verwenden für:**
 - **Bugs**: Unerreichbarer Code wurde erreicht
-- **Ungueltiger Zustand**: Datenstrukturkorruption erkannt
+- **Ungültiger Zustand**: Datenstrukturkorruption erkannt
 - **Nicht behebbare Fehler**: Kritische Ressource nicht verfügbar
 - **Assertionsfehler**: Wenn `assert()` nicht ausreicht
 
@@ -3896,11 +4096,11 @@ fn process_state(state: i32) {
     } else if (state == 3) {
         return "stopped";
     } else {
-        panic("ungueltiger Zustand: " + typeof(state));  // Sollte nie passieren
+        panic("ungültiger Zustand: " + typeof(state));  // Sollte nie passieren
     }
 }
 
-// Kritische Ressourcenpruefung
+// Kritische Ressourcenprüfung
 fn init_system() {
     let config = read_file("config.json");
     if (config == null) {
@@ -3966,7 +4166,7 @@ fn example2() {
 }
 ```
 
-**Regel:** Finally-Block-Rueckgabewerte ueberschreiben try/catch-Rueckgabewerte.
+**Regel:** Finally-Block-Rückgabewerte überschreiben try/catch-Rückgabewerte.
 
 ### Break/Continue innerhalb Try/Catch/Finally
 
@@ -4065,10 +4265,10 @@ fn validate_user(user) {
         throw "Name ist erforderlich";
     }
     if (user.age < 0 || user.age > 150) {
-        throw "Ungueltiges Alter";
+        throw "Ungültiges Alter";
     }
     if (user.email == null || !user.email.contains("@")) {
-        throw "Ungueltige E-Mail";
+        throw "Ungültige E-Mail";
     }
 }
 
@@ -4115,8 +4315,8 @@ try {
 
 ## Best Practices
 
-1. **Ausnahmen für Ausnahmefaelle verwenden** - Nicht für normalen Kontrollfluss
-2. **Aussagekraeftige Fehler werfen** - Strings oder Objekte mit Kontext verwenden
+1. **Ausnahmen für Ausnahmefälle verwenden** - Nicht für normalen Kontrollfluss
+2. **Aussagekräftige Fehler werfen** - Strings oder Objekte mit Kontext verwenden
 3. **Immer finally für Bereinigung verwenden** - Stellt sicher, dass Ressourcen freigegeben werden
 4. **Nicht fangen und ignorieren** - Mindestens den Fehler protokollieren
 5. **Bei Bedarf erneut werfen** - Aufrufer behandeln lassen, wenn Sie nicht können
@@ -4144,7 +4344,7 @@ try {
 }
 ```
 
-### Fallstrick: Finally-Ueberschreibung
+### Fallstrick: Finally-Überschreibung
 
 ```hemlock
 // SCHLECHT: Finally überschreibt return
@@ -4169,7 +4369,7 @@ fn get_value() {
 ### Fallstrick: Bereinigung vergessen
 
 ```hemlock
-// SCHLECHT: Datei wird bei Fehler moeglicherweise nicht geschlossen
+// SCHLECHT: Datei wird bei Fehler möglicherweise nicht geschlossen
 fn process() {
     let file = open("data.txt");
     let content = file.read();  // Kann werfen
@@ -4335,7 +4535,7 @@ fn retry(operation, max_attempts) {
 }
 
 fn unreliable_operation() {
-    // Simulierte unzuverlaessige Operation
+    // Simulierte unzuverlässige Operation
     if (random() < 0.7) {
         throw "Operation fehlgeschlagen";
     }
@@ -4350,9 +4550,9 @@ try {
 }
 ```
 
-## Ausfuehrungsreihenfolge
+## Ausführungsreihenfolge
 
-Verständnis der Ausfuehrungsreihenfolge:
+Verständnis der Ausführungsreihenfolge:
 
 ```hemlock
 try {
@@ -4381,14 +4581,14 @@ print("5: nach try/catch/finally");
 
 ## Verwandte Themen
 
-- [Functions](#language-guide-functions) - Ausnahmen und Funktionsrueckgaben
+- [Functions](#language-guide-functions) - Ausnahmen und Funktionsrückgaben
 - [Control Flow](#language-guide-control-flow) - Wie Ausnahmen den Kontrollfluss beeinflussen
 - [Memory](#language-guide-memory) - Finally für Speicherbereinigung verwenden
 
 ## Siehe auch
 
 - **Ausnahmesemantik**: Siehe CLAUDE.md Abschnitt "Error Handling"
-- **Panic vs. Throw**: Verschiedene Anwendungsfaelle für verschiedene Fehlertypen
+- **Panic vs. Throw**: Verschiedene Anwendungsfälle für verschiedene Fehlertypen
 - **Finally-Garantie**: Wird immer ausgeführt, auch bei return/break/continue
 
 
@@ -4437,7 +4637,7 @@ let msg = greet("Alice");  // "Hello, Alice"
 ```
 
 **Komponenten:**
-- `fn` - Funktionsschluesselwort
+- `fn` - Funktionsschlüsselwort
 - `greet` - Funktionsname
 - `(name: string)` - Parameter mit optionalen Typen
 - `: string` - Optionaler Rückgabetyp
@@ -4495,13 +4695,13 @@ add(5, 10.5);    // Laufzeit-Typüberprüfung konvertiert zu f64
 - Implizite Typkonvertierungen folgen Standard-Promotionsregeln
 - Typkonflikte verursachen Laufzeitfehler
 
-### Wertuebergabe (Pass-by-Value)
+### Wertübergabe (Pass-by-Value)
 
-Alle Argumente werden **kopiert** (Wertuebergabe):
+Alle Argumente werden **kopiert** (Wertübergabe):
 
 ```hemlock
 fn modify(x) {
-    x = 100;  // Aendert nur die lokale Kopie
+    x = 100;  // Ändert nur die lokale Kopie
 }
 
 let a = 10;
@@ -4513,7 +4713,7 @@ print(a);  // Immer noch 10 (unverändert)
 
 ```hemlock
 fn modify_array(arr) {
-    arr[0] = 99;  // Aendert das Original-Array
+    arr[0] = 99;  // Ändert das Original-Array
 }
 
 let a = [1, 2, 3];
@@ -4521,7 +4721,7 @@ modify_array(a);
 print(a[0]);  // 99 (geändert)
 ```
 
-## Rueckgabewerte
+## Rückgabewerte
 
 ### Return-Anweisung
 
@@ -4550,7 +4750,7 @@ fn get_name(): string {
 ```
 
 **Typüberprüfung:**
-- Rueckgabetypen werden beim Zurückgeben geprüft (wenn annotiert)
+- Rückgabetypen werden beim Zurückgeben geprüft (wenn annotiert)
 - Typkonvertierungen folgen Standard-Promotionsregeln
 
 ### Implizite Rückgabe
@@ -4566,13 +4766,13 @@ fn print_message(msg) {
 let result = print_message("hello");  // result ist null
 ```
 
-### Fruehe Rückgabe
+### Frühe Rückgabe
 
 ```hemlock
 fn find_first_negative(arr) {
     for (let i = 0; i < arr.length; i = i + 1) {
         if (arr[i] < 0) {
-            return i;  // Fruehes Beenden
+            return i;  // Frühes Beenden
         }
     }
     return -1;  // Nicht gefunden
@@ -4622,7 +4822,7 @@ fn double(n) {
 let result = apply(double, 5);  // 10
 ```
 
-### Funktionen als Rueckgabewerte
+### Funktionen als Rückgabewerte
 
 ```hemlock
 fn get_operation(op: string) {
@@ -4662,7 +4862,7 @@ print(counter());  // 3
 
 **Wie es funktioniert:**
 - Die innere Funktion erfasst `count` aus dem äußeren Scope
-- `count` bleibt über Aufrufe der zurueckgegebenen Funktion erhalten
+- `count` bleibt über Aufrufe der zurückgegebenen Funktion erhalten
 - Jeder Aufruf von `makeCounter()` erstellt eine neue Closure mit eigenem `count`
 
 ### Closure mit Parametern
@@ -4878,7 +5078,7 @@ print(person.greet());  // "Hi, I'm Alice"
 
 ```hemlock
 fn process_async(data, callback) {
-    // ... Verarbeitung durchfuehren
+    // ... Verarbeitung durchführen
     callback(data);
 }
 
@@ -4988,7 +5188,7 @@ fn outer() {
 2. **Halte Funktionen klein** - Jede Funktion sollte eine Sache tun
 3. **Bevorzuge reine Funktionen** - Vermeide Seiteneffekte wenn möglich
 4. **Benenne Funktionen klar** - Verwende beschreibende Verb-Namen
-5. **Fruehe Rückgabe** - Verwende Guard-Klauseln um Verschachtelung zu reduzieren
+5. **Frühe Rückgabe** - Verwende Guard-Klauseln um Verschachtelung zu reduzieren
 6. **Dokumentiere komplexe Closures** - Mache erfasste Variablen explizit
 7. **Vermeide tiefe Rekursion** - Noch keine Tail-Call-Optimierung
 
@@ -5003,7 +5203,7 @@ fn count_down(n) {
     count_down(n - 1);
 }
 
-count_down(100000);  // Kann mit Stack-Überlauf abstuerzen
+count_down(100000);  // Kann mit Stack-Überlauf abstürzen
 ```
 
 ### Fallstrick: Ändern erfasster Variablen
@@ -5157,11 +5357,11 @@ log("INFO", "Starting", "Running", "Done");
 **Regeln:**
 - Der Rest-Parameter muss der letzte Parameter sein
 - Der Rest-Parameter sammelt alle verbleibenden Argumente in einem Array
-- Kann mit regulaeren und optionalen Parametern kombiniert werden
+- Kann mit regulären und optionalen Parametern kombiniert werden
 
 ## Funktionstyp-Annotationen
 
-Funktionstypen ermöglichen es, die genaue Signatur für Funktionsparameter und Rueckgabewerte zu spezifizieren:
+Funktionstypen ermöglichen es, die genaue Signatur für Funktionsparameter und Rückgabewerte zu spezifizieren:
 
 ### Grundlegende Funktionstypen
 
@@ -5215,13 +5415,13 @@ fn filter_with(arr: array, pred: Predicate): array {
 
 ## Const-Parameter
 
-Der `const`-Modifikator verhindert, dass ein Parameter innerhalb der Funktion veraendert wird:
+Der `const`-Modifikator verhindert, dass ein Parameter innerhalb der Funktion verändert wird:
 
 ### Grundlegende Const-Parameter
 
 ```hemlock
 fn print_all(const items: array) {
-    // items.push(4);  // FEHLER: kann const-Parameter nicht veraendern
+    // items.push(4);  // FEHLER: kann const-Parameter nicht verändern
     for (item in items) {
         print(item);   // OK: Lesen ist erlaubt
     }
@@ -5238,7 +5438,7 @@ Const-Parameter erzwingen tiefe Unveränderlichkeit - keine Mutation über irgen
 ```hemlock
 fn describe(const person: object) {
     print(person.name);       // OK: Lesen ist erlaubt
-    // person.name = "Bob";   // FEHLER: kann nicht veraendern
+    // person.name = "Bob";   // FEHLER: kann nicht verändern
     // person.address.city = "NYC";  // FEHLER: tiefes const
 }
 ```
@@ -5254,7 +5454,7 @@ fn describe(const person: object) {
 
 ## Benannte Argumente
 
-Funktionen können mit benannten Argumenten aufgerufen werden für Klarheit und Flexibilitaet:
+Funktionen können mit benannten Argumenten aufgerufen werden für Klarheit und Flexibilität:
 
 ### Grundlegende benannte Argumente
 
@@ -5294,8 +5494,8 @@ create_user("Eve", age: 21);          // OK
 
 Aktuelle Einschränkungen, die zu beachten sind:
 
-- **Keine Referenzuebergabe** - `ref`-Schlüsselwort wird geparst aber nicht implementiert
-- **Kein Funktionsueberladen** - Eine Funktion pro Name
+- **Keine Referenzübergabe** - `ref`-Schlüsselwort wird geparst aber nicht implementiert
+- **Kein Funktionsüberladen** - Eine Funktion pro Name
 - **Keine Tail-Call-Optimierung** - Tiefe Rekursion durch Stack-Größe begrenzt
 
 ## Verwandte Themen
@@ -5322,7 +5522,7 @@ Hemlock bietet vertrauten C-ähnlichen Kontrollfluss mit obligatorischen geschwe
 
 ## Überblick
 
-Verfuegbare Kontrollfluss-Funktionen:
+Verfügbare Kontrollfluss-Funktionen:
 
 - `if`/`else`/`else if` - Bedingte Verzweigungen
 - `while`-Schleifen - Bedingungsbasierte Iteration
@@ -5500,7 +5700,7 @@ loop {
 ### Wann Loop verwenden
 
 - **`loop` verwenden** für absichtlich unendliche Schleifen, die via `break` beendet werden
-- **`while` verwenden** wenn es eine natuerliche Abbruchbedingung gibt
+- **`while` verwenden** wenn es eine natürliche Abbruchbedingung gibt
 - **`for` verwenden** beim Iterieren einer bekannten Anzahl von Malen oder über eine Sammlung
 
 ## For-Schleifen
@@ -5597,7 +5797,7 @@ switch (color) {
 
 ### Fall-Through-Verhalten
 
-Faelle ohne `break` fallen durch zum nächsten Fall (C-artiges Verhalten). Dies ist **beabsichtigt** und kann zum Gruppieren von Faellen verwendet werden:
+Fälle ohne `break` fallen durch zum nächsten Fall (C-artiges Verhalten). Dies ist **beabsichtigt** und kann zum Gruppieren von Fällen verwendet werden:
 
 ```hemlock
 let grade = 85;
@@ -5637,7 +5837,7 @@ switch (day) {
 }
 ```
 
-**Wichtig:** Anders als einige moderne Sprachen erfordert Hemlock KEIN explizites `fallthrough`-Schlüsselwort. Faelle fallen automatisch durch, es sei denn, sie werden durch `break`, `return` oder `throw` beendet. Verwenden Sie immer `break`, um unbeabsichtigtes Fall-Through zu verhindern.
+**Wichtig:** Anders als einige moderne Sprachen erfordert Hemlock KEIN explizites `fallthrough`-Schlüsselwort. Fälle fallen automatisch durch, es sei denn, sie werden durch `break`, `return` oder `throw` beendet. Verwenden Sie immer `break`, um unbeabsichtigtes Fall-Through zu verhindern.
 
 ### Switch mit Return
 
@@ -5682,7 +5882,7 @@ switch (flag) {
 }
 ```
 
-**Hinweis:** Faelle werden mittels Wertgleichheit verglichen.
+**Hinweis:** Fälle werden mittels Wertgleichheit verglichen.
 
 ## Break und Continue
 
@@ -5886,7 +6086,7 @@ example();
 ```
 
 **Kernverhalten:**
-- Deferred-Anweisungen werden **nach** Abschluss des Funktionskoerpers ausgeführt
+- Deferred-Anweisungen werden **nach** Abschluss des Funktionskörpers ausgeführt
 - Deferred-Anweisungen werden **vor** der Rückkehr der Funktion an ihren Aufrufer ausgeführt
 - Deferred-Anweisungen werden immer ausgeführt, auch wenn die Funktion eine Ausnahme wirft
 
@@ -5910,7 +6110,7 @@ example();
 // erstes
 ```
 
-Diese LIFO-Reihenfolge ist beabsichtigt - sie entspricht der natuerlichen Reihenfolge für verschachtelte Ressourcenbereinigung (innere Ressourcen vor äußeren schließen).
+Diese LIFO-Reihenfolge ist beabsichtigt - sie entspricht der natürlichen Reihenfolge für verschachtelte Ressourcenbereinigung (innere Ressourcen vor äußeren schließen).
 
 ### Defer mit Return
 
@@ -5972,7 +6172,7 @@ fn process_file(filename: string) {
 }
 ```
 
-**Ohne defer (fehleranfaellig):**
+**Ohne defer (fehleranfällig):**
 ```hemlock
 fn process_file_bad(filename: string) {
     let file = open(filename, "r");
@@ -6031,7 +6231,7 @@ fn example() {
    // Beide Dateien werden in umgekehrter Reihenfolge geschlossen
    ```
 
-3. **LIFO-Reihenfolge für abhaengige Ressourcen beachten:**
+3. **LIFO-Reihenfolge für abhängige Ressourcen beachten:**
    ```hemlock
    let outer = acquire_outer();
    defer release_outer(outer);
@@ -6039,7 +6239,7 @@ fn example() {
    let inner = acquire_inner(outer);
    defer release_inner(inner);
 
-   // inner wird vor outer freigegeben (korrekte Abhaengigkeitsreihenfolge)
+   // inner wird vor outer freigegeben (korrekte Abhängigkeitsreihenfolge)
    ```
 
 ## Boolesche Operatoren
@@ -6157,7 +6357,7 @@ print(a << 2);  // 48 (110000) - 2 nach links schieben
 print(a >> 1);  // 6 (110) - 1 nach rechts schieben
 ```
 
-### Unaerer bitweiser Operator
+### Unärer bitweiser Operator
 
 **Bitweises NICHT (`~`)**
 ```hemlock
@@ -6208,11 +6408,11 @@ flags = flags & ~0x02;
 flags = flags ^ 0x01;
 ```
 
-### Operatorpraezedenz
+### Operatorpräzedenz
 
 Bitweise Operatoren folgen C-artiger Präzedenz:
 
-1. `~` (unaeres NICHT) - hoechste, gleiche Ebene wie `!` und `-`
+1. `~` (unäres NICHT) - höchste, gleiche Ebene wie `!` und `-`
 2. `<<`, `>>` (Shifts) - höher als Vergleiche, niedriger als `+`/`-`
 3. `&` (bitweises UND) - höher als `^` und `|`
 4. `^` (bitweises XOR) - zwischen `&` und `|`
@@ -6233,15 +6433,15 @@ let result3 = (5 & 3) | (2 << 1);  // 1 | 4 = 5
 
 **Wichtige Hinweise:**
 - Bitweise Operatoren funktionieren nur mit Ganzzahltypen (nicht Floats, Strings, etc.)
-- Typpromotion folgt Standardregeln (kleinere Typen werden zu groesseren befördert)
+- Typpromotion folgt Standardregeln (kleinere Typen werden zu größeren befördert)
 - Rechtsshift (`>>`) ist arithmetisch für vorzeichenbehaftete Typen, logisch für vorzeichenlose
-- Shift-Betraege werden nicht bereichsgeprueft (Verhalten ist plattformabhaengig für große Shifts)
+- Shift-Beträge werden nicht bereichsgeprüft (Verhalten ist plattformabhängig für große Shifts)
 
-## Operatorpraezedenz (Vollständig)
+## Operatorpräzedenz (Vollständig)
 
-Von hoechster zu niedrigster Präzedenz:
+Von höchster zu niedrigster Präzedenz:
 
-1. **Unaer**: `!`, `-`, `~`
+1. **Unär**: `!`, `-`, `~`
 2. **Multiplikativ**: `*`, `/`, `%`
 3. **Additiv**: `+`, `-`
 4. **Shift**: `<<`, `>>`
@@ -6284,7 +6484,7 @@ fn in_range(value: i32, min: i32, max: i32): bool {
 }
 
 if (in_range(score, 0, 100)) {
-    print("gueltige Punktzahl");
+    print("gültige Punktzahl");
 }
 ```
 
@@ -6339,13 +6539,13 @@ for (let i = 0; i < arr.length; i = i + 1) {
 }
 ```
 
-### Muster: Fruehes Beenden
+### Muster: Frühes Beenden
 
 ```hemlock
 fn find_first_negative(arr: array): i32 {
     for (let i = 0; i < arr.length; i = i + 1) {
         if (arr[i] < 0) {
-            return i;  // Fruehes Beenden
+            return i;  // Frühes Beenden
         }
     }
     return -1;  // Nicht gefunden
@@ -6357,7 +6557,7 @@ fn find_first_negative(arr: array): i32 {
 1. **Immer geschweifte Klammern verwenden** - Auch für einzeilige Blöcke (durch Syntax erzwungen)
 2. **Explizite Bedingungen** - `x == 0` statt `!x` für Klarheit verwenden
 3. **Tiefe Verschachtelung vermeiden** - Verschachtelte Bedingungen in Funktionen extrahieren
-4. **Fruehe Returns verwenden** - Verschachtelung mit Guard-Klauseln reduzieren
+4. **Frühe Returns verwenden** - Verschachtelung mit Guard-Klauseln reduzieren
 5. **Komplexe Bedingungen aufteilen** - In benannte boolesche Variablen aufteilen
 6. **Default in Switch** - Immer einen Default-Fall einschliessen
 7. **Fall-Through kommentieren** - Beabsichtigtes Fall-Through explizit machen
@@ -6381,7 +6581,7 @@ if (x == 10) { }  // OK
 switch (x) {
     case 1:
         print("eins");
-        // Fehlendes break - faellt durch!
+        // Fehlendes break - fällt durch!
     case 2:
         print("zwei");  // Wird für 1 und 2 ausgeführt
         break;
@@ -6426,7 +6626,7 @@ for (let i = 1; i <= 100; i = i + 1) {
 }
 ```
 
-### Beispiel: Primzahlpruefung
+### Beispiel: Primzahlprüfung
 
 ```hemlock
 fn is_prime(n: i32): bool {
@@ -6446,7 +6646,7 @@ fn is_prime(n: i32): bool {
 }
 ```
 
-### Beispiel: Menuesystem
+### Beispiel: Menüsystem
 
 ```hemlock
 fn menu() {
@@ -6468,7 +6668,7 @@ fn menu() {
                 print("Auf Wiedersehen!");
                 return;
             default:
-                print("Ungueltige Auswahl");
+                print("Ungültige Auswahl");
                 break;
         }
     }
@@ -6594,14 +6794,14 @@ import { add as sum, subtract as diff } from "./math.hml";
 print(sum(1, 2));  // 3
 ```
 
-## Modulaufloesung
+## Modulauflösung
 
 ### Pfadtypen
 
 **Relative Pfade:**
 ```hemlock
 import { foo } from "./module.hml";       // Gleiches Verzeichnis
-import { bar } from "../parent.hml";      // Uebergeordnetes Verzeichnis
+import { bar } from "../parent.hml";      // Übergeordnetes Verzeichnis
 import { baz } from "./sub/nested.hml";   // Unterverzeichnis
 ```
 
@@ -6616,9 +6816,9 @@ import { foo } from "/absolute/path/to/module.hml";
 
 ## Funktionen
 
-### Erkennung zirkulaerer Abhängigkeiten
+### Erkennung zirkulärer Abhängigkeiten
 
-Das Modulsystem erkennt zirkulaere Abhängigkeiten und meldet einen Fehler:
+Das Modulsystem erkennt zirkuläre Abhängigkeiten und meldet einen Fehler:
 
 ```
 Error: Circular dependency detected when loading '/path/to/a.hml'
@@ -6664,19 +6864,19 @@ add = fn() { };  // FEHLER: kann importierte Bindung nicht neu zuweisen
 - Parser-Unterstützung in `src/parser.c`
 - Laufzeit-Unterstützung in `src/interpreter/runtime.c`
 
-**Schluesselkomponenten:**
+**Schlüsselkomponenten:**
 1. **ModuleCache**: Verwaltet geladene Module, indiziert nach absolutem Pfad
-2. **Module**: Repraesentiert ein geladenes Modul mit seinem AST und Exports
-3. **Pfadaufloesung**: Loest relative/absolute Pfade zu kanonischen Pfaden auf
-4. **Topologische Ausführung**: Fuehrt Module in Abhaengigkeitsreihenfolge aus
+2. **Module**: Repräsentiert ein geladenes Modul mit seinem AST und Exports
+3. **Pfadauflösung**: Löst relative/absolute Pfade zu kanonischen Pfaden auf
+4. **Topologische Ausführung**: Führt Module in Abhängigkeitsreihenfolge aus
 
 ### Modulladeprozess
 
 1. **Parse-Phase**: Tokenisieren und Parsen der Moduldatei
-2. **Abhaengigkeitsaufloesung**: Rekursives Laden importierter Module
+2. **Abhängigkeitsauflösung**: Rekursives Laden importierter Module
 3. **Zykluserkennung**: Prüfen, ob das Modul bereits geladen wird
 4. **Caching**: Modul im Cache nach absolutem Pfad speichern
-5. **Ausfuehrungsphase**: Ausführung in topologischer Reihenfolge (Abhängigkeiten zuerst)
+5. **Ausführungsphase**: Ausführung in topologischer Reihenfolge (Abhängigkeiten zuerst)
 
 ### API
 
@@ -6724,7 +6924,7 @@ Pakete werden in `hem_modules/` installiert und mit GitHub `owner/repo`-Syntax a
 # Ein Paket installieren
 hpm install hemlang/sprout
 
-# Mit Versionsbeschraenkung installieren
+# Mit Versionsbeschränkung installieren
 hpm install hemlang/sprout@^1.0.0
 ```
 
@@ -6736,7 +6936,7 @@ Siehe die [hpm-Dokumentation](https://github.com/hemlang/hpm) für vollständige
 2. **Keine bedingten Exports**: Exports müssen auf oberster Ebene sein
 3. **Statische Bibliothekspfade**: FFI-Bibliotheksimports verwenden statische Pfade (plattformspezifisch)
 
-## Zukuenftige Arbeit
+## Zukünftige Arbeit
 
 - Dynamische Imports mit `import()`-Funktion
 - Bedingte Exports
@@ -6780,7 +6980,7 @@ print(add(2, 3));  // 5
 
 # Pattern Matching
 
-Hemlock bietet leistungsfaehiges Pattern Matching durch `match`-Ausdrücke, die eine praegnante Möglichkeit bieten, Werte zu destrukturieren, Typen zu prüfen und mehrere Faelle zu behandeln.
+Hemlock bietet leistungsfähiges Pattern Matching durch `match`-Ausdrücke, die eine prägnante Möglichkeit bieten, Werte zu destrukturieren, Typen zu prüfen und mehrere Fälle zu behandeln.
 
 ## Grundlegende Syntax
 
@@ -6811,7 +7011,7 @@ let msg = match (x) {
 print(msg);  // "die Antwort"
 ```
 
-Unterstuetzte Literale:
+Unterstützte Literale:
 - **Ganzzahlen**: `0`, `42`, `-5`
 - **Fliesskommazahlen**: `3.14`, `-0.5`
 - **Strings**: `"hello"`, `"world"`
@@ -6903,7 +7103,7 @@ let desc = match (val) {
 print(desc);  // "Ganzzahl: 42"
 ```
 
-Unterstuetzte Typen: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `bool`, `string`, `array`, `object`
+Unterstützte Typen: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `bool`, `string`, `array`, `object`
 
 ## Destrukturierungs-Patterns
 
@@ -7023,7 +7223,7 @@ let msg = "Note: " + match (grade) {
     _ => "durchgefallen"
 };
 
-// In Funktionsrueckgabe
+// In Funktionsrückgabe
 fn classify(n: i32): string {
     return match (n) {
         0 => "null",
@@ -7036,9 +7236,9 @@ fn classify(n: i32): string {
 ## Best Practices für Pattern Matching
 
 1. **Reihenfolge ist wichtig**: Patterns werden von oben nach unten geprüft; setzen Sie spezifische Patterns vor allgemeine
-2. **Wildcards für Vollstaendigkeit**: Fuegen Sie immer einen `_`-Fallback ein, außer Sie sind sicher, dass alle Faelle abgedeckt sind
+2. **Wildcards für Vollständigkeit**: Fügen Sie immer einen `_`-Fallback ein, außer Sie sind sicher, dass alle Fälle abgedeckt sind
 3. **Guards statt verschachtelter Bedingungen bevorzugen**: Guards machen die Absicht klarer
-4. **Destrukturierung statt manuellem Feldzugriff bevorzugen**: Praegnanter und sicherer
+4. **Destrukturierung statt manuellem Feldzugriff bevorzugen**: Prägnanter und sicherer
 
 ```hemlock
 // Gut: Guards für Bereichsprüfung
@@ -7054,7 +7254,7 @@ match (point) {
     { x, y } => "bei " + x + "," + y
 }
 
-// Vermeiden: Ueberkomplexe verschachtelte Patterns
+// Vermeiden: Überkomplexe verschachtelte Patterns
 // Stattdessen in mehrere Matches aufteilen oder Guards verwenden
 ```
 
@@ -7072,7 +7272,7 @@ match (point) {
 
 ## Implementierungshinweise
 
-Pattern Matching ist sowohl im Interpreter- als auch im Compiler-Backend mit voller Paritaet implementiert - beide erzeugen identische Ergebnisse für dieselbe Eingabe. Das Feature ist ab Hemlock v1.8.0 verfügbar.
+Pattern Matching ist sowohl im Interpreter- als auch im Compiler-Backend mit voller Parität implementiert - beide erzeugen identische Ergebnisse für dieselbe Eingabe. Das Feature ist ab Hemlock v1.8.0 verfügbar.
 
 
 --------------------------------------------------------------------------------
@@ -7179,7 +7379,7 @@ print(person.age);    // 30
 print(person.active); // true
 ```
 
-**Kurzschreibweise mit regulaeren Eigenschaften mischen:**
+**Kurzschreibweise mit regulären Eigenschaften mischen:**
 ```hemlock
 let city = "NYC";
 let obj = { name, age, city, role: "admin" };
@@ -7198,7 +7398,7 @@ print(extended.y);  // 2
 print(extended.z);  // 3
 ```
 
-**Werte mit Spread ueberschreiben:**
+**Werte mit Spread überschreiben:**
 ```hemlock
 let defaults = { theme: "light", size: "medium", debug: false };
 let custom = { ...defaults, theme: "dark" };
@@ -7208,7 +7408,7 @@ print(custom.size);   // "medium" (von defaults)
 print(custom.debug);  // false (von defaults)
 ```
 
-**Mehrere Spreads (spätere Spreads ueberschreiben fruehere):**
+**Mehrere Spreads (spätere Spreads überschreiben frühere):**
 ```hemlock
 let a = { x: 1 };
 let b = { y: 2 };
@@ -7218,7 +7418,7 @@ print(merged.x);  // 1
 print(merged.y);  // 2
 print(merged.z);  // 3
 
-// Spaeterer Spread überschreibt frueheren
+// Späterer Spread überschreibt früheren
 let first = { val: "first" };
 let second = { val: "second" };
 let combined = { ...first, ...second };
@@ -7236,7 +7436,7 @@ print(full.name);    // "Item"
 print(full.status);  // "active"
 ```
 
-**Konfigurationsueberschreibungsmuster:**
+**Konfigurationsüberschreibungsmuster:**
 ```hemlock
 let defaultConfig = {
     debug: false,
@@ -7288,9 +7488,9 @@ person.phone = "555-1234";
 print(person.email);  // "alice@example.com"
 ```
 
-### Feldloeschung
+### Feldlöschung
 
-**Hinweis:** Feldloeschung wird derzeit nicht unterstützt. Setzen Sie stattdessen auf `null`:
+**Hinweis:** Feldlöschung wird derzeit nicht unterstützt. Setzen Sie stattdessen auf `null`:
 
 ```hemlock
 let obj = { x: 10, y: 20 };
@@ -7342,7 +7542,7 @@ print(counter.count);  // 1
 **Funktionsweise:**
 - Methodenaufrufe werden erkannt, indem geprüft wird, ob der Funktionsausdruck ein Eigenschaftszugriff ist
 - `self` wird automatisch zum Aufrufzeitpunkt an das Objekt gebunden
-- `self` ist schreibgeschuetzt (man kann `self` selbst nicht neu zuweisen)
+- `self` ist schreibgeschützt (man kann `self` selbst nicht neu zuweisen)
 
 ### Methodenaufruf-Erkennung
 
@@ -7410,7 +7610,7 @@ print(typeof(typed_p));  // "Person"
 
 ### Duck-Typing
 
-Objekte werden gegen `define` mittels **struktureller Kompatibilitaet** validiert:
+Objekte werden gegen `define` mittels **struktureller Kompatibilität** validiert:
 
 ```hemlock
 define Person {
@@ -7642,16 +7842,16 @@ print(obj.x);      // 10
 
 ### Zyklenerkennung
 
-Zirkulaere Referenzen werden erkannt und verursachen Fehler:
+Zirkuläre Referenzen werden erkannt und verursachen Fehler:
 
 ```hemlock
 let obj = { x: 10 };
-obj.me = obj;  // Zirkulaere Referenz erstellen
+obj.me = obj;  // Zirkuläre Referenz erstellen
 
-obj.serialize();  // FEHLER: serialize() hat zirkulaere Referenz erkannt
+obj.serialize();  // FEHLER: serialize() hat zirkuläre Referenz erkannt
 ```
 
-### Unterstuetzte Typen
+### Unterstützte Typen
 
 JSON-Serialisierung unterstützt:
 
@@ -7672,9 +7872,9 @@ JSON-Serialisierung unterstützt:
 Serialisierung und Deserialisierung können Fehler werfen:
 
 ```hemlock
-// Ungueltiges JSON wirft einen Fehler
+// Ungültiges JSON wirft einen Fehler
 try {
-    let bad = "kein gueltiges json".deserialize();
+    let bad = "kein gültiges json".deserialize();
 } catch (e) {
     print("Parse-Fehler:", e);
 }
@@ -7690,7 +7890,7 @@ try {
 
 ### Round-Trip-Beispiel
 
-Vollstaendiges Beispiel für Serialisierung und Deserialisierung:
+Vollständiges Beispiel für Serialisierung und Deserialisierung:
 
 ```hemlock
 define Config {
@@ -7729,7 +7929,7 @@ let p: Person = { name: "Alice", age: 30 };
 print(typeof(p));    // "Person"
 ```
 
-**Rueckgabewerte:**
+**Rückgabewerte:**
 - Anonyme Objekte: `"object"`
 - Typisierte Objekte: Benutzerdefinierter Typname (z.B. `"Person"`)
 
@@ -7868,8 +8068,8 @@ let config = {
 2. **Factory-Funktionen bevorzugen** - Objekte mit Konstruktoren erstellen
 3. **Objekte einfach halten** - Nicht zu tief verschachteln
 4. **`self`-Verwendung dokumentieren** - Methodenverhalten klar machen
-5. **Bei Zuweisung validieren** - Duck-Typing verwenden, um Fehler frueh zu erkennen
-6. **Zirkulaere Referenzen vermeiden** - Verursachen Serialisierungsfehler
+5. **Bei Zuweisung validieren** - Duck-Typing verwenden, um Fehler früh zu erkennen
+6. **Zirkuläre Referenzen vermeiden** - Verursachen Serialisierungsfehler
 7. **Optionale Felder verwenden** - Sinnvolle Standardwerte bereitstellen
 
 ## Häufige Fallstricke
@@ -7881,7 +8081,7 @@ let obj1 = { x: 10 };
 let obj2 = obj1;  // Flache Kopie
 
 obj2.x = 20;
-print(obj1.x);  // 20 (Ueberraschung! Beide haben sich geändert)
+print(obj1.x);  // 20 (Überraschung! Beide haben sich geändert)
 
 // Um das zu vermeiden: Neues Objekt erstellen
 let obj3 = { x: obj1.x };  // Tiefe Kopie (manuell)
@@ -8043,17 +8243,17 @@ emitter.emit("message", "Hallo!");
 Aktuelle Einschränkungen:
 
 - **Keine tiefe Kopie** - Verschachtelte Objekte müssen manuell kopiert werden (Spread ist flach)
-- **Keine Wertuebergabe** - Objekte werden immer als Referenz übergeben
+- **Keine Wertübergabe** - Objekte werden immer als Referenz übergeben
 - **Keine berechneten Eigenschaften** - Keine `{[key]: value}`-Syntax
-- **`self` ist schreibgeschuetzt** - Kann `self` in Methoden nicht neu zuweisen
-- **Keine Eigenschaftsloeschung** - Felder können nicht entfernt werden, sobald sie hinzugefügt sind
+- **`self` ist schreibgeschützt** - Kann `self` in Methoden nicht neu zuweisen
+- **Keine Eigenschaftslöschung** - Felder können nicht entfernt werden, sobald sie hinzugefügt sind
 
 **Hinweis:** Objekte sind referenzgezählt und werden automatisch freigegeben, wenn der Gültigkeitsbereich endet. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
 
 ## Verwandte Themen
 
 - [Functions](#language-guide-functions) - Methoden sind Funktionen, die in Objekten gespeichert sind
-- [Arrays](#language-guide-arrays) - Arrays sind ebenfalls objektaehnlich
+- [Arrays](#language-guide-arrays) - Arrays sind ebenfalls objektähnlich
 - [Types](#language-guide-types) - Duck-Typing und Typdefinitionen
 - [Error Handling](#language-guide-error-handling) - Fehlerobjekte werfen
 
@@ -8070,7 +8270,7 @@ Aktuelle Einschränkungen:
 
 # Runes
 
-Runes repraesentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF) als eigenstaendigen Typ für Zeichenmanipulation in Hemlock. Im Gegensatz zu Bytes (u8) sind Runes vollständige Unicode-Zeichen, die jedes Zeichen in jeder Sprache oder Emoji darstellen können.
+Runes repräsentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF) als eigenständigen Typ für Zeichenmanipulation in Hemlock. Im Gegensatz zu Bytes (u8) sind Runes vollständige Unicode-Zeichen, die jedes Zeichen in jeder Sprache oder Emoji darstellen können.
 
 ## Überblick
 
@@ -8086,9 +8286,9 @@ let r = '>' + " msg";   // Rune + String Verkettung
 
 ## Was ist eine Rune?
 
-Eine Rune ist ein **32-Bit-Wert**, der einen Unicode-Codepoint repraesentiert:
+Eine Rune ist ein **32-Bit-Wert**, der einen Unicode-Codepoint repräsentiert:
 
-- **Bereich:** 0 bis 0x10FFFF (1.114.111 gueltige Codepoints)
+- **Bereich:** 0 bis 0x10FFFF (1.114.111 gültige Codepoints)
 - **Kein numerischer Typ** - Wird für Zeichendarstellung verwendet
 - **Unterschiedlich von u8/char** - Runes sind volles Unicode, u8 sind nur Bytes
 - **Von String-Indexierung zurückgegeben** - `str[0]` gibt eine Rune zurück, kein Byte
@@ -8096,7 +8296,7 @@ Eine Rune ist ein **32-Bit-Wert**, der einen Unicode-Codepoint repraesentiert:
 **Warum Runes?**
 - Hemlock-Strings sind UTF-8-kodiert
 - Ein einzelnes Unicode-Zeichen kann 1-4 Bytes in UTF-8 sein
-- Runes ermöglichen die Arbeit mit vollstaendigen Zeichen, nicht mit Teilbytes
+- Runes ermöglichen die Arbeit mit vollständigen Zeichen, nicht mit Teilbytes
 
 ## Rune-Literale
 
@@ -8127,7 +8327,7 @@ let japanese = 'あ';    // Hiragana (U+3042)
 let korean = '한';      // Hangul (U+D55C)
 
 // Symbole
-let check = '✓';        // Haekchen (U+2713)
+let check = '✓';        // Häkchen (U+2713)
 let arrow = '→';        // Pfeil nach rechts (U+2192)
 ```
 
@@ -8142,13 +8342,13 @@ let backslash = '\\';   // Backslash (U+005C)
 let quote = '\'';       // Einfaches Anführungszeichen (U+0027)
 let dquote = '"';       // Doppeltes Anführungszeichen (U+0022)
 let null_char = '\0';   // Null-Zeichen (U+0000)
-let cr = '\r';          // Wagenruecklauf (U+000D)
+let cr = '\r';          // Wagenrücklauf (U+000D)
 ```
 
-**Verfuegbare Escape-Sequenzen:**
+**Verfügbare Escape-Sequenzen:**
 - `\n` - Zeilenumbruch (Line Feed)
 - `\t` - Horizontaler Tabulator
-- `\r` - Wagenruecklauf
+- `\r` - Wagenrücklauf
 - `\0` - Null-Zeichen
 - `\\` - Backslash
 - `\'` - Einfaches Anführungszeichen
@@ -8173,7 +8373,7 @@ let b = '\u{0041}';
 - Bereich: `\u{0}` bis `\u{10FFFF}`
 - Hex-Ziffern: 1 bis 6 Ziffern
 - Groß-/Kleinschreibung egal: `\u{1F680}` oder `\u{1f680}`
-- Werte außerhalb des gueltigen Unicode-Bereichs verursachen Fehler
+- Werte außerhalb des gültigen Unicode-Bereichs verursachen Fehler
 
 ## String + Rune Verkettung
 
@@ -8274,7 +8474,7 @@ let emoji: string = 128640;     // Implizit i32 -> Rune -> String (🚀)
 
 ### Ausgabe
 
-Wie Runes angezeigt werden haengt vom Codepoint ab:
+Wie Runes angezeigt werden hängt vom Codepoint ab:
 
 ```hemlock
 let ascii = 'A';
@@ -8474,7 +8674,7 @@ let text = "abc123def456";
 let digits = filter_digits(text);  // "123456"
 ```
 
-### Muster: Zeichen zaehlen
+### Muster: Zeichen zählen
 
 ```hemlock
 fn count_char(s: string, target: rune): i32 {
@@ -8521,11 +8721,11 @@ let code: i32 = r;          // OK: 128640
 ```hemlock
 // NICHT: Byte-Indexierung annehmen
 let s = "🚀";
-let byte = s.byte_at(0);    // 240 (erstes UTF-8 Byte, nicht vollstaendiges Zeichen)
+let byte = s.byte_at(0);    // 240 (erstes UTF-8 Byte, nicht vollständiges Zeichen)
 
 // RICHTIG: Codepoint-Indexierung verwenden
 let s = "🚀";
-let rune = s[0];            // '🚀' (vollstaendiges Zeichen)
+let rune = s[0];            // '🚀' (vollständiges Zeichen)
 let rune2 = s.char_at(0);   // '🚀' (explizite Methode)
 ```
 
@@ -8558,7 +8758,7 @@ Hemlock setzt auf **manuelle Speicherverwaltung** mit expliziter Kontrolle über
 
 ### Was ist Speicherverwaltung?
 
-Wenn Ihr Programm Daten speichern muss (Text, Zahlen, Listen), braucht es Platz dafuer. Dieser Platz kommt aus dem Arbeitsspeicher Ihres Computers (RAM). Bei der Speicherverwaltung geht es um:
+Wenn Ihr Programm Daten speichern muss (Text, Zahlen, Listen), braucht es Platz dafür. Dieser Platz kommt aus dem Arbeitsspeicher Ihres Computers (RAM). Bei der Speicherverwaltung geht es um:
 
 1. **Platz bekommen** - Speicher anfordern, wenn Sie ihn brauchen
 2. **Platz nutzen** - Ihre Daten lesen und schreiben
@@ -8566,17 +8766,17 @@ Wenn Ihr Programm Daten speichern muss (Text, Zahlen, Listen), braucht es Platz 
 
 ### Warum ist das wichtig?
 
-Stellen Sie sich eine Bibliothek mit begrenzten Buechern vor:
-- Wenn Sie ständig Buecher ausleihen und nie zurückgeben, gibt es irgendwann keine mehr
-- Wenn Sie versuchen, ein bereits zurueckgegebenes Buch zu lesen, werden Sie verwirrt oder verursachen Probleme
+Stellen Sie sich eine Bibliothek mit begrenzten Büchern vor:
+- Wenn Sie ständig Bücher ausleihen und nie zurückgeben, gibt es irgendwann keine mehr
+- Wenn Sie versuchen, ein bereits zurückgegebenes Buch zu lesen, werden Sie verwirrt oder verursachen Probleme
 
 Speicher funktioniert genauso. Wenn Sie vergessen, Speicher zurückzugeben, verbraucht Ihr Programm langsam immer mehr (ein "Speicherleck"). Wenn Sie versuchen, Speicher nach der Rückgabe zu nutzen, passieren schlimme Dinge.
 
 ### Die gute Nachricht
 
-**Meistens müssen Sie nicht darueber nachdenken!**
+**Meistens müssen Sie nicht darüber nachdenken!**
 
-Hemlock raumt die meisten gaengigen Typen automatisch auf:
+Hemlock räumt die meisten gängigen Typen automatisch auf:
 
 ```hemlock
 fn example() {
@@ -8584,16 +8784,16 @@ fn example() {
     let numbers = [1, 2, 3];  // Und dies
     let person = { age: 30 }; // Und dies auch
 
-    // Wenn die Funktion endet, wird alles automatisch aufgeraeumt!
+    // Wenn die Funktion endet, wird alles automatisch aufgeräumt!
 }
 ```
 
-### Wann Sie darueber nachdenken MUESSEN
+### Wann Sie darüber nachdenken MÜSSEN
 
 Sie brauchen manuelle Speicherverwaltung nur bei der Verwendung von:
 
 1. **`alloc()`** - rohe Speicherallokation (gibt `ptr` zurück)
-2. **`buffer()`** - wenn Sie frueh freigeben möchten (optional - wird am Scope-Ende automatisch freigegeben)
+2. **`buffer()`** - wenn Sie früh freigeben möchten (optional - wird am Scope-Ende automatisch freigegeben)
 
 ```hemlock
 // Dies braucht manuelle Bereinigung:
@@ -8601,7 +8801,7 @@ let raw = alloc(100);   // Roher Speicher - SIE müssen ihn freigeben
 // ... raw verwenden ...
 free(raw);              // Erforderlich! Sonst haben Sie ein Speicherleck
 
-// Dies wird automatisch aufgeraeumt (aber Sie KOENNEN frueh freigeben):
+// Dies wird automatisch aufgeräumt (aber Sie KÖNNEN früh freigeben):
 let buf = buffer(100);  // Sicherer Buffer
 // ... buf verwenden ...
 // free(buf);           // Optional - wird automatisch freigegeben wenn Scope endet
@@ -8632,7 +8832,7 @@ fn safe_example() {
     data[0] = 65;           // OK
     data[5] = 66;           // OK
     // data[100] = 67;      // FEHLER - Hemlock stoppt Sie (Bereichsprüfung)
-    free(data);             // Aufraeumen
+    free(data);             // Aufräumen
 }
 
 // FORTGESCHRITTEN: Roher Zeiger (nur wenn Sie ihn brauchen)
@@ -8640,8 +8840,8 @@ fn raw_example() {
     let data = alloc(10);
     *data = 65;             // OK
     *(data + 5) = 66;       // OK
-    *(data + 100) = 67;     // GEFAHR - Keine Bereichsprüfung, beschaedigt Speicher!
-    free(data);             // Aufraeumen
+    *(data + 100) = 67;     // GEFAHR - Keine Bereichsprüfung, beschädigt Speicher!
+    free(data);             // Aufräumen
 }
 ```
 
@@ -8651,20 +8851,20 @@ fn raw_example() {
 
 ## Philosophie
 
-Hemlock folgt dem Prinzip der expliziten Speicherverwaltung mit vernuenftigen Standardeinstellungen:
+Hemlock folgt dem Prinzip der expliziten Speicherverwaltung mit vernünftigen Standardeinstellungen:
 - Keine Garbage Collection (keine unvorhersehbaren Pausen)
-- Internes Referenzzaehlen für gängige Typen (String, Array, Object, Buffer)
+- Internes Referenzzählen für gängige Typen (String, Array, Object, Buffer)
 - Rohe Zeiger (`ptr`) erfordern manuelles `free()`
 
-Dieser hybride Ansatz gibt Ihnen vollständige Kontrolle, wenn nötig (rohe Zeiger), während er gängige Fehler für typische Anwendungsfaelle verhindert (referenzgezaehlte Typen werden beim Scope-Ende automatisch freigegeben).
+Dieser hybride Ansatz gibt Ihnen vollständige Kontrolle, wenn nötig (rohe Zeiger), während er gängige Fehler für typische Anwendungsfälle verhindert (referenzgezählte Typen werden beim Scope-Ende automatisch freigegeben).
 
-## Internes Referenzzaehlen
+## Internes Referenzzählen
 
-Die Laufzeitumgebung verwendet **internes Referenzzaehlen** zur Verwaltung von Objektlebenszeiten. Für die meisten lokalen Variablen referenzgezaehlter Typen ist die Bereinigung automatisch und deterministisch.
+Die Laufzeitumgebung verwendet **internes Referenzzählen** zur Verwaltung von Objektlebenszeiten. Für die meisten lokalen Variablen referenzgezählter Typen ist die Bereinigung automatisch und deterministisch.
 
-### Was Referenzzaehlen handhabt
+### Was Referenzzählen handhabt
 
-Die Laufzeitumgebung verwaltet Referenzzaehler automatisch, wenn:
+Die Laufzeitumgebung verwaltet Referenzzähler automatisch, wenn:
 
 1. **Variablen neu zugewiesen werden** - der alte Wert wird freigegeben:
    ```hemlock
@@ -8687,7 +8887,7 @@ Die Laufzeitumgebung verwaltet Referenzzaehler automatisch, wenn:
 
 ### Wann Sie `free()` brauchen vs Wann es automatisch ist
 
-**Automatisch (kein `free()` nötig):** Lokale Variablen referenzgezaehlter Typen werden freigegeben, wenn der Scope endet:
+**Automatisch (kein `free()` nötig):** Lokale Variablen referenzgezählter Typen werden freigegeben, wenn der Scope endet:
 
 ```hemlock
 fn process_data() {
@@ -8700,19 +8900,19 @@ fn process_data() {
 
 **Manuelles `free()` erforderlich:**
 
-1. **Rohe Zeiger** - `alloc()` hat kein Referenzzaehlen:
+1. **Rohe Zeiger** - `alloc()` hat kein Referenzzählen:
    ```hemlock
    let p = alloc(64);
    // ... p verwenden ...
    free(p);  // Immer erforderlich - leckt sonst
    ```
 
-2. **Fruehe Bereinigung** - vor Scope-Ende freigeben um Speicher frueher freizugeben:
+2. **Frühe Bereinigung** - vor Scope-Ende freigeben um Speicher früher freizugeben:
    ```hemlock
    fn long_running() {
        let big = buffer(10000000);  // 10MB
        // ... fertig mit big ...
-       free(big);  // Jetzt freigeben, nicht auf Funktionsrueckkehr warten
+       free(big);  // Jetzt freigeben, nicht auf Funktionsrückkehr warten
        // ... mehr Arbeit die big nicht braucht ...
    }
    ```
@@ -8726,9 +8926,9 @@ fn process_data() {
    }
    ```
 
-### Referenzzaehlen vs Garbage Collection
+### Referenzzählen vs Garbage Collection
 
-| Aspekt | Hemlock Referenzzaehlen | Garbage Collection |
+| Aspekt | Hemlock Referenzzählen | Garbage Collection |
 |--------|------------------------|-------------------|
 | Bereinigungszeitpunkt | Deterministisch (sofort wenn ref 0 erreicht) | Nicht-deterministisch (GC entscheidet wann) |
 | Benutzerverantwortung | Muss `free()` aufrufen | Vollautomatisch |
@@ -8736,18 +8936,18 @@ fn process_data() {
 | Sichtbarkeit | Verstecktes Implementierungsdetail | Normalerweise unsichtbar |
 | Zyklen | Mit visited-set Tracking behandelt | Durch Tracing behandelt |
 
-### Welche Typen haben Referenzzaehlen
+### Welche Typen haben Referenzzählen
 
 | Typ | Referenzgezählt | Anmerkungen |
 |-----|-----------------|-------------|
 | `ptr` | Nein | Erfordert immer manuelles `free()` |
-| `buffer` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für fruehe Bereinigung |
-| `array` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für fruehe Bereinigung |
-| `object` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für fruehe Bereinigung |
+| `buffer` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für frühe Bereinigung |
+| `array` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für frühe Bereinigung |
+| `object` | Ja | Auto-Freigabe bei Scope-Ende; manuelles `free()` für frühe Bereinigung |
 | `string` | Ja | Vollautomatisch, kein `free()` nötig |
 | `function` | Ja | Vollautomatisch (Closure-Umgebungen) |
-| `task` | Ja | Thread-sicheres atomares Referenzzaehlen |
-| `channel` | Ja | Thread-sicheres atomares Referenzzaehlen |
+| `task` | Ja | Thread-sicheres atomares Referenzzählen |
+| `channel` | Ja | Thread-sicheres atomares Referenzzählen |
 | Primitive | Nein | Stack-allokiert, keine Heap-Allokation |
 
 ### Warum dieses Design?
@@ -8764,7 +8964,7 @@ Die Philosophie bleibt: Sie haben die Kontrolle, aber die Laufzeit hilft, gängi
 
 Hemlock bietet zwei unterschiedliche Zeigertypen, jeder mit verschiedenen Sicherheitseigenschaften:
 
-### `ptr` - Roher Zeiger (Gefaehrlich)
+### `ptr` - Roher Zeiger (Gefährlich)
 
 Rohe Zeiger sind **nur Adressen** mit minimalen Sicherheitsgarantien:
 
@@ -8777,11 +8977,11 @@ free(p);  // Sie müssen daran denken freizugeben
 **Eigenschaften:**
 - Nur eine 8-Byte-Adresse
 - Keine Bereichsprüfung
-- Keine Laengenverfolgung
+- Keine Längenverfolgung
 - Benutzer verwaltet Lebensdauer vollständig
 - Für Experten und FFI
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Low-Level-Systemprogrammierung
 - Foreign Function Interface (FFI)
 - Leistungskritischer Code
@@ -8790,26 +8990,26 @@ free(p);  // Sie müssen daran denken freizugeben
 **Gefahren:**
 ```hemlock
 let p = alloc(10);
-let q = p + 100;  // Weit über Allokation hinaus - erlaubt aber gefaehrlich
+let q = p + 100;  // Weit über Allokation hinaus - erlaubt aber gefährlich
 free(p);
 let x = *p;       // Dangling Pointer - undefiniertes Verhalten
-free(p);          // Double-Free - wird abstuerzen
+free(p);          // Double-Free - wird abstürzen
 ```
 
-### `buffer` - Sichere Huelle (Empfohlen)
+### `buffer` - Sichere Hülle (Empfohlen)
 
-Buffer bieten **bereichsgeprueften Zugriff** während sie weiterhin manuelle Deallokation erfordern:
+Buffer bieten **bereichsgeprüften Zugriff** während sie weiterhin manuelle Deallokation erfordern:
 
 ```hemlock
 let b: buffer = buffer(64);
-b[0] = 65;              // bereichsgeprueft
+b[0] = 65;              // bereichsgeprüft
 print(b.length);        // 64
 free(b);                // weiterhin manuell
 ```
 
 **Eigenschaften:**
 - Zeiger + Länge + Kapazität
-- Bereichsgeprueft bei Zugriff
+- Bereichsgeprüft bei Zugriff
 - Erfordert weiterhin manuelles `free()`
 - Bessere Standardwahl für den meisten Code
 
@@ -8859,11 +9059,11 @@ free(buf);  // Funktioniert sowohl für ptr als auch buffer
 
 ### Speicheroperationen
 
-**`memset(ptr, byte, size)` - Speicher fuellen**
+**`memset(ptr, byte, size)` - Speicher füllen**
 ```hemlock
 let p = alloc(100);
 memset(p, 0, 100);     // 100 Bytes nullen
-memset(p, 65, 10);     // Erste 10 Bytes mit 'A' fuellen
+memset(p, 65, 10);     // Erste 10 Bytes mit 'A' füllen
 free(p);
 ```
 
@@ -8886,7 +9086,7 @@ p = realloc(p, 200);   // Auf 200 Bytes anpassen
 free(p);
 ```
 
-**Hinweis:** Nach `realloc()` kann der alte Zeiger ungültig sein. Verwenden Sie immer den zurueckgegebenen Zeiger.
+**Hinweis:** Nach `realloc()` kann der alte Zeiger ungültig sein. Verwenden Sie immer den zurückgegebenen Zeiger.
 
 ### Typisierte Allokation
 
@@ -8933,7 +9133,7 @@ free(data);
 
 ### Muster: Sichere Buffer-Verwendung
 
-Bevorzugen Sie Buffer für bereichsgeprueften Zugriff:
+Bevorzugen Sie Buffer für bereichsgeprüften Zugriff:
 
 ```hemlock
 let buf = buffer(256);
@@ -8962,18 +9162,18 @@ try {
 }
 ```
 
-## Ueberlegungen zur Speichersicherheit
+## Überlegungen zur Speichersicherheit
 
 ### Double-Free
 
-**Erlaubt aber wird abstuerzen:**
+**Erlaubt aber wird abstürzen:**
 ```hemlock
 let p = alloc(100);
 free(p);
 free(p);  // ABSTURZ: Double-Free erkannt
 ```
 
-**Praevention:**
+**Prävention:**
 ```hemlock
 let p = alloc(100);
 free(p);
@@ -8994,7 +9194,7 @@ free(p);
 let x = *p;   // UNDEFINIERT: Lesen von freigegebenem Speicher
 ```
 
-**Praevention:** Greifen Sie nach der Freigabe nicht auf Speicher zu.
+**Prävention:** Greifen Sie nach der Freigabe nicht auf Speicher zu.
 
 ### Speicherlecks
 
@@ -9007,7 +9207,7 @@ fn leak_memory() {
 }
 ```
 
-**Praevention:** Paaren Sie immer `alloc()` mit `free()`:
+**Prävention:** Paaren Sie immer `alloc()` mit `free()`:
 ```hemlock
 fn safe_function() {
     let p = alloc(1000);
@@ -9021,7 +9221,7 @@ fn safe_function() {
 
 ### Zeigerarithmetik
 
-**Erlaubt aber gefaehrlich:**
+**Erlaubt aber gefährlich:**
 ```hemlock
 let p = alloc(10);
 let q = p + 100;  // Weit über Allokationsgrenze hinaus
@@ -9074,7 +9274,7 @@ fn process_array(size: i32) {
     let arr = buffer(size);
 
     try {
-        // Array fuellen
+        // Array füllen
         let i = 0;
         while (i < arr.length) {
             arr[i] = i * 2;
@@ -9088,7 +9288,7 @@ fn process_array(size: i32) {
             i = i + 1;
         }
     } finally {
-        free(arr);  // Immer aufraeumen
+        free(arr);  // Immer aufräumen
     }
 }
 ```
@@ -9102,7 +9302,7 @@ let pool_offset = 0;
 
 fn pool_alloc(size: i32): ptr {
     if (pool_offset + size > 10000) {
-        throw "Pool erschoepft";
+        throw "Pool erschöpft";
     }
 
     let ptr = pool + pool_offset;
@@ -9122,10 +9322,10 @@ free(pool);
 
 Aktuelle Einschränkungen, die zu beachten sind:
 
-- **Rohe Zeiger erfordern manuelles free** - `alloc()` gibt `ptr` ohne Referenzzaehlen zurück
+- **Rohe Zeiger erfordern manuelles free** - `alloc()` gibt `ptr` ohne Referenzzählen zurück
 - **Keine benutzerdefinierten Allokatoren** - Nur System malloc/free
 
-**Hinweis:** Referenzgezaehlte Typen (String, Array, Object, Buffer) werden automatisch freigegeben, wenn der Scope endet. Nur rohe `ptr` von `alloc()` erfordert explizites `free()`.
+**Hinweis:** Referenzgezählte Typen (String, Array, Object, Buffer) werden automatisch freigegeben, wenn der Scope endet. Nur rohe `ptr` von `alloc()` erfordert explizites `free()`.
 
 ## Verwandte Themen
 
@@ -9279,10 +9479,10 @@ print(~a);      // -13 - Bitweises NICHT
 
 ### Operatorrangfolge
 
-Von hoechster zu niedrigster Priorität:
+Von höchster zu niedrigster Priorität:
 
 1. `()` - Gruppierung
-2. `!`, `~`, `-` (unaer) - Unaere Operatoren
+2. `!`, `~`, `-` (unär) - Unäre Operatoren
 3. `*`, `/` - Multiplikation, Division
 4. `+`, `-` - Addition, Subtraktion
 5. `<<`, `>>` - Bitverschiebungen
@@ -9587,7 +9787,7 @@ try {
 } catch (e) {
     // Fehler behandeln
 } finally {
-    // Aufraeumen
+    // Aufräumen
 }
 ```
 
@@ -9738,7 +9938,7 @@ let mixed = "Hallo \u{1F30D}!";        // Hallo (Erde)!
 **Escape-Sequenzen:**
 - `\n` - Zeilenumbruch
 - `\t` - Tabulator
-- `\r` - Wagenruecklauf
+- `\r` - Wagenrücklauf
 - `\\` - Backslash
 - `\"` - Anführungszeichen
 - `\'` - Apostroph
@@ -9769,17 +9969,17 @@ let f = false;
 let nothing = null;
 ```
 
-## Gueltigkeitsbereichsregeln
+## Gültigkeitsbereichsregeln
 
 ### Block-Gültigkeitsbereich
 
 Variablen sind auf den nächsten umschliessenden Block beschränkt:
 
 ```hemlock
-let x = 1;  // Aeusserer Gültigkeitsbereich
+let x = 1;  // Äußerer Gültigkeitsbereich
 
 if (true) {
-    let x = 2;  // Innerer Gültigkeitsbereich (ueberdeckt äußeren)
+    let x = 2;  // Innerer Gültigkeitsbereich (überdeckt äußeren)
     print(x);   // 2
 }
 
@@ -9822,19 +10022,19 @@ print(counter());  // 2
 
 ## Whitespace und Formatierung
 
-### Einrueckung
+### Einrückung
 
-Hemlock erzwingt keine bestimmte Einrueckung, aber 4 Leerzeichen werden empfohlen:
+Hemlock erzwingt keine bestimmte Einrückung, aber 4 Leerzeichen werden empfohlen:
 
 ```hemlock
 fn example() {
     if (true) {
-        print("eingerueckt");
+        print("eingerückt");
     }
 }
 ```
 
-### Zeilenumbrueche
+### Zeilenumbrüche
 
 Anweisungen können mehrere Zeilen umfassen:
 
@@ -9888,7 +10088,7 @@ type, defer, enum, ref, buffer, Self
 
 # Typsystem
 
-Hemlock verfuegt über ein **dynamisches Typsystem** mit optionalen Typannotationen und Laufzeit-Typüberprüfung.
+Hemlock verfügt über ein **dynamisches Typsystem** mit optionalen Typannotationen und Laufzeit-Typüberprüfung.
 
 ---
 
@@ -9907,15 +10107,15 @@ let name = "Alice";    // Hemlock weiß, dass dies Text ist
 let active = true;     // Hemlock weiß, dass dies ja/nein ist
 ```
 
-Hemlock waehlt automatisch den richtigen Typ für Ihre Werte. Sie *müssen* keine Typen angeben.
+Hemlock wählt automatisch den richtigen Typ für Ihre Werte. Sie *müssen* keine Typen angeben.
 
 ### Wann Typannotationen hinzufügen
 
-Fuegen Sie Typen hinzu, wenn Sie:
+Fügen Sie Typen hinzu, wenn Sie:
 
 1. **Genau über die Größe sein wollen** - `i8` vs `i64` ist wichtig für Speicher oder FFI
 2. **Ihren Code dokumentieren** - Typen zeigen, was eine Funktion erwartet
-3. **Fehler frueh erkennen wollen** - Hemlock prüft Typen zur Laufzeit
+3. **Fehler früh erkennen wollen** - Hemlock prüft Typen zur Laufzeit
 
 ```hemlock
 // Ohne Typen (funktioniert gut):
@@ -9937,15 +10137,15 @@ fn add(a: i32, b: i32): i32 {
 | Sehr große Zahlen | `i64` | `let population = 8000000000;` |
 | Nie-negative Zähler | `u32` | `let items: u32 = 100;` |
 | Bytes (0-255) | `u8` | `let pixel: u8 = 255;` |
-| Dezimalzahlen/Brueche | `f64` (Standard) | `let price = 19.99;` |
+| Dezimalzahlen/Brüche | `f64` (Standard) | `let price = 19.99;` |
 | Leistungskritische Dezimalzahlen | `f32` | `let x: f32 = 1.5;` |
 
 ### Schnellreferenz: Alle Typen
 
 | Kategorie | Typen | Wann verwenden |
 |-----------|-------|----------------|
-| **Ganzzahlen** | `i8`, `i16`, `i32`, `i64` | Zaehlen, IDs, Alter, usw. |
-| **Nur-positive Zahlen** | `u8`, `u16`, `u32`, `u64` | Bytes, Groessen, Array-Längen |
+| **Ganzzahlen** | `i8`, `i16`, `i32`, `i64` | Zählen, IDs, Alter, usw. |
+| **Nur-positive Zahlen** | `u8`, `u16`, `u32`, `u64` | Bytes, Größen, Array-Längen |
 | **Dezimalzahlen** | `f32`, `f64` | Geld, Messungen, Mathematik |
 | **Ja/Nein** | `bool` | Flags, Bedingungen |
 | **Text** | `string` | Namen, Nachrichten, jeder Text |
@@ -9959,12 +10159,12 @@ fn add(a: i32, b: i32): i32 {
 
 **"Ich brauche nur eine Zahl"**
 ```hemlock
-let x = 42;  // Fertig! Hemlock waehlt i32
+let x = 42;  // Fertig! Hemlock wählt i32
 ```
 
 **"Ich brauche Dezimalzahlen"**
 ```hemlock
-let price = 19.99;  // Fertig! Hemlock waehlt f64
+let price = 19.99;  // Fertig! Hemlock wählt f64
 ```
 
 **"Ich arbeite mit Bytes (Dateien, Netzwerk)"**
@@ -9974,21 +10174,21 @@ let byte: u8 = 255;  // 0-255 Bereich
 
 **"Ich brauche wirklich große Zahlen"**
 ```hemlock
-let big = 9000000000000;  // Hemlock waehlt automatisch i64 (> i32 max)
+let big = 9000000000000;  // Hemlock wählt automatisch i64 (> i32 max)
 // Oder explizit:
 let big: i64 = 9000000000000;
 ```
 
 **"Ich speichere Geld"**
 ```hemlock
-// Option 1: Float (einfach, aber hat Praezisionsgrenzen)
+// Option 1: Float (einfach, aber hat Präzisionsgrenzen)
 let price: f64 = 19.99;
 
-// Option 2: Als Cent speichern (praeziser)
+// Option 2: Als Cent speichern (präziser)
 let price_cents: i32 = 1999;  // 19.99 EUR als Ganzzahl-Cent
 ```
 
-**"Ich uebergebe Daten an C-Code (FFI)"**
+**"Ich übergebe Daten an C-Code (FFI)"**
 ```hemlock
 // C-Typen genau entsprechen
 let c_int: i32 = 100;      // C 'int'
@@ -9999,7 +10199,7 @@ let c_double: f64 = 3.14;  // C 'double'
 
 ### Was passiert, wenn Typen gemischt werden?
 
-Wenn Sie verschiedene Typen kombinieren, befördert Hemlock zum "groesseren" Typ:
+Wenn Sie verschiedene Typen kombinieren, befördert Hemlock zum "größeren" Typ:
 
 ```hemlock
 let a: i32 = 10;
@@ -10032,7 +10232,7 @@ let back = text + "";     // Bereits ein String
 
 - **Standardmäßig dynamisch** - Jeder Wert hat ein Laufzeit-Typ-Tag
 - **Typisiert nach Wahl** - Optionale Typannotationen erzwingen Laufzeitprüfungen
-- **Explizite Konvertierungen** - Implizite Konvertierungen folgen klaren Befoerderungsregeln
+- **Explizite Konvertierungen** - Implizite Konvertierungen folgen klaren Beförderungsregeln
 - **Ehrlich über Typen** - `typeof()` sagt immer die Wahrheit
 
 ## Primitive Typen
@@ -10096,7 +10296,7 @@ let newline: rune = '\n';
 let unicode: rune = '\u{1F680}';
 ```
 
-Runes repraesentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF).
+Runes repräsentieren **Unicode-Codepoints** (U+0000 bis U+10FFFF).
 
 Siehe [Runes](#language-guide-runes) für vollständige Details.
 
@@ -10142,7 +10342,7 @@ free(p);
 **Sicherer Buffer:**
 ```hemlock
 let buf: buffer = buffer(64);
-// Grenzgeprueft, verfolgt Länge und Kapazität
+// Grenzgeprüft, verfolgt Länge und Kapazität
 free(buf);
 ```
 
@@ -10263,7 +10463,7 @@ let f: file = open("data.txt", "r");
 f.close();
 ```
 
-Repraesentiert ein offenes Datei-Handle.
+Repräsentiert ein offenes Datei-Handle.
 
 ### Task-Typ
 
@@ -10273,7 +10473,7 @@ let task = spawn(compute);
 let result: i32 = join(task);
 ```
 
-Repraesentiert ein Async-Task-Handle.
+Repräsentiert ein Async-Task-Handle.
 
 ### Channel-Typ
 
@@ -10283,7 +10483,7 @@ ch.send(42);
 let value = ch.recv();
 ```
 
-Repraesentiert einen Kommunikationskanal zwischen Tasks.
+Repräsentiert einen Kommunikationskanal zwischen Tasks.
 
 ### Void-Typ
 
@@ -10415,11 +10615,11 @@ print(typeof({ x: 10 }));  // "object"
 
 ## Typkonvertierungen
 
-### Implizite Typbefoerderung
+### Implizite Typbeförderung
 
-Beim Mischen von Typen in Operationen befördert Hemlock zum "hoeheren" Typ:
+Beim Mischen von Typen in Operationen befördert Hemlock zum "höheren" Typ:
 
-**Befoerderungshierarchie (niedrigste zu hoechste):**
+**Beförderungshierarchie (niedrigste zu höchste):**
 ```
 i8 -> i16 -> i32 -> u32 -> i64 -> u64 -> f32 -> f64
       ^      ^      ^
@@ -10440,8 +10640,8 @@ let b: i64 = 200;
 let sum = a + b;     // sum ist i64 (300)
 ```
 
-**Praezisionserhaltung:** Beim Mischen von 64-Bit-Ganzzahlen mit f32 befördert Hemlock
-zu f64, um Praezisionsverlust zu vermeiden (f32 hat nur 24-Bit-Mantisse, unzureichend für i64/u64):
+**Präzisionserhaltung:** Beim Mischen von 64-Bit-Ganzzahlen mit f32 befördert Hemlock
+zu f64, um Präzisionsverlust zu vermeiden (f32 hat nur 24-Bit-Mantisse, unzureichend für i64/u64):
 ```hemlock
 let big: i64 = 9007199254740993;
 let small: f32 = 1.0;
@@ -10546,7 +10746,7 @@ let n = i32("42");       // Typ-Konstruktor für String-Parsen verwenden
 
 **Fehlerbehandlung:**
 ```hemlock
-// Ungueltige Strings werfen Fehler bei Verwendung von Typ-Konstruktoren
+// Ungültige Strings werfen Fehler bei Verwendung von Typ-Konstruktoren
 let bad = i32("hallo");  // Laufzeitfehler: kann "hallo" nicht als i32 parsen
 let overflow = u8("256"); // Laufzeitfehler: 256 außerhalb des Bereichs für u8
 ```
@@ -10560,7 +10760,7 @@ let bad = bool("ja");    // Laufzeitfehler: muss "true" oder "false" sein
 
 ## Bereichsprüfung
 
-Typannotationen erzwingen Bereichspruefungen bei Zuweisung:
+Typannotationen erzwingen Bereichsprüfungen bei Zuweisung:
 
 ```hemlock
 let x: u8 = 255;    // OK
@@ -10574,7 +10774,7 @@ let d: u64 = 4294967295;   // OK
 let e: u64 = -1;           // FEHLER: u64 kann nicht negativ sein
 ```
 
-## Typbefoerderungs-Beispiele
+## Typbeförderungs-Beispiele
 
 ### Gemischte Ganzzahltypen
 
@@ -10724,9 +10924,9 @@ Aktuelle Einschränkungen:
 ### Wann Typannotationen verwenden
 
 **Verwenden Sie Annotationen, wenn:**
-- Praeziser Typ wichtig ist (z.B. `u8` für Byte-Werte)
+- Präziser Typ wichtig ist (z.B. `u8` für Byte-Werte)
 - Funktionsschnittstellen dokumentieren
-- Einschränkungen erzwingen (z.B. Bereichspruefungen)
+- Einschränkungen erzwingen (z.B. Bereichsprüfungen)
 
 ```hemlock
 fn hash(data: buffer, length: u32): u64 {
@@ -10737,7 +10937,7 @@ fn hash(data: buffer, length: u32): u64 {
 **Verwenden Sie keine Annotationen, wenn:**
 - Der Typ aus dem Literal offensichtlich ist
 - Interne Implementierungsdetails
-- Unnoetige Zeremonie
+- Unnötige Zeremonie
 
 ```hemlock
 // Unnötig
@@ -10769,7 +10969,7 @@ fn divide(a, b) {
 }
 ```
 
-**Duck Typing für Flexibilitaet verwenden:**
+**Duck Typing für Flexibilität verwenden:**
 ```hemlock
 define Printable {
     toString: fn,
@@ -10795,13 +10995,13 @@ fn print_item(item: Printable) {
 
 # Strings
 
-Hemlock-Strings sind **UTF-8 erstklassige veraenderbare Sequenzen** mit voller Unicode-Unterstützung und einem umfangreichen Satz von Methoden zur Textverarbeitung. Anders als in vielen Sprachen sind Hemlock-Strings veraenderbar und arbeiten nativ mit Unicode-Codepoints.
+Hemlock-Strings sind **UTF-8 erstklassige veränderbare Sequenzen** mit voller Unicode-Unterstützung und einem umfangreichen Satz von Methoden zur Textverarbeitung. Anders als in vielen Sprachen sind Hemlock-Strings veränderbar und arbeiten nativ mit Unicode-Codepoints.
 
 ## Überblick
 
 ```hemlock
 let s = "hello";
-s[0] = 'H';             // veraendern mit Rune (jetzt "Hello")
+s[0] = 'H';             // verändern mit Rune (jetzt "Hello")
 print(s.length);        // 5 (Codepoint-Anzahl)
 let c = s[0];           // gibt Rune zurück (Unicode-Codepoint)
 let msg = s + " world"; // Verkettung
@@ -10815,12 +11015,12 @@ print(emoji.byte_length); // 4 (vier UTF-8-Bytes)
 Hemlock-Strings haben diese Hauptmerkmale:
 
 - **UTF-8-kodiert** - Volle Unicode-Unterstützung (U+0000 bis U+10FFFF)
-- **Veraenderbar** - Anders als Python-, JavaScript- und Java-Strings
+- **Veränderbar** - Anders als Python-, JavaScript- und Java-Strings
 - **Codepoint-basierte Indizierung** - Gibt `rune` (Unicode-Codepoint) zurück, nicht Byte
-- **Heap-allokiert** - Mit interner Kapazitaetsverfolgung
+- **Heap-allokiert** - Mit interner Kapazitätsverfolgung
 - **Zwei Längeneigenschaften**:
   - `.length` - Codepoint-Anzahl (Anzahl der Zeichen)
-  - `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgroesse)
+  - `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgröße)
 
 ## UTF-8-Verhalten
 
@@ -10836,7 +11036,7 @@ let h = text[0];           // 'H' (Rune)
 let rocket = text[5];      // '🚀' (Rune)
 ```
 
-**Mehrbyte-Zeichen zaehlen als eins:**
+**Mehrbyte-Zeichen zählen als eins:**
 ```hemlock
 "Hello".length;      // 5
 "🚀".length;         // 1 (ein Emoji)
@@ -10852,7 +11052,7 @@ let s1 = "hello";
 let s2 = "world";
 
 // Mit Escape-Sequenzen
-let s3 = "Zeile 1\nZeile 2\teingerueckt";
+let s3 = "Zeile 1\nZeile 2\teingerückt";
 let s4 = "Zitat: \"Hallo\"";
 let s5 = "Backslash: \\";
 
@@ -10885,7 +11085,7 @@ let upper = `Name: ${name.to_upper()}`;     // "Name: ALICE"
 let person = { name: "Bob", city: "NYC" };
 let desc = `${person.name} lebt in ${person.city}`;  // "Bob lebt in NYC"
 
-// Mehrzeilig (behält Zeilenumbrueche bei)
+// Mehrzeilig (behält Zeilenumbrüche bei)
 let multi = `Zeile 1
 Zeile 2
 Zeile 3`;
@@ -10893,13 +11093,13 @@ Zeile 3`;
 
 **Template-String-Funktionen:**
 - Ausdrücke innerhalb von `${...}` werden ausgewertet und in Strings konvertiert
-- Jeder gueltige Ausdruck kann verwendet werden (Variablen, Funktionsaufrufe, Arithmetik)
+- Jeder gültige Ausdruck kann verwendet werden (Variablen, Funktionsaufrufe, Arithmetik)
 - Backtick-Strings unterstützen dieselben Escape-Sequenzen wie reguläre Strings
 - Nützlich zum Erstellen dynamischer Strings ohne Verkettung
 
 ### Escaping in Template-Strings
 
-Um ein literales `${` in einem Template-String einzufuegen, escapen Sie das Dollarzeichen:
+Um ein literales `${` in einem Template-String einzufügen, escapen Sie das Dollarzeichen:
 
 ```hemlock
 let price = 100;
@@ -10913,12 +11113,12 @@ let code = `Verwende \` für Template-Strings`;
 
 ### Komplexe Ausdrücke
 
-Template-Strings können jeden gueltigen Ausdruck enthalten:
+Template-Strings können jeden gültigen Ausdruck enthalten:
 
 ```hemlock
-// Ternaer-ähnliche Ausdrücke
+// Ternär-ähnliche Ausdrücke
 let age = 25;
-let status = `Status: ${age >= 18 ? "erwachsen" : "minderjaehrig"}`;
+let status = `Status: ${age >= 18 ? "erwachsen" : "minderjährig"}`;
 
 // Array-Zugriff
 let items = ["Apfel", "Banane", "Kirsche"];
@@ -10946,7 +11146,7 @@ let msg1 = "Hallo, " + name + "! Du hast " + count + " Nachrichten.";
 let msg2 = `Hallo, ${name}! Du hast ${count} Nachrichten.`;
 ```
 
-## Indizierung und Veraenderung
+## Indizierung und Veränderung
 
 ### Zeichen lesen
 
@@ -10964,7 +11164,7 @@ let rocket = emoji[2];  // '🚀' (Rune an Codepoint-Index 2)
 
 ### Zeichen schreiben
 
-Strings sind veraenderbar - Sie können einzelne Zeichen modifizieren:
+Strings sind veränderbar - Sie können einzelne Zeichen modifizieren:
 
 ```hemlock
 let s = "hello";
@@ -11016,7 +11216,7 @@ let slice2 = s.slice(6, 11);    // "world"
 ```
 
 **Unterschied:**
-- `substr(start, length)` - Verwendet Laengenparameter
+- `substr(start, length)` - Verwendet Längenparameter
 - `slice(start, end)` - Verwendet Endindex (exklusiv)
 
 ### Suchen & Finden
@@ -11065,7 +11265,7 @@ let clean2 = s2.trim();         // "text"
 let s = "hello world";
 let upper = s.to_upper();       // "HELLO WORLD"
 
-// Behaelt Nicht-ASCII bei
+// Behält Nicht-ASCII bei
 let s2 = "café";
 let upper2 = s2.to_upper();     // "CAFÉ"
 ```
@@ -11248,7 +11448,7 @@ let csv = "Apfel, Banane , Kirsche";
 let fields = parse_csv_line(csv);  // ["Apfel", "Banane", "Kirsche"]
 ```
 
-### Beispiel: Wörter zaehlen
+### Beispiel: Wörter zählen
 
 ```hemlock
 fn count_words(text: string): i32 {
@@ -11285,9 +11485,9 @@ print(is_valid_email("ungültig"));         // false
 
 ## Speicherverwaltung
 
-Strings sind heap-allokiert mit interner Referenzzaehlung:
+Strings sind heap-allokiert mit interner Referenzzählung:
 
-- **Erstellung**: Auf dem Heap allokiert mit Kapazitaetsverfolgung
+- **Erstellung**: Auf dem Heap allokiert mit Kapazitätsverfolgung
 - **Verkettung**: Erzeugt neuen String (alte Strings unverändert)
 - **Methoden**: Die meisten Methoden geben neue Strings zurück
 - **Lebensdauer**: Strings sind referenzgezählt und werden automatisch freigegeben, wenn der Gültigkeitsbereich endet
@@ -11300,7 +11500,7 @@ fn create_strings() {
 }  // Sowohl s als auch s2 werden automatisch freigegeben, wenn die Funktion zurückkehrt
 ```
 
-**Hinweis:** Lokale String-Variablen werden automatisch bereinigt, wenn sie den Gültigkeitsbereich verlassen. Verwenden Sie `free()` nur für fruehe Bereinigung vor Bereichsende oder für langlebige/globale Daten. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
+**Hinweis:** Lokale String-Variablen werden automatisch bereinigt, wenn sie den Gültigkeitsbereich verlassen. Verwenden Sie `free()` nur für frühe Bereinigung vor Bereichsende oder für langlebige/globale Daten. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
 
 ## Best Practices
 
@@ -11321,15 +11521,15 @@ print(emoji.byte_length);   // 4 (Bytes)
 
 // Byte- und Codepoint-Operationen nicht mischen
 let byte = emoji.byte_at(0);  // 240 (erstes Byte)
-let char = emoji.char_at(0);  // '🚀' (vollstaendiger Codepoint)
+let char = emoji.char_at(0);  // '🚀' (vollständiger Codepoint)
 ```
 
-### Fallstrick: Mutations-Ueberraschungen
+### Fallstrick: Mutations-Überraschungen
 
 ```hemlock
 let s1 = "hello";
 let s2 = s1;       // Flache Kopie
-s1[0] = 'H';       // Veraendert s1
+s1[0] = 'H';       // Verändert s1
 print(s2);         // Immer noch "hello" (Strings sind Werttypen)
 ```
 
@@ -14594,6 +14794,24 @@ Hemlock bietet umfassende Hilfsfunktionen für die Arbeit mit Rohpointern. Diese
 | `ptr_offset(ptr, index, size)` | Offset berechnen: `ptr + index * size` |
 | `ptr_read_i32(ptr)` | i32 durch Pointer-zu-Pointer lesen (für qsort-Callbacks) |
 | `ptr_null()` | Null-Pointer-Konstante erhalten |
+
+#### Pointer-Lese-Funktionen
+
+Typisierte Werte direkt aus dem Speicher lesen (ergänzt `ptr_write_*`).
+
+| Funktion | Beschreibung |
+|----------|--------------|
+| `ptr_read_i8(ptr)` | i8 vom Pointer lesen |
+| `ptr_read_i16(ptr)` | i16 vom Pointer lesen |
+| `ptr_read_i32(ptr)` | i32 vom Pointer lesen |
+| `ptr_read_i64(ptr)` | i64 vom Pointer lesen |
+| `ptr_read_u8(ptr)` | u8 vom Pointer lesen |
+| `ptr_read_u16(ptr)` | u16 vom Pointer lesen |
+| `ptr_read_u32(ptr)` | u32 vom Pointer lesen |
+| `ptr_read_u64(ptr)` | u64 vom Pointer lesen |
+| `ptr_read_f32(ptr)` | f32 vom Pointer lesen |
+| `ptr_read_f64(ptr)` | f64 vom Pointer lesen |
+| `ptr_read_ptr(ptr)` | Pointer vom Pointer lesen (gibt null zurück wenn gespeicherter Wert NULL ist) |
 
 #### Buffer-Konvertierungs-Helfer
 
@@ -18233,7 +18451,7 @@ Häufige Muster:
 
 # Array-API-Referenz
 
-Vollständige Referenz für Hemlocks Array-Typ und alle 18 Array-Methoden.
+Vollständige Referenz für Hemlocks Array-Typ und alle 23 Array-Methoden.
 
 ---
 
@@ -18245,8 +18463,8 @@ Arrays in Hemlock sind **dynamische, heap-allokierte** Sequenzen, die gemischte 
 - Dynamische Größenanpassung (automatisches Wachstum)
 - Nullbasierte Indizierung
 - Gemischte Typen erlaubt
-- 18 eingebaute Methoden
-- Heap-allokiert mit Kapazitaetsverfolgung
+- 23 eingebaute Methoden
+- Heap-allokiert mit Kapazitätsverfolgung
 
 ---
 
@@ -18331,7 +18549,7 @@ print(arr.length);     // 3
 
 #### push
 
-Fuegt ein Element am Ende des Arrays hinzu.
+Fügt ein Element am Ende des Arrays hinzu.
 
 **Signatur:**
 ```hemlock
@@ -18413,7 +18631,7 @@ print(arr);               // [3]
 
 #### unshift
 
-Fuegt ein Element am Anfang des Arrays hinzu.
+Fügt ein Element am Anfang des Arrays hinzu.
 
 **Signatur:**
 ```hemlock
@@ -18436,11 +18654,11 @@ arr.unshift(0);        // [0, 1, 2, 3]
 
 ---
 
-### Einfuegen & Entfernen
+### Einfügen & Entfernen
 
 #### insert
 
-Fuegt ein Element an einem bestimmten Index ein.
+Fügt ein Element an einem bestimmten Index ein.
 
 **Signatur:**
 ```hemlock
@@ -18448,8 +18666,8 @@ array.insert(index: i32, value: any): null
 ```
 
 **Parameter:**
-- `index` - Position zum Einfuegen (nullbasiert)
-- `value` - Element zum Einfuegen
+- `index` - Position zum Einfügen (nullbasiert)
+- `value` - Element zum Einfügen
 
 **Rückgabe:** `null`
 
@@ -18536,7 +18754,7 @@ let idx3 = arr2.find(2);     // 1 (erstes Vorkommen)
 
 #### contains
 
-Prueft ob das Array einen Wert enthält.
+Prüft ob das Array einen Wert enthält.
 
 **Signatur:**
 ```hemlock
@@ -18757,7 +18975,7 @@ print(upper);  // ["ALICE", "BOB"]
 
 #### filter
 
-Waehlt Elemente aus die einem Praedikat entsprechen.
+Wählt Elemente aus die einem Prädikat entsprechen.
 
 **Signatur:**
 ```hemlock
@@ -18767,7 +18985,7 @@ array.filter(predicate: fn): array
 **Parameter:**
 - `predicate` - Funktion die ein Element nimmt und bool zurückgibt
 
-**Rückgabe:** Neues Array mit Elementen wo Praedikat true zurueckgab
+**Rückgabe:** Neues Array mit Elementen wo Prädikat true zurückgab
 
 **Mutiert:** Nein (gibt neues Array zurück)
 
@@ -18797,7 +19015,7 @@ array.reduce(callback: fn, initial: any): any
 - `callback` - Funktion die (Akkumulator, Element) nimmt und neuen Akkumulator zurückgibt
 - `initial` - Startwert für den Akkumulator
 
-**Rückgabe:** Endgueltiger akkumulierter Wert
+**Rückgabe:** Endgültiger akkumulierter Wert
 
 **Mutiert:** Nein
 
@@ -18853,13 +19071,153 @@ let arr = ["a", "b", "c"];
 let s = arr.join("");          // "abc"
 ```
 
-**Verhalten:** Konvertiert automatisch alle Elemente zu Strings.
+**Verhalten:** Konvertiert automatisch alle Elemente zu Strings, einschliesslich Rune-Werte die von `string.chars()` zurückgegeben werden.
+
+```hemlock
+// Rune-Arrays verbinden (von chars())
+let chars = "hello".chars();
+print(chars.join("-"));   // "h-e-l-l-o"
+
+// String-Umkehr-Idiom
+let reversed = "hello".chars();
+reversed.reverse();
+print(reversed.join(""));  // "olleh"
+```
+
+---
+
+### Prüf-Operationen
+
+#### every
+
+Prüft ob alle Elemente ein Prädikat erfüllen.
+
+**Signatur:**
+```hemlock
+array.every(predicate: fn): bool
+```
+
+**Parameter:**
+- `predicate` - Funktion die ein Element nimmt und bool zurückgibt
+
+**Rückgabe:** `true` wenn alle Elemente das Prädikat erfüllen, `false` sonst
+
+**Mutiert:** Nein
+
+**Beispiele:**
+```hemlock
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+let allEven = [2, 4, 5].every(fn(x) { return x % 2 == 0; }); // false
+```
+
+---
+
+#### some
+
+Prüft ob mindestens ein Element ein Prädikat erfüllt.
+
+**Signatur:**
+```hemlock
+array.some(predicate: fn): bool
+```
+
+**Parameter:**
+- `predicate` - Funktion die ein Element nimmt und bool zurückgibt
+
+**Rückgabe:** `true` wenn mindestens ein Element das Prädikat erfüllt, `false` sonst
+
+**Mutiert:** Nein
+
+**Beispiele:**
+```hemlock
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+let hasNeg = [1, 2, 3].some(fn(x) { return x < 0; });         // false
+```
+
+---
+
+#### indexOf
+
+Findet den ersten Index eines Wertes.
+
+**Signatur:**
+```hemlock
+array.indexOf(value: any): i32
+```
+
+**Parameter:**
+- `value` - Zu suchender Wert
+
+**Rückgabe:** Index des ersten Vorkommens, oder `-1` wenn nicht gefunden
+
+**Mutiert:** Nein
+
+**Beispiele:**
+```hemlock
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+let idx2 = ["a", "b", "c"].indexOf("z"); // -1
+```
+
+---
+
+### Sortierung
+
+#### sort
+
+Sortiert Array an Ort und Stelle, mit optionalem Komparator.
+
+**Signatur:**
+```hemlock
+array.sort(comparator?: fn): null
+```
+
+**Parameter:**
+- `comparator` (optional) - Funktion die zwei Elemente nimmt und eine Zahl zurückgibt (negativ, null oder positiv)
+
+**Rückgabe:** `null`
+
+**Mutiert:** Ja (modifiziert Array direkt)
+
+**Beispiele:**
+```hemlock
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // [5, 4, 3, 1, 1] (absteigend)
+```
+
+---
+
+#### fill
+
+Füllt Array mit einem Wert.
+
+**Signatur:**
+```hemlock
+array.fill(value: any, start?: i32, end?: i32): null
+```
+
+**Parameter:**
+- `value` - Wert zum Füllen
+- `start` (optional) - Startindex (Standard: 0)
+- `end` (optional) - Endindex exklusiv (Standard: array.length)
+
+**Rückgabe:** `null`
+
+**Mutiert:** Ja (modifiziert Array direkt)
+
+**Beispiele:**
+```hemlock
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 ---
 
 ## Methoden-Verkettung
 
-Array-Methoden können für praegnante Operationen verkettet werden:
+Array-Methoden können für prägnante Operationen verkettet werden:
 
 **Beispiele:**
 ```hemlock
@@ -18883,7 +19241,7 @@ let result2 = words
 
 ---
 
-## Vollständige Methodenuebersicht
+## Vollständige Methodenübersicht
 
 ### Mutierende Methoden
 
@@ -18899,6 +19257,8 @@ Methoden die das Array direkt modifizieren:
 | `remove`   | `(index: i32)`             | `any`     | An Index entfernen             |
 | `reverse`  | `()`                       | `null`    | An Ort und Stelle umkehren     |
 | `clear`    | `()`                       | `null`    | Alle Elemente entfernen        |
+| `sort`     | `(comparator?: fn)`        | `null`    | An Ort und Stelle sortieren    |
+| `fill`     | `(value: any, start?: i32, end?: i32)` | `null` | Mit Wert füllen          |
 
 ### Nicht-mutierende Methoden
 
@@ -18916,6 +19276,9 @@ Methoden die neue Werte zurückgeben ohne das Original zu modifizieren:
 | `map`      | `(callback: fn)`           | `array`   | Jedes Element transformieren   |
 | `filter`   | `(predicate: fn)`          | `array`   | Passende Elemente auswählen   |
 | `reduce`   | `(callback: fn, initial: any)` | `any` | Auf einzelnen Wert reduzieren  |
+| `every`    | `(predicate: fn)`          | `bool`    | Prüfen ob alle übereinstimmen |
+| `some`     | `(predicate: fn)`          | `bool`    | Prüfen ob eines übereinstimmt |
+| `indexOf`  | `(value: any)`             | `i32`     | Ersten Index eines Wertes finden |
 
 ---
 
@@ -19001,7 +19364,7 @@ print(arr);  // [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 **Kapazitätsverwaltung:**
 - Arrays wachsen automatisch bei Bedarf
 - Kapazität verdoppelt sich bei Überschreitung
-- Keine manuelle Kapazitaetssteuerung
+- Keine manuelle Kapazitätssteuerung
 
 **Wertvergleich:**
 - `find()` und `contains()` verwenden Wertgleichheit
@@ -19034,13 +19397,13 @@ Vollständige Referenz für Hemlocks Datei-I/O-System.
 
 ## Übersicht
 
-Hemlock bietet eine **Dateiobjekt-API** für Dateioperationen mit ordnungsgemaesser Fehlerbehandlung und Ressourcenverwaltung. Dateien müssen manuell geöffnet und geschlossen werden.
+Hemlock bietet eine **Dateiobjekt-API** für Dateioperationen mit ordnungsgemäßer Fehlerbehandlung und Ressourcenverwaltung. Dateien müssen manuell geöffnet und geschlossen werden.
 
 **Hauptmerkmale:**
 - Dateiobjekt mit Methoden
-- Text- und Binaerdaten lesen/schreiben
+- Text- und Binärdaten lesen/schreiben
 - Positionierung und Suchen
-- Ordnungsgemaesse Fehlermeldungen
+- Ordnungsgemäße Fehlermeldungen
 - Manuelle Ressourcenverwaltung (kein RAII)
 
 ---
@@ -19053,7 +19416,7 @@ Hemlock bietet eine **Dateiobjekt-API** für Dateioperationen mit ordnungsgemaes
 
 **Eigenschaften (Nur-Lesen):**
 - `.path` - Dateipfad (string)
-- `.mode` - Oeffnungsmodus (string)
+- `.mode` - Öffnungsmodus (string)
 - `.closed` - Ob Datei geschlossen (bool)
 
 ---
@@ -19062,7 +19425,7 @@ Hemlock bietet eine **Dateiobjekt-API** für Dateioperationen mit ordnungsgemaes
 
 ### open
 
-Oeffnet eine Datei zum Lesen, Schreiben oder beides.
+Öffnet eine Datei zum Lesen, Schreiben oder beides.
 
 **Signatur:**
 ```hemlock
@@ -19071,17 +19434,17 @@ open(path: string, mode?: string): file
 
 **Parameter:**
 - `path` - Dateipfad (relativ oder absolut)
-- `mode` (optional) - Oeffnungsmodus (Standard: `"r"`)
+- `mode` (optional) - Öffnungsmodus (Standard: `"r"`)
 
 **Rückgabe:** Dateiobjekt
 
 **Modi:**
 - `"r"` - Lesen (Standard)
 - `"w"` - Schreiben (bestehende Datei abschneiden)
-- `"a"` - Anhaengen
+- `"a"` - Anhängen
 - `"r+"` - Lesen und Schreiben
 - `"w+"` - Lesen und Schreiben (abschneiden)
-- `"a+"` - Lesen und Anhaengen
+- `"a+"` - Lesen und Anhängen
 
 **Beispiele:**
 ```hemlock
@@ -19092,7 +19455,7 @@ let f_read = open("data.txt", "r");
 // Schreibmodus (abschneiden)
 let f_write = open("output.txt", "w");
 
-// Anhaengemodus
+// Anhängemodus
 let f_append = open("log.txt", "a");
 
 // Lesen/Schreiben-Modus
@@ -19101,7 +19464,7 @@ let f_rw = open("data.bin", "r+");
 // Lesen/Schreiben (abschneiden)
 let f_rw_trunc = open("output.bin", "w+");
 
-// Lesen/Anhaengen
+// Lesen/Anhängen
 let f_ra = open("log.txt", "a+");
 ```
 
@@ -19164,7 +19527,7 @@ f.close();
 
 #### read_bytes
 
-Liest Binaerdaten aus Datei.
+Liest Binärdaten aus Datei.
 
 **Signatur:**
 ```hemlock
@@ -19174,7 +19537,7 @@ file.read_bytes(size: i32): buffer
 **Parameter:**
 - `size` - Anzahl der zu lesenden Bytes
 
-**Rückgabe:** Buffer mit Binaerdaten
+**Rückgabe:** Buffer mit Binärdaten
 
 **Beispiele:**
 ```hemlock
@@ -19184,7 +19547,7 @@ let f = open("data.bin", "r");
 let binary = f.read_bytes(256);
 print(binary.length);       // 256
 
-// Binaerdaten verarbeiten
+// Binärdaten verarbeiten
 let i = 0;
 while (i < binary.length) {
     print(binary[i]);
@@ -19225,7 +19588,7 @@ let f = open("output.txt", "w");
 let written = f.write("Hello, World!\n");
 print("Geschrieben", written, "Bytes");
 
-// Mehrere Schreibvorgaenge
+// Mehrere Schreibvorgänge
 f.write("Zeile 1\n");
 f.write("Zeile 2\n");
 f.write("Zeile 3\n");
@@ -19246,7 +19609,7 @@ f.close();
 
 #### write_bytes
 
-Schreibt Binaerdaten in Datei.
+Schreibt Binärdaten in Datei.
 
 **Signatur:**
 ```hemlock
@@ -19378,7 +19741,7 @@ f.close();  // Kein Fehler
 
 **Verhalten:**
 - Schliesst Dateihandle
-- Leert ausstehende Schreibvorgaenge
+- Leert ausstehende Schreibvorgänge
 - Idempotent (sicher mehrmals aufzurufen)
 - Setzt `.closed`-Eigenschaft auf `true`
 
@@ -19407,7 +19770,7 @@ f.close();
 
 ### .mode
 
-Gibt Oeffnungsmodus zurück.
+Gibt Öffnungsmodus zurück.
 
 **Typ:** `string`
 
@@ -19428,7 +19791,7 @@ f2.close();
 
 ### .closed
 
-Prueft ob Datei geschlossen ist.
+Prüft ob Datei geschlossen ist.
 
 **Typ:** `bool`
 
@@ -19447,7 +19810,7 @@ print(f.closed);        // true
 
 ## Fehlerbehandlung
 
-Alle Dateioperationen enthalten ordnungsgemaesse Fehlermeldungen mit Kontext:
+Alle Dateioperationen enthalten ordnungsgemäße Fehlermeldungen mit Kontext:
 
 ### Datei nicht gefunden
 ```hemlock
@@ -19557,7 +19920,7 @@ fn write_file(filename: string, content: string) {
 write_file("output.txt", "Hello, World!\n");
 ```
 
-### An Datei anhaengen
+### An Datei anhängen
 
 ```hemlock
 fn append_file(filename: string, line: string) {
@@ -19570,7 +19933,7 @@ append_file("log.txt", "Log-Eintrag 1");
 append_file("log.txt", "Log-Eintrag 2");
 ```
 
-### Binaerdatei lesen
+### Binärdatei lesen
 
 ```hemlock
 fn read_binary(filename: string, size: i32): buffer {
@@ -19584,7 +19947,7 @@ let binary = read_binary("data.bin", 256);
 print("Gelesen", binary.length, "Bytes");
 ```
 
-### Binaerdatei schreiben
+### Binärdatei schreiben
 
 ```hemlock
 fn write_binary(filename: string, data: buffer) {
@@ -19633,7 +19996,7 @@ fn copy_file(src: string, dest: string) {
 copy_file("input.txt", "output.txt");
 ```
 
-### Datei in Stuecken lesen
+### Datei in Stücken lesen
 
 ```hemlock
 fn process_chunks(filename: string) {
@@ -19657,26 +20020,26 @@ process_chunks("large_file.txt");
 
 ---
 
-## Vollständige Methodenuebersicht
+## Vollständige Methodenübersicht
 
 | Methode       | Signatur                 | Rückgabe | Beschreibung                 |
 |---------------|--------------------------|-----------|------------------------------|
 | `read`        | `(size?: i32)`           | `string`  | Text lesen                   |
-| `read_bytes`  | `(size: i32)`            | `buffer`  | Binaerdaten lesen            |
+| `read_bytes`  | `(size: i32)`            | `buffer`  | Binärdaten lesen            |
 | `write`       | `(data: string)`         | `i32`     | Text schreiben               |
-| `write_bytes` | `(data: buffer)`         | `i32`     | Binaerdaten schreiben        |
+| `write_bytes` | `(data: buffer)`         | `i32`     | Binärdaten schreiben        |
 | `seek`        | `(position: i32)`        | `i32`     | Dateiposition setzen         |
 | `tell`        | `()`                     | `i32`     | Dateiposition holen          |
 | `close`       | `()`                     | `null`    | Datei schließen (idempotent)|
 
 ---
 
-## Vollständige Eigenschaftsuebersicht
+## Vollständige Eigenschaftsübersicht
 
 | Eigenschaft | Typ      | Zugriff    | Beschreibung             |
 |-------------|----------|------------|--------------------------|
 | `.path`     | `string` | Nur-Lesen  | Dateipfad                |
-| `.mode`     | `string` | Nur-Lesen  | Oeffnungsmodus           |
+| `.mode`     | `string` | Nur-Lesen  | Öffnungsmodus           |
 | `.closed`   | `bool`   | Nur-Lesen  | Ob Datei geschlossen     |
 
 ---
@@ -19762,8 +20125,47 @@ print("x =", 10, "y =", 20);
 **Verhalten:**
 - Konvertiert alle Werte zu Strings
 - Trennt mehrere Werte mit Leerzeichen
-- Fuegt Zeilenumbruch am Ende hinzu
+- Fügt Zeilenumbruch am Ende hinzu
 - Leert stdout
+
+---
+
+### write
+
+Gibt einen Wert auf stdout ohne abschliessenden Zeilenumbruch aus.
+
+**Signatur:**
+```hemlock
+write(value: any): null
+```
+
+**Parameter:**
+- `value` - Ein Wert zum Ausgeben
+
+**Rückgabe:** `null`
+
+**Beispiele:**
+```hemlock
+// Ausgabe auf einer einzelnen Zeile aufbauen
+write("hello");
+write(" ");
+write("world");
+print("");  // nur der Zeilenumbruch
+
+// Eine verkettete Liste inline ausgeben
+let parts = [1, 2, 3];
+for (let i = 0; i < parts.length; i++) {
+    if (i > 0) { write(" -> "); }
+    write(parts[i]);
+}
+print("");  // Ausgabe: 1 -> 2 -> 3
+```
+
+**Verhalten:**
+- Konvertiert den Wert zu String und gibt ihn auf stdout aus
+- Fügt KEINEN abschliessenden Zeilenumbruch hinzu
+- Leert stdout sofort
+- Verwende `print("")` nach einer Reihe von `write()`-Aufrufen, um einen Zeilenumbruch hinzuzufügen
 
 ---
 
@@ -19813,8 +20215,8 @@ while (true) {
 ```
 
 **Verhalten:**
-- Blockiert bis Benutzer Enter drueckt
-- Entfernt nachfolgenden Zeilenumbruch (`\n`) und Wagenruecklauf (`\r`)
+- Blockiert bis Benutzer Enter drückt
+- Entfernt nachfolgenden Zeilenumbruch (`\n`) und Wagenrücklauf (`\r`)
 - Gibt `null` bei EOF zurück (Strg+D auf Unix, Strg+Z auf Windows)
 - Liest nur von stdin (nicht von Dateien)
 
@@ -19893,7 +20295,7 @@ fn load_config(path: string) {
 
 **Verhalten:**
 - Gibt auf stderr aus (Standardfehlerausgabe)
-- Fuegt Zeilenumbruch am Ende hinzu
+- Fügt Zeilenumbruch am Ende hinzu
 - Akzeptiert nur ein Argument (anders als `print`)
 - Nützlich für Fehlermeldungen die sich nicht mit normaler Ausgabe vermischen sollen
 
@@ -19956,11 +20358,11 @@ print(typeof(open("file.txt"))); // "file"
 
 ---
 
-## Befehlsausfuehrung
+## Befehlsausführung
 
 ### exec
 
-Fuehrt Shell-Befehl aus und erfasst Ausgabe.
+Führt Shell-Befehl aus und erfasst Ausgabe.
 
 **Signatur:**
 ```hemlock
@@ -19968,7 +20370,7 @@ exec(command: string): object
 ```
 
 **Parameter:**
-- `command` - Auszufuehrender Shell-Befehl
+- `command` - Auszuführender Shell-Befehl
 
 **Rückgabe:** Objekt mit Feldern:
 - `output` (string) - stdout des Befehls
@@ -19994,7 +20396,7 @@ let lines = r2.output.split("\n");
 ```
 
 **Verhalten:**
-- Fuehrt Befehl über `/bin/sh` aus
+- Führt Befehl über `/bin/sh` aus
 - Erfasst nur stdout (stderr geht zum Terminal)
 - Blockiert bis Befehl abgeschlossen ist
 - Gibt leeren String zurück wenn keine Ausgabe
@@ -20008,7 +20410,7 @@ try {
 }
 ```
 
-**Sicherheitswarnung:** Anfaellig für Shell-Injection. Validieren/bereinigen Sie immer Benutzereingaben.
+**Sicherheitswarnung:** Anfällig für Shell-Injection. Validieren/bereinigen Sie immer Benutzereingaben.
 
 **Einschränkungen:**
 - Keine stderr-Erfassung
@@ -20020,7 +20422,7 @@ try {
 
 ### exec_argv
 
-Fuehrt einen Befehl mit explizitem Argument-Array aus (keine Shell-Interpretation).
+Führt einen Befehl mit explizitem Argument-Array aus (keine Shell-Interpretation).
 
 **Signatur:**
 ```hemlock
@@ -20114,11 +20516,11 @@ panic();                          // Standard: "panic!"
 panic("Unerreichbarer Code erreicht");
 panic(42);
 
-// Haeufiger Anwendungsfall
+// Häufiger Anwendungsfall
 fn process_state(state: i32): string {
     if (state == 1) { return "bereit"; }
     if (state == 2) { return "läuft"; }
-    panic("Ungueltiger Status: " + typeof(state));
+    panic("Ungültiger Status: " + typeof(state));
 }
 ```
 
@@ -20144,7 +20546,7 @@ assert(condition: any, message?: string): null
 ```
 
 **Parameter:**
-- `condition` - Auf Wahrheit zu pruefender Wert
+- `condition` - Auf Wahrheit zu prüfender Wert
 - `message` (optional) - Benutzerdefinierte Fehlermeldung bei fehlgeschlagener Prüfung
 
 **Rückgabe:** `null` (wenn Prüfung erfolgreich)
@@ -20184,11 +20586,11 @@ Assertion failed: Array darf nicht leer sein
 **Wann verwenden:**
 - Validierung von Funktionsvorbedingungen
 - Prüfen von Invarianten während der Entwicklung
-- Fruehzeitiges Erkennen von Programmierfehlern
+- Frühzeitiges Erkennen von Programmierfehlern
 
 **assert vs panic:**
-- `assert(cond, msg)` - Prueft eine Bedingung, schlaegt fehl wenn falsch
-- `panic(msg)` - Schlaegt immer bedingungslos fehl
+- `assert(cond, msg)` - Prüft eine Bedingung, schlägt fehl wenn falsch
+- `panic(msg)` - Schlägt immer bedingungslos fehl
 
 ---
 
@@ -20311,7 +20713,7 @@ Standard-POSIX-Signalkonstanten (i32-Werte):
 | `SIGINT`   | 2     | Unterbrechung von Tastatur (Strg+C)         |
 | `SIGTERM`  | 15    | Beendigungsanforderung                      |
 | `SIGQUIT`  | 3     | Beenden von Tastatur (Strg+\)               |
-| `SIGHUP`   | 1     | Aufhaengen am steuernden Terminal erkannt   |
+| `SIGHUP`   | 1     | Aufhängen am steuernden Terminal erkannt   |
 | `SIGABRT`  | 6     | Abbruchsignal                               |
 
 ### Benutzerdefiniert
@@ -20326,7 +20728,7 @@ Standard-POSIX-Signalkonstanten (i32-Werte):
 | Konstante  | Wert  | Beschreibung                      |
 |------------|-------|-----------------------------------|
 | `SIGALRM`  | 14    | Wecker-Timer                      |
-| `SIGCHLD`  | 17    | Kindprozess-Statusaenderung       |
+| `SIGCHLD`  | 17    | Kindprozess-Statusänderung       |
 | `SIGCONT`  | 18    | Fortsetzen wenn gestoppt          |
 | `SIGSTOP`  | 19    | Prozess stoppen (nicht abfangbar) |
 | `SIGTSTP`  | 20    | Terminal-Stopp (Strg+Z)           |
@@ -20423,9 +20825,9 @@ Siehe [Speicher-API](#reference-memory-api) für vollständige Referenz:
 - `alloc(size)` - Rohen Speicher allokieren
 - `free(ptr)` - Speicher freigeben
 - `buffer(size)` - Sicheren Buffer allokieren
-- `memset(ptr, byte, size)` - Speicher fuellen
+- `memset(ptr, byte, size)` - Speicher füllen
 - `memcpy(dest, src, size)` - Speicher kopieren
-- `realloc(ptr, new_size)` - Allokation vergroessern/verkleinern
+- `realloc(ptr, new_size)` - Allokation vergrößern/verkleinern
 
 ### sizeof
 
@@ -20461,7 +20863,7 @@ print(sizeof(number));   // 8 (gleich wie f64)
 print(sizeof("i32"));    // 4
 ```
 
-**Unterstuetzte Typen:**
+**Unterstützte Typen:**
 | Typ | Größe | Aliase |
 |-----|---------|--------|
 | `i8` | 1 | - |
@@ -20522,13 +20924,13 @@ free(byte_arr);
 let p1 = talloc(i32, 10);      // Typbewusst: 10 i32s
 let p2 = alloc(sizeof(i32) * 10);  // Manuelle Berechnung
 
-// talloc ist klarer und weniger fehleranfaellig
+// talloc ist klarer und weniger fehleranfällig
 ```
 
 **Fehlerbehandlung:**
-- Gibt `null` zurück wenn Allokation fehlschlaegt
+- Gibt `null` zurück wenn Allokation fehlschlägt
 - Beendet mit Fehler wenn count nicht positiv ist
-- Prueft auf Groessenueberlauf (count * element_size)
+- Prüft auf Größenüberlauf (count * element_size)
 
 **Siehe auch:** `alloc()`, `sizeof()`, `free()`
 
@@ -20645,6 +21047,35 @@ free(p);
 
 ---
 
+### Pointer-Lesefunktionen
+
+Liest typisierte Werte aus dem Speicher.
+
+| Funktion | Signatur | Rückgabe | Beschreibung |
+|----------|----------|-----------|--------------|
+| `ptr_read_i8` | `(ptr)` | `i8` | Liest vorzeichenbehaftete 8-Bit-Ganzzahl |
+| `ptr_read_i16` | `(ptr)` | `i16` | Liest vorzeichenbehaftete 16-Bit-Ganzzahl |
+| `ptr_read_i32` | `(ptr)` | `i32` | Liest vorzeichenbehaftete 32-Bit-Ganzzahl |
+| `ptr_read_i64` | `(ptr)` | `i64` | Liest vorzeichenbehaftete 64-Bit-Ganzzahl |
+| `ptr_read_u8` | `(ptr)` | `u8` | Liest vorzeichenlose 8-Bit-Ganzzahl |
+| `ptr_read_u16` | `(ptr)` | `u16` | Liest vorzeichenlose 16-Bit-Ganzzahl |
+| `ptr_read_u32` | `(ptr)` | `u32` | Liest vorzeichenlose 32-Bit-Ganzzahl |
+| `ptr_read_u64` | `(ptr)` | `u64` | Liest vorzeichenlose 64-Bit-Ganzzahl |
+| `ptr_read_f32` | `(ptr)` | `f32` | Liest 32-Bit-Gleitkommazahl |
+| `ptr_read_f64` | `(ptr)` | `f64` | Liest 64-Bit-Gleitkommazahl |
+| `ptr_read_ptr` | `(ptr)` | `ptr` | Liest Pointer-Wert |
+
+**Beispiel:**
+```hemlock
+let p = alloc(8);
+ptr_write_f64(p, 3.14159);
+let value = ptr_read_f64(p);
+print(value);  // 3.14159
+free(p);
+```
+
+---
+
 ### Buffer/Pointer-Konvertierung
 
 #### buffer_ptr
@@ -20689,9 +21120,9 @@ Siehe [Datei-API](#reference-file-api) für vollständige Referenz:
 
 ---
 
-## Nebenlaeufigkeitsfunktionen
+## Nebenläufigkeitsfunktionen
 
-Siehe [Nebenlaeufigkeits-API](#reference-concurrency-api) für vollständige Referenz:
+Siehe [Nebenläufigkeits-API](#reference-concurrency-api) für vollständige Referenz:
 - `spawn(fn, args...)` - Task starten
 - `join(task)` - Auf Task warten
 - `detach(task)` - Task ablösen
@@ -20750,7 +21181,7 @@ let numbers = [1, 2, 3, 4, 5];
 print(apply(sum, numbers));  // 15
 ```
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Dynamischer Funktionsdispatch basierend auf Laufzeitwerten
 - Aufrufen von Funktionen mit variablen Argumentlisten
 - Implementierung von Higher-Order-Utilities (map, filter, etc.)
@@ -20760,7 +21191,7 @@ print(apply(sum, numbers));  // 15
 
 ### select
 
-Wartet auf Daten von mehreren Kanaelen, gibt zurück wenn einer Daten hat.
+Wartet auf Daten von mehreren Kanälen, gibt zurück wenn einer Daten hat.
 
 **Signatur:**
 ```hemlock
@@ -20807,7 +21238,7 @@ if (result2 == null) {
 while (true) {
     let msg = select([ch1, ch2], 5000);
     if (msg == null) {
-        print("Keine Aktivitaet für 5 Sekunden");
+        print("Keine Aktivität für 5 Sekunden");
         break;
     }
     print("Nachricht erhalten:", msg.value);
@@ -20818,9 +21249,9 @@ while (true) {
 - Blockiert bis ein Kanal Daten hat oder Timeout abläuft
 - Gibt sofort zurück wenn ein Kanal bereits Daten hat
 - Wenn Kanal geschlossen und leer ist, gibt `{ channel, value: null }` zurück
-- Prueft Kanäle der Reihe nach (erster bereiter Kanal gewinnt)
+- Prüft Kanäle der Reihe nach (erster bereiter Kanal gewinnt)
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Multiplexen mehrerer Produzenten
 - Implementierung von Timeouts bei Kanaloperationen
 - Aufbau von Event-Loops mit mehreren Quellen
@@ -20845,16 +21276,16 @@ while (true) {
 | `raise`    | Signal          | `null`       | Signal an Prozess senden         |
 | `alloc`    | Speicher        | `ptr`        | Rohen Speicher allokieren        |
 | `talloc`   | Speicher        | `ptr`        | Typisierte Allokation            |
-| `sizeof`   | Speicher        | `i32`        | Typgroesse in Bytes holen        |
+| `sizeof`   | Speicher        | `i32`        | Typgröße in Bytes holen        |
 | `free`     | Speicher        | `null`       | Speicher freigeben               |
 | `buffer`   | Speicher        | `buffer`     | Sicheren Buffer allokieren       |
-| `memset`   | Speicher        | `null`       | Speicher fuellen                 |
+| `memset`   | Speicher        | `null`       | Speicher füllen                 |
 | `memcpy`   | Speicher        | `null`       | Speicher kopieren                |
-| `realloc`  | Speicher        | `ptr`        | Allokation vergroessern          |
+| `realloc`  | Speicher        | `ptr`        | Allokation vergrößern          |
 | `open`     | Datei-I/O       | `file`       | Datei öffnen                    |
-| `spawn`    | Nebenläufigkeit| `task`       | Nebenlaeufigen Task starten      |
+| `spawn`    | Nebenläufigkeit| `task`       | Nebenläufigen Task starten      |
 | `join`     | Nebenläufigkeit| `any`        | Auf Task-Ergebnis warten         |
-| `detach`   | Nebenläufigkeit| `null`       | Task abloesen                    |
+| `detach`   | Nebenläufigkeit| `null`       | Task ablösen                    |
 | `channel`  | Nebenläufigkeit| `channel`    | Kommunikationskanal erstellen    |
 | `select`   | Nebenläufigkeit| `object?`    | Auf mehrere Kanäle warten       |
 | `apply`    | Funktionen      | `any`        | Funktion mit Args-Array aufrufen |
@@ -20872,12 +21303,12 @@ while (true) {
 | `SIGINT`   | `i32` | Signal    | 2     | Tastatur-Unterbrechung    |
 | `SIGTERM`  | `i32` | Signal    | 15    | Beendigungsanforderung    |
 | `SIGQUIT`  | `i32` | Signal    | 3     | Tastatur-Beenden          |
-| `SIGHUP`   | `i32` | Signal    | 1     | Aufhaengen                |
+| `SIGHUP`   | `i32` | Signal    | 1     | Aufhängen                |
 | `SIGABRT`  | `i32` | Signal    | 6     | Abbruch                   |
 | `SIGUSR1`  | `i32` | Signal    | 10    | Benutzerdefiniert 1       |
 | `SIGUSR2`  | `i32` | Signal    | 12    | Benutzerdefiniert 2       |
 | `SIGALRM`  | `i32` | Signal    | 14    | Wecker-Timer              |
-| `SIGCHLD`  | `i32` | Signal    | 17    | Kind-Statusaenderung      |
+| `SIGCHLD`  | `i32` | Signal    | 17    | Kind-Statusänderung      |
 | `SIGCONT`  | `i32` | Signal    | 18    | Fortsetzen                |
 | `SIGSTOP`  | `i32` | Signal    | 19    | Stopp (nicht abfangbar)   |
 | `SIGTSTP`  | `i32` | Signal    | 20    | Terminal-Stopp            |
@@ -20892,7 +21323,7 @@ while (true) {
 - [Typsystem](#reference-type-system) - Typen und Konvertierungen
 - [Speicher-API](#reference-memory-api) - Speicherallokationsfunktionen
 - [Datei-API](#reference-file-api) - Datei-I/O-Funktionen
-- [Nebenlaeufigkeits-API](#reference-concurrency-api) - Async/Nebenlaeufigkeitsfunktionen
+- [Nebenläufigkeits-API](#reference-concurrency-api) - Async/Nebenläufigkeitsfunktionen
 - [String-API](#reference-string-api) - String-Methoden
 - [Array-API](#reference-array-api) - Array-Methoden
 
@@ -20901,9 +21332,9 @@ while (true) {
 ## Nebenläufigkeits-API
 --------------------------------------------------------------------------------
 
-# Nebenlaeufigkeits-API-Referenz
+# Nebenläufigkeits-API-Referenz
 
-Vollständige Referenz für Hemlocks Async/Nebenlaeufigkeitssystem.
+Vollständige Referenz für Hemlocks Async/Nebenläufigkeitssystem.
 
 ---
 
@@ -20921,7 +21352,7 @@ Hemlock bietet **strukturierte Nebenläufigkeit** mit echter Multi-Thread-Parall
 **Threading-Modell:**
 - Echte OS-Threads (POSIX pthreads)
 - Echte Parallelität (mehrere CPU-Kerne)
-- Kernel-geplant (praeemptives Multitasking)
+- Kernel-geplant (präemptives Multitasking)
 - Thread-sichere Synchronisation (Mutexes, Bedingungsvariablen)
 
 ---
@@ -20930,7 +21361,7 @@ Hemlock bietet **strukturierte Nebenläufigkeit** mit echter Multi-Thread-Parall
 
 ### Async-Funktionsdeklaration
 
-Funktionen können als `async` deklariert werden um anzuzeigen, dass sie für nebenlaeufige Ausführung konzipiert sind.
+Funktionen können als `async` deklariert werden um anzuzeigen, dass sie für nebenläufige Ausführung konzipiert sind.
 
 **Syntax:**
 ```hemlock
@@ -20965,10 +21396,10 @@ async fn process_data(data: string) {
 **Verhalten:**
 - `async fn` deklariert eine asynchrone Funktion
 - Kann synchron aufgerufen werden (läuft im aktuellen Thread)
-- Kann als nebenlaeufiger Task gestartet werden (läuft auf neuem Thread)
+- Kann als nebenläufiger Task gestartet werden (läuft auf neuem Thread)
 - Wenn gestartet, läuft auf eigenem OS-Thread
 
-**Hinweis:** Das `await`-Schlüsselwort ist für zukuenftige Verwendung reserviert, aber derzeit nicht implementiert.
+**Hinweis:** Das `await`-Schlüsselwort ist für zukünftige Verwendung reserviert, aber derzeit nicht implementiert.
 
 ---
 
@@ -20976,7 +21407,7 @@ async fn process_data(data: string) {
 
 ### spawn
 
-Erstellt und startet einen neuen nebenlaeufigen Task.
+Erstellt und startet einen neuen nebenläufigen Task.
 
 **Signatur:**
 ```hemlock
@@ -20984,8 +21415,8 @@ spawn(async_fn: function, ...args): task
 ```
 
 **Parameter:**
-- `async_fn` - Auszufuehrende Async-Funktion
-- `...args` - An die Funktion zu uebergebende Argumente
+- `async_fn` - Auszuführende Async-Funktion
+- `...args` - An die Funktion zu übergebende Argumente
 
 **Rückgabe:** Task-Handle
 
@@ -21020,7 +21451,7 @@ let r3 = join(t3);
 **Verhalten:**
 - Erstellt neuen OS-Thread via `pthread_create()`
 - Beginnt sofort mit der Ausführung der Funktion
-- Gibt Task-Handle für spaeteres Beitreten zurück
+- Gibt Task-Handle für späteres Beitreten zurück
 - Tasks laufen parallel auf separaten CPU-Kernen
 
 ---
@@ -21055,7 +21486,7 @@ print(result);         // 3628800
 - Blockiert aktuellen Thread bis Task abgeschlossen
 - Gibt Rückgabewert des Tasks zurück
 - Propagiert vom Task geworfene Ausnahmen
-- Raeumt Task-Ressourcen nach Rückkehr auf
+- Räumt Task-Ressourcen nach Rückkehr auf
 
 **Fehlerbehandlung:**
 ```hemlock
@@ -21078,7 +21509,7 @@ try {
 
 ### detach
 
-Loest Task ab (Fire-and-Forget-Ausführung).
+Löst Task ab (Fire-and-Forget-Ausführung).
 
 **Signatur:**
 ```hemlock
@@ -21100,16 +21531,16 @@ async fn background_work() {
 let t = spawn(background_work);
 detach(t);  // Task läuft unabhängig weiter
 
-// Kann abgeloesten Task nicht beitreten
+// Kann abgelösten Task nicht beitreten
 // join(t);  // FEHLER
 ```
 
 **Verhalten:**
 - Task läuft unabhängig weiter
-- Kann abgeloesten Task nicht `join()`en
-- Task und Thread werden automatisch aufgeraeumt wenn Task abgeschlossen
+- Kann abgelösten Task nicht `join()`en
+- Task und Thread werden automatisch aufgeräumt wenn Task abgeschlossen
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Fire-and-Forget-Hintergrundtasks
 - Logging/Monitoring-Tasks
 - Tasks die keine Werte zurückgeben müssen
@@ -21130,7 +21561,7 @@ channel(capacity: i32): channel
 ```
 
 **Parameter:**
-- `capacity` - Puffergroesse (Anzahl der Werte)
+- `capacity` - Puffergröße (Anzahl der Werte)
 
 **Rückgabe:** Kanal-Objekt
 
@@ -21190,7 +21621,7 @@ let t = spawn(producer, ch, 5);
 
 #### recv
 
-Empfaengt Wert von Kanal (blockiert wenn leer).
+Empfängt Wert von Kanal (blockiert wenn leer).
 
 **Signatur:**
 ```hemlock
@@ -21217,7 +21648,7 @@ let t = spawn(consumer, ch, 5);
 ```
 
 **Verhalten:**
-- Empfaengt Wert vom Kanal
+- Empfängt Wert vom Kanal
 - Blockiert wenn Kanal leer
 - Gibt `null` zurück wenn Kanal geschlossen und leer
 - Thread-sicher (verwendet Mutex)
@@ -21265,7 +21696,7 @@ async fn consumer(ch) {
 
 ---
 
-## Vollstaendiges Nebenlaeufigkeitsbeispiel
+## Vollständiges Nebenläufigkeitsbeispiel
 
 ### Producer-Consumer-Muster
 
@@ -21339,13 +21770,13 @@ print(f5, f6, f7, f8);
 
 ## Task-Lebenszyklus
 
-### Zustandsuebergaenge
+### Zustandsübergänge
 
 1. **Erstellt** - Task gestartet aber noch nicht laufend
 2. **Laufend** - Task läuft auf OS-Thread
 3. **Abgeschlossen** - Task beendet (Ergebnis verfügbar)
-4. **Beigetreten** - Ergebnis abgerufen, Ressourcen aufgeraeumt
-5. **Abgeloest** - Task läuft unabhängig weiter
+4. **Beigetreten** - Ergebnis abgerufen, Ressourcen aufgeräumt
+5. **Abgelöst** - Task läuft unabhängig weiter
 
 ### Lebenszyklus-Beispiel
 
@@ -21363,10 +21794,10 @@ let t = spawn(work, 21);  // Zustand: Laufend
 let result = join(t);     // Zustand: Abgeschlossen → Beigetreten
 print(result);            // 42
 
-// Task-Ressourcen nach join aufgeraeumt
+// Task-Ressourcen nach join aufgeräumt
 ```
 
-### Abgeloester Lebenszyklus
+### Abgelöster Lebenszyklus
 
 ```hemlock
 async fn background() {
@@ -21377,11 +21808,11 @@ async fn background() {
 // 1. Task erstellen
 let t = spawn(background);  // Zustand: Laufend
 
-// 2. Task abloesen
-detach(t);                  // Zustand: Abgeloest
+// 2. Task ablösen
+detach(t);                  // Zustand: Abgelöst
 
 // Task läuft unabhängig weiter
-// Ressourcen werden vom OS aufgeraeumt wenn fertig
+// Ressourcen werden vom OS aufgeräumt wenn fertig
 ```
 
 ---
@@ -21404,7 +21835,7 @@ async fn risky_operation(should_fail: i32): i32 {
 let t1 = spawn(risky_operation, 0);
 let result1 = join(t1);  // 42
 
-// Task der fehlschlaegt
+// Task der fehlschlägt
 let t2 = spawn(risky_operation, 1);
 try {
     let result2 = join(t2);
@@ -21491,19 +21922,19 @@ let parallel_time = get_time() - start2;
 
 - **1:1 Threading** - Jeder Task = 1 OS-Thread (`pthread`)
 - **Kernel-geplant** - OS-Kernel verteilt Threads auf Kerne
-- **Praeemptives Multitasking** - OS kann Threads unterbrechen und wechseln
+- **Präemptives Multitasking** - OS kann Threads unterbrechen und wechseln
 - **Kein GIL** - Kein Global Interpreter Lock (anders als Python)
 
 ### Synchronisation
 
 - **Mutexes** - Kanäle verwenden `pthread_mutex_t`
 - **Bedingungsvariablen** - Blockierendes send/recv verwendet `pthread_cond_t`
-- **Lock-freie Operationen** - Task-Zustandsuebergaenge sind atomar
+- **Lock-freie Operationen** - Task-Zustandsübergänge sind atomar
 
-### Speicher & Aufraeumen
+### Speicher & Aufräumen
 
-- **Beigetretene Tasks** - Automatisch aufgeraeumt nach `join()`
-- **Abgeloeste Tasks** - Automatisch aufgeraeumt wenn Task abgeschlossen
+- **Beigetretene Tasks** - Automatisch aufgeräumt nach `join()`
+- **Abgelöste Tasks** - Automatisch aufgeräumt wenn Task abgeschlossen
 - **Kanäle** - Referenzgezählt, freigegeben wenn nicht mehr verwendet
 
 ---
@@ -21513,7 +21944,7 @@ let parallel_time = get_time() - start2;
 - Kein `select()` für Multiplexen mehrerer Kanäle
 - Kein Work-Stealing-Scheduler (1 Thread pro Task)
 - Keine async I/O-Integration (Datei/Netzwerk-Operationen blockieren)
-- Kanalkapazitaet bei Erstellung fest
+- Kanalkapazität bei Erstellung fest
 
 ---
 
@@ -21523,9 +21954,9 @@ let parallel_time = get_time() - start2;
 
 | Funktion  | Signatur                          | Rückgabe | Beschreibung                     |
 |-----------|-----------------------------------|-----------|----------------------------------|
-| `spawn`   | `(async_fn: function, ...args)`   | `task`    | Nebenlaeufigen Task erstellen und starten |
+| `spawn`   | `(async_fn: function, ...args)`   | `task`    | Nebenläufigen Task erstellen und starten |
 | `join`    | `(task: task)`                    | `any`     | Auf Task warten, Ergebnis holen  |
-| `detach`  | `(task: task)`                    | `null`    | Task abloesen (Fire-and-Forget)  |
+| `detach`  | `(task: task)`                    | `null`    | Task ablösen (Fire-and-Forget)  |
 | `channel` | `(capacity: i32)`                 | `channel` | Thread-sicheren Kanal erstellen  |
 
 ### Kanal-Methoden
@@ -21540,7 +21971,7 @@ let parallel_time = get_time() - start2;
 
 | Typ       | Beschreibung                         |
 |-----------|--------------------------------------|
-| `task`    | Handle für nebenlaeufigen Task      |
+| `task`    | Handle für nebenläufigen Task      |
 | `channel` | Thread-sicherer Kommunikationskanal  |
 
 ---
@@ -21552,16 +21983,16 @@ let parallel_time = get_time() - start2;
 - Verwenden Sie Kanäle für Kommunikation zwischen Tasks
 - Behandeln Sie Ausnahmen von beigetretenen Tasks
 - Schließen Sie Kanäle wenn Senden beendet
-- Verwenden Sie `join()` um Ergebnisse zu holen und aufzuraeumen
+- Verwenden Sie `join()` um Ergebnisse zu holen und aufzuräumen
 - Starten Sie nur async-Funktionen
 
 ### Vermeiden
 
-- Teilen Sie keinen veraenderbaren Zustand ohne Synchronisation
+- Teilen Sie keinen veränderbaren Zustand ohne Synchronisation
 - Treten Sie demselben Task nicht zweimal bei
-- Senden Sie nicht auf geschlossenen Kanaelen
+- Senden Sie nicht auf geschlossenen Kanälen
 - Starten Sie keine nicht-async-Funktionen
-- Vergessen Sie nicht Tasks beizutreten (außer wenn abgeloest)
+- Vergessen Sie nicht Tasks beizutreten (außer wenn abgelöst)
 
 ---
 
@@ -21577,13 +22008,13 @@ let parallel_time = get_time() - start2;
 
 # Operatoren-Referenz
 
-Vollständige Referenz für alle Operatoren in Hemlock, einschließlich Präzedenz, Assoziativitaet und Verhalten.
+Vollständige Referenz für alle Operatoren in Hemlock, einschließlich Präzedenz, Assoziativität und Verhalten.
 
 ---
 
 ## Übersicht
 
-Hemlock bietet C-ähnliche Operatoren mit expliziten Praezedenzregeln. Alle Operatoren folgen strikten Typisierungsregeln mit automatischer Typpromovierung wo anwendbar.
+Hemlock bietet C-ähnliche Operatoren mit expliziten Präzedenzregeln. Alle Operatoren folgen strikten Typisierungsregeln mit automatischer Typpromovierung wo anwendbar.
 
 ---
 
@@ -21623,7 +22054,7 @@ let h = f + g;         // 30 (i32, promoviert)
 
 ---
 
-### Unaere Arithmetik
+### Unäre Arithmetik
 
 | Operator | Name     | Beispiel | Beschreibung          |
 |----------|----------|----------|-----------------------|
@@ -21755,7 +22186,7 @@ print(c ^ d);          // 8  (00001000)
 
 ---
 
-### Unaere Bitweise
+### Unäre Bitweise
 
 | Operator | Name          | Beispiel | Beschreibung              |
 |----------|---------------|----------|---------------------------|
@@ -22034,15 +22465,15 @@ print("message");
 
 ---
 
-## Operatorpraezedenz
+## Operatorpräzedenz
 
-Operatoren von hoechster zu niedrigster Präzedenz:
+Operatoren von höchster zu niedrigster Präzedenz:
 
-| Präzedenz | Operatoren                 | Beschreibung                    | Assoziativitaet |
+| Präzedenz | Operatoren                 | Beschreibung                    | Assoziativität |
 |------------|----------------------------|--------------------------------|----------------|
 | 1          | `()` `[]` `.` `?.`         | Aufruf, Index, Elementzugriff, optionale Verkettung | Links-nach-rechts |
 | 2          | `++` `--`                  | Postfix-Inkrement/Dekrement    | Links-nach-rechts |
-| 3          | `!` `~` `-` (unaer) `+` (unaer) | Logisches NICHT, bitweises NICHT, Negation | Rechts-nach-links |
+| 3          | `!` `~` `-` (unär) `+` (unär) | Logisches NICHT, bitweises NICHT, Negation | Rechts-nach-links |
 | 4          | `*` `/` `%`                | Multiplikation, Division, Modulo | Links-nach-rechts |
 | 5          | `+` `-`                    | Addition, Subtraktion          | Links-nach-rechts |
 | 6          | `<<` `>>`                  | Bitverschiebungen              | Links-nach-rechts |
@@ -22124,7 +22555,7 @@ print(10.0 / 4.0);         // 2.5 (f64)
 print(-7 / 3);             // -2.333... (f64)
 ```
 
-Dies verhindert den haeufigen Bug unerwarteter Ganzzahl-Trunkierung.
+Dies verhindert den häufigen Bug unerwarteter Ganzzahl-Trunkierung.
 
 ### Ganzzahl-Division (div / divi)
 
@@ -22141,7 +22572,7 @@ print(divi(-7, 3));        // -3 (i64)
 print(typeof(divi(5, 2))); // i64
 ```
 
-**Ganzzahl-zurueckgebende Mathematikfunktionen:**
+**Ganzzahl-zurückgebende Mathematikfunktionen:**
 Für andere Rundungsoperationen die Ganzzahlen zurückgeben:
 
 ```hemlock
@@ -22218,20 +22649,20 @@ Hemlock bietet **manuelle Speicherverwaltung** mit expliziter Allokation und Dea
 - Explizite Allokation und Deallokation
 - Keine Garbage Collection
 - Benutzer verantwortlich für Aufruf von `free()`
-- Interne Referenzzaehlung für Scope/Neuzuweisungssicherheit (siehe unten)
+- Interne Referenzzählung für Scope/Neuzuweisungssicherheit (siehe unten)
 
-### Interne Referenzzaehlung
+### Interne Referenzzählung
 
-Die Laufzeit verwendet Referenzzaehlung intern zur Verwaltung von Objektlebenszeiten über Scopes. Für die meisten lokalen Variablen ist die Bereinigung automatisch.
+Die Laufzeit verwendet Referenzzählung intern zur Verwaltung von Objektlebenszeiten über Scopes. Für die meisten lokalen Variablen ist die Bereinigung automatisch.
 
 **Automatisch (kein `free()` nötig):**
-- Lokale Variablen von referenzgezaehlten Typen (buffer, array, object, string) werden freigegeben wenn Scope endet
+- Lokale Variablen von referenzgezählten Typen (buffer, array, object, string) werden freigegeben wenn Scope endet
 - Alte Werte werden freigegeben wenn Variablen neu zugewiesen werden
 - Container-Elemente werden freigegeben wenn Container freigegeben werden
 
 **Manuelles `free()` erforderlich:**
 - Roh-Pointer von `alloc()` - immer
-- Fruehe Bereinigung vor Scope-Ende
+- Frühe Bereinigung vor Scope-Ende
 - Langlebige/globale Daten
 
 Siehe [Speicherverwaltungs-Leitfaden](../language-guide/memory.md#internal-reference-counting) für Details.
@@ -22248,7 +22679,7 @@ Siehe [Speicherverwaltungs-Leitfaden](../language-guide/memory.md#internal-refer
 
 **Größe:** 8 Bytes
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Low-Level-Speicheroperationen
 - FFI (Foreign Function Interface)
 - Maximale Leistung (kein Overhead)
@@ -22270,20 +22701,20 @@ free(p);
 
 **Beschreibung:** Sicherer Pointer-Wrapper mit Grenzenprüfung.
 
-**Struktur:** Pointer + Länge + Kapazität + Referenzzaehler
+**Struktur:** Pointer + Länge + Kapazität + Referenzzähler
 
 **Eigenschaften:**
-- `.length` - Buffergroesse (i32)
+- `.length` - Buffergröße (i32)
 - `.capacity` - Allokierte Kapazität (i32)
 
-**Anwendungsfaelle:**
+**Anwendungsfälle:**
 - Die meisten Speicherallokationen
 - Wenn Sicherheit wichtig ist
 - Dynamische Arrays
 
 **Sicherheit:** Grenzenprüfung bei Indexzugriff
 
-**Referenzzaehlung:** Buffer sind intern referenzgezählt. Automatisch freigegeben wenn Scope endet oder Variable neu zugewiesen wird. Verwenden Sie `free()` für fruehe Bereinigung oder langlebige Daten.
+**Referenzzählung:** Buffer sind intern referenzgezählt. Automatisch freigegeben wenn Scope endet oder Variable neu zugewiesen wird. Verwenden Sie `free()` für frühe Bereinigung oder langlebige Daten.
 
 **Beispiele:**
 ```hemlock
@@ -22341,7 +22772,7 @@ buffer(size: i32): buffer
 ```
 
 **Parameter:**
-- `size` - Buffergroesse in Bytes
+- `size` - Buffergröße in Bytes
 
 **Rückgabe:** Buffer-Objekt
 
@@ -22407,7 +22838,7 @@ free(buf);
 
 ### realloc
 
-Aendert Größe von allokiertem Speicher.
+Ändert Größe von allokiertem Speicher.
 
 **Signatur:**
 ```hemlock
@@ -22415,10 +22846,10 @@ realloc(ptr: ptr, new_size: i32): ptr
 ```
 
 **Parameter:**
-- `ptr` - Pointer zur Groessenaenderung
+- `ptr` - Pointer zur Größenänderung
 - `new_size` - Neue Größe in Bytes
 
-**Rückgabe:** Pointer zum vergroesserten Speicher (kann andere Adresse sein)
+**Rückgabe:** Pointer zum vergrößerten Speicher (kann andere Adresse sein)
 
 **Beispiele:**
 ```hemlock
@@ -22435,7 +22866,7 @@ free(p);
 **Verhalten:**
 - Kann Speicher an neue Position verschieben
 - Erhält vorhandene Daten (bis Minimum aus alter/neuer Größe)
-- Alter Pointer ist nach erfolgreichem realloc ungültig (zurueckgegebenen Pointer verwenden)
+- Alter Pointer ist nach erfolgreichem realloc ungültig (zurückgegebenen Pointer verwenden)
 - Wenn new_size kleiner, werden Daten abgeschnitten
 - Gibt `null` bei Allokationsfehler zurück (Original-Pointer bleibt gültig)
 
@@ -22447,7 +22878,7 @@ free(p);
 
 ### memset
 
-Fuellt Speicher mit Byte-Wert.
+Füllt Speicher mit Byte-Wert.
 
 **Signatur:**
 ```hemlock
@@ -22456,8 +22887,8 @@ memset(ptr: ptr, byte: i32, size: i32): null
 
 **Parameter:**
 - `ptr` - Pointer zum Speicher
-- `byte` - Byte-Wert zum Fuellen (0-255)
-- `size` - Anzahl der zu fuellenden Bytes
+- `byte` - Byte-Wert zum Füllen (0-255)
+- `size` - Anzahl der zu füllenden Bytes
 
 **Rückgabe:** `null`
 
@@ -22468,12 +22899,12 @@ let p = alloc(100);
 // Speicher nullen
 memset(p, 0, 100);
 
-// Mit bestimmtem Wert fuellen
+// Mit bestimmtem Wert füllen
 memset(p, 0xFF, 100);
 
 // Buffer initialisieren
 let buf = alloc(256);
-memset(buf, 65, 256);       // Mit 'A' fuellen
+memset(buf, 65, 256);       // Mit 'A' füllen
 
 free(p);
 free(buf);
@@ -22522,7 +22953,7 @@ free(dest);
 **Verhalten:**
 - Kopiert Byte für Byte von src zu dest
 - Keine Grenzenprüfung (unsicher)
-- Ueberlappende Bereiche haben undefiniertes Verhalten (vorsichtig verwenden)
+- Überlappende Bereiche haben undefiniertes Verhalten (vorsichtig verwenden)
 
 ---
 
@@ -22542,7 +22973,7 @@ sizeof(type): i32
 
 **Rückgabe:** Größe in Bytes (i32)
 
-**Typgroessen:**
+**Typgrößen:**
 
 | Typ | Größe (Bytes) |
 |-----|-----------------|
@@ -22568,7 +22999,7 @@ let float_size = sizeof(f64);    // 8
 let byte_size = sizeof(u8);      // 1
 let rune_size = sizeof(rune);    // 4
 
-// Array-Allokationsgroesse berechnen
+// Array-Allokationsgröße berechnen
 let count = 100;
 let total = sizeof(i32) * count; // 400 Bytes
 ```
@@ -22626,7 +23057,7 @@ free(bytes);
 
 ### .length
 
-Gibt Buffergroesse zurück.
+Gibt Buffergröße zurück.
 
 **Typ:** `i32`
 
@@ -22645,7 +23076,7 @@ print(buf2.length);         // 1024
 
 ### .capacity
 
-Gibt Bufferkapazitaet zurück.
+Gibt Bufferkapazität zurück.
 
 **Typ:** `i32`
 
@@ -22713,7 +23144,7 @@ if (p == null) {
 // Mehr Platz benötigt - auf Fehler prüfen
 let new_p = realloc(p, 200);
 if (new_p == null) {
-    // Original-Pointer noch gültig, aufraeumen
+    // Original-Pointer noch gültig, aufräumen
     free(p);
     panic("Realloc fehlgeschlagen");
 }
@@ -22741,7 +23172,7 @@ free(copy);
 
 ---
 
-## Sicherheitsueberlegungen
+## Sicherheitsüberlegungen
 
 **Hemlocks Speicherverwaltung ist UNSICHER by Design:**
 
@@ -22755,7 +23186,7 @@ fn create_buffer() {
     return null;  // Speicher geleakt!
 }
 
-// GUT: Ordnungsgemaesse Bereinigung
+// GUT: Ordnungsgemäße Bereinigung
 fn create_buffer() {
     let p = alloc(1024);
     // ... Speicher verwenden ...
@@ -22775,7 +23206,7 @@ memset(p, 0, 100);  // ABSTURZ: Verwendung von freigegebenem Speicher
 let p2 = alloc(100);
 memset(p2, 0, 100);
 free(p2);
-// p2 nach hier nicht beruehren
+// p2 nach hier nicht berühren
 ```
 
 **3. Doppelte Freigabe**
@@ -22798,18 +23229,18 @@ memset(p, 65, 100);  // ABSTURZ: Schreiben über Allokation hinaus
 
 // GUT: Buffer für Grenzenprüfung verwenden
 let buf = buffer(10);
-// buf[100] = 65;  // FEHLER: Grenzenprüfung schlaegt fehl
+// buf[100] = 65;  // FEHLER: Grenzenprüfung schlägt fehl
 ```
 
-**5. Haengende Pointer**
+**5. Hängende Pointer**
 ```hemlock
-// SCHLECHT: Haengender Pointer
+// SCHLECHT: Hängender Pointer
 let p1 = alloc(100);
 let p2 = p1;
 free(p1);
-memset(p2, 0, 100);  // ABSTURZ: p2 haengt
+memset(p2, 0, 100);  // ABSTURZ: p2 hängt
 
-// GUT: Eigentum sorgfaeltig verfolgen
+// GUT: Eigentum sorgfältig verfolgen
 let p = alloc(100);
 // ... p verwenden ...
 free(p);
@@ -22825,7 +23256,7 @@ memset(p, 0, 1000000000);   // ABSTURZ: p ist null
 // GUT: Immer Allokationsergebnis prüfen
 let p2 = alloc(1000000000);
 if (p2 == null) {
-    panic("Speicher erschoepft");
+    panic("Speicher erschöpft");
 }
 memset(p2, 0, 1000000000);
 free(p2);
@@ -22848,23 +23279,23 @@ free(p2);
 - Sie ein Experte sind
 
 ### `realloc()` verwenden wenn:
-- Allokationen vergroessern/verkleinern
+- Allokationen vergrößern/verkleinern
 - Dynamische Arrays
 - Sie Daten erhalten müssen
 
 ---
 
-## Vollständige Funktionsuebersicht
+## Vollständige Funktionsübersicht
 
 | Funktion  | Signatur                               | Rückgabe | Beschreibung               |
 |-----------|----------------------------------------|-----------|----------------------------|
 | `alloc`   | `(size: i32)`                          | `ptr`     | Roh-Speicher allokieren    |
 | `buffer`  | `(size: i32)`                          | `buffer`  | Sicheren Buffer allokieren |
 | `free`    | `(ptr: ptr \| buffer)`                 | `null`    | Speicher freigeben         |
-| `realloc` | `(ptr: ptr, new_size: i32)`            | `ptr`     | Allokation vergroessern    |
-| `memset`  | `(ptr: ptr, byte: i32, size: i32)`     | `null`    | Speicher fuellen           |
+| `realloc` | `(ptr: ptr, new_size: i32)`            | `ptr`     | Allokation vergrößern    |
+| `memset`  | `(ptr: ptr, byte: i32, size: i32)`     | `null`    | Speicher füllen           |
 | `memcpy`  | `(dest: ptr, src: ptr, size: i32)`     | `null`    | Speicher kopieren          |
-| `sizeof`  | `(type)`                               | `i32`     | Typgroesse in Bytes holen  |
+| `sizeof`  | `(type)`                               | `i32`     | Typgröße in Bytes holen  |
 | `talloc`  | `(type, count: i32)`                   | `ptr`     | Typisiertes Array allokieren |
 
 ---
@@ -22888,11 +23319,11 @@ Vollständige Referenz für Hemlocks String-Typ und alle 19 String-Methoden.
 
 ## Übersicht
 
-Strings in Hemlock sind **UTF-8-kodierte, veraenderbare, heap-allokierte** Sequenzen mit vollstaendiger Unicode-Unterstützung. Alle Operationen arbeiten mit **Codepoints** (Zeichen), nicht Bytes.
+Strings in Hemlock sind **UTF-8-kodierte, veränderbare, heap-allokierte** Sequenzen mit vollständiger Unicode-Unterstützung. Alle Operationen arbeiten mit **Codepoints** (Zeichen), nicht Bytes.
 
 **Hauptmerkmale:**
 - UTF-8-Kodierung (U+0000 bis U+10FFFF)
-- Veraenderbar (kann Zeichen direkt ändern)
+- Veränderbar (kann Zeichen direkt ändern)
 - Codepoint-basierte Indizierung
 - 19 eingebaute Methoden
 - Automatische Verkettung mit `+`-Operator
@@ -23108,7 +23539,7 @@ let pos3 = s.find("l");         // 2 (erstes 'l')
 
 #### contains
 
-Prueft ob String Teilstring enthält.
+Prüft ob String Teilstring enthält.
 
 **Signatur:**
 ```hemlock
@@ -23231,7 +23662,7 @@ let lower2 = mixed.to_lower();  // "hello"
 
 #### starts_with
 
-Prueft ob String mit Präfix beginnt.
+Prüft ob String mit Präfix beginnt.
 
 **Signatur:**
 ```hemlock
@@ -23239,7 +23670,7 @@ string.starts_with(prefix: string): bool
 ```
 
 **Parameter:**
-- `prefix` - Zu pruefendes Präfix
+- `prefix` - Zu prüfendes Präfix
 
 **Rückgabe:** `true` wenn String mit Präfix beginnt, `false` sonst
 
@@ -23254,7 +23685,7 @@ let starts2 = s.starts_with("world"); // false
 
 #### ends_with
 
-Prueft ob String mit Suffix endet.
+Prüft ob String mit Suffix endet.
 
 **Signatur:**
 ```hemlock
@@ -23262,7 +23693,7 @@ string.ends_with(suffix: string): bool
 ```
 
 **Parameter:**
-- `suffix` - Zu pruefendes Suffix
+- `suffix` - Zu prüfendes Suffix
 
 **Rückgabe:** `true` wenn String mit Suffix endet, `false` sonst
 
@@ -23483,7 +23914,7 @@ let buf2 = emoji.to_bytes();
 print(buf2.length);             // 4
 ```
 
-**Hinweis:** Dies ist eine Legacy-Methode. Bevorzugen Sie `.bytes()` für die meisten Anwendungsfaelle.
+**Hinweis:** Dies ist eine Legacy-Methode. Bevorzugen Sie `.bytes()` für die meisten Anwendungsfälle.
 
 ---
 
@@ -23516,7 +23947,7 @@ let num = num_json.deserialize();
 print(num);                     // 42
 ```
 
-**Unterstuetzte Typen:**
+**Unterstützte Typen:**
 - Objekte: `{"key": value}`
 - Arrays: `[1, 2, 3]`
 - Zahlen: `42`, `3.14`
@@ -23530,7 +23961,7 @@ print(num);                     // 42
 
 ## Methoden-Verkettung
 
-String-Methoden können für praegnante Operationen verkettet werden:
+String-Methoden können für prägnante Operationen verkettet werden:
 
 **Beispiele:**
 ```hemlock
@@ -23550,7 +23981,7 @@ let cleaned = "  HELLO  "
 
 ---
 
-## Vollständige Methodenuebersicht
+## Vollständige Methodenübersicht
 
 | Methode        | Signatur                                     | Rückgabe | Beschreibung                          |
 |----------------|----------------------------------------------|-----------|---------------------------------------|
@@ -23609,7 +24040,7 @@ Hemlock verwendet ein **dynamisches Typsystem** mit Laufzeit-Typ-Tags und option
 
 ## Kompilierzeit-Typprüfung (hemlockc)
 
-Der Hemlock-Compiler (`hemlockc`) enthält einen Kompilierzeit-Typchecker der Ihren Code vor der Generierung von ausfuehrbaren Dateien validiert. Dies erkennt Typfehler frueh ohne das Programm ausführen zu müssen.
+Der Hemlock-Compiler (`hemlockc`) enthält einen Kompilierzeit-Typchecker der Ihren Code vor der Generierung von ausführbaren Dateien validiert. Dies erkennt Typfehler früh ohne das Programm ausführen zu müssen.
 
 ### Standardverhalten
 
@@ -23650,7 +24081,7 @@ hemlockc --strict-types program.hml -o program
 
 1. **Typannotationen** - Stellt sicher dass zugewiesene Werte deklarierten Typen entsprechen
 2. **Funktionsaufrufe** - Validiert Argumenttypen gegen Parametertypen
-3. **Rueckgabetypen** - Prueft ob return-Anweisungen deklariertem Rückgabetyp entsprechen
+3. **Rückgabetypen** - Prüft ob return-Anweisungen deklariertem Rückgabetyp entsprechen
 4. **Operatorverwendung** - Verifiziert dass Operanden kompatibel sind
 5. **Eigenschaftszugriff** - Validiert Objektfeldtypen für typisierte Objekte
 
@@ -23838,15 +24269,15 @@ let rune_val: rune = byte;  // 'A'
 
 **Typ:** `string`
 
-**Beschreibung:** UTF-8-kodierter, veraenderbarer, heap-allokierter Text
+**Beschreibung:** UTF-8-kodierter, veränderbarer, heap-allokierter Text
 
 **Kodierung:** UTF-8 (U+0000 bis U+10FFFF)
 
-**Veraenderbarkeit:** Veraenderbar (anders als in den meisten Sprachen)
+**Veränderbarkeit:** Veränderbar (anders als in den meisten Sprachen)
 
 **Eigenschaften:**
 - `.length` - Codepoint-Anzahl (Anzahl der Zeichen)
-- `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgroesse)
+- `.byte_length` - Byte-Anzahl (UTF-8-Kodierungsgröße)
 
 **Literal-Syntax:** Doppelte Anführungszeichen `"text"`
 
@@ -23983,7 +24414,7 @@ free(p);
 **Struktur:** Pointer + Länge + Kapazität
 
 **Eigenschaften:**
-- `.length` - Buffergroesse
+- `.length` - Buffergröße
 - `.capacity` - Allokierte Kapazität
 
 **Beispiele:**
@@ -24008,7 +24439,7 @@ free(b);
 
 **Eigenschaften:**
 - `.path` - Dateipfad (string)
-- `.mode` - Oeffnungsmodus (string)
+- `.mode` - Öffnungsmodus (string)
 - `.closed` - Ob Datei geschlossen (bool)
 
 **Siehe auch:** [Datei-API](#reference-file-api)
@@ -24019,9 +24450,9 @@ free(b);
 
 **Typ:** `task`
 
-**Beschreibung:** Handle für nebenlaeufigen Task
+**Beschreibung:** Handle für nebenläufigen Task
 
-**Siehe auch:** [Nebenlaeufigkeits-API](#reference-concurrency-api)
+**Siehe auch:** [Nebenläufigkeits-API](#reference-concurrency-api)
 
 ---
 
@@ -24031,7 +24462,7 @@ free(b);
 
 **Beschreibung:** Thread-sicherer Kommunikationskanal
 
-**Siehe auch:** [Nebenlaeufigkeits-API](#reference-concurrency-api)
+**Siehe auch:** [Nebenläufigkeits-API](#reference-concurrency-api)
 
 ---
 
@@ -24061,17 +24492,17 @@ print(typeof(multiply)); // "function"
 
 **Typ:** `void`
 
-**Beschreibung:** Abwesenheit eines Rueckgabewertes (interne Verwendung)
+**Beschreibung:** Abwesenheit eines Rückgabewertes (interne Verwendung)
 
 ---
 
 ## Typpromovierungsregeln
 
-Beim Mischen von Typen in Operationen promoviert Hemlock zum "hoeheren" Typ:
+Beim Mischen von Typen in Operationen promoviert Hemlock zum "höheren" Typ:
 
 **Promovierungshierarchie:**
 ```
-f64 (hoechste Präzision)
+f64 (höchste Präzision)
  ↑
 f32
  ↑
@@ -24096,11 +24527,11 @@ i8 (niedrigste)
 1. Float gewinnt immer über Ganzzahl
 2. Größere Größe gewinnt innerhalb gleicher Kategorie (int/uint/float)
 3. Beide Operanden werden zum Ergebnistyp promoviert
-4. **Praezisionserhaltung:** i64/u64 + f32 promoviert zu f64 (nicht f32)
+4. **Präzisionserhaltung:** i64/u64 + f32 promoviert zu f64 (nicht f32)
 
 **Beispiele:**
 ```hemlock
-// Groessenpromovierung
+// Größenpromovierung
 u8 + i32    → i32    // Größere Größe gewinnt
 i32 + i64   → i64    // Größere Größe gewinnt
 u32 + u64   → u64    // Größere Größe gewinnt
@@ -24109,12 +24540,12 @@ u32 + u64   → u64    // Größere Größe gewinnt
 i32 + f32   → f32    // Float gewinnt, f32 ausreichend für i32
 i64 + f32   → f64    // Promoviert zu f64 um i64-Präzision zu erhalten
 i64 + f64   → f64    // Float gewinnt immer
-i8 + f64    → f64    // Float + groesster gewinnt
+i8 + f64    → f64    // Float + größter gewinnt
 ```
 
 **Warum i64 + f32 → f64?**
 
-f32 hat nur eine 24-Bit-Mantisse, die Ganzzahlen größer als 2^24 (16.777.216) nicht praezise darstellen kann. Da i64 Werte bis 2^63 halten kann, würde das Mischen von i64 mit f32 schweren Praezisionsverlust verursachen. Hemlock promoviert stattdessen zu f64 (53-Bit-Mantisse).
+f32 hat nur eine 24-Bit-Mantisse, die Ganzzahlen größer als 2^24 (16.777.216) nicht präzise darstellen kann. Da i64 Werte bis 2^63 halten kann, würde das Mischen von i64 mit f32 schweren Präzisionsverlust verursachen. Hemlock promoviert stattdessen zu f64 (53-Bit-Mantisse).
 
 ---
 
@@ -24122,7 +24553,7 @@ f32 hat nur eine 24-Bit-Mantisse, die Ganzzahlen größer als 2^24 (16.777.216) 
 
 Typannotationen erzwingen Bereichsprüfungen bei Zuweisung:
 
-**Gueltige Zuweisungen:**
+**Gültige Zuweisungen:**
 ```hemlock
 let x: u8 = 255;             // OK
 let y: i8 = 127;             // OK
@@ -24130,7 +24561,7 @@ let a: i64 = 2147483647;     // OK
 let b: u64 = 4294967295;     // OK
 ```
 
-**Ungueltige Zuweisungen (Laufzeitfehler):**
+**Ungültige Zuweisungen (Laufzeitfehler):**
 ```hemlock
 let x: u8 = 256;             // FEHLER: außerhalb des Bereichs
 let y: i8 = 128;             // FEHLER: max ist 127
@@ -24220,7 +24651,7 @@ let s: string = 'H';    // "H"
 
 Hemlock bietet eingebaute Typ-Aliase für häufige Typen:
 
-| Alias     | Tatsaechlicher Typ | Verwendung                 |
+| Alias     | Tatsächlicher Typ | Verwendung                 |
 |-----------|-------------------|----------------------------|
 | `integer` | `i32`             | Allzweck-Ganzzahlen        |
 | `number`  | `f64`             | Allzweck-Gleitkomma        |
@@ -24324,12 +24755,12 @@ fn describe(p: HasName & HasAge & HasEmail) {
 
 ## Zusammenfassungstabelle
 
-| Typ        | Größe   | Veraenderbar | Heap-allokiert | Beschreibung                   |
+| Typ        | Größe   | Veränderbar | Heap-allokiert | Beschreibung                   |
 |------------|-----------|--------------|----------------|--------------------------------|
 | `i8`-`i64` | 1-8 Bytes | Nein         | Nein           | Vorzeichenbehaftete Ganzzahlen |
 | `u8`-`u64` | 1-8 Bytes | Nein         | Nein           | Vorzeichenlose Ganzzahlen      |
-| `f32`      | 4 Bytes   | Nein         | Nein           | Einfach-Praezisions-Float      |
-| `f64`      | 8 Bytes   | Nein         | Nein           | Doppel-Praezisions-Float       |
+| `f32`      | 4 Bytes   | Nein         | Nein           | Einfach-Präzisions-Float      |
+| `f64`      | 8 Bytes   | Nein         | Nein           | Doppel-Präzisions-Float       |
 | `bool`     | 1 Byte    | Nein         | Nein           | Boolean                        |
 | `rune`     | 4 Bytes   | Nein         | Nein           | Unicode-Codepoint              |
 | `string`   | Variabel  | Ja           | Ja             | UTF-8-Text                     |
@@ -24338,7 +24769,7 @@ fn describe(p: HasName & HasAge & HasEmail) {
 | `ptr`      | 8 Bytes   | Nein         | Nein           | Roh-Pointer                    |
 | `buffer`   | Variabel  | Ja           | Ja             | Sicherer Pointer-Wrapper       |
 | `file`     | Opak      | Ja           | Ja             | Dateihandle                    |
-| `task`     | Opak      | Nein         | Ja             | Nebenlaeufiger Task-Handle     |
+| `task`     | Opak      | Nein         | Ja             | Nebenläufiger Task-Handle     |
 | `channel`  | Opak      | Ja           | Ja             | Thread-sicherer Kanal          |
 | `function` | Opak      | Nein         | Ja             | Funktionswert                  |
 | `null`     | 8 Bytes   | Nein         | Nein           | Null-Wert                      |

@@ -657,6 +657,7 @@ ch.close();
 ```hemlock
 let name = read_line();          // Legge riga da stdin (blocca)
 print("Ciao, " + name);
+write("senza nuova riga");       // Stampa senza nuova riga finale
 eprint("Messaggio di errore");   // Stampa su stderr
 
 // read_line() restituisce null su EOF
@@ -701,16 +702,39 @@ print(s.length);       // 6 (conteggio caratteri/rune)
 print(s.byte_length);  // 9 (conteggio byte - emoji è 4 byte UTF-8)
 ```
 
-## Metodi Array (18)
+## Metodi Array (23)
 
 `push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
-`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`
+`slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
+`every`, `some`, `indexOf`, `sort`, `fill`
+
+```hemlock
+// every(predicate) - true se tutti gli elementi soddisfano il predicato
+let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
+
+// some(predicate) - true se un elemento soddisfa il predicato
+let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
+
+// indexOf(value) - trova il primo indice del valore, o -1
+let idx = ["a", "b", "c"].indexOf("b");  // 1
+
+// sort(comparator?) - ordina in-place, comparatore opzionale
+let nums = [3, 1, 4, 1, 5];
+nums.sort();                              // [1, 1, 3, 4, 5]
+nums.sort(fn(a, b) { return b - a; });    // discendente
+
+// fill(value, start?, end?) - riempi con valore
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);        // [0, 0, 0, 0, 0]
+arr.fill(9, 2);     // [0, 0, 9, 9, 9]
+arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
+```
 
 Array tipizzati: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Libreria Standard (40 moduli)
+## Libreria Standard (42 moduli)
 
 Importa con prefisso `@stdlib/`:
 ```hemlock
@@ -756,11 +780,13 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `sqlite` | Database SQLite, query, exec, transazioni |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | Colori e stili ANSI |
+| `termios` | Input terminale raw, rilevamento tasti |
 | `testing` | describe, test, expect |
 | `time` | now, time_ms, sleep, clock |
 | `toml` | Parsing e generazione TOML |
 | `url` | Parsing e manipolazione URL |
 | `uuid` | Generazione UUID |
+| `vector` | Ricerca similarita vettoriale (USearch ANN) |
 | `websocket` | Client WebSocket |
 
 Vedere `stdlib/docs/` per documentazione dettagliata dei moduli.
@@ -855,7 +881,7 @@ hemlock/
 │   │   ├── lsp/          # Language Server Protocol
 │   │   └── bundler/      # Strumenti bundle/package
 ├── runtime/              # Runtime programmi compilati (libhemlock_runtime.a)
-├── stdlib/               # Libreria standard (40 moduli)
+├── stdlib/               # Libreria standard (42 moduli)
 │   └── docs/             # Documentazione moduli
 ├── docs/                 # Documentazione completa
 │   ├── language-guide/   # Tipi, stringhe, array, ecc.
@@ -1065,7 +1091,41 @@ make parity
 
 ## Versione
 
-**v1.8.1** - Release corrente con:
+**v1.9.2** - Release corrente con:
+- **Fix contatore loop unboxed del compilatore** - Corretto un bug critico di codegen dove i contatori di loop ottimizzati (native `int32_t`) venivano usati direttamente come inizializzatori `HmlValue` senza boxing. Il controllo `codegen_is_main_var` impediva erroneamente l'emissione del wrapper di boxing (`hml_val_i32()`) quando una variabile di livello main mascherava un contatore di loop unboxed dentro una funzione modulo/closure. Corregge la compilazione di `@stdlib/collections` e `@stdlib/encoding`.
+- **Dispatch metodo oggetto `clear()`** - Il compilatore ora dispatcha correttamente `.clear()` ai metodi oggetto quando chiamato su tipi non-array. Precedentemente, `.clear()` generava sempre `hml_array_clear()` indipendentemente dal tipo del ricevitore.
+- **Fix shadowing import `exec()`** - L'handler builtin `exec()` del compilatore ora controlla i binding di import e le funzioni locali del modulo prima di dispatchare al builtin exec di sistema. Corregge `@stdlib/sqlite` che esporta la propria funzione `exec()`.
+
+**v1.9.1** - Release precedente con:
+- **Builtin `write()`** - Stampa senza nuova riga finale (`write("hello"); write(" world");` stampa su una riga). Include `fflush(stdout)` per output immediato. Parita completa tra interprete e compilatore.
+- **`slice()` a singolo argomento** - `arr.slice(n)` e `str.slice(n)` ora impostano la fine alla lunghezza di default, corrispondendo al comportamento JS/Python. La forma a due argomenti e invariata.
+- **`join()` su array di rune** - `"hello".chars().join("")` ora produce correttamente `"hello"` invece di `"[object][object]..."`. Abilita inversione idiomatica di stringa: `str.chars().reverse().join("")`.
+- **Coercizione chiavi numeriche HashMap** - Chiavi di tipi numerici diversi ora corrispondono (es., chiave `i32` trovata da lookup `i64`). Precedentemente, il guard `typeof()` in `keys_equal()` rifiutava match cross-type validi.
+- **Miglioramenti HemBench** - Definizioni task corrette (arrotondamento L1-M-02, precisione L2-E-01), stop al leak di output atteso verso task benchmark L5/L6.
+- **Builtin `ptr_read_*` completi** - Aggiunti `ptr_read_i8`, `ptr_read_i16`, `ptr_read_i64`, `ptr_read_u8`, `ptr_read_u16`, `ptr_read_u32`, `ptr_read_u64`, `ptr_read_f32`, `ptr_read_f64`, `ptr_read_ptr` come complemento alle funzioni `ptr_write_*` esistenti. Corretto `ptr_read_i32` per dereferenziazione diretta (era doppia dereferenziazione). Parita completa tra interprete e compilatore.
+- **Caricamento librerie FFI macOS** - `dlopen` ora cerca in `/usr/local/lib` e `/opt/homebrew/lib` come percorsi di fallback su macOS, correggendo errori di libreria non trovata per librerie condivise installate dall'utente (es., libusearch_c).
+- **Fix `@stdlib/vector` USearch v2** - `create_index()` ora chiama `usearch_reserve()` dopo init, correggendo segfault con USearch v2.24+ che richiede pre-allocazione prima di aggiungere vettori.
+
+**v1.9.0** - Release precedente con:
+- **Artefatto release interprete WASM** - Interprete WASM pre-compilato incluso nelle release GitHub per uso browser/Node.js
+- **Fix inlining compilatore** - Corretta corruzione argomenti chiamata annidata e collisione unboxing con contatori loop durante inlining funzione (corregge compilazione hemloco)
+- **Sottrazione puntatori** - Il type checker del compilatore ora permette `ptr - integer` per aritmetica puntatori
+- **Eccezioni `open()` catturabili** - `open()` ora lancia via `hml_throw()` invece di `exit(1)`, abilitando gestione errori try/catch
+- **Fix print/eprint multi-argomento** - Corretto codegen compilatore per `print()` e `eprint()` con argomenti multipli (es., `print("x:", x, y)`)
+- **Fix stringa SSO** - Corretto segfault in `hml_string_append_inplace` durante crescita stringhe usando Small String Optimization
+- **Modulo `@stdlib/termios`** - Input terminale raw cross-platform (Linux/macOS):
+  - `enable_raw_mode()` / `disable_raw_mode()` per pressioni tasto istantanee
+  - `read_key()` / `read_key_timeout(ms)` per lettura singolo tasto
+  - Rilevamento tasti freccia, tasti funzione, tasti controllo
+  - `is_terminal()` per verificare se stdin e un TTY
+  - Documentazione in `stdlib/docs/termios.md`
+- **Prevenzione memory leak** - Correzioni complete che assicurano runtime senza leak:
+  - Valutazione espressioni exception-safe (array, oggetti, chiamate funzione)
+  - Retain/release corretto risultato task su join()
+  - Drain canale su close (rilascia valori bufferizzati)
+  - Cleanup ottimizzatore per constant folding null coalescing
+  - Suite test regressione leak (`make leak-regression`)
+  - Documentazione ownership memoria (`docs/advanced/memory-ownership.md`)
 - **Pattern matching** (espressioni `match`) - Potente destrutturazione e flusso di controllo:
   - Pattern letterali, wildcard e binding variabile
   - Pattern OR (`1 | 2 | 3`)
@@ -1111,11 +1171,11 @@ make parity
 - Sistema tipi unificato con hint ottimizzazione unboxing
 - Sistema tipi completo (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
 - Stringhe UTF-8 con 19 metodi
-- Array con 18 metodi inclusi map/filter/reduce
+- Array con 23 metodi inclusi map/filter/reduce/every/some/indexOf/sort/fill
 - Gestione memoria manuale con `talloc()` e `sizeof()`
 - Async/await con vero parallelismo pthread
 - Operazioni atomiche per programmazione concorrente lock-free
-- 40 moduli stdlib (+ arena, assert, semver, toml, retry, iter, random, shell)
+- 42 moduli stdlib (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
 - FFI per interop C con `export extern fn` per wrapper libreria riutilizzabili
 - Supporto struct FFI nel compilatore (passa struct C per valore)
 - Helper puntatori FFI (`ptr_null`, `ptr_read_*`, `ptr_write_*`)
@@ -1666,6 +1726,141 @@ hemlock/
 ├── Makefile          # Configurazione build
 └── README.md         # README del progetto
 ```
+
+## Build WebAssembly (WASM)
+
+Hemlock puo essere compilato in WebAssembly tramite [Emscripten](https://emscripten.org/), permettendo all'interprete completo di funzionare in un browser web o Node.js.
+
+### Installazione di Emscripten
+
+L'SDK Emscripten (`emsdk`) fornisce il compilatore `emcc` utilizzato per compilare l'interprete WASM.
+
+**Tutte le piattaforme (Linux, macOS, Windows WSL):**
+
+```bash
+# Clone the emsdk repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate the latest SDK
+./emsdk install latest
+./emsdk activate latest
+
+# Add emcc to your PATH (run this in every new terminal, or add to your shell profile)
+source ./emsdk_env.sh
+```
+
+Verifica l'installazione:
+
+```bash
+emcc --version
+```
+
+Dovresti vedere un output come `emcc (Emscripten gcc/clang-like replacement ...) 3.x.x`.
+
+Per istruzioni dettagliate, consulta la [guida introduttiva di Emscripten](https://emscripten.org/docs/getting_started/downloads.html).
+
+**Opzionale: Aggiungere al profilo della shell**
+
+Per evitare di eseguire `source emsdk_env.sh` ogni volta, aggiungilo al tuo profilo della shell:
+
+```bash
+# For bash (~/.bashrc or ~/.bash_profile)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.bashrc
+
+# For zsh (~/.zshrc)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.zshrc
+```
+
+### Dipendenze WASM
+
+Il build WASM ha meno dipendenze rispetto al build nativo. Emscripten fornisce le proprie versioni delle librerie C standard. Le seguenti librerie native **non sono necessarie** (e non sono disponibili) nel build WASM:
+
+| Libreria | Nativa | WASM | Note |
+|---------|--------|------|-------|
+| libffi | Richiesta | Stub | FFI non e disponibile in WASM |
+| OpenSSL | Richiesta | Stub | I builtin crittografici restituiscono errori in WASM |
+| libwebsockets | Opzionale | Stub | Supporto WebSocket non disponibile |
+| zlib | Richiesta | Emscripten la fornisce | Collegata automaticamente con `-sUSE_ZLIB=1` |
+| pthreads | Richiesta | Opzionale | Disponibile con build threaded (richiede SharedArrayBuffer) |
+
+**In breve:** Hai bisogno solo dell'SDK Emscripten installato. Non sono necessarie librerie di sistema aggiuntive per il build WASM.
+
+### Compilare l'Interprete WASM
+
+```bash
+# Build the interpreter as WebAssembly
+make wasm-interpreter
+```
+
+Questo produce due file nella directory `wasm/`:
+
+| File | Descrizione |
+|------|-------------|
+| `wasm/hemlock.js` | Loader JavaScript e codice glue di Emscripten |
+| `wasm/hemlock.wasm` | Modulo binario WebAssembly |
+
+### Esecuzione in Node.js
+
+```bash
+node -- wasm/hemlock.js -e 'print("Hello from WASM!");'
+node -- wasm/hemlock.js examples/fibonacci.hml
+```
+
+### Esecuzione nel Browser
+
+I file WASM devono essere serviti tramite HTTP con il tipo MIME corretto (`application/wasm`). Aprire il file HTML direttamente tramite `file://` non funzionera.
+
+**Usando l'esempio incluso:**
+
+```bash
+make wasm-browser-example
+# Opens http://localhost:8080/examples/wasm-browser/index.html
+```
+
+**O manualmente con Python:**
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/wasm/playground.html
+```
+
+**O manualmente con Node.js:**
+
+```bash
+npx serve .
+# Open the URL shown in the terminal
+```
+
+Vedi `examples/wasm-browser/` per un esempio completo di integrazione browser con un editor di codice interattivo.
+
+### Limitazioni WASM
+
+Alcune funzionalita non sono disponibili nell'ambiente WASM:
+
+- **FFI** - Nessun caricamento di librerie condivise (`dlopen`/`dlsym`)
+- **Crittografia** - Nessun OpenSSL (`sha256`, `md5`, ecc. restituiscono errori)
+- **I/O File** - Nessun accesso al filesystem nativo (solo FS virtuale di Emscripten)
+- **Rete** - Nessun socket raw o client HTTP
+- **Segnali** - Nessuna gestione segnali POSIX
+- **Processi** - Nessun `fork`, `exec` o gestione processi
+- **Threading** - `spawn`/`join`/canali richiedono un build WASM threaded con `SharedArrayBuffer`
+
+Tutte le funzionalita principali del linguaggio funzionano: variabili, funzioni, closure, oggetti, array, pattern matching, annotazioni di tipo, try/catch e la libreria standard completa dei moduli Hemlock puri.
+
+### Compilare Programmi Hemlock in WASM
+
+Oltre ad eseguire l'interprete in WASM, puoi compilare singoli programmi Hemlock in binari WASM standalone usando il backend del compilatore:
+
+```bash
+# Compile a Hemlock program to WASM (requires both hemlockc and Emscripten)
+make wasm-compile FILE=program.hml
+
+# With threading support
+make wasm-compile-threaded FILE=program.hml
+```
+
+Questo usa `hemlockc` per generare codice C, poi Emscripten per compilarlo in WASM.
 
 ## Opzioni di Build
 
@@ -3166,6 +3361,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Funziona con tipi misti
 let mixed = [1, "ciao", true, null];
 print(mixed.join(" | "));  // "1 | ciao | true | null"
+
+// Funziona con array di rune (da chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Concatena con un altro array:
@@ -14456,6 +14656,24 @@ Hemlock fornisce funzioni helper complete per lavorare con puntatori raw. Queste
 | `ptr_read_i32(ptr)` | Leggi i32 attraverso puntatore-a-puntatore (per callback qsort) |
 | `ptr_null()` | Ottieni costante puntatore null |
 
+#### Funzioni di Lettura Puntatore
+
+Leggere valori tipizzati direttamente dalla memoria (complementa `ptr_write_*`).
+
+| Funzione | Descrizione |
+|----------|-------------|
+| `ptr_read_i8(ptr)` | Leggere i8 dal puntatore |
+| `ptr_read_i16(ptr)` | Leggere i16 dal puntatore |
+| `ptr_read_i32(ptr)` | Leggere i32 dal puntatore |
+| `ptr_read_i64(ptr)` | Leggere i64 dal puntatore |
+| `ptr_read_u8(ptr)` | Leggere u8 dal puntatore |
+| `ptr_read_u16(ptr)` | Leggere u16 dal puntatore |
+| `ptr_read_u32(ptr)` | Leggere u32 dal puntatore |
+| `ptr_read_u64(ptr)` | Leggere u64 dal puntatore |
+| `ptr_read_f32(ptr)` | Leggere f32 dal puntatore |
+| `ptr_read_f64(ptr)` | Leggere f64 dal puntatore |
+| `ptr_read_ptr(ptr)` | Leggere puntatore dal puntatore (restituisce null se il valore memorizzato è NULL) |
+
 #### Helper Conversione Buffer
 
 | Funzione | Descrizione |
@@ -21942,6 +22160,45 @@ print({ nome: "Alice" });
 
 ---
 
+### write
+
+Stampa un valore sullo standard output senza newline finale.
+
+**Firma:**
+```hemlock
+write(value: any): null
+```
+
+**Parametri:**
+- `value` - Un valore da stampare
+
+**Restituisce:** `null`
+
+**Esempi:**
+```hemlock
+// Costruire l'output su una singola riga
+write("hello");
+write(" ");
+write("world");
+print("");  // solo il newline
+
+// Stampare una lista collegata in linea
+let parts = [1, 2, 3];
+for (let i = 0; i < parts.length; i++) {
+    if (i > 0) { write(" -> "); }
+    write(parts[i]);
+}
+print("");  // Output: 1 -> 2 -> 3
+```
+
+**Comportamento:**
+- Converte il valore in stringa e lo stampa su stdout
+- NON aggiunge un newline finale
+- Svuota stdout immediatamente
+- Usa `print("")` dopo una serie di chiamate `write()` per aggiungere un newline
+
+---
+
 ### eprint
 
 Stampa valori sullo standard error.
@@ -22439,6 +22696,69 @@ print(risultato2.stderr);
 print(risultato2.code);          // Non-zero se fallimento
 ```
 
+**Comportamento:**
+- Esegue il comando tramite `/bin/sh`
+- Cattura solo stdout (stderr va al terminale)
+- Si blocca fino al completamento del comando
+- Restituisce stringa vuota se nessun output
+
+**Gestione Errori:**
+```hemlock
+try {
+    let r = exec("comando_inesistente");
+} catch (e) {
+    print("Esecuzione fallita:", e);
+}
+```
+
+**Avviso di Sicurezza:** Vulnerabile a shell injection. Validare/sanificare sempre l'input utente.
+
+---
+
+### exec_argv
+
+Esegue un comando con array esplicito di argomenti (senza interpretazione shell).
+
+**Firma:**
+```hemlock
+exec_argv(argv: array): object
+```
+
+**Parametri:**
+- `argv` - Array di stringhe: `[comando, arg1, arg2, ...]`
+
+**Restituisce:** Oggetto con campi:
+- `output` (string) - Stdout del comando
+- `exit_code` (i32) - Codice di stato di uscita (0 = successo)
+
+**Esempi:**
+```hemlock
+// Comando semplice
+let result = exec_argv(["ls", "-la"]);
+print(result.output);
+
+// Comando con argomenti contenenti spazi (sicuro!)
+let r = exec_argv(["grep", "hello world", "file.txt"]);
+
+// Eseguire script con argomenti
+let r2 = exec_argv(["python", "script.py", "--input", "data.json"]);
+print(r2.exit_code);
+```
+
+**Differenza da exec:**
+```hemlock
+// exec() usa la shell - NON SICURO con input utente
+exec("ls " + input_utente);  // Rischio shell injection!
+
+// exec_argv() bypassa la shell - SICURO
+exec_argv(["ls", input_utente]);  // Nessuna injection possibile
+```
+
+**Quando usare:**
+- Quando gli argomenti contengono spazi, virgolette o caratteri speciali
+- Quando si elabora input utente (sicurezza)
+- Quando serve un parsing degli argomenti prevedibile
+
 ---
 
 ### sleep
@@ -22509,36 +22829,45 @@ print("Tempo impiegato:", fine - inizio, "ms");
 
 ---
 
-## Funzioni per i Segnali
+## Gestione dei Segnali
 
 ### signal
 
-Registra un handler per un segnale.
+Registra o resetta un handler di segnale.
 
 **Firma:**
 ```hemlock
-signal(sig: i32, handler: function): null
+signal(signum: i32, handler: function | null): function | null
 ```
 
 **Parametri:**
-- `sig` - Numero del segnale
-- `handler` - Funzione da chiamare al segnale
+- `signum` - Numero del segnale (usa costanti come `SIGINT`)
+- `handler` - Funzione da chiamare quando il segnale viene ricevuto, o `null` per resettare al default
 
-**Restituisce:** `null`
+**Restituisce:** Funzione handler precedente, o `null`
 
 **Esempi:**
 ```hemlock
-signal(SIGINT, fn(sig) {
-    print("Interrotto!");
-    exit(0);
-});
+fn gestisci_interrupt(sig) {
+    print("Catturato SIGINT!");
+}
+
+signal(SIGINT, gestisci_interrupt);
+
+// Resetta al default
+signal(SIGINT, null);
 ```
 
-**Segnali Comuni:**
-- `SIGINT` (2) - Interrupt
-- `SIGTERM` (15) - Terminazione
-- `SIGUSR1` (10) - User-defined 1
-- `SIGUSR2` (12) - User-defined 2
+**Firma dell'Handler:**
+```hemlock
+fn handler(signum: i32) {
+    // signum contiene il numero del segnale
+}
+```
+
+**Vedi Anche:**
+- [Costanti dei segnali](#costanti-dei-segnali)
+- `raise()`
 
 ---
 
@@ -22548,18 +22877,424 @@ Invia un segnale al processo corrente.
 
 **Firma:**
 ```hemlock
-raise(sig: i32): null
+raise(signum: i32): null
 ```
 
 **Parametri:**
-- `sig` - Numero del segnale
+- `signum` - Numero del segnale da inviare
 
 **Restituisce:** `null`
 
 **Esempi:**
 ```hemlock
+let contatore = 0;
+
+fn incrementa(sig) {
+    contatore = contatore + 1;
+}
+
+signal(SIGUSR1, incrementa);
+
 raise(SIGUSR1);
+raise(SIGUSR1);
+print(contatore);  // 2
 ```
+
+---
+
+## Variabili Globali
+
+### args
+
+Array degli argomenti della riga di comando.
+
+**Tipo:** `array` di stringhe
+
+**Struttura:**
+- `args[0]` - Nome file dello script
+- `args[1..n]` - Argomenti della riga di comando
+
+**Esempi:**
+```bash
+# Comando: ./hemlock script.hml hello world
+```
+
+```hemlock
+print(args[0]);        // "script.hml"
+print(args.length);    // 3
+print(args[1]);        // "hello"
+print(args[2]);        // "world"
+
+// Itera sugli argomenti
+let i = 1;
+while (i < args.length) {
+    print("Argomento", i, ":", args[i]);
+    i = i + 1;
+}
+```
+
+**Comportamento nel REPL:** Nel REPL, `args.length` è 0 (array vuoto)
+
+---
+
+## Costanti dei Segnali
+
+Costanti POSIX standard dei segnali (valori i32):
+
+### Interrupt e Terminazione
+
+| Costante   | Valore | Descrizione                              |
+|------------|--------|------------------------------------------|
+| `SIGINT`   | 2      | Interrupt dalla tastiera (Ctrl+C)        |
+| `SIGTERM`  | 15     | Richiesta di terminazione                |
+| `SIGQUIT`  | 3      | Quit dalla tastiera (Ctrl+\)            |
+| `SIGHUP`   | 1      | Hangup rilevato sul terminale            |
+| `SIGABRT`  | 6      | Segnale di abort                         |
+
+### Definiti dall'Utente
+
+| Costante   | Valore | Descrizione              |
+|------------|--------|--------------------------|
+| `SIGUSR1`  | 10     | Segnale definito dall'utente 1 |
+| `SIGUSR2`  | 12     | Segnale definito dall'utente 2 |
+
+### Controllo dei Processi
+
+| Costante   | Valore | Descrizione                          |
+|------------|--------|--------------------------------------|
+| `SIGALRM`  | 14     | Timer dell'allarme                   |
+| `SIGCHLD`  | 17     | Cambio di stato processo figlio      |
+| `SIGCONT`  | 18     | Continua se fermato                  |
+| `SIGSTOP`  | 19     | Ferma processo (non catturabile)     |
+| `SIGTSTP`  | 20     | Stop del terminale (Ctrl+Z)          |
+
+### I/O
+
+| Costante   | Valore | Descrizione                            |
+|------------|--------|----------------------------------------|
+| `SIGPIPE`  | 13     | Pipe interrotto                        |
+| `SIGTTIN`  | 21     | Lettura in background dal terminale    |
+| `SIGTTOU`  | 22     | Scrittura in background sul terminale  |
+
+**Nota:** `SIGKILL` (9) e `SIGSTOP` (19) non possono essere catturati o ignorati.
+
+---
+
+## Funzioni Matematiche/Aritmetiche
+
+### div
+
+Divisione intera che restituisce un float.
+
+**Firma:**
+```hemlock
+div(a: number, b: number): f64
+```
+
+**Parametri:**
+- `a` - Dividendo
+- `b` - Divisore
+
+**Restituisce:** Floor di `a / b` come float (f64)
+
+**Esempi:**
+```hemlock
+let result = div(7, 2);    // 3.0 (non 3.5)
+let result2 = div(10, 3);  // 3.0
+let result3 = div(-7, 2);  // -4.0 (floor arrotonda verso infinito negativo)
+```
+
+**Nota:** In Hemlock, l'operatore `/` restituisce sempre un float. Usa `div()` per la divisione intera quando serve il risultato come float, o `divi()` quando serve un risultato intero.
+
+---
+
+### divi
+
+Divisione intera che restituisce un intero.
+
+**Firma:**
+```hemlock
+divi(a: number, b: number): i64
+```
+
+**Parametri:**
+- `a` - Dividendo
+- `b` - Divisore
+
+**Restituisce:** Floor di `a / b` come intero (i64)
+
+**Esempi:**
+```hemlock
+let result = divi(7, 2);    // 3
+let result2 = divi(10, 3);  // 3
+let result3 = divi(-7, 2);  // -4 (floor arrotonda verso infinito negativo)
+```
+
+**Confronto:**
+```hemlock
+print(7 / 2);      // 3.5 (divisione regolare, sempre float)
+print(div(7, 2));  // 3.0 (divisione intera, risultato float)
+print(divi(7, 2)); // 3   (divisione intera, risultato intero)
+```
+
+---
+
+## Helper per Puntatori FFI
+
+Queste funzioni aiutano a leggere e scrivere valori tipizzati nella memoria grezza, utili per FFI e manipolazione di memoria a basso livello.
+
+### ptr_null
+
+Crea un puntatore nullo.
+
+**Firma:**
+```hemlock
+ptr_null(): ptr
+```
+
+**Restituisce:** Un puntatore nullo
+
+**Esempio:**
+```hemlock
+let p = ptr_null();
+if (p == null) {
+    print("Il puntatore è nullo");
+}
+```
+
+---
+
+### ptr_offset
+
+Calcola l'offset del puntatore (aritmetica dei puntatori).
+
+**Firma:**
+```hemlock
+ptr_offset(ptr: ptr, index: i32, element_size: i32): ptr
+```
+
+**Parametri:**
+- `ptr` - Puntatore base
+- `index` - Indice dell'elemento
+- `element_size` - Dimensione di ogni elemento in byte
+
+**Restituisce:** Puntatore all'elemento all'indice dato
+
+**Esempio:**
+```hemlock
+let arr = talloc(i32, 10);
+ptr_write_i32(arr, 100);                      // arr[0] = 100
+ptr_write_i32(ptr_offset(arr, 1, 4), 200);    // arr[1] = 200
+ptr_write_i32(ptr_offset(arr, 2, 4), 300);    // arr[2] = 300
+
+print(ptr_read_i32(ptr_offset(arr, 1, 4)));   // 200
+free(arr);
+```
+
+---
+
+### Funzioni di Scrittura Puntatore
+
+Scrivi valori tipizzati nella memoria.
+
+| Funzione | Firma | Restituisce | Descrizione |
+|----------|-------|-------------|-------------|
+| `ptr_write_i8` | `(ptr, value)` | `null` | Scrive intero con segno a 8 bit |
+| `ptr_write_i16` | `(ptr, value)` | `null` | Scrive intero con segno a 16 bit |
+| `ptr_write_i32` | `(ptr, value)` | `null` | Scrive intero con segno a 32 bit |
+| `ptr_write_i64` | `(ptr, value)` | `null` | Scrive intero con segno a 64 bit |
+| `ptr_write_u8` | `(ptr, value)` | `null` | Scrive intero senza segno a 8 bit |
+| `ptr_write_u16` | `(ptr, value)` | `null` | Scrive intero senza segno a 16 bit |
+| `ptr_write_u32` | `(ptr, value)` | `null` | Scrive intero senza segno a 32 bit |
+| `ptr_write_u64` | `(ptr, value)` | `null` | Scrive intero senza segno a 64 bit |
+| `ptr_write_f32` | `(ptr, value)` | `null` | Scrive float a 32 bit |
+| `ptr_write_f64` | `(ptr, value)` | `null` | Scrive float a 64 bit |
+| `ptr_write_ptr` | `(ptr, value)` | `null` | Scrive valore puntatore |
+
+**Esempio:**
+```hemlock
+let p = alloc(4);
+ptr_write_i32(p, 42);
+print(ptr_read_i32(p));  // 42
+free(p);
+```
+
+---
+
+### Funzioni di Lettura Puntatore
+
+Leggi valori tipizzati dalla memoria.
+
+| Funzione | Firma | Restituisce | Descrizione |
+|----------|-------|-------------|-------------|
+| `ptr_read_i8` | `(ptr)` | `i8` | Legge intero con segno a 8 bit |
+| `ptr_read_i16` | `(ptr)` | `i16` | Legge intero con segno a 16 bit |
+| `ptr_read_i32` | `(ptr)` | `i32` | Legge intero con segno a 32 bit |
+| `ptr_read_i64` | `(ptr)` | `i64` | Legge intero con segno a 64 bit |
+| `ptr_read_u8` | `(ptr)` | `u8` | Legge intero senza segno a 8 bit |
+| `ptr_read_u16` | `(ptr)` | `u16` | Legge intero senza segno a 16 bit |
+| `ptr_read_u32` | `(ptr)` | `u32` | Legge intero senza segno a 32 bit |
+| `ptr_read_u64` | `(ptr)` | `u64` | Legge intero senza segno a 64 bit |
+| `ptr_read_f32` | `(ptr)` | `f32` | Legge float a 32 bit |
+| `ptr_read_f64` | `(ptr)` | `f64` | Legge float a 64 bit |
+| `ptr_read_ptr` | `(ptr)` | `ptr` | Legge valore puntatore |
+
+**Esempio:**
+```hemlock
+let p = alloc(8);
+ptr_write_f64(p, 3.14159);
+let value = ptr_read_f64(p);
+print(value);  // 3.14159
+free(p);
+```
+
+---
+
+### Conversione Buffer/Puntatore
+
+#### buffer_ptr
+
+Ottiene il puntatore grezzo da un buffer.
+
+**Firma:**
+```hemlock
+buffer_ptr(buf: buffer): ptr
+```
+
+**Esempio:**
+```hemlock
+let buf = buffer(64);
+let p = buffer_ptr(buf);
+// Ora p punta alla stessa memoria di buf
+```
+
+#### ptr_to_buffer
+
+Crea un wrapper buffer attorno a un puntatore grezzo.
+
+**Firma:**
+```hemlock
+ptr_to_buffer(ptr: ptr, size: i32): buffer
+```
+
+**Esempio:**
+```hemlock
+let p = alloc(64);
+let buf = ptr_to_buffer(p, 64);
+buf[0] = 65;  // Ora ha controllo dei limiti
+// Nota: liberare buf libererà la memoria sottostante
+```
+
+---
+
+## Funzioni di Concorrenza
+
+Vedi [API di Concorrenza](#reference-concurrency-api) per il riferimento completo:
+- `spawn(fn, args...)` - Crea task
+- `join(task)` - Attende task
+- `detach(task)` - Detach task
+- `channel(capacity)` - Crea canale
+
+### apply
+
+Chiama una funzione dinamicamente con un array di argomenti.
+
+**Firma:**
+```hemlock
+apply(fn: function, args: array): any
+```
+
+**Parametri:**
+- `fn` - La funzione da chiamare
+- `args` - Array di argomenti da passare alla funzione
+
+**Restituisce:** Il valore di ritorno della funzione chiamata
+
+**Esempi:**
+```hemlock
+fn add(a, b) {
+    return a + b;
+}
+
+// Chiama con array di argomenti
+let result = apply(add, [2, 3]);
+print(result);  // 5
+
+// Dispatch dinamico
+let operazioni = {
+    add: fn(a, b) { return a + b; },
+    mul: fn(a, b) { return a * b; },
+    sub: fn(a, b) { return a - b; }
+};
+
+fn calcola(op: string, args: array) {
+    return apply(operazioni[op], args);
+}
+
+print(calcola("add", [10, 5]));  // 15
+print(calcola("mul", [10, 5]));  // 50
+print(calcola("sub", [10, 5]));  // 5
+```
+
+**Casi d'Uso:**
+- Dispatch dinamico delle funzioni basato su valori runtime
+- Chiamata di funzioni con liste di argomenti variabili
+- Implementazione di utilità di ordine superiore (map, filter, ecc.)
+- Sistemi di plugin/estensione
+
+---
+
+### select
+
+Attende dati da più canali, restituendo quando uno ha dati.
+
+**Firma:**
+```hemlock
+select(channels: array, timeout_ms?: i32): object | null
+```
+
+**Parametri:**
+- `channels` - Array di valori canale
+- `timeout_ms` (opzionale) - Timeout in millisecondi (-1 o omettere per infinito)
+
+**Restituisce:**
+- `{ channel, value }` - Oggetto con il canale che aveva dati e il valore ricevuto
+- `null` - Al timeout
+
+**Esempi:**
+```hemlock
+let ch1 = channel(1);
+let ch2 = channel(1);
+
+// Task produttori
+spawn(fn() {
+    sleep(100);
+    ch1.send("dal canale 1");
+});
+
+spawn(fn() {
+    sleep(50);
+    ch2.send("dal canale 2");
+});
+
+// Attendi il primo messaggio
+let result = select([ch1, ch2]);
+print(result.value);  // "dal canale 2" (arrivato per primo)
+
+// Con timeout
+let result2 = select([ch1, ch2], 1000);  // Attendi fino a 1 secondo
+if (result2 == null) {
+    print("Timeout - nessun dato ricevuto");
+} else {
+    print("Ricevuto:", result2.value);
+}
+```
+
+**Comportamento:**
+- Si blocca finché un canale non ha dati o scade il timeout
+- Restituisce immediatamente se un canale ha già dati
+- Se il canale è chiuso e vuoto, restituisce `{ channel, value: null }`
+- Interroga i canali in ordine (il primo pronto vince)
 
 ---
 
@@ -22667,107 +23402,74 @@ let troncato = i32(3.99);       // f64 a i32 (tronca a 3)
 
 ---
 
-## Costanti
+## Tabella Riassuntiva
 
-### Costanti Booleane
+### Funzioni
 
-| Costante | Tipo   | Valore |
-|----------|--------|--------|
-| `true`   | `bool` | Vero   |
-| `false`  | `bool` | Falso  |
-| `null`   | `null` | Nessun valore |
+| Funzione    | Categoria       | Restituisce  | Descrizione                           |
+|-------------|-----------------|--------------|---------------------------------------|
+| `print`     | I/O             | `null`       | Stampa su stdout                      |
+| `read_line` | I/O             | `string?`    | Legge riga da stdin                   |
+| `eprint`    | I/O             | `null`       | Stampa su stderr                      |
+| `typeof`    | Tipo            | `string`     | Ottiene nome del tipo                 |
+| `exec`      | Comando         | `object`     | Esegue comando shell                  |
+| `exec_argv` | Comando         | `object`     | Esegue con array di argomenti         |
+| `assert`    | Errore          | `null`       | Verifica condizione o termina         |
+| `panic`     | Errore          | `never`      | Errore irrecuperabile (termina)       |
+| `signal`    | Segnale         | `function?`  | Registra handler di segnale           |
+| `raise`     | Segnale         | `null`       | Invia segnale al processo             |
+| `alloc`     | Memoria         | `ptr`        | Alloca memoria grezza                 |
+| `talloc`    | Memoria         | `ptr`        | Allocazione tipizzata                 |
+| `sizeof`    | Memoria         | `i32`        | Dimensione tipo in byte               |
+| `free`      | Memoria         | `null`       | Libera memoria                        |
+| `buffer`    | Memoria         | `buffer`     | Alloca buffer sicuro                  |
+| `memset`    | Memoria         | `null`       | Riempie memoria                       |
+| `memcpy`    | Memoria         | `null`       | Copia memoria                         |
+| `realloc`   | Memoria         | `ptr`        | Ridimensiona allocazione              |
+| `open`      | I/O File        | `file`       | Apre file                             |
+| `spawn`     | Concorrenza     | `task`       | Crea task concorrente                 |
+| `join`      | Concorrenza     | `any`        | Attende risultato task                |
+| `detach`    | Concorrenza     | `null`       | Detach task                           |
+| `channel`   | Concorrenza     | `channel`    | Crea canale di comunicazione          |
+| `select`    | Concorrenza     | `object?`    | Attende su più canali                 |
+| `apply`     | Funzioni        | `any`        | Chiama funzione con array di argomenti|
 
-### Costanti dei Segnali
+### Variabili Globali
 
-| Costante   | Valore | Descrizione     |
-|------------|--------|-----------------|
-| `SIGINT`   | 2      | Interrupt       |
-| `SIGTERM`  | 15     | Terminazione    |
-| `SIGUSR1`  | 10     | User-defined 1  |
-| `SIGUSR2`  | 12     | User-defined 2  |
+| Variabile  | Tipo     | Descrizione                         |
+|------------|----------|-------------------------------------|
+| `args`     | `array`  | Argomenti della riga di comando     |
 
----
+### Costanti
 
-## Riepilogo Completo delle Funzioni
-
-### I/O
-
-| Funzione    | Descrizione                    |
-|-------------|--------------------------------|
-| `print`     | Stampa su stdout               |
-| `eprint`    | Stampa su stderr               |
-| `read_line` | Legge riga da stdin            |
-| `open`      | Apre file                      |
-
-### Memoria
-
-| Funzione  | Descrizione                    |
-|-----------|--------------------------------|
-| `alloc`   | Alloca memoria grezza          |
-| `buffer`  | Alloca buffer sicuro           |
-| `free`    | Libera memoria                 |
-| `realloc` | Ridimensiona memoria           |
-| `memset`  | Riempie memoria                |
-| `memcpy`  | Copia memoria                  |
-| `sizeof`  | Dimensione tipo                |
-| `talloc`  | Alloca array tipizzato         |
-
-### Tipi
-
-| Funzione | Descrizione                    |
-|----------|--------------------------------|
-| `typeof` | Ottiene nome tipo              |
-| `len`    | Ottiene lunghezza              |
-
-### Asserzione
-
-| Funzione | Descrizione                    |
-|----------|--------------------------------|
-| `assert` | Verifica condizione            |
-| `panic`  | Termina con errore             |
-
-### Concorrenza
-
-| Funzione  | Descrizione                    |
-|-----------|--------------------------------|
-| `spawn`   | Crea task                      |
-| `join`    | Attende task                   |
-| `detach`  | Detach task                    |
-| `channel` | Crea canale                    |
-
-### Sistema
-
-| Funzione  | Descrizione                    |
-|-----------|--------------------------------|
-| `exec`    | Esegue comando                 |
-| `sleep`   | Pausa esecuzione               |
-| `exit`    | Termina programma              |
-| `time_ms` | Ottiene tempo                  |
-
-### Segnali
-
-| Funzione | Descrizione                    |
-|----------|--------------------------------|
-| `signal` | Registra handler               |
-| `raise`  | Invia segnale                  |
-
-### FFI
-
-| Funzione  | Descrizione                    |
-|-----------|--------------------------------|
-| `dlopen`  | Apre libreria                  |
-| `dlsym`   | Ottiene simbolo                |
-| `dlcall`  | Chiama funzione                |
-| `dlclose` | Chiude libreria                |
+| Costante   | Tipo  | Categoria | Valore | Descrizione                     |
+|------------|-------|-----------|--------|---------------------------------|
+| `SIGINT`   | `i32` | Segnale   | 2      | Interrupt da tastiera           |
+| `SIGTERM`  | `i32` | Segnale   | 15     | Richiesta di terminazione       |
+| `SIGQUIT`  | `i32` | Segnale   | 3      | Quit da tastiera                |
+| `SIGHUP`   | `i32` | Segnale   | 1      | Hangup                          |
+| `SIGABRT`  | `i32` | Segnale   | 6      | Abort                           |
+| `SIGUSR1`  | `i32` | Segnale   | 10     | Definito dall'utente 1          |
+| `SIGUSR2`  | `i32` | Segnale   | 12     | Definito dall'utente 2          |
+| `SIGALRM`  | `i32` | Segnale   | 14     | Timer dell'allarme              |
+| `SIGCHLD`  | `i32` | Segnale   | 17     | Cambio stato figlio             |
+| `SIGCONT`  | `i32` | Segnale   | 18     | Continua                        |
+| `SIGSTOP`  | `i32` | Segnale   | 19     | Stop (non catturabile)          |
+| `SIGTSTP`  | `i32` | Segnale   | 20     | Stop del terminale              |
+| `SIGPIPE`  | `i32` | Segnale   | 13     | Pipe interrotto                 |
+| `SIGTTIN`  | `i32` | Segnale   | 21     | Lettura terminale in background |
+| `SIGTTOU`  | `i32` | Segnale   | 22     | Scrittura terminale in background|
 
 ---
 
 ## Vedi Anche
 
-- [API della Memoria](#reference-memory-api) - Dettagli gestione memoria
-- [API dei File](#reference-file-api) - Dettagli I/O su file
-- [API di Concorrenza](#reference-concurrency-api) - Dettagli threading
-- [Sistema di Tipi](#reference-type-system) - Informazioni sui tipi
+- [Sistema di Tipi](#reference-type-system) - Tipi e conversioni
+- [API della Memoria](#reference-memory-api) - Funzioni di allocazione memoria
+- [API dei File](#reference-file-api) - Funzioni I/O su file
+- [API di Concorrenza](#reference-concurrency-api) - Funzioni async/concorrenza
+- [API delle Stringhe](#reference-string-api) - Metodi stringa
+- [API degli Array](#reference-array-api) - Metodi array
 
 
 --------------------------------------------------------------------------------
@@ -23306,6 +24008,88 @@ i8 + f64    → f64    // Float + più grande vince
 | `[]` | Indicizzazione |
 | `.` | Accesso campo |
 | `()` | Chiamata funzione |
+
+---
+
+## Comportamento degli Operatori Specifico per Tipo
+
+### Divisione (Sempre Float)
+
+L'operatore `/` restituisce **sempre un float** (f64), indipendentemente dai tipi degli operandi:
+
+```hemlock
+print(10 / 3);             // 3.333... (f64)
+print(5 / 2);              // 2.5 (f64)
+print(10.0 / 4.0);         // 2.5 (f64)
+print(-7 / 3);             // -2.333... (f64)
+```
+
+Questo previene il bug comune di troncamento intero inatteso.
+
+### Divisione Intera (div / divi)
+
+Per la divisione intera (come la divisione intera in altri linguaggi), usa le funzioni `div()` e `divi()`:
+
+```hemlock
+// div(a, b) - divisione intera che restituisce float
+print(div(5, 2));          // 2 (f64)
+print(div(-7, 3));         // -3 (f64)  -- arrotonda verso -infinito
+
+// divi(a, b) - divisione intera che restituisce intero
+print(divi(5, 2));         // 2 (i64)
+print(divi(-7, 3));        // -3 (i64)
+print(typeof(divi(5, 2))); // i64
+```
+
+**Funzioni matematiche che restituiscono interi:**
+Per altre operazioni di arrotondamento che restituiscono interi:
+
+```hemlock
+print(floori(3.7));        // 3 (i64)
+print(ceili(3.2));         // 4 (i64)
+print(roundi(3.5));        // 4 (i64)
+print(trunci(3.9));        // 3 (i64)
+
+// Possono essere usati direttamente come indici di array
+let arr = [10, 20, 30, 40];
+print(arr[floori(1.9)]);   // 20 (indice 1)
+```
+
+### Confronto di Stringhe
+
+Le stringhe vengono confrontate lessicograficamente:
+
+```hemlock
+print("abc" < "def");      // true
+print("apple" > "banana"); // false
+print("hello" == "hello"); // true
+```
+
+### Confronto con Null
+
+```hemlock
+let x = null;
+
+print(x == null);          // true
+print(x != null);          // false
+```
+
+### Errori di Tipo
+
+Alcune operazioni non sono permesse tra tipi incompatibili:
+
+```hemlock
+// ERRORE: Non è possibile usare operatori bit a bit su float
+let x = 3.14 & 2.71;
+
+// ERRORE: Non è possibile usare operatori bit a bit su stringhe
+let y = "hello" & "world";
+
+// OK: Promozione di tipo per aritmetica
+let a: u8 = 10;
+let b: i32 = 20;
+let c = a + b;             // i32 (promosso)
+```
 
 ---
 
