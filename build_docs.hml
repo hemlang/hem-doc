@@ -35,332 +35,304 @@ let SUPPORTED_LANGUAGES = {
     zh: "中文",
     de: "Deutsch",
     es: "Español",
+    fr: "Français",
+    it: "Italiano",
     ja: "日本語",
     pt: "Português"
 };
 
-// Section name translations
-let SECTION_TRANSLATIONS = {
-    zh: {
-        "Language Reference": "语言参考",
-        "Getting Started": "快速入门",
-        "Language Guide": "语言指南",
-        "Advanced Topics": "高级主题",
-        "API Reference": "API 参考",
-        "Design & Philosophy": "设计与理念",
-        "Contributing": "贡献指南",
-        "hpm: Getting Started": "hpm: 快速入门",
-        "hpm: User Guide": "hpm: 用户指南",
-        "hpm: Package Development": "hpm: 包开发",
-        "hpm: Reference": "hpm: 参考",
-        "hpm: Other": "hpm: 其他"
-    },
-    de: {
-        "Language Reference": "Sprachreferenz",
-        "Getting Started": "Erste Schritte",
-        "Language Guide": "Sprachhandbuch",
-        "Advanced Topics": "Fortgeschrittene Themen",
-        "API Reference": "API-Referenz",
-        "Design & Philosophy": "Design & Philosophie",
-        "Contributing": "Mitwirken",
-        "hpm: Getting Started": "hpm: Erste Schritte",
-        "hpm: User Guide": "hpm: Benutzerhandbuch",
-        "hpm: Package Development": "hpm: Paketentwicklung",
-        "hpm: Reference": "hpm: Referenz",
-        "hpm: Other": "hpm: Sonstiges"
-    },
-    es: {
-        "Language Reference": "Referencia del Lenguaje",
-        "Getting Started": "Primeros Pasos",
-        "Language Guide": "Guía del Lenguaje",
-        "Advanced Topics": "Temas Avanzados",
-        "API Reference": "Referencia de API",
-        "Design & Philosophy": "Diseño y Filosofía",
-        "Contributing": "Contribuir",
-        "hpm: Getting Started": "hpm: Primeros Pasos",
-        "hpm: User Guide": "hpm: Guía del Usuario",
-        "hpm: Package Development": "hpm: Desarrollo de Paquetes",
-        "hpm: Reference": "hpm: Referencia",
-        "hpm: Other": "hpm: Otros"
-    },
-    ja: {
-        "Language Reference": "言語リファレンス",
-        "Getting Started": "はじめに",
-        "Language Guide": "言語ガイド",
-        "Advanced Topics": "高度なトピック",
-        "API Reference": "APIリファレンス",
-        "Design & Philosophy": "設計と思想",
-        "Contributing": "コントリビューション",
-        "hpm: Getting Started": "hpm: はじめに",
-        "hpm: User Guide": "hpm: ユーザーガイド",
-        "hpm: Package Development": "hpm: パッケージ開発",
-        "hpm: Reference": "hpm: リファレンス",
-        "hpm: Other": "hpm: その他"
-    },
-    pt: {
-        "Language Reference": "Referência da Linguagem",
-        "Getting Started": "Primeiros Passos",
-        "Language Guide": "Guia da Linguagem",
-        "Advanced Topics": "Tópicos Avançados",
-        "API Reference": "Referência da API",
-        "Design & Philosophy": "Design e Filosofia",
-        "Contributing": "Contribuição",
-        "hpm: Getting Started": "hpm: Primeiros Passos",
-        "hpm: User Guide": "hpm: Guia do Usuário",
-        "hpm: Package Development": "hpm: Desenvolvimento de Pacotes",
-        "hpm: Reference": "hpm: Referência",
-        "hpm: Other": "hpm: Outros"
-    }
-};
+// Section name translations - use bracket notation for keys with spaces
+fn build_section_translations() {
+    let t = {};
 
-// Page title translations
-let TITLE_TRANSLATIONS = {
-    zh: {
-        "Installation": "安装",
-        "Quick Start": "快速开始",
-        "Tutorial": "教程",
-        "Learning Paths": "学习路径",
-        "Syntax": "语法",
-        "Types": "类型",
-        "Functions": "函数",
-        "Arrays": "数组",
-        "Strings": "字符串",
-        "Objects": "对象",
-        "Control Flow": "控制流",
-        "Error Handling": "错误处理",
-        "Modules": "模块",
-        "Memory": "内存管理",
-        "Pattern Matching": "模式匹配",
-        "Runes": "字符(Rune)",
-        "Async Concurrency": "异步与并发",
-        "Atomics": "原子操作",
-        "Bundling Packaging": "打包与发布",
-        "Command Execution": "命令执行",
-        "Command Line Args": "命令行参数",
-        "FFI": "FFI (外部函数接口)",
-        "File IO": "文件 I/O",
-        "Profiling": "性能分析",
-        "Signals": "信号处理",
-        "Array API": "数组 API",
-        "String API": "字符串 API",
-        "File API": "文件 API",
-        "Memory API": "内存 API",
-        "Concurrency API": "并发 API",
-        "Builtins": "内置函数",
-        "Operators": "运算符",
-        "Type System": "类型系统",
-        "Philosophy": "设计理念",
-        "Implementation": "实现细节",
-        "Signature Syntax": "签名语法",
-        "Guidelines": "贡献指南",
-        "Testing": "测试",
-        "Commands": "命令",
-        "Configuration": "配置",
-        "Project Setup": "项目设置",
-        "Troubleshooting": "故障排除",
-        "Creating Packages": "创建包",
-        "Package Spec": "包规范",
-        "Versioning": "版本控制",
-        "Architecture": "架构",
-        "Exit Codes": "退出码"
-    },
-    de: {
-        "Installation": "Installation",
-        "Quick Start": "Schnellstart",
-        "Tutorial": "Tutorial",
-        "Learning Paths": "Lernpfade",
-        "Syntax": "Syntax",
-        "Types": "Typen",
-        "Functions": "Funktionen",
-        "Arrays": "Arrays",
-        "Strings": "Zeichenketten",
-        "Objects": "Objekte",
-        "Control Flow": "Kontrollfluss",
-        "Error Handling": "Fehlerbehandlung",
-        "Modules": "Module",
-        "Memory": "Speicherverwaltung",
-        "Pattern Matching": "Musterabgleich",
-        "Runes": "Runen",
-        "Async Concurrency": "Asynchronität & Nebenläufigkeit",
-        "Atomics": "Atomare Operationen",
-        "Bundling Packaging": "Bündeln & Paketieren",
-        "Command Execution": "Befehlsausführung",
-        "Command Line Args": "Kommandozeilenargumente",
-        "FFI": "FFI (Fremdsprachenschnittstelle)",
-        "File IO": "Datei-I/O",
-        "Profiling": "Profilerstellung",
-        "Signals": "Signalverarbeitung",
-        "Array API": "Array-API",
-        "String API": "String-API",
-        "File API": "Datei-API",
-        "Memory API": "Speicher-API",
-        "Concurrency API": "Nebenläufigkeits-API",
-        "Builtins": "Eingebaute Funktionen",
-        "Operators": "Operatoren",
-        "Type System": "Typsystem",
-        "Philosophy": "Designphilosophie",
-        "Implementation": "Implementierung",
-        "Signature Syntax": "Signatur-Syntax",
-        "Guidelines": "Richtlinien",
-        "Testing": "Testen",
-        "Commands": "Befehle",
-        "Configuration": "Konfiguration",
-        "Project Setup": "Projekteinrichtung",
-        "Troubleshooting": "Fehlerbehebung",
-        "Creating Packages": "Pakete erstellen",
-        "Package Spec": "Paketspezifikation",
-        "Versioning": "Versionierung",
-        "Architecture": "Architektur",
-        "Exit Codes": "Exit-Codes"
-    },
-    es: {
-        "Installation": "Instalación",
-        "Quick Start": "Inicio Rápido",
-        "Tutorial": "Tutorial",
-        "Learning Paths": "Rutas de Aprendizaje",
-        "Syntax": "Sintaxis",
-        "Types": "Tipos",
-        "Functions": "Funciones",
-        "Arrays": "Arreglos",
-        "Strings": "Cadenas",
-        "Objects": "Objetos",
-        "Control Flow": "Flujo de Control",
-        "Error Handling": "Manejo de Errores",
-        "Modules": "Módulos",
-        "Memory": "Gestión de Memoria",
-        "Pattern Matching": "Coincidencia de Patrones",
-        "Runes": "Runas",
-        "Async Concurrency": "Asincronía y Concurrencia",
-        "Atomics": "Operaciones Atómicas",
-        "Bundling Packaging": "Empaquetado y Distribución",
-        "Command Execution": "Ejecución de Comandos",
-        "Command Line Args": "Argumentos de Línea de Comandos",
-        "FFI": "FFI (Interfaz de Funciones Externas)",
-        "File IO": "E/S de Archivos",
-        "Profiling": "Perfilado",
-        "Signals": "Señales",
-        "Array API": "API de Arreglos",
-        "String API": "API de Cadenas",
-        "File API": "API de Archivos",
-        "Memory API": "API de Memoria",
-        "Concurrency API": "API de Concurrencia",
-        "Builtins": "Funciones Integradas",
-        "Operators": "Operadores",
-        "Type System": "Sistema de Tipos",
-        "Philosophy": "Filosofía",
-        "Implementation": "Implementación",
-        "Signature Syntax": "Sintaxis de Firmas",
-        "Guidelines": "Guías de Contribución",
-        "Testing": "Pruebas",
-        "Commands": "Comandos",
-        "Configuration": "Configuración",
-        "Project Setup": "Configuración del Proyecto",
-        "Troubleshooting": "Solución de Problemas",
-        "Creating Packages": "Creación de Paquetes",
-        "Package Spec": "Especificación de Paquetes",
-        "Versioning": "Versionado",
-        "Architecture": "Arquitectura",
-        "Exit Codes": "Códigos de Salida"
-    },
-    ja: {
-        "Installation": "インストール",
-        "Quick Start": "クイックスタート",
-        "Tutorial": "チュートリアル",
-        "Learning Paths": "学習パス",
-        "Syntax": "構文",
-        "Types": "型",
-        "Functions": "関数",
-        "Arrays": "配列",
-        "Strings": "文字列",
-        "Objects": "オブジェクト",
-        "Control Flow": "制御フロー",
-        "Error Handling": "エラー処理",
-        "Modules": "モジュール",
-        "Memory": "メモリ管理",
-        "Pattern Matching": "パターンマッチング",
-        "Runes": "ルーン",
-        "Async Concurrency": "非同期と並行処理",
-        "Atomics": "アトミック操作",
-        "Bundling Packaging": "バンドルとパッケージング",
-        "Command Execution": "コマンド実行",
-        "Command Line Args": "コマンドライン引数",
-        "FFI": "FFI（外部関数インターフェース）",
-        "File IO": "ファイルI/O",
-        "Profiling": "プロファイリング",
-        "Signals": "シグナル処理",
-        "Array API": "配列API",
-        "String API": "文字列API",
-        "File API": "ファイルAPI",
-        "Memory API": "メモリAPI",
-        "Concurrency API": "並行処理API",
-        "Builtins": "組み込み関数",
-        "Operators": "演算子",
-        "Type System": "型システム",
-        "Philosophy": "設計思想",
-        "Implementation": "実装の詳細",
-        "Signature Syntax": "シグネチャ構文",
-        "Guidelines": "ガイドライン",
-        "Testing": "テスト",
-        "Commands": "コマンド",
-        "Configuration": "設定",
-        "Project Setup": "プロジェクトセットアップ",
-        "Troubleshooting": "トラブルシューティング",
-        "Creating Packages": "パッケージの作成",
-        "Package Spec": "パッケージ仕様",
-        "Versioning": "バージョニング",
-        "Architecture": "アーキテクチャ",
-        "Exit Codes": "終了コード"
-    },
-    pt: {
-        "Installation": "Instalação",
-        "Quick Start": "Início Rápido",
-        "Tutorial": "Tutorial",
-        "Learning Paths": "Caminhos de Aprendizado",
-        "Syntax": "Sintaxe",
-        "Types": "Tipos",
-        "Functions": "Funções",
-        "Arrays": "Arrays",
-        "Strings": "Strings",
-        "Objects": "Objetos",
-        "Control Flow": "Fluxo de Controle",
-        "Error Handling": "Tratamento de Erros",
-        "Modules": "Módulos",
-        "Memory": "Gerenciamento de Memória",
-        "Pattern Matching": "Correspondência de Padrões",
-        "Runes": "Runas",
-        "Async Concurrency": "Assincronismo e Concorrência",
-        "Atomics": "Operações Atômicas",
-        "Bundling Packaging": "Empacotamento e Distribuição",
-        "Command Execution": "Execução de Comandos",
-        "Command Line Args": "Argumentos de Linha de Comando",
-        "FFI": "FFI (Interface de Funções Estrangeiras)",
-        "File IO": "E/S de Arquivos",
-        "Profiling": "Perfilamento",
-        "Signals": "Sinais",
-        "Array API": "API de Arrays",
-        "String API": "API de Strings",
-        "File API": "API de Arquivos",
-        "Memory API": "API de Memória",
-        "Concurrency API": "API de Concorrência",
-        "Builtins": "Funções Integradas",
-        "Operators": "Operadores",
-        "Type System": "Sistema de Tipos",
-        "Philosophy": "Filosofia",
-        "Implementation": "Implementação",
-        "Signature Syntax": "Sintaxe de Assinaturas",
-        "Guidelines": "Diretrizes",
-        "Testing": "Testes",
-        "Commands": "Comandos",
-        "Configuration": "Configuração",
-        "Project Setup": "Configuração do Projeto",
-        "Troubleshooting": "Solução de Problemas",
-        "Creating Packages": "Criação de Pacotes",
-        "Package Spec": "Especificação de Pacotes",
-        "Versioning": "Versionamento",
-        "Architecture": "Arquitetura",
-        "Exit Codes": "Códigos de Saída"
-    }
-};
+    let zh = {};
+    zh["Language Reference"] = "语言参考";
+    zh["Getting Started"] = "快速入门";
+    zh["Language Guide"] = "语言指南";
+    zh["Advanced Topics"] = "高级主题";
+    zh["API Reference"] = "API 参考";
+    zh["Design & Philosophy"] = "设计与理念";
+    zh["Contributing"] = "贡献指南";
+    zh["hpm: Getting Started"] = "hpm: 快速入门";
+    zh["hpm: User Guide"] = "hpm: 用户指南";
+    zh["hpm: Package Development"] = "hpm: 包开发";
+    zh["hpm: Reference"] = "hpm: 参考";
+    zh["hpm: Other"] = "hpm: 其他";
+    t.zh = zh;
+
+    let de = {};
+    de["Language Reference"] = "Sprachreferenz";
+    de["Getting Started"] = "Erste Schritte";
+    de["Language Guide"] = "Sprachhandbuch";
+    de["Advanced Topics"] = "Fortgeschrittene Themen";
+    de["API Reference"] = "API-Referenz";
+    de["Design & Philosophy"] = "Design & Philosophie";
+    de["Contributing"] = "Mitwirken";
+    de["hpm: Getting Started"] = "hpm: Erste Schritte";
+    de["hpm: User Guide"] = "hpm: Benutzerhandbuch";
+    de["hpm: Package Development"] = "hpm: Paketentwicklung";
+    de["hpm: Reference"] = "hpm: Referenz";
+    de["hpm: Other"] = "hpm: Sonstiges";
+    t.de = de;
+
+    let es = {};
+    es["Language Reference"] = "Referencia del Lenguaje";
+    es["Getting Started"] = "Primeros Pasos";
+    es["Language Guide"] = "Guía del Lenguaje";
+    es["Advanced Topics"] = "Temas Avanzados";
+    es["API Reference"] = "Referencia de API";
+    es["Design & Philosophy"] = "Diseño y Filosofía";
+    es["Contributing"] = "Contribuir";
+    es["hpm: Getting Started"] = "hpm: Primeros Pasos";
+    es["hpm: User Guide"] = "hpm: Guía del Usuario";
+    es["hpm: Package Development"] = "hpm: Desarrollo de Paquetes";
+    es["hpm: Reference"] = "hpm: Referencia";
+    es["hpm: Other"] = "hpm: Otros";
+    t.es = es;
+
+    let fr = {};
+    fr["Language Reference"] = "Référence du Langage";
+    fr["Getting Started"] = "Prise en Main";
+    fr["Language Guide"] = "Guide du Langage";
+    fr["Advanced Topics"] = "Sujets Avancés";
+    fr["API Reference"] = "Référence API";
+    fr["Design & Philosophy"] = "Conception et Philosophie";
+    fr["Contributing"] = "Contribuer";
+    fr["hpm: Getting Started"] = "hpm : Prise en Main";
+    fr["hpm: User Guide"] = "hpm : Guide Utilisateur";
+    fr["hpm: Package Development"] = "hpm : Développement de Paquets";
+    fr["hpm: Reference"] = "hpm : Référence";
+    fr["hpm: Other"] = "hpm : Autres";
+    t.fr = fr;
+
+    let it = {};
+    it["Language Reference"] = "Riferimento del Linguaggio";
+    it["Getting Started"] = "Primi Passi";
+    it["Language Guide"] = "Guida al Linguaggio";
+    it["Advanced Topics"] = "Argomenti Avanzati";
+    it["API Reference"] = "Riferimento API";
+    it["Design & Philosophy"] = "Design e Filosofia";
+    it["Contributing"] = "Contribuire";
+    it["hpm: Getting Started"] = "hpm: Primi Passi";
+    it["hpm: User Guide"] = "hpm: Guida Utente";
+    it["hpm: Package Development"] = "hpm: Sviluppo Pacchetti";
+    it["hpm: Reference"] = "hpm: Riferimento";
+    it["hpm: Other"] = "hpm: Altro";
+    t.it = it;
+
+    let ja = {};
+    ja["Language Reference"] = "言語リファレンス";
+    ja["Getting Started"] = "はじめに";
+    ja["Language Guide"] = "言語ガイド";
+    ja["Advanced Topics"] = "高度なトピック";
+    ja["API Reference"] = "APIリファレンス";
+    ja["Design & Philosophy"] = "設計と思想";
+    ja["Contributing"] = "コントリビューション";
+    ja["hpm: Getting Started"] = "hpm: はじめに";
+    ja["hpm: User Guide"] = "hpm: ユーザーガイド";
+    ja["hpm: Package Development"] = "hpm: パッケージ開発";
+    ja["hpm: Reference"] = "hpm: リファレンス";
+    ja["hpm: Other"] = "hpm: その他";
+    t.ja = ja;
+
+    let pt = {};
+    pt["Language Reference"] = "Referência da Linguagem";
+    pt["Getting Started"] = "Primeiros Passos";
+    pt["Language Guide"] = "Guia da Linguagem";
+    pt["Advanced Topics"] = "Tópicos Avançados";
+    pt["API Reference"] = "Referência da API";
+    pt["Design & Philosophy"] = "Design e Filosofia";
+    pt["Contributing"] = "Contribuição";
+    pt["hpm: Getting Started"] = "hpm: Primeiros Passos";
+    pt["hpm: User Guide"] = "hpm: Guia do Usuário";
+    pt["hpm: Package Development"] = "hpm: Desenvolvimento de Pacotes";
+    pt["hpm: Reference"] = "hpm: Referência";
+    pt["hpm: Other"] = "hpm: Outros";
+    t.pt = pt;
+
+    return t;
+}
+let SECTION_TRANSLATIONS = build_section_translations();
+
+// Page title translations - use bracket notation for keys with spaces
+fn build_title_translations() {
+    let t = {};
+
+    let zh = {};
+    zh["Installation"] = "安装"; zh["Quick Start"] = "快速开始"; zh["Tutorial"] = "教程";
+    zh["Learning Paths"] = "学习路径"; zh["Syntax"] = "语法"; zh["Types"] = "类型";
+    zh["Functions"] = "函数"; zh["Arrays"] = "数组"; zh["Strings"] = "字符串";
+    zh["Objects"] = "对象"; zh["Control Flow"] = "控制流"; zh["Error Handling"] = "错误处理";
+    zh["Modules"] = "模块"; zh["Memory"] = "内存管理"; zh["Pattern Matching"] = "模式匹配";
+    zh["Runes"] = "字符(Rune)"; zh["Async Concurrency"] = "异步与并发"; zh["Atomics"] = "原子操作";
+    zh["Bundling Packaging"] = "打包与发布"; zh["Command Execution"] = "命令执行";
+    zh["Command Line Args"] = "命令行参数"; zh["Ffi"] = "FFI (外部函数接口)";
+    zh["File Io"] = "文件 I/O"; zh["Profiling"] = "性能分析"; zh["Signals"] = "信号处理";
+    zh["Array API"] = "数组 API"; zh["String API"] = "字符串 API"; zh["File API"] = "文件 API";
+    zh["Memory API"] = "内存 API"; zh["Concurrency API"] = "并发 API"; zh["Builtins"] = "内置函数";
+    zh["Operators"] = "运算符"; zh["Type System"] = "类型系统"; zh["Philosophy"] = "设计理念";
+    zh["Implementation"] = "实现细节"; zh["Signature Syntax"] = "签名语法";
+    zh["Guidelines"] = "贡献指南"; zh["Testing"] = "测试"; zh["Commands"] = "命令";
+    zh["Configuration"] = "配置"; zh["Project Setup"] = "项目设置";
+    zh["Troubleshooting"] = "故障排除"; zh["Creating Packages"] = "创建包";
+    zh["Package Spec"] = "包规范"; zh["Versioning"] = "版本控制";
+    zh["Architecture"] = "架构"; zh["Exit Codes"] = "退出码";
+    t.zh = zh;
+
+    let de = {};
+    de["Installation"] = "Installation"; de["Quick Start"] = "Schnellstart"; de["Tutorial"] = "Tutorial";
+    de["Learning Paths"] = "Lernpfade"; de["Syntax"] = "Syntax"; de["Types"] = "Typen";
+    de["Functions"] = "Funktionen"; de["Arrays"] = "Arrays"; de["Strings"] = "Zeichenketten";
+    de["Objects"] = "Objekte"; de["Control Flow"] = "Kontrollfluss"; de["Error Handling"] = "Fehlerbehandlung";
+    de["Modules"] = "Module"; de["Memory"] = "Speicherverwaltung"; de["Pattern Matching"] = "Musterabgleich";
+    de["Runes"] = "Runen"; de["Async Concurrency"] = "Asynchronität & Nebenläufigkeit";
+    de["Atomics"] = "Atomare Operationen"; de["Bundling Packaging"] = "Bündeln & Paketieren";
+    de["Command Execution"] = "Befehlsausführung"; de["Command Line Args"] = "Kommandozeilenargumente";
+    de["Ffi"] = "FFI (Fremdsprachenschnittstelle)"; de["File Io"] = "Datei-I/O";
+    de["Profiling"] = "Profilerstellung"; de["Signals"] = "Signalverarbeitung";
+    de["Array API"] = "Array-API"; de["String API"] = "String-API"; de["File API"] = "Datei-API";
+    de["Memory API"] = "Speicher-API"; de["Concurrency API"] = "Nebenläufigkeits-API";
+    de["Builtins"] = "Eingebaute Funktionen"; de["Operators"] = "Operatoren";
+    de["Type System"] = "Typsystem"; de["Philosophy"] = "Designphilosophie";
+    de["Implementation"] = "Implementierung"; de["Signature Syntax"] = "Signatur-Syntax";
+    de["Guidelines"] = "Richtlinien"; de["Testing"] = "Testen"; de["Commands"] = "Befehle";
+    de["Configuration"] = "Konfiguration"; de["Project Setup"] = "Projekteinrichtung";
+    de["Troubleshooting"] = "Fehlerbehebung"; de["Creating Packages"] = "Pakete erstellen";
+    de["Package Spec"] = "Paketspezifikation"; de["Versioning"] = "Versionierung";
+    de["Architecture"] = "Architektur"; de["Exit Codes"] = "Exit-Codes";
+    t.de = de;
+
+    let es = {};
+    es["Installation"] = "Instalación"; es["Quick Start"] = "Inicio Rápido"; es["Tutorial"] = "Tutorial";
+    es["Learning Paths"] = "Rutas de Aprendizaje"; es["Syntax"] = "Sintaxis"; es["Types"] = "Tipos";
+    es["Functions"] = "Funciones"; es["Arrays"] = "Arreglos"; es["Strings"] = "Cadenas";
+    es["Objects"] = "Objetos"; es["Control Flow"] = "Flujo de Control";
+    es["Error Handling"] = "Manejo de Errores"; es["Modules"] = "Módulos";
+    es["Memory"] = "Gestión de Memoria"; es["Pattern Matching"] = "Coincidencia de Patrones";
+    es["Runes"] = "Runas"; es["Async Concurrency"] = "Asincronía y Concurrencia";
+    es["Atomics"] = "Operaciones Atómicas"; es["Bundling Packaging"] = "Empaquetado y Distribución";
+    es["Command Execution"] = "Ejecución de Comandos";
+    es["Command Line Args"] = "Argumentos de Línea de Comandos";
+    es["Ffi"] = "FFI (Interfaz de Funciones Externas)"; es["File Io"] = "E/S de Archivos";
+    es["Profiling"] = "Perfilado"; es["Signals"] = "Señales";
+    es["Array API"] = "API de Arreglos"; es["String API"] = "API de Cadenas";
+    es["File API"] = "API de Archivos"; es["Memory API"] = "API de Memoria";
+    es["Concurrency API"] = "API de Concurrencia"; es["Builtins"] = "Funciones Integradas";
+    es["Operators"] = "Operadores"; es["Type System"] = "Sistema de Tipos";
+    es["Philosophy"] = "Filosofía"; es["Implementation"] = "Implementación";
+    es["Signature Syntax"] = "Sintaxis de Firmas"; es["Guidelines"] = "Guías de Contribución";
+    es["Testing"] = "Pruebas"; es["Commands"] = "Comandos"; es["Configuration"] = "Configuración";
+    es["Project Setup"] = "Configuración del Proyecto"; es["Troubleshooting"] = "Solución de Problemas";
+    es["Creating Packages"] = "Creación de Paquetes"; es["Package Spec"] = "Especificación de Paquetes";
+    es["Versioning"] = "Versionado"; es["Architecture"] = "Arquitectura";
+    es["Exit Codes"] = "Códigos de Salida";
+    t.es = es;
+
+    let fr = {};
+    fr["Installation"] = "Installation"; fr["Quick Start"] = "Démarrage Rapide"; fr["Tutorial"] = "Tutoriel";
+    fr["Learning Paths"] = "Parcours d'Apprentissage"; fr["Syntax"] = "Syntaxe"; fr["Types"] = "Types";
+    fr["Functions"] = "Fonctions"; fr["Arrays"] = "Tableaux"; fr["Strings"] = "Chaînes de Caractères";
+    fr["Objects"] = "Objets"; fr["Control Flow"] = "Flux de Contrôle";
+    fr["Error Handling"] = "Gestion des Erreurs"; fr["Modules"] = "Modules";
+    fr["Memory"] = "Gestion de la Mémoire"; fr["Pattern Matching"] = "Filtrage par Motif";
+    fr["Runes"] = "Runes"; fr["Async Concurrency"] = "Asynchronisme et Concurrence";
+    fr["Atomics"] = "Opérations Atomiques"; fr["Bundling Packaging"] = "Empaquetage et Distribution";
+    fr["Command Execution"] = "Exécution de Commandes";
+    fr["Command Line Args"] = "Arguments en Ligne de Commande";
+    fr["Ffi"] = "FFI (Interface de Fonctions Étrangères)"; fr["File Io"] = "E/S de Fichiers";
+    fr["Profiling"] = "Profilage"; fr["Signals"] = "Signaux";
+    fr["Array API"] = "API des Tableaux"; fr["String API"] = "API des Chaînes";
+    fr["File API"] = "API des Fichiers"; fr["Memory API"] = "API Mémoire";
+    fr["Concurrency API"] = "API de Concurrence"; fr["Builtins"] = "Fonctions Intégrées";
+    fr["Operators"] = "Opérateurs"; fr["Type System"] = "Système de Types";
+    fr["Philosophy"] = "Philosophie"; fr["Implementation"] = "Implémentation";
+    fr["Signature Syntax"] = "Syntaxe des Signatures"; fr["Guidelines"] = "Directives";
+    fr["Testing"] = "Tests"; fr["Commands"] = "Commandes"; fr["Configuration"] = "Configuration";
+    fr["Project Setup"] = "Configuration du Projet"; fr["Troubleshooting"] = "Dépannage";
+    fr["Creating Packages"] = "Création de Paquets"; fr["Package Spec"] = "Spécification des Paquets";
+    fr["Versioning"] = "Gestion des Versions"; fr["Architecture"] = "Architecture";
+    fr["Exit Codes"] = "Codes de Sortie";
+    t.fr = fr;
+
+    let it = {};
+    it["Installation"] = "Installazione"; it["Quick Start"] = "Avvio Rapido"; it["Tutorial"] = "Tutorial";
+    it["Learning Paths"] = "Percorsi di Apprendimento"; it["Syntax"] = "Sintassi"; it["Types"] = "Tipi";
+    it["Functions"] = "Funzioni"; it["Arrays"] = "Array"; it["Strings"] = "Stringhe";
+    it["Objects"] = "Oggetti"; it["Control Flow"] = "Flusso di Controllo";
+    it["Error Handling"] = "Gestione degli Errori"; it["Modules"] = "Moduli";
+    it["Memory"] = "Gestione della Memoria"; it["Pattern Matching"] = "Pattern Matching";
+    it["Runes"] = "Rune"; it["Async Concurrency"] = "Async e Concorrenza";
+    it["Atomics"] = "Operazioni Atomiche"; it["Bundling Packaging"] = "Impacchettamento e Distribuzione";
+    it["Command Execution"] = "Esecuzione di Comandi";
+    it["Command Line Args"] = "Argomenti da Riga di Comando";
+    it["Ffi"] = "FFI (Interfaccia Funzioni Esterne)"; it["File Io"] = "I/O su File";
+    it["Profiling"] = "Profilazione"; it["Signals"] = "Segnali";
+    it["Array API"] = "API degli Array"; it["String API"] = "API delle Stringhe";
+    it["File API"] = "API dei File"; it["Memory API"] = "API della Memoria";
+    it["Concurrency API"] = "API di Concorrenza"; it["Builtins"] = "Funzioni Integrate";
+    it["Operators"] = "Operatori"; it["Type System"] = "Sistema di Tipi";
+    it["Philosophy"] = "Filosofia"; it["Implementation"] = "Implementazione";
+    it["Signature Syntax"] = "Sintassi delle Firme"; it["Guidelines"] = "Linee Guida";
+    it["Testing"] = "Test"; it["Commands"] = "Comandi"; it["Configuration"] = "Configurazione";
+    it["Project Setup"] = "Configurazione del Progetto"; it["Troubleshooting"] = "Risoluzione dei Problemi";
+    it["Creating Packages"] = "Creazione di Pacchetti"; it["Package Spec"] = "Specifiche dei Pacchetti";
+    it["Versioning"] = "Versionamento"; it["Architecture"] = "Architettura";
+    it["Exit Codes"] = "Codici di Uscita";
+    t.it = it;
+
+    let ja = {};
+    ja["Installation"] = "インストール"; ja["Quick Start"] = "クイックスタート"; ja["Tutorial"] = "チュートリアル";
+    ja["Learning Paths"] = "学習パス"; ja["Syntax"] = "構文"; ja["Types"] = "型";
+    ja["Functions"] = "関数"; ja["Arrays"] = "配列"; ja["Strings"] = "文字列";
+    ja["Objects"] = "オブジェクト"; ja["Control Flow"] = "制御フロー";
+    ja["Error Handling"] = "エラー処理"; ja["Modules"] = "モジュール";
+    ja["Memory"] = "メモリ管理"; ja["Pattern Matching"] = "パターンマッチング";
+    ja["Runes"] = "ルーン"; ja["Async Concurrency"] = "非同期と並行処理";
+    ja["Atomics"] = "アトミック操作"; ja["Bundling Packaging"] = "バンドルとパッケージング";
+    ja["Command Execution"] = "コマンド実行"; ja["Command Line Args"] = "コマンドライン引数";
+    ja["Ffi"] = "FFI（外部関数インターフェース）"; ja["File Io"] = "ファイルI/O";
+    ja["Profiling"] = "プロファイリング"; ja["Signals"] = "シグナル処理";
+    ja["Array API"] = "配列API"; ja["String API"] = "文字列API"; ja["File API"] = "ファイルAPI";
+    ja["Memory API"] = "メモリAPI"; ja["Concurrency API"] = "並行処理API";
+    ja["Builtins"] = "組み込み関数"; ja["Operators"] = "演算子"; ja["Type System"] = "型システム";
+    ja["Philosophy"] = "設計思想"; ja["Implementation"] = "実装の詳細";
+    ja["Signature Syntax"] = "シグネチャ構文"; ja["Guidelines"] = "ガイドライン";
+    ja["Testing"] = "テスト"; ja["Commands"] = "コマンド"; ja["Configuration"] = "設定";
+    ja["Project Setup"] = "プロジェクトセットアップ"; ja["Troubleshooting"] = "トラブルシューティング";
+    ja["Creating Packages"] = "パッケージの作成"; ja["Package Spec"] = "パッケージ仕様";
+    ja["Versioning"] = "バージョニング"; ja["Architecture"] = "アーキテクチャ";
+    ja["Exit Codes"] = "終了コード";
+    t.ja = ja;
+
+    let pt = {};
+    pt["Installation"] = "Instalação"; pt["Quick Start"] = "Início Rápido"; pt["Tutorial"] = "Tutorial";
+    pt["Learning Paths"] = "Caminhos de Aprendizado"; pt["Syntax"] = "Sintaxe"; pt["Types"] = "Tipos";
+    pt["Functions"] = "Funções"; pt["Arrays"] = "Arrays"; pt["Strings"] = "Strings";
+    pt["Objects"] = "Objetos"; pt["Control Flow"] = "Fluxo de Controle";
+    pt["Error Handling"] = "Tratamento de Erros"; pt["Modules"] = "Módulos";
+    pt["Memory"] = "Gerenciamento de Memória"; pt["Pattern Matching"] = "Correspondência de Padrões";
+    pt["Runes"] = "Runas"; pt["Async Concurrency"] = "Assincronismo e Concorrência";
+    pt["Atomics"] = "Operações Atômicas"; pt["Bundling Packaging"] = "Empacotamento e Distribuição";
+    pt["Command Execution"] = "Execução de Comandos";
+    pt["Command Line Args"] = "Argumentos de Linha de Comando";
+    pt["Ffi"] = "FFI (Interface de Funções Estrangeiras)"; pt["File Io"] = "E/S de Arquivos";
+    pt["Profiling"] = "Perfilamento"; pt["Signals"] = "Sinais";
+    pt["Array API"] = "API de Arrays"; pt["String API"] = "API de Strings";
+    pt["File API"] = "API de Arquivos"; pt["Memory API"] = "API de Memória";
+    pt["Concurrency API"] = "API de Concorrência"; pt["Builtins"] = "Funções Integradas";
+    pt["Operators"] = "Operadores"; pt["Type System"] = "Sistema de Tipos";
+    pt["Philosophy"] = "Filosofia"; pt["Implementation"] = "Implementação";
+    pt["Signature Syntax"] = "Sintaxe de Assinaturas"; pt["Guidelines"] = "Diretrizes";
+    pt["Testing"] = "Testes"; pt["Commands"] = "Comandos"; pt["Configuration"] = "Configuração";
+    pt["Project Setup"] = "Configuração do Projeto"; pt["Troubleshooting"] = "Solução de Problemas";
+    pt["Creating Packages"] = "Criação de Pacotes"; pt["Package Spec"] = "Especificação de Pacotes";
+    pt["Versioning"] = "Versionamento"; pt["Architecture"] = "Arquitetura";
+    pt["Exit Codes"] = "Códigos de Saída";
+    t.pt = pt;
+
+    return t;
+}
+let TITLE_TRANSLATIONS = build_title_translations();
 
 // Page titles by language
 let PAGE_TITLES = {
@@ -368,6 +340,8 @@ let PAGE_TITLES = {
     zh: "Hemlock 语言手册",
     de: "Hemlock-Sprachhandbuch",
     es: "Manual del Lenguaje Hemlock",
+    fr: "Manuel du Langage Hemlock",
+    it: "Manuale del Linguaggio Hemlock",
     ja: "Hemlock言語マニュアル",
     pt: "Manual da Linguagem Hemlock"
 };
@@ -378,6 +352,8 @@ let WELCOME_TITLE_TRANSLATIONS = {
     zh: "欢迎",
     de: "Willkommen",
     es: "Bienvenido",
+    fr: "Bienvenue",
+    it: "Benvenuto",
     ja: "ようこそ",
     pt: "Bem-vindo"
 };
@@ -404,6 +380,10 @@ let CLAUDE_MD_TRANSFORMATIONS = {
     fr: [
         ["Ce document presente les principes fondamentaux de conception pour les assistants IA travaillant avec Hemlock.", "Ce document fournit un apercu de la philosophie de conception de Hemlock et une reference rapide du langage."],
         ["Pour une documentation detaillee, consultez `docs/README.md` et le repertoire `stdlib/docs/`.", "Explorez les autres sections de documentation pour des guides detailles et des references API."]
+    ],
+    it: [
+        ["Questo documento cattura i principi fondamentali di progettazione per gli assistenti AI che lavorano con Hemlock.", "Questo documento fornisce una panoramica della filosofia di design di Hemlock e un riferimento rapido del linguaggio."],
+        ["Per documentazione dettagliata, consultare `docs/README.md` e la directory `stdlib/docs/`.", "Esplora le altre sezioni della documentazione per guide dettagliate e riferimenti API."]
     ],
     ja: [
         ["このドキュメントは、Hemlockを使用するAIアシスタント向けのコア設計原則を記載しています。", "このドキュメントは、Hemlockの設計思想の概要と言語のクイックリファレンスを提供します。"],
