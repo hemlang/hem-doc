@@ -1032,7 +1032,7 @@ fn generate_pages_json(docs: object, sorted_keys: array): string {
 // Generate language switcher options HTML
 fn generate_lang_options(current_lang: string): string {
     let options = [];
-    let langs = ["en", "zh", "de", "es", "ja", "pt"];
+    let langs = ["en", "zh", "de", "es", "fr", "it", "ja", "pt", "ru"];
 
     let i = 0;
     while (i < langs.length) {
