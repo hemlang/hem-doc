@@ -979,8 +979,8 @@ fn generate_nav_html(docs: object, sorted_keys: array): string {
             if (current_section != "") {
                 nav_items.push("</div>");
             }
-            nav_items.push("<div class=\"nav-section\">");
-            nav_items.push("<div class=\"nav-section-title\">" + section + "</div>");
+            nav_items.push("<div class=\"nav-section\" role=\"group\" aria-label=\"" + section + "\">");
+            nav_items.push("<div class=\"nav-section-title\" aria-hidden=\"true\">" + section + "</div>");
             current_section = section;
         } else if (section == "" && current_section != "") {
             nav_items.push("</div>");
@@ -1119,6 +1119,57 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
             }
         }
 
+        /* Skip to content link */
+        .skip-to-content {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--pine);
+            color: white;
+            padding: 0.5rem 1rem;
+            z-index: 10000;
+            font-size: 0.9rem;
+            transition: top 0.2s;
+        }
+
+        .skip-to-content:focus {
+            top: 0;
+        }
+
+        /* Focus visible styles */
+        *:focus-visible {
+            outline: 2px solid var(--sage);
+            outline-offset: 2px;
+        }
+
+        .header *:focus-visible {
+            outline-color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Screen reader only utility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Responsive table wrapper */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table-wrapper table {
+            margin: 0;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
             line-height: 1.7;
@@ -1138,9 +1189,18 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            padding: 0 2rem;
+            padding: 0 1rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
+        }
+
+        @media (max-width: 1023px) {
+            .header {
+                justify-content: flex-start;
+            }
+            .header h1 {
+                display: none;
+            }
         }
 
         .header-logo {
@@ -1227,27 +1287,21 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
 
         /* Mobile Menu Toggle */
         .menu-toggle {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 56px;
-            height: 56px;
-            background: var(--pine);
-            color: white;
+            display: none;
+            background: transparent;
             border: none;
-            border-radius: 50%;
+            color: white;
             font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 0.5rem;
+            margin-right: 0.5rem;
         }
 
-        @media (min-width: 1024px) {
+        @media (max-width: 1023px) {
             .menu-toggle {
-                display: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
         }
 
@@ -1753,34 +1807,39 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
     </style>
 </head>
 <body>
+    <!-- Skip to content link for keyboard users -->
+    <a href=\"#content\" class=\"skip-to-content\">Skip to main content</a>
+
     <!-- Header -->
-    <div class=\"header\">
+    <header class=\"header\" role=\"banner\">
+        <button class=\"menu-toggle\" id=\"menuToggle\" aria-label=\"Toggle navigation menu\" aria-expanded=\"false\">&#9776;</button>
         <img src=\"" + logo_data + "\" alt=\"Hemlock Logo\" class=\"header-logo\">
         <h1>" + page_title + "</h1>
         <!-- Search -->
-        <div class=\"search-container\" id=\"searchContainer\">
-            <svg class=\"search-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
+        <div class=\"search-container\" id=\"searchContainer\" role=\"search\" aria-label=\"Search documentation\">
+            <svg class=\"search-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\">
                 <circle cx=\"11\" cy=\"11\" r=\"8\"></circle>
                 <path d=\"M21 21l-4.35-4.35\"></path>
             </svg>
-            <input type=\"text\" class=\"search-input\" id=\"searchInput\" placeholder=\"Search docs...\" autocomplete=\"off\">
-            <span class=\"search-shortcut\">Ctrl+K</span>
-            <div class=\"search-results\" id=\"searchResults\"></div>
+            <input type=\"text\" class=\"search-input\" id=\"searchInput\" placeholder=\"Search docs...\" autocomplete=\"off\" aria-label=\"Search documentation\" aria-autocomplete=\"list\" aria-controls=\"searchResults\" aria-expanded=\"false\">
+            <span class=\"search-shortcut\" aria-hidden=\"true\">Ctrl+K</span>
+            <div class=\"search-results\" id=\"searchResults\" role=\"listbox\" aria-label=\"Search results\"></div>
+            <div id=\"searchLiveRegion\" class=\"sr-only\" aria-live=\"polite\" aria-atomic=\"true\"></div>
         </div>
-        <button class=\"search-toggle\" id=\"searchToggle\">
-            <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
+        <button class=\"search-toggle\" id=\"searchToggle\" aria-label=\"Toggle search\">
+            <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\">
                 <circle cx=\"11\" cy=\"11\" r=\"8\"></circle>
                 <path d=\"M21 21l-4.35-4.35\"></path>
             </svg>
         </button>
-        <select class=\"lang-switcher\" id=\"langSwitcher\" onchange=\"switchLanguage(this.value)\">
+        <select class=\"lang-switcher\" id=\"langSwitcher\" onchange=\"switchLanguage(this.value)\" aria-label=\"Select language\">
             " + lang_options_html + "
         </select>
-        <button class=\"theme-toggle\" id=\"themeToggle\" title=\"Toggle dark mode\">
-            <svg class=\"moon-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
+        <button class=\"theme-toggle\" id=\"themeToggle\" title=\"Toggle dark mode\" aria-label=\"Toggle dark mode\">
+            <svg class=\"moon-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\">
                 <path d=\"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\"></path>
             </svg>
-            <svg class=\"sun-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\">
+            <svg class=\"sun-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\">
                 <circle cx=\"12\" cy=\"12\" r=\"5\"></circle>
                 <line x1=\"12\" y1=\"1\" x2=\"12\" y2=\"3\"></line>
                 <line x1=\"12\" y1=\"21\" x2=\"12\" y2=\"23\"></line>
@@ -1792,21 +1851,18 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
                 <line x1=\"18.36\" y1=\"5.64\" x2=\"19.78\" y2=\"4.22\"></line>
             </svg>
         </button>
-    </div>
-
-    <!-- Mobile Menu Toggle -->
-    <button class=\"menu-toggle\" id=\"menuToggle\">&#9776;</button>
+    </header>
 
     <!-- Container -->
     <div class=\"container\">
         <!-- Sidebar Navigation -->
-        <nav class=\"sidebar\" id=\"sidebar\">
+        <nav class=\"sidebar\" id=\"sidebar\" aria-label=\"Documentation navigation\">
             " + navigation_html + "
         </nav>
 
         <!-- Main Content -->
-        <main class=\"main-content\">
-            <div class=\"content\" id=\"content\"></div>
+        <main class=\"main-content\" id=\"main-content\">
+            <div class=\"content\" id=\"content\" role=\"article\" aria-label=\"Documentation content\"></div>
         </main>
     </div>
 
@@ -1820,7 +1876,9 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
 
         menuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('open');
-            menuToggle.textContent = sidebar.classList.contains('open') ? '\\u00d7' : '\\u2630';
+            const isOpen = sidebar.classList.contains('open');
+            menuToggle.textContent = isOpen ? '\\u00d7' : '\\u2630';
+            menuToggle.setAttribute('aria-expanded', isOpen);
         });
 
         // Close sidebar when clicking outside on mobile
@@ -1829,6 +1887,7 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
                 if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
                     sidebar.classList.remove('open');
                     menuToggle.textContent = '\\u2630';
+                    menuToggle.setAttribute('aria-expanded', 'false');
                 }
             }
         });
@@ -1932,18 +1991,32 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
 
             function flushTable() {
                 if (inTable && tableRows.length > 0) {
-                    html += '<table>\\n';
+                    html += '<div class=\"table-wrapper\" role=\"region\" aria-label=\"Data table\" tabindex=\"0\"><table>\\n';
+                    let bodyStarted = false;
                     for (let r = 0; r < tableRows.length; r++) {
                         const row = tableRows[r];
                         const isHeader = tableHasHeader && r === 0;
                         const tag = isHeader ? 'th' : 'td';
+                        if (isHeader) {
+                            html += '<thead>\\n';
+                        } else if (tableHasHeader && r === 1 && !bodyStarted) {
+                            html += '<tbody>\\n';
+                            bodyStarted = true;
+                        }
                         html += '<tr>\\n';
                         for (const cell of row) {
-                            html += '<' + tag + '>' + processInlineMarkdown(cell.trim()) + '</' + tag + '>\\n';
+                            const scope = isHeader ? ' scope=\"col\"' : '';
+                            html += '<' + tag + scope + '>' + processInlineMarkdown(cell.trim()) + '</' + tag + '>\\n';
                         }
                         html += '</tr>\\n';
+                        if (isHeader) {
+                            html += '</thead>\\n';
+                        }
                     }
-                    html += '</table>\\n';
+                    if (bodyStarted) {
+                        html += '</tbody>\\n';
+                    }
+                    html += '</table></div>\\n';
                     tableRows = [];
                     inTable = false;
                     tableHasHeader = false;
@@ -1971,11 +2044,11 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
                     if (inCodeBlock) {
                         const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
                         const langDisplay = codeBlockLang || 'code';
-                        const copyIcon = '<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z\" /></svg>';
+                        const copyIcon = '<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z\" /></svg>';
                         html += `<div class=\"code-block\">
                             <div class=\"code-header\">
                                 <span class=\"code-lang\">${langDisplay}</span>
-                                <button class=\"copy-btn\" onclick=\"copyCode('${codeId}')\">${copyIcon}<span>Copy</span></button>
+                                <button class=\"copy-btn\" onclick=\"copyCode('${codeId}')\" aria-label=\"Copy code\">${copyIcon}<span>Copy</span></button>
                             </div>
                             <pre><code id=\"${codeId}\">` + escapeHtml(codeBlockContent) + '</code></pre></div>\\n';
                         codeBlockContent = '';
@@ -2145,18 +2218,25 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
             }
 
             const content = parseMarkdown(pageData.content);
-            document.getElementById('content').innerHTML = content;
+            const contentEl = document.getElementById('content');
+            contentEl.innerHTML = content;
 
-            // Update active nav link
+            // Update active nav link and aria-current
             document.querySelectorAll('.nav-link').forEach(link => {
                 link.classList.remove('active');
+                link.removeAttribute('aria-current');
                 if (link.dataset.page === pageId) {
                     link.classList.add('active');
+                    link.setAttribute('aria-current', 'page');
                 }
             });
 
             // Scroll to top
             window.scrollTo(0, 0);
+
+            // Move focus to content for screen readers
+            contentEl.setAttribute('tabindex', '-1');
+            contentEl.focus({ preventScroll: true });
 
             // Update URL hash
             window.location.hash = pageId;
@@ -2313,8 +2393,11 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
 
         // Render search results
         function renderResults(results, query) {
+            const liveRegion = document.getElementById('searchLiveRegion');
             if (results.length === 0) {
-                searchResults.innerHTML = '<div class=\"search-no-results\">No results found</div>';
+                searchResults.innerHTML = '<div class=\"search-no-results\" role=\"status\">No results found</div>';
+                searchInput.setAttribute('aria-expanded', 'true');
+                if (liveRegion) liveRegion.textContent = 'No results found';
                 return;
             }
 
@@ -2322,9 +2405,11 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
                 const titleHtml = highlightText(result.title, query);
                 const previewHtml = highlightText(result.preview, query);
                 const selectedClass = index === selectedIndex ? ' selected' : '';
+                const ariaSelected = index === selectedIndex ? 'true' : 'false';
+                const resultId = 'search-result-' + index;
 
                 return `
-                    <div class=\"search-result${selectedClass}\" data-index=\"${index}\" data-page=\"${result.pageId}\">
+                    <div class=\"search-result${selectedClass}\" id=\"${resultId}\" role=\"option\" aria-selected=\"${ariaSelected}\" data-index=\"${index}\" data-page=\"${result.pageId}\">
                         ${result.section ? `<div class=\"search-result-section\">${result.section}</div>` : ''}
                         <div class=\"search-result-title\">${titleHtml}</div>
                         ${result.matchedHeading ? `<div class=\"search-result-preview\">${highlightText(result.matchedHeading, query)}</div>` : ''}
@@ -2334,6 +2419,19 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
             }).join('');
 
             searchResults.innerHTML = html;
+            searchInput.setAttribute('aria-expanded', 'true');
+
+            // Update active descendant for screen readers
+            if (selectedIndex >= 0) {
+                searchInput.setAttribute('aria-activedescendant', 'search-result-' + selectedIndex);
+            } else {
+                searchInput.removeAttribute('aria-activedescendant');
+            }
+
+            // Announce result count to screen readers
+            if (liveRegion) {
+                liveRegion.textContent = results.length + ' result' + (results.length === 1 ? '' : 's') + ' found';
+            }
 
             // Add click handlers
             searchResults.querySelectorAll('.search-result').forEach(el => {
@@ -2353,6 +2451,8 @@ fn generate_html(docs: object, logo_data: string, lang: string): string {
         // Hide search results
         function hideResults() {
             searchResults.classList.remove('active');
+            searchInput.setAttribute('aria-expanded', 'false');
+            searchInput.removeAttribute('aria-activedescendant');
             selectedIndex = -1;
         }
 
