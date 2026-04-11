@@ -1102,8 +1102,10 @@ def generate_html(docs, logo_data, lang='en'):
         'de': 'Hemlock-Sprachhandbuch',
         'es': 'Manual del Lenguaje Hemlock',
         'fr': 'Manuel du Langage Hemlock',
+        'it': 'Manuale del Linguaggio Hemlock',
         'ja': 'Hemlock言語マニュアル',
         'pt': 'Manual da Linguagem Hemlock',
+        'ru': 'Справочник языка Hemlock',
     }
     page_title = titles.get(lang, titles['en'])
 
