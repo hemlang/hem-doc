@@ -1,0 +1,181 @@
+name: Check Build Parity (Python vs HML)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'build_docs.py'
+      - 'build_docs.hml'
+      - 'hemlock/**'
+      - 'hpm/**'
+      - 'translations/**'
+      - 'welcome/**'
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parity-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Hemlock
+        run: |
+          # Try to install hemlock; if unavailable, skip HML build
+          if command -v hemlock &> /dev/null; then
+            echo "HEMLOCK_AVAILABLE=true" >> $GITHUB_ENV
+          else
+            echo "::warning::Hemlock interpreter not available - installing from source"
+            # Attempt to build/install hemlock (adjust as needed for your setup)
+            if [ -d "hemlock" ] && [ -f "hemlock/Makefile" ]; then
+              cd hemlock && make install 2>/dev/null && cd ..
+              if command -v hemlock &> /dev/null; then
+                echo "HEMLOCK_AVAILABLE=true" >> $GITHUB_ENV
+              else
+                echo "HEMLOCK_AVAILABLE=false" >> $GITHUB_ENV
+                echo "::warning::Could not install Hemlock - skipping HML parity check"
+              fi
+            else
+              echo "HEMLOCK_AVAILABLE=false" >> $GITHUB_ENV
+              echo "::warning::Hemlock source not found - skipping HML parity check"
+            fi
+          fi
+
+      - name: Build with Python
+        run: |
+          python3 build_docs.py
+          mkdir -p /tmp/py-output
+          cp docs.html /tmp/py-output/
+          cp llms.txt /tmp/py-output/
+          echo "Python build complete: $(wc -c < docs.html) bytes"
+
+      - name: Build with Hemlock
+        if: env.HEMLOCK_AVAILABLE == 'true'
+        run: |
+          # Clean Python output first
+          rm -f docs.html llms.txt
+          hemlock build_docs.hml
+          mkdir -p /tmp/hml-output
+          cp docs.html /tmp/hml-output/
+          cp llms.txt /tmp/hml-output/
+          echo "HML build complete: $(wc -c < docs.html) bytes"
+
+      - name: Compare HTML structure
+        if: env.HEMLOCK_AVAILABLE == 'true'
+        run: |
+          echo "=== File size comparison ==="
+          PY_SIZE=$(wc -c < /tmp/py-output/docs.html)
+          HML_SIZE=$(wc -c < /tmp/hml-output/docs.html)
+          echo "Python docs.html: $PY_SIZE bytes"
+          echo "HML docs.html:    $HML_SIZE bytes"
+
+          # Calculate size difference percentage
+          if [ "$PY_SIZE" -gt 0 ]; then
+            DIFF=$(( (HML_SIZE - PY_SIZE) * 100 / PY_SIZE ))
+            echo "Size difference: ${DIFF}%"
+            if [ "${DIFF#-}" -gt 10 ]; then
+              echo "::warning::HTML output sizes differ by more than 10% (${DIFF}%)"
+            fi
+          fi
+
+          echo ""
+          echo "=== Structural comparison ==="
+
+          # Extract and compare key structural elements
+          extract_structure() {
+            local file=$1
+            # Extract key HTML tags and ARIA attributes for structural comparison
+            grep -oP '<(header|nav|main|div|button|input|select|a)\b[^>]*>' "$file" | \
+              sed 's/id="[^"]*"//g' | \
+              sed 's/data-page="[^"]*"//g' | \
+              sed 's/src="[^"]*"//g' | \
+              sed 's/value="[^"]*"//g' | \
+              sed 's/  */ /g' | \
+              sort > "$file.structure"
+          }
+
+          extract_structure /tmp/py-output/docs.html
+          extract_structure /tmp/hml-output/docs.html
+
+          # Compare ARIA attributes specifically
+          echo "--- ARIA attributes in Python output ---"
+          grep -oP 'aria-[a-z]+="[^"]*"' /tmp/py-output/docs.html | sort | uniq -c | sort -rn | head -20
+          echo ""
+          echo "--- ARIA attributes in HML output ---"
+          grep -oP 'aria-[a-z]+="[^"]*"' /tmp/hml-output/docs.html | sort | uniq -c | sort -rn | head -20
+          echo ""
+
+          # Compare role attributes
+          echo "--- role attributes in Python output ---"
+          grep -oP 'role="[^"]*"' /tmp/py-output/docs.html | sort | uniq -c | sort -rn
+          echo ""
+          echo "--- role attributes in HML output ---"
+          grep -oP 'role="[^"]*"' /tmp/hml-output/docs.html | sort | uniq -c | sort -rn
+          echo ""
+
+          # Check for critical accessibility elements in both
+          echo "=== Accessibility parity check ==="
+          PASS=true
+
+          check_element() {
+            local desc=$1
+            local pattern=$2
+            PY_COUNT=$(grep -c "$pattern" /tmp/py-output/docs.html 2>/dev/null || echo 0)
+            HML_COUNT=$(grep -c "$pattern" /tmp/hml-output/docs.html 2>/dev/null || echo 0)
+            if [ "$PY_COUNT" = "$HML_COUNT" ]; then
+              echo "✅ $desc: Python=$PY_COUNT, HML=$HML_COUNT"
+            else
+              echo "❌ $desc: Python=$PY_COUNT, HML=$HML_COUNT"
+              PASS=false
+            fi
+          }
+
+          check_element "skip-to-content link" 'class="skip-to-content"'
+          check_element "header element" '<header'
+          check_element "role=banner" 'role="banner"'
+          check_element "role=search" 'role="search"'
+          check_element "role=article" 'role="article"'
+          check_element "role=listbox" 'role="listbox"'
+          check_element "aria-label on nav" 'aria-label="Documentation navigation"'
+          check_element "aria-expanded on menu" 'aria-expanded='
+          check_element "aria-hidden on SVGs" 'aria-hidden="true"'
+          check_element "sr-only live region" 'class="sr-only"'
+          check_element "table-wrapper divs" 'class="table-wrapper"'
+
+          echo ""
+          if [ "$PASS" = false ]; then
+            echo "::error::Build parity check FAILED - Python and HML outputs have structural differences"
+            exit 1
+          else
+            echo "✅ All accessibility parity checks passed!"
+          fi
+
+      - name: Compare LLMs.txt
+        if: env.HEMLOCK_AVAILABLE == 'true'
+        run: |
+          echo "=== llms.txt comparison ==="
+          PY_LINES=$(wc -l < /tmp/py-output/llms.txt)
+          HML_LINES=$(wc -l < /tmp/hml-output/llms.txt)
+          echo "Python llms.txt: $PY_LINES lines"
+          echo "HML llms.txt:    $HML_LINES lines"
+
+          if diff -q /tmp/py-output/llms.txt /tmp/hml-output/llms.txt > /dev/null 2>&1; then
+            echo "✅ llms.txt files are identical"
+          else
+            echo "::warning::llms.txt files differ between Python and HML builds"
+            diff --brief /tmp/py-output/llms.txt /tmp/hml-output/llms.txt || true
+            # Show first few differences
+            diff -u /tmp/py-output/llms.txt /tmp/hml-output/llms.txt | head -50 || true
+          fi

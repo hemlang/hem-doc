@@ -1070,8 +1070,8 @@ def generate_html(docs, logo_data, lang='en'):
             section_title = smart_title(section)
             if current_section is not None:  # Not the first section
                 nav_items.append('</div>')
-            nav_items.append(f'<div class="nav-section">')
-            nav_items.append(f'<div class="nav-section-title">{section_title}</div>')
+            nav_items.append(f'<div class="nav-section" role="group" aria-label="{section_title}">')
+            nav_items.append(f'<div class="nav-section-title" aria-hidden="true">{section_title}</div>')
             current_section = section
         elif not section and current_section is not None:
             nav_items.append('</div>')
@@ -1169,6 +1169,33 @@ def generate_html(docs, logo_data, lang='en'):
                 --code-bg: #162626;
                 --accent: #9CAF88;
             }}
+        }}
+
+        /* Skip to content link */
+        .skip-to-content {{
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--pine);
+            color: white;
+            padding: 0.5rem 1rem;
+            z-index: 10000;
+            font-size: 0.9rem;
+            transition: top 0.2s;
+        }}
+
+        .skip-to-content:focus {{
+            top: 0;
+        }}
+
+        /* Focus visible styles */
+        *:focus-visible {{
+            outline: 2px solid var(--sage);
+            outline-offset: 2px;
+        }}
+
+        .header *:focus-visible {{
+            outline-color: rgba(255, 255, 255, 0.8);
         }}
 
         body {{
@@ -1804,23 +1831,50 @@ def generate_html(docs, logo_data, lang='en'):
             background: var(--bg-primary);
             color: var(--text-primary);
         }}
+        /* Screen reader only utility */
+        .sr-only {{
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }}
+
+        /* Responsive table wrapper */
+        .table-wrapper {{
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            -webkit-overflow-scrolling: touch;
+        }}
+
+        .table-wrapper table {{
+            margin: 0;
+        }}
     </style>
 </head>
 <body>
+    <!-- Skip to content link for keyboard users -->
+    <a href="#content" class="skip-to-content">Skip to main content</a>
+
     <!-- Header -->
-    <div class="header">
+    <header class="header" role="banner">
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu" aria-expanded="false">&#9776;</button>
         <img src="{logo_data}" alt="Hemlock Logo" class="header-logo">
         <h1>{page_title}</h1>
         <!-- Search -->
-        <div class="search-container" id="searchContainer">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="search-container" id="searchContainer" role="search" aria-label="Search documentation">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="M21 21l-4.35-4.35"></path>
             </svg>
-            <input type="text" class="search-input" id="searchInput" placeholder="Search docs..." autocomplete="off" aria-label="Search documentation">
-            <span class="search-shortcut">Ctrl+K</span>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search docs..." autocomplete="off" aria-label="Search documentation" aria-autocomplete="list" aria-controls="searchResults" aria-expanded="false">
+            <span class="search-shortcut" aria-hidden="true">Ctrl+K</span>
             <div class="search-results" id="searchResults" role="listbox" aria-label="Search results"></div>
+            <div id="searchLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
         </div>
         <button class="search-toggle" id="searchToggle" aria-label="Toggle search">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -1847,7 +1901,7 @@ def generate_html(docs, logo_data, lang='en'):
                 <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
         </button>
-    </div>
+    </header>
 
     <!-- Container -->
     <div class="container">
@@ -1857,8 +1911,8 @@ def generate_html(docs, logo_data, lang='en'):
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <div class="content" id="content"></div>
+        <main class="main-content" id="main-content">
+            <div class="content" id="content" role="article" aria-label="Documentation content"></div>
         </main>
     </div>
 
@@ -1987,18 +2041,32 @@ def generate_html(docs, logo_data, lang='en'):
 
             function flushTable() {{
                 if (inTable && tableRows.length > 0) {{
-                    html += '<table>\\n';
+                    html += '<div class="table-wrapper" role="region" aria-label="Data table" tabindex="0"><table>\\n';
+                    let bodyStarted = false;
                     for (let r = 0; r < tableRows.length; r++) {{
                         const row = tableRows[r];
                         const isHeader = tableHasHeader && r === 0;
                         const tag = isHeader ? 'th' : 'td';
+                        if (isHeader) {{
+                            html += '<thead>\\n';
+                        }} else if (tableHasHeader && r === 1 && !bodyStarted) {{
+                            html += '<tbody>\\n';
+                            bodyStarted = true;
+                        }}
                         html += '<tr>\\n';
                         for (const cell of row) {{
-                            html += '<' + tag + '>' + processInlineMarkdown(cell.trim()) + '</' + tag + '>\\n';
+                            const scope = isHeader ? ' scope="col"' : '';
+                            html += '<' + tag + scope + '>' + processInlineMarkdown(cell.trim()) + '</' + tag + '>\\n';
                         }}
                         html += '</tr>\\n';
+                        if (isHeader) {{
+                            html += '</thead>\\n';
+                        }}
                     }}
-                    html += '</table>\\n';
+                    if (bodyStarted) {{
+                        html += '</tbody>\\n';
+                    }}
+                    html += '</table></div>\\n';
                     tableRows = [];
                     inTable = false;
                     tableHasHeader = false;
@@ -2200,18 +2268,25 @@ def generate_html(docs, logo_data, lang='en'):
             }}
 
             const content = parseMarkdown(pageData.content);
-            document.getElementById('content').innerHTML = content;
+            const contentEl = document.getElementById('content');
+            contentEl.innerHTML = content;
 
-            // Update active nav link
+            // Update active nav link and aria-current
             document.querySelectorAll('.nav-link').forEach(link => {{
                 link.classList.remove('active');
+                link.removeAttribute('aria-current');
                 if (link.dataset.page === pageId) {{
                     link.classList.add('active');
+                    link.setAttribute('aria-current', 'page');
                 }}
             }});
 
             // Scroll to top
             window.scrollTo(0, 0);
+
+            // Move focus to content for screen readers
+            contentEl.setAttribute('tabindex', '-1');
+            contentEl.focus({{ preventScroll: true }});
 
             // Update URL hash
             window.location.hash = pageId;
@@ -2368,8 +2443,11 @@ def generate_html(docs, logo_data, lang='en'):
 
         // Render search results
         function renderResults(results, query) {{
+            const liveRegion = document.getElementById('searchLiveRegion');
             if (results.length === 0) {{
-                searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
+                searchResults.innerHTML = '<div class="search-no-results" role="status">No results found</div>';
+                searchInput.setAttribute('aria-expanded', 'true');
+                if (liveRegion) liveRegion.textContent = 'No results found';
                 return;
             }}
 
@@ -2377,9 +2455,11 @@ def generate_html(docs, logo_data, lang='en'):
                 const titleHtml = highlightText(result.title, query);
                 const previewHtml = highlightText(result.preview, query);
                 const selectedClass = index === selectedIndex ? ' selected' : '';
+                const ariaSelected = index === selectedIndex ? 'true' : 'false';
+                const resultId = 'search-result-' + index;
 
                 return `
-                    <div class="search-result${{selectedClass}}" data-index="${{index}}" data-page="${{result.pageId}}">
+                    <div class="search-result${{selectedClass}}" id="${{resultId}}" role="option" aria-selected="${{ariaSelected}}" data-index="${{index}}" data-page="${{result.pageId}}">
                         ${{result.section ? `<div class="search-result-section">${{result.section}}</div>` : ''}}
                         <div class="search-result-title">${{titleHtml}}</div>
                         ${{result.matchedHeading ? `<div class="search-result-preview">${{highlightText(result.matchedHeading, query)}}</div>` : ''}}
@@ -2389,6 +2469,19 @@ def generate_html(docs, logo_data, lang='en'):
             }}).join('');
 
             searchResults.innerHTML = html;
+            searchInput.setAttribute('aria-expanded', 'true');
+
+            // Update active descendant for screen readers
+            if (selectedIndex >= 0) {{
+                searchInput.setAttribute('aria-activedescendant', 'search-result-' + selectedIndex);
+            }} else {{
+                searchInput.removeAttribute('aria-activedescendant');
+            }}
+
+            // Announce result count to screen readers
+            if (liveRegion) {{
+                liveRegion.textContent = results.length + ' result' + (results.length === 1 ? '' : 's') + ' found';
+            }}
 
             // Add click handlers
             searchResults.querySelectorAll('.search-result').forEach(el => {{
@@ -2408,6 +2501,8 @@ def generate_html(docs, logo_data, lang='en'):
         // Hide search results
         function hideResults() {{
             searchResults.classList.remove('active');
+            searchInput.setAttribute('aria-expanded', 'false');
+            searchInput.removeAttribute('aria-activedescendant');
             selectedIndex = -1;
         }}
 
