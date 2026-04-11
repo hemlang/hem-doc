@@ -338,6 +338,32 @@ let config = get_config() ?? { default: true };
 
 ---
 
+### Atribuicao de Coalescencia Nula (`??=`)
+
+Atribui a variavel apenas se seu valor atual for null.
+
+| Operador | Nome                           | Exemplo      | Descricao                               |
+|----------|--------------------------------|--------------|-----------------------------------------|
+| `??=`    | Atribuicao coalescencia nula   | `a ??= b`    | Atribui b a 'a' apenas se 'a' for null  |
+
+**Exemplo:**
+```hemlock
+let config = null;
+config ??= { timeout: 30 };    // config agora e { timeout: 30 }
+config ??= { timeout: 60 };    // config nao muda (ja e nao-null)
+
+// Funciona com propriedades
+let obj = { x: null };
+obj.x ??= 42;                  // obj.x agora e 42
+obj.x ??= 99;                  // obj.x continua 42
+
+// Funciona com indices de array
+let arr = [null, 2, 3];
+arr[0] ??= "first";            // arr[0] agora e "first"
+```
+
+---
+
 ### Encadeamento Opcional (`?.`)
 
 Acessa propriedades ou chama metodos com seguranca em valores potencialmente nulos.
@@ -477,7 +503,7 @@ Operadores listados da maior para a menor precedencia:
 | 12          | `&&`                           | E logico                             | Esquerda para direita |
 | 13          | `||`                           | Ou logico                            | Esquerda para direita |
 | 14          | `??`                           | Coalescencia nula                    | Esquerda para direita |
-| 15          | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` | Atribuicao | Direita para esquerda |
+| 15          | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` `??=` | Atribuicao | Direita para esquerda |
 
 ---
 

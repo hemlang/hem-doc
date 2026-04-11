@@ -373,6 +373,32 @@ let total = sizeof(i32) * count; // 400 bytes
 
 ---
 
+## Interoperabilidad Puntero/Buffer
+
+Todos los builtins `ptr_read_*`, `ptr_write_*` y `ptr_deref_*` aceptan tanto tipos `ptr` como `buffer` directamente. Cuando se pasa un buffer, la operacion usa el puntero de datos subyacente del buffer.
+
+```hemlock
+let buf = buffer(16);
+
+// Escribir directamente en un buffer (sin necesidad de extraer ptr primero)
+ptr_write_i32(buf, 42);
+ptr_write_f64(ptr_offset(buffer_ptr(buf), 4), 3.14);
+
+// Leer directamente desde un buffer
+let val = ptr_read_i32(buf);      // 42
+let fval = ptr_deref_i32(buf);    // 42
+
+// Tambien funciona con punteros crudos como antes
+let p = alloc(8);
+ptr_write_i32(p, 99);
+let pval = ptr_read_i32(p);      // 99
+free(p);
+```
+
+Esto elimina la necesidad de llamar `buffer_ptr()` antes de cada operacion de lectura/escritura tipada, haciendo el codigo basado en buffers mas conciso.
+
+---
+
 ### talloc
 
 Asigna array de valores tipados.
@@ -452,6 +478,119 @@ print(buf.capacity);        // 256
 ```
 
 **Nota:** Actualmente, `.length` y `.capacity` son iguales para buffers creados con `buffer()`.
+
+---
+
+## Metodos de Buffer
+
+### .slice
+
+Crea una vista copia-cero en la memoria del buffer. La vista retornada comparte la misma memoria subyacente que el buffer padre -- las modificaciones al original son visibles a traves de la vista y viceversa.
+
+**Firma:**
+```hemlock
+buffer.slice(start: i32, end?: i32): buffer
+```
+
+**Parametros:**
+- `start` - Desplazamiento de byte inicial (basado en 0, inclusivo). Los valores negativos se limitan a 0.
+- `end` - Desplazamiento de byte final (exclusivo). Por defecto es `buffer.length` si se omite. Los valores mas alla de la longitud del buffer se limitan.
+
+**Retorna:** Vista de buffer (copia-cero)
+
+**Ejemplos:**
+```hemlock
+let buf = buffer(10);
+for (let i = 0; i < 10; i++) {
+    buf[i] = i + 65;  // A=65, B=66, ...
+}
+
+// Slice basico
+let view = buf.slice(2, 5);
+print(view.length);    // 3
+print(view[0]);        // 67 (C)
+print(view[1]);        // 68 (D)
+print(view[2]);        // 69 (E)
+
+// Prueba de copia-cero: modificar original es visible a traves de la vista
+buf[3] = 90;           // Cambiar D(68) a Z(90)
+print(view[1]);        // 90 (refleja cambio del padre)
+
+// Slice de un argumento (desde inicio hasta el final)
+let tail = buf.slice(7);
+print(tail.length);    // 3
+
+// Slices encadenados (slice de un slice)
+let inner = view.slice(1, 3);
+print(inner.length);   // 2
+print(inner[0]);       // 90 (Z)
+
+// Slice vacio
+let empty = buf.slice(5, 5);
+print(empty.length);   // 0
+```
+
+**Comportamiento:**
+- Retorna una vista copia-cero -- no se asigna memoria para los datos
+- Las vistas mantienen una referencia al buffer raiz (previene uso despues de liberacion)
+- Los slices encadenados (slice de un slice) rastrean al propietario raiz, no a la vista intermedia
+- La verificacion de limites se realiza relativa al rango de la vista
+- Los valores `start`/`end` fuera de rango se limitan a limites validos
+- **No se puede** llamar `free()` en un buffer vista -- solo el buffer raiz debe liberarse
+- Establezca las vistas a `null` antes de liberar el buffer padre para liberar las referencias
+
+---
+
+## Metodos Tipados de Lectura/Escritura de Buffer
+
+Los buffers proporcionan metodos de lectura y escritura endian-aware para todos los tipos numericos:
+
+### Metodos de Escritura
+
+| Metodo | Firma | Retorna | Descripcion |
+|--------|-------|---------|-------------|
+| `.write_u8` | `(offset: i32, value: u8)` | `null` | Escribir entero sin signo de 8 bits |
+| `.write_i8` | `(offset: i32, value: i8)` | `null` | Escribir entero con signo de 8 bits |
+| `.write_u16_le` | `(offset: i32, value: u16)` | `null` | Escribir u16, little-endian |
+| `.write_u16_be` | `(offset: i32, value: u16)` | `null` | Escribir u16, big-endian |
+| `.write_i16_le` | `(offset: i32, value: i16)` | `null` | Escribir i16, little-endian |
+| `.write_i16_be` | `(offset: i32, value: i16)` | `null` | Escribir i16, big-endian |
+| `.write_u32_le` | `(offset: i32, value: u32)` | `null` | Escribir u32, little-endian |
+| `.write_u32_be` | `(offset: i32, value: u32)` | `null` | Escribir u32, big-endian |
+| `.write_i32_le` | `(offset: i32, value: i32)` | `null` | Escribir i32, little-endian |
+| `.write_i32_be` | `(offset: i32, value: i32)` | `null` | Escribir i32, big-endian |
+| `.write_u64_le` | `(offset: i32, value: u64)` | `null` | Escribir u64, little-endian |
+| `.write_u64_be` | `(offset: i32, value: u64)` | `null` | Escribir u64, big-endian |
+| `.write_i64_le` | `(offset: i32, value: i64)` | `null` | Escribir i64, little-endian |
+| `.write_i64_be` | `(offset: i32, value: i64)` | `null` | Escribir i64, big-endian |
+| `.write_f32_le` | `(offset: i32, value: f32)` | `null` | Escribir f32, little-endian |
+| `.write_f32_be` | `(offset: i32, value: f32)` | `null` | Escribir f32, big-endian |
+| `.write_f64_le` | `(offset: i32, value: f64)` | `null` | Escribir f64, little-endian |
+| `.write_f64_be` | `(offset: i32, value: f64)` | `null` | Escribir f64, big-endian |
+| `.write_bytes` | `(offset: i32, src: buffer)` | `null` | Copiar bytes del buffer fuente |
+
+### Metodos de Lectura
+
+| Metodo | Firma | Retorna | Descripcion |
+|--------|-------|---------|-------------|
+| `.read_u8` | `(offset: i32)` | `u8` | Leer entero sin signo de 8 bits |
+| `.read_i8` | `(offset: i32)` | `i8` | Leer entero con signo de 8 bits |
+| `.read_u16_le` | `(offset: i32)` | `u16` | Leer u16, little-endian |
+| `.read_u16_be` | `(offset: i32)` | `u16` | Leer u16, big-endian |
+| `.read_i16_le` | `(offset: i32)` | `i16` | Leer i16, little-endian |
+| `.read_i16_be` | `(offset: i32)` | `i16` | Leer i16, big-endian |
+| `.read_u32_le` | `(offset: i32)` | `u32` | Leer u32, little-endian |
+| `.read_u32_be` | `(offset: i32)` | `u32` | Leer u32, big-endian |
+| `.read_i32_le` | `(offset: i32)` | `i32` | Leer i32, little-endian |
+| `.read_i32_be` | `(offset: i32)` | `i32` | Leer i32, big-endian |
+| `.read_u64_le` | `(offset: i32)` | `u64` | Leer u64, little-endian |
+| `.read_u64_be` | `(offset: i32)` | `u64` | Leer u64, big-endian |
+| `.read_i64_le` | `(offset: i32)` | `i64` | Leer i64, little-endian |
+| `.read_i64_be` | `(offset: i32)` | `i64` | Leer i64, big-endian |
+| `.read_f32_le` | `(offset: i32)` | `f32` | Leer f32, little-endian |
+| `.read_f32_be` | `(offset: i32)` | `f32` | Leer f32, big-endian |
+| `.read_f64_le` | `(offset: i32)` | `f64` | Leer f64, little-endian |
+| `.read_f64_be` | `(offset: i32)` | `f64` | Leer f64, big-endian |
 
 ---
 
@@ -660,6 +799,12 @@ free(p2);
 | `memcpy`  | `(dest: ptr, src: ptr, size: i32)`     | `null`   | Copiar memoria             |
 | `sizeof`  | `(type)`                               | `i32`    | Obtener tamano de tipo en bytes |
 | `talloc`  | `(type, count: i32)`                   | `ptr`    | Asignar array tipado       |
+
+### Metodos de Buffer
+
+| Metodo    | Firma                              | Retorna  | Descripcion                     |
+|-----------|------------------------------------|----------|---------------------------------|
+| `.slice`  | `(start: i32, end?: i32)`         | `buffer` | Vista copia-cero en el buffer   |
 
 ---
 

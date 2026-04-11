@@ -336,6 +336,34 @@ fn get_config() { return null; }
 let config = get_config() ?? { default: true };
 ```
 
+### Asignacion de Coalescencia Null (`??=`)
+
+Asigna a la variable solo si su valor actual es null.
+
+| Operador | Nombre                       | Ejemplo      | Descripcion                          |
+|----------|------------------------------|--------------|--------------------------------------|
+| `??=`    | Asignacion coalescencia null | `a ??= b`    | Asignar b a a solo si a es null      |
+
+**Ejemplos:**
+```hemlock
+let config = null;
+config ??= { timeout: 30 };    // config is now { timeout: 30 }
+config ??= { timeout: 60 };    // config unchanged (not null)
+
+// Works with properties and indices
+let obj = { name: null };
+obj.name ??= "Anonymous";      // obj.name is now "Anonymous"
+obj.name ??= "Other";          // obj.name unchanged
+
+let arr = [null, 2, 3];
+arr[0] ??= "first";            // arr[0] is now "first"
+```
+
+**Comportamiento:**
+- Evalua el lado derecho solo si el izquierdo es null
+- Util para inicializacion perezosa y valores por defecto
+- Se combina bien con `??` para cadenas de respaldo
+
 ---
 
 ### Encadenamiento Opcional (`?.`)

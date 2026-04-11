@@ -124,6 +124,47 @@ let r3 = join(t3);
 
 ---
 
+### spawn_with
+
+Cria e inicia uma nova tarefa concorrente com opcoes de configuracao por thread.
+
+**Assinatura:**
+```hemlock
+spawn_with(options: object, async_fn: function, ...args): task
+```
+
+**Parametros:**
+- `options` - Objeto de configuracao com campos opcionais:
+  - `stack_size` - Tamanho da pilha em bytes para a nova thread (padrao: 16 MB)
+  - `name` - String de nome da thread (maximo 16 caracteres)
+- `async_fn` - Funcao assincrona a executar
+- `...args` - Argumentos a passar para a funcao
+
+**Retorna:** Handle de tarefa
+
+**Exemplo:**
+```hemlock
+async fn compute(n: i32): i32 {
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+        sum = sum + i;
+    }
+    return sum;
+}
+
+// Spawn com pilha grande (4 MB) para recursao profunda
+let t = spawn_with({ stack_size: 4194304, name: "worker" }, compute, 1000000);
+let result = join(t);
+print(result);
+```
+
+**Comportamento:**
+- Igual a `spawn()`, mas permite configurar tamanho de pilha e nome da thread
+- Util para tarefas com recursao profunda que precisam de pilha maior
+- Nome da thread e visivel em ferramentas de depuracao do SO
+
+---
+
 ### join
 
 Aguarda a conclusao de uma tarefa e obtem seu resultado.
@@ -623,6 +664,7 @@ let parallel_time = get_time() - start2;
 | Funcao    | Assinatura                            | Retorna   | Descricao                           |
 |-----------|---------------------------------------|-----------|-------------------------------------|
 | `spawn`   | `(async_fn: function, ...args)`       | `task`    | Cria e inicia tarefa concorrente    |
+| `spawn_with` | `(options: object, async_fn: function, ...args)` | `task` | Cria tarefa com configuracao de thread |
 | `join`    | `(task: task)`                        | `any`     | Aguarda tarefa, obtem resultado     |
 | `detach`  | `(task: task)`                        | `null`    | Desanexa tarefa (fire-and-forget)   |
 | `channel` | `(capacity: i32)`                     | `channel` | Cria canal thread-safe              |

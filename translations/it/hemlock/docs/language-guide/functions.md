@@ -892,11 +892,90 @@ create_user("Eve", age: 21);          // OK
 - Funziona con i parametri predefiniti/opzionali
 - I nomi di parametro sconosciuti causano errori a runtime
 
+## Funzioni con Corpo Espressione
+
+Per funzioni con un singolo corpo espressione, usa la sintassi freccia (`=>`):
+
+```hemlock
+// Funzione con nome e corpo espressione
+fn double(x: i32): i32 => x * 2;
+fn max(a: i32, b: i32): i32 => a > b ? a : b;
+fn greet(name: string): string => "Ciao, " + name + "!";
+
+// Funzione anonima con corpo espressione
+let square = fn(x: i32): i32 => x * x;
+let isEven = fn(n: i32): bool => n % 2 == 0;
+```
+
+**Regole:**
+- La sintassi `=>` sostituisce il corpo `{ return ...; }`
+- Il tipo di ritorno è opzionale (come le funzioni normali)
+- Funziona sia con funzioni con nome che anonime
+
+**Ottimo per le operazioni sugli array:**
+```hemlock
+let nums = [1, 2, 3, 4, 5];
+let doubled = nums.map(fn(x) => x * 2);
+let evens = nums.filter(fn(x) => x % 2 == 0);
+```
+
+---
+
+## Parametri Ref (Passaggio per Riferimento)
+
+Il modificatore `ref` passa un riferimento alla variabile del chiamante, permettendo alla funzione di modificarla direttamente:
+
+### Parametri Ref di Base
+
+```hemlock
+fn increment(ref x: i32) {
+    x = x + 1;  // Modifica la variabile originale
+}
+
+let count = 10;
+increment(count);
+print(count);  // 11 - l'originale è stato modificato
+```
+
+### Pattern Swap
+
+```hemlock
+fn swap(ref a: i32, ref b: i32) {
+    let temp = a;
+    a = b;
+    b = temp;
+}
+
+let x = 1;
+let y = 2;
+swap(x, y);
+print(x, y);  // 2 1
+```
+
+### Mescolare Parametri Ref e Regolari
+
+```hemlock
+fn add_to(ref target: i32, amount: i32) {
+    target = target + amount;
+}
+
+let total = 100;
+add_to(total, 50);
+print(total);  // 150
+```
+
+### Regole per i Parametri Ref
+
+- I parametri `ref` devono ricevere variabili, non letterali o espressioni
+- Funziona con tutti i tipi (primitivi, array, oggetti)
+- Combina con annotazioni di tipo: `ref x: i32`
+- Non può combinarsi con `const` (sono opposti)
+- Senza `ref`, i primitivi sono passati per valore (copiati)
+
 ## Limitazioni
 
 Limitazioni attuali da conoscere:
 
-- **Nessun passaggio per riferimento** - Parola chiave `ref` analizzata ma non implementata
 - **Nessun overloading di funzione** - Una funzione per nome
 - **Nessuna ottimizzazione della ricorsione in coda** - Ricorsione profonda limitata dalla dimensione dello stack
 

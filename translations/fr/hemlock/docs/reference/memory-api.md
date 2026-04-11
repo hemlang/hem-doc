@@ -451,11 +451,181 @@ let buf = buffer(256);
 print(buf.capacity);        // 256
 ```
 
-**Note :** Actuellement, `.length` et `.capacity` sont identiques pour les buffers créés avec `buffer()`.
+**Note :** Actuellement, `.length` et `.capacity` sont identiques pour les buffers crees avec `buffer()`.
 
 ---
 
-## Modèles d'utilisation
+## Interoperabilite Pointeur/Buffer
+
+Tous les builtins `ptr_read_*`, `ptr_write_*` et `ptr_deref_*` acceptent directement les types `ptr` et `buffer`. Quand un buffer est passe, l'operation utilise le pointeur de donnees sous-jacent du buffer.
+
+```hemlock
+let buf = buffer(16);
+
+// Ecrire directement dans un buffer (pas besoin d'extraire le ptr d'abord)
+ptr_write_i32(buf, 42);
+ptr_write_f64(ptr_offset(buffer_ptr(buf), 4), 3.14);
+
+// Lire directement depuis un buffer
+let val = ptr_read_i32(buf);      // 42
+let fval = ptr_deref_i32(buf);    // 42
+
+// Fonctionne aussi avec les pointeurs bruts comme avant
+let p = alloc(8);
+ptr_write_i32(p, 99);
+let pval = ptr_read_i32(p);      // 99
+free(p);
+```
+
+Cela elimine le besoin d'appeler `buffer_ptr()` avant chaque operation de lecture/ecriture typee, rendant le code base sur les buffers plus concis.
+
+---
+
+## Methodes de buffer
+
+### .slice
+
+Cree une vue zero-copie dans la memoire du buffer. La vue retournee partage la meme memoire sous-jacente que le buffer parent -- les modifications de l'original sont visibles a travers la vue et vice versa.
+
+**Signature :**
+```hemlock
+buffer.slice(start: i32, end?: i32): buffer
+```
+
+**Parametres :**
+- `start` - Offset d'octet de depart (base 0, inclusif). Les valeurs negatives sont bornees a 0.
+- `end` - Offset d'octet de fin (exclusif). Par defaut `buffer.length` si omis. Les valeurs au-dela de la longueur du buffer sont bornees.
+
+**Retourne :** Vue de buffer (zero-copie)
+
+**Exemples :**
+```hemlock
+let buf = buffer(10);
+for (let i = 0; i < 10; i++) {
+    buf[i] = i + 65;  // A=65, B=66, ...
+}
+
+// Slice basique
+let view = buf.slice(2, 5);
+print(view.length);    // 3
+print(view[0]);        // 67 (C)
+print(view[1]);        // 68 (D)
+print(view[2]);        // 69 (E)
+
+// Preuve zero-copie : modifier l'original est visible a travers la vue
+buf[3] = 90;           // Changer D(68) en Z(90)
+print(view[1]);        // 90 (reflete le changement du parent)
+
+// Slice a un argument (debut jusqu'a la fin)
+let tail = buf.slice(7);
+print(tail.length);    // 3
+
+// Slices chainees (slice d'un slice)
+let inner = view.slice(1, 3);
+print(inner.length);   // 2
+print(inner[0]);       // 90 (Z)
+
+// Slice vide
+let empty = buf.slice(5, 5);
+print(empty.length);   // 0
+```
+
+**Comportement :**
+- Retourne une vue zero-copie -- aucune memoire n'est allouee pour les donnees
+- Les vues conservent une reference au buffer racine (empeche l'utilisation apres liberation)
+- Les slices chainces (slice d'un slice) suivent le proprietaire racine, pas la vue intermediaire
+- La verification des limites est effectuee relativement a la plage de la vue
+- Les valeurs `start`/`end` hors plage sont bornees aux limites valides
+- Vous **ne pouvez pas** `free()` un buffer vue -- seul le buffer racine doit etre libere
+- Mettez les vues a `null` avant de liberer le buffer parent pour relacher les references
+
+---
+
+## Methodes de lecture/ecriture typees de buffer
+
+Les buffers fournissent des methodes de lecture et ecriture typees sensibles a l'endianness pour construire et parser des structures de donnees binaires comme les paquets reseau, les formats de fichier et les protocoles filaires. Ces methodes sont verifiees aux limites et levent des erreurs d'execution en cas d'acces hors limites.
+
+### Methodes d'ecriture
+
+Ecrit une valeur typee a un offset d'octets. Les suffixes `_le` et `_be` specifient l'ordre d'octets little-endian et big-endian respectivement.
+
+```hemlock
+let pkt = buffer(64);
+let offset = 0;
+
+// Construire un en-tete de paquet
+pkt.write_u16_be(offset, 0x0800);    // EtherType: IPv4
+offset += 2;
+pkt.write_u8(offset, 0x45);          // Version + IHL
+offset += 1;
+pkt.write_u8(offset, 0x00);          // DSCP/ECN
+offset += 1;
+pkt.write_u16_be(offset, 40);        // Longueur totale
+offset += 2;
+pkt.write_u32_be(offset, 0xC0A80001); // IP source : 192.168.0.1
+offset += 4;
+
+// Valeurs flottantes
+pkt.write_f32_le(offset, 3.14);
+offset += 4;
+pkt.write_f64_be(offset, 2.71828);
+offset += 8;
+```
+
+**Les ecritures mono-octet** (`write_u8`, `write_i8`) n'ont pas de suffixe d'endianness car l'ordre des octets n'est pas pertinent pour un seul octet.
+
+### Methodes de lecture
+
+Lit une valeur typee depuis un offset d'octets. Les suffixes d'endianness correspondent aux methodes d'ecriture.
+
+```hemlock
+let pkt = buffer(64);
+// ... remplir le buffer avec des donnees ...
+
+// Parser un en-tete de paquet
+let ether_type = pkt.read_u16_be(0);    // 0x0800
+let version = pkt.read_u8(2);            // 0x45
+let total_len = pkt.read_u16_be(4);      // 40
+let src_ip = pkt.read_u32_be(6);         // 0xC0A80001
+
+// Lire des valeurs flottantes
+let pi = pkt.read_f32_le(10);
+let e = pkt.read_f64_be(14);
+```
+
+### Operations en masse
+
+```hemlock
+let src = buffer(8);
+for (let i = 0; i < 8; i++) { src[i] = i + 1; }
+
+let dest = buffer(32);
+dest.write_bytes(4, src);          // Copier src dans dest a l'offset 4
+
+let chunk = dest.read_bytes(4, 8); // Lire 8 octets a partir de l'offset 4
+print(chunk[0]);                   // 1
+```
+
+### Verification des limites
+
+Toutes les methodes de lecture/ecriture typees valident que la valeur entiere tient dans le buffer. Par exemple, `write_u32_be(offset, val)` verifie que `offset + 4 <= buffer.length`.
+
+```hemlock
+let buf = buffer(4);
+buf.write_u32_be(0, 42);    // OK : 4 octets tiennent
+// buf.write_u32_be(2, 42); // ERREUR : ecrirait au-dela de la fin (offset 2 + 4 > 4)
+```
+
+### Cas d'utilisation
+
+- **Protocoles reseau :** Construire/parser des paquets TCP, UDP, DNS et personnalises
+- **Formats de fichier binaires :** Lire/ecrire des en-tetes d'image, formats d'archive, etc.
+- **Protocoles filaires :** Serialiser/deserialiser des messages binaires structures
+- **Echange de donnees FFI :** Preparer des buffers pour les appels de bibliotheques C
+
+---
+
+## Modeles d'utilisation
 
 ### Modèle d'allocation basique
 

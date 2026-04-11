@@ -455,6 +455,117 @@ print(buf.capacity);        // 256
 
 ---
 
+## Metodos de Buffer
+
+### .slice
+
+Cria uma visao zero-copy na memoria do buffer. A visao retornada compartilha a mesma memoria subjacente que o buffer pai -- modificacoes no original sao visiveis atraves da visao e vice-versa.
+
+**Assinatura:**
+```hemlock
+buffer.slice(start: i32, end?: i32): buffer
+```
+
+**Parametros:**
+- `start` - Offset de byte inicial (baseado em 0, inclusivo). Valores negativos sao fixados em 0.
+- `end` - Offset de byte final (exclusivo). Padrao e `buffer.length` se omitido. Valores alem do comprimento do buffer sao fixados.
+
+**Retorna:** Visao de buffer (zero-copy)
+
+**Exemplo:**
+```hemlock
+let buf = buffer(10);
+for (let i = 0; i < 10; i++) {
+    buf[i] = i + 65;  // A=65, B=66, ...
+}
+
+// Slice basico
+let view = buf.slice(2, 5);
+print(view.length);    // 3
+print(view[0]);        // 67 (C)
+
+// Prova de zero-copy: modificar o original e visivel pela visao
+buf[3] = 90;           // Muda D(68) para Z(90)
+print(view[1]);        // 90 (reflete mudanca do pai)
+
+// Slice de argumento unico (inicio ate o final)
+let tail = buf.slice(7);
+print(tail.length);    // 3
+```
+
+**Comportamento:**
+- Retorna uma visao zero-copy -- nenhuma memoria e alocada para os dados
+- Visoes mantem uma referencia ao buffer raiz (previne uso apos liberacao)
+- Voce **nao pode** liberar com `free()` um buffer de visao -- apenas o buffer raiz deve ser liberado
+
+---
+
+## Metodos Tipados de Leitura/Escrita de Buffer
+
+Buffers fornecem metodos tipados de leitura e escrita com consciencia de endianness para construir e analisar estruturas de dados binarios como pacotes de rede, formatos de arquivo e protocolos de transmissao. Esses metodos possuem verificacao de limites e lancam erros de runtime em acessos fora dos limites.
+
+### Metodos de Escrita
+
+Escreve um valor tipado em um offset de byte. Os sufixos `_le` e `_be` especificam ordem de bytes little-endian e big-endian respectivamente.
+
+```hemlock
+let pkt = buffer(64);
+let offset = 0;
+
+// Construir cabecalho de pacote
+pkt.write_u16_be(offset, 0x0800);    // EtherType: IPv4
+offset += 2;
+pkt.write_u8(offset, 0x45);          // Version + IHL
+offset += 1;
+pkt.write_u32_be(offset + 1, 0xC0A80001); // IP Origem: 192.168.0.1
+
+// Valores float
+pkt.write_f32_le(10, 3.14);
+pkt.write_f64_be(14, 2.71828);
+```
+
+**Escritas de byte unico** (`write_u8`, `write_i8`) nao tem sufixo de endianness pois a ordem de bytes e irrelevante para bytes unicos.
+
+### Metodos de Leitura
+
+Le um valor tipado de um offset de byte. Sufixos de endianness correspondem aos metodos de escrita.
+
+```hemlock
+let pkt = buffer(64);
+// ... preencha buffer com dados ...
+
+let ether_type = pkt.read_u16_be(0);    // 0x0800
+let version = pkt.read_u8(2);            // 0x45
+let pi = pkt.read_f32_le(10);
+let e = pkt.read_f64_be(14);
+```
+
+### Operacoes em Massa
+
+```hemlock
+let src = buffer(8);
+for (let i = 0; i < 8; i++) { src[i] = i + 1; }
+
+let dest = buffer(32);
+dest.write_bytes(4, src);          // Copia src para dest no offset 4
+
+let chunk = dest.read_bytes(4, 8); // Le 8 bytes comecando no offset 4
+print(chunk[0]);                   // 1
+```
+
+### Verificacao de Limites
+
+Todos os metodos tipados de leitura/escrita validam que o valor inteiro cabe dentro do buffer. Por exemplo, `write_u32_be(offset, val)` verifica que `offset + 4 <= buffer.length`.
+
+### Casos de Uso
+
+- **Protocolos de rede:** Construir/analisar pacotes TCP, UDP, DNS e personalizados
+- **Formatos de arquivo binarios:** Ler/escrever cabecalhos de imagem, formatos de arquivo, etc.
+- **Protocolos de transmissao:** Serializar/desserializar mensagens binarias estruturadas
+- **Troca de dados FFI:** Preparar buffers para chamadas de biblioteca C
+
+---
+
 ## Padroes de Uso
 
 ### Padrao de Alocacao Basica

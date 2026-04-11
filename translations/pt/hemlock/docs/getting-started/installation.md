@@ -50,6 +50,35 @@ A compilacao do Hemlock requer as seguintes dependencias:
 - **libwebsockets**: Suporte a WebSocket e cliente/servidor HTTP
 - **zlib**: Biblioteca de compressao
 
+### Dependencias Opcionais
+
+As seguintes bibliotecas sao opcionais e necessarias apenas para modulos stdlib especificos:
+
+#### USearch (busca de similaridade vetorial)
+
+Necessaria apenas para `@stdlib/vector`. Sem ela, esse modulo fica indisponivel.
+
+```bash
+# macOS (Homebrew)
+brew install usearch
+
+# A partir do codigo-fonte
+git clone \
+  https://github.com/unum-cloud/usearch.git /tmp/usearch
+cmake -B /tmp/usearch/build -S /tmp/usearch -DUSEARCH_BUILD_LIB_C=ON
+cmake --build /tmp/usearch/build
+
+sudo mkdir -p /usr/local/lib /usr/local/include
+sudo cp $(find /tmp/usearch/build -name 'libusearch_c.dylib' | head -1) /usr/local/lib/
+sudo cp /tmp/usearch/c/usearch.h /usr/local/include/
+```
+
+#### libwebsockets (cliente/servidor HTTP e WebSocket)
+
+Necessaria apenas para `@stdlib/http` e `@stdlib/websocket`. Sem ela, esses modulos ficam indisponiveis e seus testes sao ignorados.
+
+---
+
 ### Instalando Dependencias
 
 **macOS:**
@@ -107,7 +136,15 @@ Isso ira compilar o interpretador Hemlock e colocar o executavel no diretorio at
 
 Voce devera ver as informacoes de versao do Hemlock.
 
-### 4. Testar a Compilacao
+### 4. Compilar os Modulos C da Stdlib (Opcional)
+
+Alguns modulos da stdlib (`@stdlib/http`, `@stdlib/websocket`, `@stdlib/vector`) requerem bibliotecas compartilhadas nativas. Compile seus wrappers com:
+
+```bash
+make stdlib
+```
+
+### 5. Testar a Compilacao
 
 Execute a suite de testes para garantir que tudo esta funcionando corretamente:
 

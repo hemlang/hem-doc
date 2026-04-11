@@ -47,7 +47,7 @@ Hemlock ist eine **System-Skriptsprache** mit manueller Speicherverwaltung und e
 - Operatoren entsprechen C: `+`, `-`, `*`, `%`, `&&`, `||`, `!`, `&`, `|`, `^`, `<<`, `>>`
 - Inkrement/Dekrement: `++x`, `x++`, `--x`, `x--` (Präfix und Postfix)
 - Zusammengesetzte Zuweisung: `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`
-- `/` gibt immer Float zurück (verwende `divi()` für Integer-Division)
+- `/` gibt immer Float zurück (verwende `divi()` aus `@stdlib/math` für Integer-Division)
 - Typsyntax: `let x: type = value;`
 
 ---
@@ -63,7 +63,7 @@ Andere:             bool, string, rune, array, ptr, buffer, null, object, file, 
 Aliase:             integer (i32), number (f64), byte (u8)
 ```
 
-**Typ-Promotion:** i8 → i16 → i32 → i64 → f32 → f64 (Fließkomma gewinnt immer, aber i64/u64 + f32 → f64 um Präzision zu erhalten)
+**Typ-Promotion:** i8 → u8 → i16 → u16 → i32 → u32 → i64 → u64 → f32 → f64 (Fließkomma gewinnt immer, aber i64/u64 + f32 → f64 um Präzision zu erhalten)
 
 ### Literale
 ```hemlock
@@ -78,7 +78,6 @@ let half = .5;           // f64 (keine führende Null)
 let s = "hello";         // string
 let esc = "\x41\u{1F600}"; // Hex- und Unicode-Escapes
 let ch = 'A';            // rune
-let emoji = '🚀';        // rune (Unicode)
 let arr = [1, 2, 3];     // array
 let obj = { x: 10 };     // object
 ```
@@ -117,19 +116,24 @@ let f: f64 = 100;        // i32 zu f64 via Annotation (numerische Umwandlung OK)
 ```hemlock
 typeof(42);              // "i32"
 typeof("hello");         // "string"
-typeof([1, 2, 3]);       // "array"
-typeof(null);            // "null"
-len("hello");            // 5 (Stringlänge in Bytes)
-len([1, 2, 3]);          // 3 (Arraylänge)
+"hello".length;          // 5 (Rune-Anzahl)
+"hello".byte_length;     // 5 (Byte-Anzahl)
+
+// typeid() - schnelle ganzzahlige Typerkennung (keine String-Allokation)
+typeid(42);              // 2 (TYPEID_I32)
+if (typeid(val) == TYPEID_I32 || typeid(val) == TYPEID_I64) { ... }
 ```
+
+**TYPEID-Konstanten:** `TYPEID_I8` (0), `TYPEID_I16` (1), `TYPEID_I32` (2), `TYPEID_I64` (3), `TYPEID_U8` (4), `TYPEID_U16` (5), `TYPEID_U32` (6), `TYPEID_U64` (7), `TYPEID_F32` (8), `TYPEID_F64` (9), `TYPEID_BOOL` (10), `TYPEID_STRING` (11), `TYPEID_RUNE` (12), `TYPEID_PTR` (13), `TYPEID_BUFFER` (14), `TYPEID_ARRAY` (15), `TYPEID_OBJECT` (16), `TYPEID_FILE` (17), `TYPEID_FUNCTION` (18), `TYPEID_TASK` (19), `TYPEID_CHANNEL` (20), `TYPEID_NULL` (21)
 
 ### Speicher
 ```hemlock
 let p = alloc(64);       // roher Zeiger
 let b = buffer(64);      // sicherer Buffer (grenzgeprüft)
-memset(p, 0, 64);
-memcpy(dest, src, 64);
+memset(p, 0, 64); memcpy(dest, src, 64);
 free(p);                 // manuelle Bereinigung erforderlich
+let view = b.slice(0, 16);  // Zero-Copy Buffer-View
+ptr_write_f32(b, 3.14);     // ptr_read/write akzeptieren Buffer direkt
 ```
 
 ### Kontrollfluss
@@ -270,6 +274,16 @@ let person = { name, age };         // äquivalent zu { name: name, age: age }
 // Objekt-Spread-Operator
 let defaults = { theme: "dark", size: "medium" };
 let config = { ...defaults, size: "large" };  // kopiert defaults, überschreibt size
+
+// Klammernotation mit Schlüssel-Koersion (Nicht-String-Schlüssel werden automatisch zu String)
+let map = {};
+map[42] = "wert";              // Integer-Schlüssel -> "42"
+map[true] = "ja";              // Bool-Schlüssel -> "true"
+map['A'] = "alpha";            // Rune-Schlüssel -> "A"
+print(map[42]);                // "wert"
+print(map.has(42));            // true
+map.delete(42);                // entfernt Feld "42"
+let keys = map.keys();         // gibt Array von String-Schlüsseln zurück
 
 enum Color { RED, GREEN, BLUE }
 enum Status { OK = 0, ERROR = 1 }
@@ -465,11 +479,10 @@ async fn compute(n: i32): i32 { return n * n; }
 let task = spawn(compute, 42);
 let result = await task;     // oder join(task)
 detach(spawn(background_work));
+let t = spawn_with({ stack_size: 4194304, name: "worker" }, compute, 42);
 
 let ch = channel(10);
-ch.send(value);
-let val = ch.recv();
-ch.close();
+ch.send(value); let val = ch.recv(); ch.close();
 ```
 
 **Speicherbesitz:** Tasks erhalten Kopien von Primitivwerten, teilen aber Zeiger. Wenn du einen `ptr` an einen gespawnten Task übergibst, musst du sicherstellen, dass der Speicher gültig bleibt, bis der Task abgeschlossen ist. Verwende `join()` vor `free()`, oder verwende Kanäle, um Abschluss zu signalisieren.
@@ -506,11 +519,11 @@ raise(SIGUSR1);
 
 ---
 
-## String-Methoden (19)
+## String-Methoden (22)
 
-`substr`, `slice`, `find`, `contains`, `split`, `trim`, `to_upper`, `to_lower`,
-`starts_with`, `ends_with`, `replace`, `replace_all`, `repeat`, `char_at`,
-`byte_at`, `chars`, `bytes`, `to_bytes`, `deserialize`
+`substr`, `slice`, `find`, `contains`, `split`, `trim`, `trim_start`, `trim_end`,
+`to_upper`, `to_lower`, `starts_with`, `ends_with`, `replace`, `replace_all`,
+`repeat`, `char_at`, `byte_at`, `chars`, `bytes`, `to_bytes`, `byte_ptr`, `deserialize`
 
 Template-Strings: `` `Hallo ${name}!` ``
 
@@ -523,11 +536,11 @@ print(s.length);       // 7 (Zeichen-/Rune-Anzahl)
 print(s.byte_length);  // 10 (Byte-Anzahl - Emoji ist 4 Bytes UTF-8)
 ```
 
-## Array-Methoden (23)
+## Array-Methoden (28)
 
-`push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
+`push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `findIndex`, `contains`,
 `slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
-`every`, `some`, `indexOf`, `sort`, `fill`
+`every`, `some`, `indexOf`, `lastIndexOf`, `sort`, `fill`, `reserve`, `flat`, `serialize`
 
 ```hemlock
 // every(predicate) - true wenn alle Elemente das Prädikat erfüllen
@@ -555,7 +568,7 @@ Typisierte Arrays: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Standardbibliothek (42 Module)
+## Standardbibliothek (53 Module)
 
 Importieren mit `@stdlib/`-Präfix:
 ```hemlock
@@ -572,23 +585,31 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `assert` | Assertions-Utilities |
 | `async` | ThreadPool, parallel_map |
 | `async_fs` | Asynchrone Datei-I/O-Operationen |
+| `atomic` | Atomare Operationen (load, store, add, CAS, fence) |
+| `bytes` | Byte-Ordnungs-Utilities (bswap, hton/ntoh, Endian-aware I/O) |
 | `collections` | HashMap, Queue, Stack, Set, LinkedList, LRUCache |
 | `compression` | gzip, gunzip, deflate |
 | `crypto` | aes_encrypt, rsa_sign, random_bytes |
 | `csv` | CSV-Parsing und -Generierung |
+| `debug` | Task-Inspektion und Stack-Verwaltung |
 | `datetime` | DateTime-Klasse, Formatierung, Parsing |
+| `decimal` | to_fixed, to_hex, parse_int, parse_float, StringBuilder |
 | `encoding` | base64_encode, hex_encode, url_encode |
 | `env` | getenv, setenv, exit, get_pid |
+| `ffi` | FFI-Callback-Verwaltung |
 | `fmt` | String-Formatierungs-Utilities |
-| `fs` | read_file, write_file, list_dir, exists |
+| `fs` | open, read_file, write_file, list_dir, exists |
 | `glob` | Datei-Musterabgleich |
-| `hash` | sha256, sha512, md5, djb2 |
+| `hash` | sha1, sha256, sha512, md5, djb2, crc32, adler32 |
 | `http` | http_get, http_post, http_request |
 | `ipc` | Inter-Prozess-Kommunikation |
 | `iter` | Iterator-Utilities |
+| `jinja` | Jinja2-kompatibles Template-Rendering |
 | `json` | parse, stringify, pretty, get, set |
 | `logging` | Logger mit Stufen |
 | `math` | sin, cos, sqrt, pow, rand, PI, E |
+| `matrix` | Dichte Matrixoperationen (add, multiply, transpose, determinant, inverse) |
+| `mmap` | Memory-mapped Datei-I/O (mmap, munmap, msync) |
 | `net` | TcpListener, TcpStream, UdpSocket |
 | `os` | platform, arch, cpu_count, hostname |
 | `path` | Dateipfad-Manipulation |
@@ -598,6 +619,7 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `retry` | Wiederholungslogik mit Backoff |
 | `semver` | Semantische Versionierung |
 | `shell` | Shell-Befehls-Utilities |
+| `signal` | Signalkonstanten (SIGINT, SIGTERM, etc.) |
 | `sqlite` | SQLite-Datenbank, query, exec, Transaktionen |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | ANSI-Farben und -Stile |
@@ -606,9 +628,11 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `time` | now, time_ms, sleep, clock |
 | `toml` | TOML-Parsing und -Generierung |
 | `url` | URL-Parsing und -Manipulation |
+| `unix_socket` | Unix-Domain-Sockets (AF_UNIX Stream/Datagramm) |
 | `uuid` | UUID-Generierung |
 | `vector` | Vektor-Ähnlichkeitssuche (USearch ANN) |
 | `websocket` | WebSocket-Client |
+| `yaml` | YAML-Parsing und -Generierung |
 
 Siehe `stdlib/docs/` für detaillierte Moduldokumentation.
 
@@ -698,18 +722,23 @@ hemlock/
 │   ├── backends/
 │   │   ├── interpreter/  # hemlock: Tree-Walking-Interpreter
 │   │   └── compiler/     # hemlockc: C-Code-Generator
+│   ├── modules/          # Native Modulimplementierungen
+│   ├── runtime/          # Laufzeit-bezogener C-Code
+│   ├── shared/           # Gemeinsame Utilities (Typ-Promotion, etc.)
 │   ├── tools/
 │   │   ├── lsp/          # Language Server Protocol
-│   │   └── bundler/      # Bundle-/Paket-Tools
+│   │   ├── bundler/      # Bundle-/Paket-Tools
+│   │   └── formatter/    # Code-Formatierer
 ├── runtime/              # Kompilierte Programm-Laufzeit (libhemlock_runtime.a)
-├── stdlib/               # Standardbibliothek (42 Module)
+├── stdlib/               # Standardbibliothek
 │   └── docs/             # Moduldokumentation
+├── include/              # C-Headerdateien (hemlock_limits.h, etc.)
 ├── docs/                 # Vollständige Dokumentation
-│   ├── language-guide/   # Typen, Strings, Arrays, etc.
-│   ├── reference/        # API-Referenzen
-│   └── advanced/         # Async, FFI, Signale, etc.
-├── tests/                # 625+ Tests
-└── examples/             # Beispielprogramme
+├── tests/                # 978+ Tests
+├── examples/             # Beispielprogramme
+├── benchmark/            # Benchmarks
+├── editors/              # Editor-Integrationen
+└── wasm/                 # WebAssembly-Unterstützung
 ```
 
 ---
@@ -907,108 +936,6 @@ EOF
 # 3. Parität verifizieren
 make parity
 ```
-
----
-
-## Version
-
-**v1.9.2** - Aktuelles Release mit:
-- **Compiler Unboxed-Loop-Counter-Fix** - Ein kritischer Codegen-Bug wurde behoben, bei dem optimierte Loop-Counter (native `int32_t`) direkt als `HmlValue`-Initialisierer ohne Boxing verwendet wurden. Die `codegen_is_main_var`-Prüfung verhinderte fälschlicherweise die Emission des Boxing-Wrappers (`hml_val_i32()`), wenn eine Main-Level-Variable einen Unboxed-Loop-Counter innerhalb einer Modul-/Closure-Funktion überdeckte. Behebt Kompilierung von `@stdlib/collections` und `@stdlib/encoding`.
-- **`clear()` Objekt-Methoden-Dispatch** - Der Compiler dispatcht `.clear()` jetzt korrekt an Objektmethoden, wenn es auf Nicht-Array-Typen aufgerufen wird. Zuvor generierte `.clear()` immer `hml_array_clear()` unabhängig vom Empfängertyp.
-- **`exec()` Import-Shadowing-Fix** - Der Builtin-`exec()`-Handler des Compilers prüft jetzt Import-Bindings und modullokale Funktionen, bevor er an das System-exec-Builtin dispatcht. Behebt `@stdlib/sqlite`, das seine eigene `exec()`-Funktion exportiert.
-
-**v1.9.1** - Vorheriges Release mit:
-- **`write()` Builtin** - Ausgabe ohne abschließenden Zeilenumbruch (`write("hello"); write(" world");` gibt in einer Zeile aus). Beinhaltet `fflush(stdout)` für sofortige Ausgabe. Volle Parität zwischen Interpreter und Compiler.
-- **Einargument-`slice()`** - `arr.slice(n)` und `str.slice(n)` setzen Ende jetzt standardmäßig auf Länge, entsprechend JS/Python-Verhalten. Zweiargument-Form unverändert.
-- **`join()` auf Rune-Arrays** - `"hello".chars().join("")` produziert jetzt korrekt `"hello"` statt `"[object][object]..."`. Ermöglicht idiomatische String-Umkehrung: `str.chars().reverse().join("")`.
-- **HashMap numerische Schlüssel-Koersion** - Schlüssel verschiedener numerischer Typen stimmen jetzt überein (z.B. `i32`-Schlüssel durch `i64`-Lookup gefunden). Zuvor lehnte der `typeof()`-Guard in `keys_equal()` gültige Cross-Type-Matches ab.
-- **HemBench-Verbesserungen** - Task-Definitionen korrigiert (L1-M-02 Rundung, L2-E-01 Präzision), kein Leak von erwarteter Ausgabe an L5/L6-Benchmark-Tasks mehr.
-- **Vollständige `ptr_read_*`-Builtins** - `ptr_read_i8`, `ptr_read_i16`, `ptr_read_i64`, `ptr_read_u8`, `ptr_read_u16`, `ptr_read_u32`, `ptr_read_u64`, `ptr_read_f32`, `ptr_read_f64`, `ptr_read_ptr` hinzugefügt als Ergänzung zu bestehenden `ptr_write_*`-Funktionen. `ptr_read_i32` auf direkte Dereferenzierung korrigiert (war doppelte Dereferenzierung). Volle Parität zwischen Interpreter und Compiler.
-- **macOS FFI-Bibliotheksladung** - `dlopen` durchsucht jetzt `/usr/local/lib` und `/opt/homebrew/lib` als Fallback-Pfade auf macOS, behebt Bibliothek-nicht-gefunden-Fehler für vom Benutzer installierte Shared Libraries (z.B. libusearch_c).
-- **`@stdlib/vector` USearch v2-Fix** - `create_index()` ruft jetzt `usearch_reserve()` nach Init auf, behebt Segfault mit USearch v2.24+, das Vorab-Allokation vor dem Hinzufügen von Vektoren erfordert.
-
-**v1.9.0** - Vorheriges Release mit:
-- **WASM-Interpreter-Release-Artefakt** - Vorgefertigter WASM-Interpreter in GitHub-Releases für Browser-/Node.js-Nutzung
-- **Compiler-Inlining-Fixes** - Fehler bei verschachtelter Aufruf-Argument-Korruption und Unboxing-Kollision mit Loop-Countern während Funktions-Inlining behoben (behebt hemloco-Kompilierung)
-- **Zeiger-Subtraktion** - Compiler-Typchecker erlaubt jetzt `ptr - integer` für Zeigerarithmetik
-- **Fangbare `open()`-Ausnahmen** - `open()` wirft jetzt via `hml_throw()` statt `exit(1)`, ermöglicht try/catch-Fehlerbehandlung
-- **Mehrargument-print/eprint-Fix** - Compiler-Codegen für `print()` und `eprint()` mit mehreren Argumenten korrigiert (z.B. `print("x:", x, y)`)
-- **SSO-String-Fix** - Segfault in `hml_string_append_inplace` beim Wachsen von Strings mit Small String Optimization behoben
-- **`@stdlib/termios`-Modul** - Plattformübergreifende rohe Terminal-Eingabe (Linux/macOS):
-  - `enable_raw_mode()` / `disable_raw_mode()` für sofortige Tastendrücke
-  - `read_key()` / `read_key_timeout(ms)` zum Lesen einzelner Tastendrücke
-  - Pfeiltasten-, Funktionstasten-, Steuerungstasten-Erkennung
-  - `is_terminal()` zum Prüfen ob stdin ein TTY ist
-  - Dokumentation unter `stdlib/docs/termios.md`
-- **Speicherleck-Prävention** - Umfassende Fixes, die sicherstellen, dass die Laufzeit leckfrei ist:
-  - Ausnahmesichere Ausdrucksauswertung (Arrays, Objekte, Funktionsaufrufe)
-  - Task-Ergebnis korrektes Retain/Release bei join()
-  - Kanal-Drain bei close (gibt gepufferte Werte frei)
-  - Optimierer-Cleanup für Null-Koaleszenz-Konstantenfaltung
-  - Leck-Regressions-Testsuite (`make leak-regression`)
-  - Speicherbesitz-Dokumentation (`docs/advanced/memory-ownership.md`)
-- **Musterabgleich** (`match`-Ausdrücke) - Mächtige Destrukturierung und Kontrollfluss:
-  - Literal-, Platzhalter- und Variablenbindungsmuster
-  - ODER-Muster (`1 | 2 | 3`)
-  - Guard-Ausdrücke (`n if n > 0`)
-  - Objekt-Destrukturierung (`{ x, y }`)
-  - Array-Destrukturierung mit Rest (`[first, ...rest]`)
-  - Typmuster (`n: i32`)
-  - Volle Parität zwischen Interpreter und Compiler
-- **Compiler-Hilfsannotationen** - 11 Optimierungsannotationen für GCC/Clang-Kontrolle:
-  - `@inline`, `@noinline` - Funktions-Inlining-Kontrolle
-  - `@hot`, `@cold` - Branch-Prediction-Hinweise
-  - `@pure`, `@const` - Seiteneffekt-Annotationen
-  - `@flatten` - alle Aufrufe innerhalb der Funktion inlinen
-  - `@optimize(level)` - Pro-Funktion-Optimierungsstufe ("0", "1", "2", "3", "s", "fast")
-  - `@warn_unused` - Warnung bei ignorierten Rückgabewerten
-  - `@section(name)` - Benutzerdefinierte ELF-Sektionsplatzierung (z.B. `@section(".text.hot")`)
-- **Ausdruckskörper-Funktionen** (`fn double(x): i32 => x * 2;`) - prägnante Einzelausdruck-Funktionssyntax
-- **Einzeilige Anweisungen** - klammerlose `if`, `while`, `for`-Syntax (z.B. `if (x > 0) print(x);`)
-- **Typaliase** (`type Name = Type;`) - benannte Abkürzungen für komplexe Typen
-- **Funktionstyp-Annotationen** (`fn(i32): i32`) - erstklassige Funktionstypen
-- **Const-Parameter** (`fn(const x: array)`) - tiefe Unveränderlichkeit für Parameter
-- **Ref-Parameter** (`fn(ref x: i32)`) - Übergabe per Referenz für direkte Aufrufer-Mutation
-- **Methodensignaturen in define** (`fn method(): Type`) - Interface-artige Verträge (komma-getrennt)
-- **Self-Typ** in Methodensignaturen - bezieht sich auf den definierenden Typ
-- **Loop-Schlüsselwort** (`loop { }`) - sauberere Endlosschleifen, ersetzt `while (true)`
-- **Schleifenlabels** (`outer: while`) - gezieltes break/continue für verschachtelte Schleifen
-- **Objekt-Kurzschreibweise** (`{ name }`) - ES6-Stil-Kurzeigenschaften-Syntax
-- **Objekt-Spread** (`{ ...obj }`) - Objektfelder kopieren und zusammenführen
-- **Zusammengesetzte Duck-Typen** (`A & B & C`) - Schnittmengentypen für strukturelle Typisierung
-- **Benannte Argumente** für Funktionsaufrufe (`foo(name: "value", age: 30)`)
-- **Null-Koaleszenz-Operatoren** (`??`, `??=`, `?.`) für sichere Null-Behandlung
-- **Oktal-Literale** (`0o777`, `0O123`)
-- **Numerische Trennzeichen** (`1_000_000`, `0xFF_FF`, `0b1111_0000`)
-- **Blockkommentare** (`/* ... */`)
-- **Hex-Escape-Sequenzen** in Strings/Runes (`\x41` = 'A')
-- **Unicode-Escape-Sequenzen** in Strings (`\u{1F600}` = 😀)
-- **Float-Literale ohne führende Null** (`.5`, `.123`, `.5e2`)
-- **Kompilierzeit-Typprüfung** in hemlockc (standardmäßig aktiviert)
-- **LSP-Integration** mit Typprüfung für Echtzeit-Diagnosen
-- **Zusammengesetzte Zuweisungsoperatoren** (`+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`)
-- **Inkrement/Dekrement-Operatoren** (`++x`, `x++`, `--x`, `x--`)
-- **Typ-Präzisions-Fix**: i64/u64 + f32 → f64 um Präzision zu erhalten
-- Vereinheitlichtes Typsystem mit Unboxing-Optimierungshinweisen
-- Volles Typsystem (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
-- UTF-8-Strings mit 19 Methoden
-- Arrays mit 23 Methoden einschließlich map/filter/reduce/every/some/indexOf/sort/fill
-- Manuelle Speicherverwaltung mit `talloc()` und `sizeof()`
-- Async/await mit echter pthread-Parallelität
-- Atomare Operationen für lock-freie nebenläufige Programmierung
-- 42 Stdlib-Module (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
-- FFI für C-Interop mit `export extern fn` für wiederverwendbare Bibliotheks-Wrapper
-- FFI-Struct-Unterstützung im Compiler (C-Structs per Wert übergeben)
-- FFI-Zeiger-Helfer (`ptr_null`, `ptr_read_*`, `ptr_write_*`)
-- defer, try/catch/finally/throw, panic
-- Datei-I/O, Signalbehandlung, Befehlsausführung
-- [hpm](https://github.com/hemlang/hpm) Paketmanager mit GitHub-basierter Registry
-- Compiler-Backend (C-Code-Generierung) mit 100% Interpreter-Parität
-- LSP-Server mit Go-to-Definition und Find-References
-- AST-Optimierungspass und Variablenauflösung für O(1)-Lookup
-- apply()-Builtin für dynamische Funktionsaufrufe
-- Ungepufferte Kanäle und Many-Params-Unterstützung
-- 159 Paritätstests (100% Erfolgsrate)
 
 ---
 

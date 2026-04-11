@@ -122,6 +122,67 @@ let r3 = join(t3);
 
 ---
 
+### spawn_with
+
+Erstellt und startet einen neuen nebenläufigen Task mit Thread-spezifischen Konfigurationsoptionen.
+
+**Signatur:**
+```hemlock
+spawn_with(options: object, async_fn: function, ...args): task
+```
+
+**Parameter:**
+- `options` - Konfigurationsobjekt mit optionalen Feldern:
+  - `stack_size` - Stackgröße in Bytes für den neuen Thread (Standard: 16 MB)
+  - `name` - Thread-Name als String (maximal 16 Zeichen)
+- `async_fn` - Auszuführende Async-Funktion
+- `...args` - An die Funktion zu übergebende Argumente
+
+**Rückgabe:** Task-Handle
+
+**Beispiele:**
+```hemlock
+async fn compute(n: i32): i32 {
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+        sum = sum + i;
+    }
+    return sum;
+}
+
+// Benutzerdefinierte Stackgröße (8 MB)
+let t1 = spawn_with({ stack_size: 8 * 1024 * 1024 }, compute, 1000);
+let r1 = join(t1);
+
+// Benannter Thread
+let t2 = spawn_with({ name: "worker-1" }, compute, 500);
+let r2 = join(t2);
+
+// Beide Optionen
+let t3 = spawn_with({ stack_size: 16 * 1024 * 1024, name: "compute-3" }, compute, 100);
+let r3 = join(t3);
+
+// Leere Optionen (verwendet Standards - wie spawn())
+let t4 = spawn_with({}, compute, 50);
+let r4 = join(t4);
+
+// Mehrere Funktionsargumente
+async fn add(a, b) { return a + b; }
+let t5 = spawn_with({ name: "adder" }, add, 100, 200);
+print(join(t5));  // 300
+```
+
+**Verhalten:**
+- Erstellt neuen OS-Thread mit der angegebenen Konfiguration
+- `stack_size` steuert die Stack-Allokation des Threads (nützlich für tief rekursive Tasks)
+- `name` setzt den Thread-Namen (sichtbar in Debuggern/Profilern; auf 16 Zeichen gekürzt)
+- Übergabe von `{}` für Optionen ist äquivalent zum Aufruf von `spawn()`
+- Gibt Task-Handle für späteres Beitreten zurück, wie `spawn()`
+
+**Siehe auch:** `get_default_stack_size()` / `set_default_stack_size()` in `@stdlib/async` zum Ändern der Standard-Stackgröße für alle `spawn()`-Aufrufe.
+
+---
+
 ### join
 
 Wartet auf Task-Abschluss und ruft Ergebnis ab.
@@ -621,6 +682,7 @@ let parallel_time = get_time() - start2;
 | Funktion  | Signatur                          | Rückgabe | Beschreibung                     |
 |-----------|-----------------------------------|-----------|----------------------------------|
 | `spawn`   | `(async_fn: function, ...args)`   | `task`    | Nebenläufigen Task erstellen und starten |
+| `spawn_with` | `(options: object, async_fn: function, ...args)` | `task` | Task mit Thread-Konfiguration starten (stack_size, name) |
 | `join`    | `(task: task)`                    | `any`     | Auf Task warten, Ergebnis holen  |
 | `detach`  | `(task: task)`                    | `null`    | Task ablösen (Fire-and-Forget)  |
 | `channel` | `(capacity: i32)`                 | `channel` | Thread-sicheren Kanal erstellen  |

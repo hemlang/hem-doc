@@ -28,11 +28,11 @@ Alle Hemlock-Komponenten teilen sich eine **einzige Versionsnummer**:
 Die Version wird in `include/version.h` definiert:
 
 ```c
-#define HEMLOCK_VERSION_MAJOR 1
-#define HEMLOCK_VERSION_MINOR 8
-#define HEMLOCK_VERSION_PATCH 7
+#define HEMLOCK_VERSION_MAJOR 2
+#define HEMLOCK_VERSION_MINOR 0
+#define HEMLOCK_VERSION_PATCH 0
 
-#define HEMLOCK_VERSION "1.8.7"
+#define HEMLOCK_VERSION "2.0.0"
 ```
 
 ### Versionen prüfen

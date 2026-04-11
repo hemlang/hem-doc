@@ -1,6 +1,6 @@
 # Array-API-Referenz
 
-Vollständige Referenz für Hemlocks Array-Typ und alle 23 Array-Methoden.
+Vollständige Referenz für Hemlocks Array-Typ und alle 28 Array-Methoden.
 
 ---
 
@@ -12,7 +12,7 @@ Arrays in Hemlock sind **dynamische, heap-allokierte** Sequenzen, die gemischte 
 - Dynamische Größenanpassung (automatisches Wachstum)
 - Nullbasierte Indizierung
 - Gemischte Typen erlaubt
-- 23 eingebaute Methoden
+- 28 eingebaute Methoden
 - Heap-allokiert mit Kapazitätsverfolgung
 
 ---
@@ -764,6 +764,136 @@ arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
 
 ---
 
+#### reserve
+
+Reserviert Kapazität für mindestens die angegebene Anzahl von Elementen.
+
+**Signatur:**
+```hemlock
+array.reserve(capacity: i32): null
+```
+
+**Parameter:**
+- `capacity` - Mindestanzahl der Elemente, für die Platz reserviert werden soll
+
+**Rückgabe:** `null`
+
+**Mutiert:** Ja (ändert interne Kapazität)
+
+**Beispiele:**
+```hemlock
+let arr = [];
+arr.reserve(1000);  // Platz für 1000 Elemente vorab allokieren
+
+// Jetzt können 1000 push()-Aufrufe ohne Reallokation erfolgen
+for (let i = 0; i < 1000; i++) {
+    arr.push(i);
+}
+```
+
+**Verhalten:** Verhindert wiederholte Reallokationen beim Aufbau großer Arrays.
+
+---
+
+#### findIndex
+
+Findet den Index des ersten Elements, das ein Prädikat erfüllt.
+
+**Signatur:**
+```hemlock
+array.findIndex(predicate: fn): i32
+```
+
+**Parameter:**
+- `predicate` - Funktion die ein Element nimmt und bool zurückgibt
+
+**Rückgabe:** Index des ersten passenden Elements, oder `-1` wenn nicht gefunden
+
+**Mutiert:** Nein
+
+**Beispiele:**
+```hemlock
+let arr = [1, 2, 3, 4, 5];
+let idx = arr.findIndex(fn(x) { return x > 3; });  // 3
+let idx2 = arr.findIndex(fn(x) { return x > 10; }); // -1
+```
+
+---
+
+#### lastIndexOf
+
+Findet den letzten Index eines Wertes.
+
+**Signatur:**
+```hemlock
+array.lastIndexOf(value: any): i32
+```
+
+**Parameter:**
+- `value` - Zu suchender Wert
+
+**Rückgabe:** Index des letzten Vorkommens, oder `-1` wenn nicht gefunden
+
+**Mutiert:** Nein
+
+**Beispiele:**
+```hemlock
+let arr = [1, 2, 3, 2, 1];
+let idx = arr.lastIndexOf(2);   // 3
+let idx2 = arr.lastIndexOf(99); // -1
+```
+
+---
+
+#### flat
+
+Flacht ein verschachteltes Array um eine Ebene ab.
+
+**Signatur:**
+```hemlock
+array.flat(): array
+```
+
+**Rückgabe:** Neues abgeflachtes Array
+
+**Mutiert:** Nein (gibt neues Array zurück)
+
+**Beispiele:**
+```hemlock
+let nested = [[1, 2], [3, 4], [5]];
+let flat = nested.flat();  // [1, 2, 3, 4, 5]
+
+let mixed = [1, [2, 3], 4, [5, 6]];
+let flat2 = mixed.flat();  // [1, 2, 3, 4, 5, 6]
+```
+
+---
+
+#### serialize
+
+Konvertiert Array in einen JSON-String.
+
+**Signatur:**
+```hemlock
+array.serialize(): string
+```
+
+**Rückgabe:** JSON-String-Darstellung des Arrays
+
+**Mutiert:** Nein
+
+**Beispiele:**
+```hemlock
+let arr = [1, "hello", true, null];
+let json = arr.serialize();
+print(json);  // [1,"hello",true,null]
+
+let nested = [[1, 2], [3, 4]];
+print(nested.serialize());  // [[1,2],[3,4]]
+```
+
+---
+
 ## Methoden-Verkettung
 
 Array-Methoden können für prägnante Operationen verkettet werden:
@@ -808,6 +938,7 @@ Methoden die das Array direkt modifizieren:
 | `clear`    | `()`                       | `null`    | Alle Elemente entfernen        |
 | `sort`     | `(comparator?: fn)`        | `null`    | An Ort und Stelle sortieren    |
 | `fill`     | `(value: any, start?: i32, end?: i32)` | `null` | Mit Wert füllen          |
+| `reserve`  | `(capacity: i32)`           | `null`    | Kapazität vorab reservieren    |
 
 ### Nicht-mutierende Methoden
 
@@ -828,6 +959,10 @@ Methoden die neue Werte zurückgeben ohne das Original zu modifizieren:
 | `every`    | `(predicate: fn)`          | `bool`    | Prüfen ob alle übereinstimmen |
 | `some`     | `(predicate: fn)`          | `bool`    | Prüfen ob eines übereinstimmt |
 | `indexOf`  | `(value: any)`             | `i32`     | Ersten Index eines Wertes finden |
+| `lastIndexOf` | `(value: any)`          | `i32`     | Letzten Index eines Wertes finden |
+| `findIndex` | `(predicate: fn)`          | `i32`     | Index nach Prädikat finden     |
+| `flat`     | `()`                       | `array`   | Verschachteltes Array abflachen |
+| `serialize` | `()`                      | `string`  | Zu JSON-String konvertieren    |
 
 ---
 

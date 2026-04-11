@@ -193,6 +193,91 @@ person.age = 31;
 print(person.age);           // 31
 ```
 
+### Notazione con Parentesi Quadre
+
+Accedi ai campi dinamicamente usando la notazione con parentesi quadre e una chiave stringa:
+
+```hemlock
+let person = { name: "Alice", age: 30 };
+
+// Accesso dinamico ai campi
+let campo = "name";
+print(person[campo]);         // "Alice"
+
+// Impostazione dinamica dei campi
+person["city"] = "Roma";
+print(person.city);           // "Roma"
+```
+
+### Coercizione delle Chiavi
+
+Le chiavi non-stringa vengono automaticamente convertite in stringa quando usate con la notazione con parentesi quadre. Questo permette di usare gli oggetti come mappe con chiavi numeriche, booleane o rune:
+
+```hemlock
+let map = {};
+
+// Le chiavi intere vengono convertite in stringa
+map[42] = "valore";               // la chiave diventa "42"
+print(map[42]);                   // "valore"
+print(map["42"]);                 // "valore" (equivalente)
+
+// Le chiavi booleane vengono convertite in stringa
+map[true] = "sì";
+print(map[true]);                 // "sì"
+print(map["true"]);               // "sì"
+
+// Le chiavi rune vengono convertite in stringa
+map['A'] = "alfa";
+print(map['A']);                  // "alfa"
+print(map["A"]);                  // "alfa"
+```
+
+**Nota:** Le chiavi float usano la precisione completa IEEE 754, quindi `3.14` diventa `"3.1400000000000001"`. Se hai bisogno di chiavi stringa float esatte, converti esplicitamente con `"" + n`.
+
+### Metodi Integrati degli Oggetti
+
+#### `obj.keys()`
+
+Restituisce un array di tutti i nomi dei campi come stringhe:
+
+```hemlock
+let obj = { x: 10, y: 20, name: "test" };
+let k = obj.keys();
+print(k);  // [x, y, name]
+```
+
+#### `obj.has(key)`
+
+Verifica se un oggetto ha un campo specifico. Accetta chiavi stringa, intere, float, bool o rune (le chiavi non-stringa vengono convertite):
+
+```hemlock
+let obj = { x: 10, name: "test" };
+print(obj.has("x"));       // true
+print(obj.has("z"));       // false
+
+let map = {};
+map[42] = "valore";
+print(map.has(42));        // true
+print(map.has("42"));      // true
+```
+
+#### `obj.delete(key)`
+
+Rimuove un campo da un oggetto. Restituisce `true` se il campo è stato trovato e rimosso, `false` altrimenti. Accetta chiavi convertite come `has()`:
+
+```hemlock
+let obj = { x: 10, y: 20 };
+obj.delete("x");
+print(obj.has("x"));      // false
+print(obj.has("y"));      // true
+
+// Con chiavi intere
+let map = {};
+map[5] = "cinque";
+map.delete(5);
+print(map.has(5));         // false
+```
+
 ### Aggiunta dinamica di campi
 
 Aggiungi nuovi campi a runtime:
@@ -205,20 +290,6 @@ person.email = "alice@example.com";
 person.phone = "555-1234";
 
 print(person.email);  // "alice@example.com"
-```
-
-### Eliminazione dei campi
-
-**Nota:** L'eliminazione dei campi non e attualmente supportata. Imposta a `null` invece:
-
-```hemlock
-let obj = { x: 10, y: 20 };
-
-// Non puoi eliminare campi (non supportato)
-// obj.x = undefined;  // Nessun 'undefined' in Hemlock
-
-// Workaround: Imposta a null
-obj.x = null;
 ```
 
 ## Metodi e `self`
@@ -963,9 +1034,7 @@ Limitazioni attuali:
 
 - **Nessuna copia profonda** - Devi copiare manualmente gli oggetti annidati (spread e superficiale)
 - **Nessun passaggio per valore** - Gli oggetti vengono sempre passati per riferimento
-- **Nessuna proprieta calcolata** - Nessuna sintassi `{[key]: value}`
 - **`self` e di sola lettura** - Non puoi riassegnare `self` nei metodi
-- **Nessuna eliminazione di proprieta** - Non puoi rimuovere i campi una volta aggiunti
 
 **Nota:** Gli oggetti sono conteggiati per riferimento e liberati automaticamente quando lo scope termina. Vedi [Gestione della memoria](memory.md#conteggio-interno-dei-riferimenti) per i dettagli.
 

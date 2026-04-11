@@ -117,14 +117,75 @@ let r3 = join(t3);
 **Comportement :**
 - Crée un nouveau thread OS via `pthread_create()`
 - Commence l'exécution de la fonction immédiatement
-- Retourne un handle de tâche pour une jointure ultérieure
-- Les tâches s'exécutent en parallèle sur des cœurs CPU séparés
+- Retourne un handle de tache pour une jointure ulterieure
+- Les taches s'executent en parallele sur des coeurs CPU separes
+
+---
+
+### spawn_with
+
+Cree et demarre une nouvelle tache concurrente avec des options de configuration par thread.
+
+**Signature :**
+```hemlock
+spawn_with(options: object, async_fn: function, ...args): task
+```
+
+**Parametres :**
+- `options` - Objet de configuration avec des champs optionnels :
+  - `stack_size` - Taille de pile en octets pour le nouveau thread (defaut : 16 Mo)
+  - `name` - Nom du thread sous forme de chaine (max 16 caracteres)
+- `async_fn` - Fonction async a executer
+- `...args` - Arguments a passer a la fonction
+
+**Retourne :** Handle de tache
+
+**Exemples :**
+```hemlock
+async fn compute(n: i32): i32 {
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+        sum = sum + i;
+    }
+    return sum;
+}
+
+// Taille de pile personnalisee (8 Mo)
+let t1 = spawn_with({ stack_size: 8 * 1024 * 1024 }, compute, 1000);
+let r1 = join(t1);
+
+// Thread nomme
+let t2 = spawn_with({ name: "worker-1" }, compute, 500);
+let r2 = join(t2);
+
+// Les deux options
+let t3 = spawn_with({ stack_size: 16 * 1024 * 1024, name: "compute-3" }, compute, 100);
+let r3 = join(t3);
+
+// Options vides (utilise les defauts - equivalent a spawn())
+let t4 = spawn_with({}, compute, 50);
+let r4 = join(t4);
+
+// Plusieurs arguments de fonction
+async fn add(a, b) { return a + b; }
+let t5 = spawn_with({ name: "adder" }, add, 100, 200);
+print(join(t5));  // 300
+```
+
+**Comportement :**
+- Cree un nouveau thread OS avec la configuration specifiee
+- `stack_size` controle l'allocation de pile du thread (utile pour les taches profondement recursives)
+- `name` definit le nom du thread (visible dans les debogueurs/profileurs ; tronque a 16 caracteres)
+- Passer `{}` pour les options est equivalent a appeler `spawn()`
+- Retourne un handle de tache pour une jointure ulterieure, comme `spawn()`
+
+**Voir aussi :** `get_default_stack_size()` / `set_default_stack_size()` dans `@stdlib/async` pour changer la taille de pile par defaut pour tous les appels `spawn()`.
 
 ---
 
 ### join
 
-Attend la fin de la tâche et récupère le résultat.
+Attend la fin de la tache et recupere le resultat.
 
 **Signature :**
 ```hemlock

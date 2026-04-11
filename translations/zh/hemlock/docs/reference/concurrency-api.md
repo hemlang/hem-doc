@@ -122,6 +122,50 @@ let r3 = join(t3);
 
 ---
 
+### spawn_with
+
+创建并启动带有每线程配置选项的新并发任务。
+
+**签名：**
+```hemlock
+spawn_with(options: object, async_fn: function, ...args): task
+```
+
+**参数：**
+- `options` - 配置对象，包含可选字段：
+  - `stack_size` - 新线程的栈大小（字节）（默认：16 MB）
+  - `name` - 线程名称字符串（最多 16 个字符）
+- `async_fn` - 要执行的异步函数
+- `...args` - 传递给函数的参数
+
+**返回值：** 任务句柄
+
+**示例：**
+```hemlock
+async fn compute(n: i32): i32 {
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+        sum = sum + i;
+    }
+    return sum;
+}
+
+// 自定义栈大小（8 MB）
+let t1 = spawn_with({ stack_size: 8 * 1024 * 1024 }, compute, 1000);
+let r1 = join(t1);
+
+// 命名线程
+let t2 = spawn_with({ name: "worker-1" }, compute, 500);
+let r2 = join(t2);
+```
+
+**行为：**
+- 与 `spawn()` 相同，但允许自定义线程配置
+- `stack_size` 控制线程栈大小（对深度递归很有用）
+- `name` 设置线程名称（在调试工具中可见）
+
+---
+
 ### join
 
 等待任务完成并获取结果。
@@ -621,6 +665,7 @@ let parallel_time = get_time() - start2;
 | 函数      | 签名                              | 返回值    | 描述                           |
 |-----------|-----------------------------------|-----------|--------------------------------|
 | `spawn`   | `(async_fn: function, ...args)`   | `task`    | 创建并启动并发任务             |
+| `spawn_with` | `(options: object, async_fn: function, ...args)` | `task` | 带配置创建并发任务       |
 | `join`    | `(task: task)`                    | `any`     | 等待任务，获取结果             |
 | `detach`  | `(task: task)`                    | `null`    | 分离任务（即发即弃）           |
 | `channel` | `(capacity: i32)`                 | `channel` | 创建线程安全通道               |

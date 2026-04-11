@@ -122,6 +122,67 @@ let r3 = join(t3);
 
 ---
 
+### spawn_with
+
+スレッドごとの設定オプション付きで新しい並行タスクを作成して開始します。
+
+**シグネチャ：**
+```hemlock
+spawn_with(options: object, async_fn: function, ...args): task
+```
+
+**パラメータ：**
+- `options` - オプションフィールドを持つ設定オブジェクト：
+  - `stack_size` - 新しいスレッドのスタックサイズ（バイト単位、デフォルト：16 MB）
+  - `name` - スレッド名文字列（最大16文字）
+- `async_fn` - 実行する非同期関数
+- `...args` - 関数に渡す引数
+
+**戻り値：** タスクハンドル
+
+**例：**
+```hemlock
+async fn compute(n: i32): i32 {
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+        sum = sum + i;
+    }
+    return sum;
+}
+
+// カスタムスタックサイズ（8 MB）
+let t1 = spawn_with({ stack_size: 8 * 1024 * 1024 }, compute, 1000);
+let r1 = join(t1);
+
+// 名前付きスレッド
+let t2 = spawn_with({ name: "worker-1" }, compute, 500);
+let r2 = join(t2);
+
+// 両方のオプション
+let t3 = spawn_with({ stack_size: 16 * 1024 * 1024, name: "compute-3" }, compute, 100);
+let r3 = join(t3);
+
+// 空のオプション（デフォルトを使用 -- spawn()と同じ）
+let t4 = spawn_with({}, compute, 50);
+let r4 = join(t4);
+
+// 複数の関数引数
+async fn add(a, b) { return a + b; }
+let t5 = spawn_with({ name: "adder" }, add, 100, 200);
+print(join(t5));  // 300
+```
+
+**動作：**
+- 指定された設定で新しいOSスレッドを作成
+- `stack_size`はスレッドのスタック割り当てを制御（深い再帰タスクに有用）
+- `name`はスレッド名を設定（デバッガ/プロファイラで表示、16文字に切り詰め）
+- optionsに`{}`を渡すことは`spawn()`呼び出しと同等
+- `spawn()`と同様に後で結合するためのタスクハンドルを返す
+
+**関連項目：** すべての`spawn()`呼び出しのデフォルトスタックサイズを変更するには、`@stdlib/async`の`get_default_stack_size()` / `set_default_stack_size()`を参照。
+
+---
+
 ### join
 
 タスクの完了を待ち、結果を取得します。
@@ -621,6 +682,7 @@ let parallel_time = get_time() - start2;
 | 関数 | シグネチャ | 戻り値 | 説明 |
 |-----------|-----------------------------------|-----------|--------------------------------|
 | `spawn`   | `(async_fn: function, ...args)`   | `task`    | 並行タスクを作成して開始 |
+| `spawn_with` | `(options: object, async_fn: function, ...args)` | `task` | 設定付きでタスクを作成して開始 |
 | `join`    | `(task: task)`                    | `any`     | タスクを待ち、結果を取得 |
 | `detach`  | `(task: task)`                    | `null`    | タスクをデタッチ（ファイア・アンド・フォーゲット） |
 | `channel` | `(capacity: i32)`                 | `channel` | スレッドセーフなチャネルを作成 |

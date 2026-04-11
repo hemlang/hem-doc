@@ -455,6 +455,176 @@ print(buf.capacity);        // 256
 
 ---
 
+## 指针/缓冲区互操作
+
+所有 `ptr_read_*`、`ptr_write_*` 和 `ptr_deref_*` 内置函数直接接受 `ptr` 和 `buffer` 类型。当传入缓冲区时，操作使用缓冲区的底层数据指针。
+
+```hemlock
+let buf = buffer(16);
+
+// 直接写入缓冲区（无需先提取 ptr）
+ptr_write_i32(buf, 42);
+ptr_write_f64(ptr_offset(buffer_ptr(buf), 4), 3.14);
+
+// 直接从缓冲区读取
+let val = ptr_read_i32(buf);      // 42
+let fval = ptr_deref_i32(buf);    // 42
+
+// 原始指针也同样工作
+let p = alloc(8);
+ptr_write_i32(p, 99);
+let pval = ptr_read_i32(p);      // 99
+free(p);
+```
+
+这消除了在每次类型化读写操作前调用 `buffer_ptr()` 的需要，使基于缓冲区的代码更简洁。
+
+---
+
+## 缓冲区方法
+
+### .slice
+
+创建缓冲区内存的零拷贝视图。返回的视图与父缓冲区共享相同的底层内存——对原始数据的修改通过视图可见，反之亦然。
+
+**签名：**
+```hemlock
+buffer.slice(start: i32, end?: i32): buffer
+```
+
+**参数：**
+- `start` - 起始字节偏移量（从 0 开始，包含）。负值钳位为 0。
+- `end` - 结束字节偏移量（不包含）。省略时默认为 `buffer.length`。超过缓冲区长度的值会被钳位。
+
+**返回值：** 缓冲区视图（零拷贝）
+
+**示例：**
+```hemlock
+let buf = buffer(10);
+for (let i = 0; i < 10; i++) {
+    buf[i] = i + 65;  // A=65, B=66, ...
+}
+
+// 基本切片
+let view = buf.slice(2, 5);
+print(view.length);    // 3
+print(view[0]);        // 67 (C)
+print(view[1]);        // 68 (D)
+print(view[2]);        // 69 (E)
+
+// 零拷贝证明：修改原始数据通过视图可见
+buf[3] = 90;           // 将 D(68) 改为 Z(90)
+print(view[1]);        // 90（反映父缓冲区的更改）
+
+// 单参数切片（从 start 到末尾）
+let tail = buf.slice(7);
+print(tail.length);    // 3
+
+// 链式切片（视图的视图）
+let inner = view.slice(1, 3);
+print(inner.length);   // 2
+print(inner[0]);       // 90 (Z)
+
+// 空切片
+let empty = buf.slice(5, 5);
+print(empty.length);   // 0
+```
+
+**行为：**
+- 返回零拷贝视图——不为数据分配内存
+- 视图持有对根缓冲区的引用（防止释放后使用）
+- 链式切片（视图的视图）跟踪根所有者，而非中间视图
+- 边界检查相对于视图的范围执行
+- 超范围的 `start`/`end` 值会被钳位到有效边界
+- **不能** `free()` 视图缓冲区——只有根缓冲区应被释放
+- 释放父缓冲区前将视图设为 `null` 以释放引用
+
+---
+
+## 类型化缓冲区读写方法
+
+缓冲区提供端序感知的类型化读写方法，用于构建和解析二进制数据结构，如网络包、文件格式和线协议。这些方法带有边界检查，越界访问会引发运行时错误。
+
+### 写入方法
+
+在字节偏移量处写入类型化值。`_le` 和 `_be` 后缀分别指定小端和大端字节序。
+
+```hemlock
+let pkt = buffer(64);
+let offset = 0;
+
+// 构建数据包头
+pkt.write_u16_be(offset, 0x0800);    // EtherType: IPv4
+offset += 2;
+pkt.write_u8(offset, 0x45);          // 版本 + IHL
+offset += 1;
+pkt.write_u8(offset, 0x00);          // DSCP/ECN
+offset += 1;
+pkt.write_u16_be(offset, 40);        // 总长度
+offset += 2;
+pkt.write_u32_be(offset, 0xC0A80001); // 源 IP: 192.168.0.1
+offset += 4;
+
+// 浮点值
+pkt.write_f32_le(offset, 3.14);
+offset += 4;
+pkt.write_f64_be(offset, 2.71828);
+offset += 8;
+```
+
+**单字节写入**（`write_u8`、`write_i8`）没有端序后缀，因为单字节的字节序无关紧要。
+
+### 读取方法
+
+从字节偏移量读取类型化值。端序后缀与写入方法匹配。
+
+```hemlock
+let pkt = buffer(64);
+// ... 用数据填充缓冲区 ...
+
+// 解析数据包头
+let ether_type = pkt.read_u16_be(0);    // 0x0800
+let version = pkt.read_u8(2);            // 0x45
+let total_len = pkt.read_u16_be(4);      // 40
+let src_ip = pkt.read_u32_be(6);         // 0xC0A80001
+
+// 读取浮点值
+let pi = pkt.read_f32_le(10);
+let e = pkt.read_f64_be(14);
+```
+
+### 批量操作
+
+```hemlock
+let src = buffer(8);
+for (let i = 0; i < 8; i++) { src[i] = i + 1; }
+
+let dest = buffer(32);
+dest.write_bytes(4, src);          // 将 src 复制到 dest 的偏移量 4 处
+
+let chunk = dest.read_bytes(4, 8); // 从偏移量 4 读取 8 个字节
+print(chunk[0]);                   // 1
+```
+
+### 边界检查
+
+所有类型化读写方法都验证整个值是否在缓冲区内。例如，`write_u32_be(offset, val)` 检查 `offset + 4 <= buffer.length`。
+
+```hemlock
+let buf = buffer(4);
+buf.write_u32_be(0, 42);    // 正确：4 字节放得下
+// buf.write_u32_be(2, 42); // 错误：会写入超过末尾（offset 2 + 4 > 4）
+```
+
+### 用例
+
+- **网络协议：** 构建/解析 TCP、UDP、DNS 和自定义数据包
+- **二进制文件格式：** 读写图像头、归档格式等
+- **线协议：** 序列化/反序列化结构化二进制消息
+- **FFI 数据交换：** 为 C 库调用准备缓冲区
+
+---
+
 ## 使用模式
 
 ### 基本分配模式

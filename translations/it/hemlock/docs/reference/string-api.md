@@ -1,6 +1,6 @@
 # Riferimento API delle Stringhe
 
-Riferimento completo per il tipo stringa di Hemlock e tutti i suoi 19 metodi.
+Riferimento completo per il tipo stringa di Hemlock e tutti i suoi 22 metodi.
 
 ---
 
@@ -12,7 +12,7 @@ Le stringhe in Hemlock sono sequenze **codificate in UTF-8, mutabili, allocate n
 - Codifica UTF-8 (U+0000 a U+10FFFF)
 - Mutabili (possono modificare i caratteri in loco)
 - Indicizzazione basata sui codepoint
-- 19 metodi integrati
+- 22 metodi integrati
 - Concatenazione automatica con operatore `+`
 
 ---
@@ -295,6 +295,46 @@ let pulito = s.trim();           // "ciao"
 
 let testo = "\n\t  mondo  \n";
 let pulito2 = testo.trim();      // "mondo"
+```
+
+#### trim_start
+
+Rimuove solo gli spazi bianchi iniziali.
+
+**Firma:**
+```hemlock
+string.trim_start(): string
+```
+
+**Restituisce:** Nuova stringa con spazi bianchi iniziali rimossi
+
+**Esempi:**
+```hemlock
+let s = "  ciao  ";
+let pulito = s.trim_start();     // "ciao  "
+
+let testo = "\n\t  mondo  \n";
+let pulito2 = testo.trim_start(); // "mondo  \n"
+```
+
+#### trim_end
+
+Rimuove solo gli spazi bianchi finali.
+
+**Firma:**
+```hemlock
+string.trim_end(): string
+```
+
+**Restituisce:** Nuova stringa con spazi bianchi finali rimossi
+
+**Esempi:**
+```hemlock
+let s = "  ciao  ";
+let pulito = s.trim_end();       // "  ciao"
+
+let testo = "\n\t  mondo  \n";
+let pulito2 = testo.trim_end();   // "\n\t  mondo"
 ```
 
 ---
@@ -605,6 +645,57 @@ print(buf2.length);             // 4
 
 ---
 
+### Accesso al Puntatore Grezzo
+
+#### byte_ptr
+
+Ottiene un puntatore grezzo al buffer interno di byte UTF-8 della stringa. Questa è un'operazione a zero allocazione -- non viene fatta nessuna copia.
+
+**Firma:**
+```hemlock
+string.byte_ptr(): ptr
+```
+
+**Restituisce:** Puntatore grezzo (`ptr`) ai byte UTF-8 interni della stringa
+
+**Esempi:**
+```hemlock
+let s = "Hello";
+let p = s.byte_ptr();
+print(typeof(p));              // "ptr"
+
+// Leggi byte attraverso il puntatore
+print(ptr_deref_u8(p));                    // 72 ('H')
+print(ptr_deref_u8(ptr_offset(p, 1, 1))); // 101 ('e')
+print(ptr_deref_u8(ptr_offset(p, 4, 1))); // 111 ('o')
+
+// Usa con memcpy per copiare byte della stringa
+let buf = alloc(5);
+memcpy(buf, s.byte_ptr(), 5);
+print(ptr_deref_u8(buf));  // 72
+free(buf);
+
+// Accoppia con .byte_length per tracciamento dimensione sicuro
+let emoji = "Hello 🚀";
+let ep = emoji.byte_ptr();
+print(emoji.byte_length);  // 10 (usa byte_length, non length, per operazioni su byte)
+```
+
+**Comportamento:**
+- Restituisce un puntatore diretto nella memoria interna della stringa (zero-copy)
+- Il puntatore è valido finché la stringa è viva e non modificata
+- Usa `.byte_length` (non `.length`) per determinare il numero di byte accessibili attraverso il puntatore
+- A differenza di `.to_bytes()`, non alloca un nuovo buffer
+
+**Casi d'Uso:**
+- Chiamate FFI che necessitano un puntatore ai dati stringa
+- Interop zero-copy con funzioni C
+- Codice critico per le prestazioni che evita l'allocazione
+
+**Attenzione:** Modificare la stringa (es., assegnazione indice) dopo aver chiamato `byte_ptr()` potrebbe invalidare il puntatore se il buffer interno della stringa viene riallocato.
+
+---
+
 ### Deserializzazione JSON
 
 #### deserialize
@@ -678,6 +769,8 @@ let pulito = "  CIAO  "
 | `contains`     | `(ago: string)`                          | `bool`      | Verifica se contiene sottostringa     |
 | `split`        | `(delimitatore: string)`                 | `array`     | Divide in array                       |
 | `trim`         | `()`                                     | `string`    | Rimuove spazi bianchi                 |
+| `trim_start`   | `()`                                     | `string`    | Rimuove spazi bianchi iniziali        |
+| `trim_end`     | `()`                                     | `string`    | Rimuove spazi bianchi finali          |
 | `to_upper`     | `()`                                     | `string`    | Converte in maiuscolo                 |
 | `to_lower`     | `()`                                     | `string`    | Converte in minuscolo                 |
 | `starts_with`  | `(prefisso: string)`                     | `bool`      | Verifica se inizia con prefisso       |
@@ -690,6 +783,7 @@ let pulito = "  CIAO  "
 | `chars`        | `()`                                     | `array`     | Converte in array di rune             |
 | `bytes`        | `()`                                     | `array`     | Converte in array di byte             |
 | `to_bytes`     | `()`                                     | `buffer`    | Converte in buffer (legacy)           |
+| `byte_ptr`     | `()`                                     | `ptr`       | Puntatore grezzo ai byte UTF-8 interni |
 | `deserialize`  | `()`                                     | `any`       | Analizza stringa JSON                 |
 
 ---

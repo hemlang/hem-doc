@@ -892,11 +892,99 @@ create_user("Eve", age: 21);          // OK
 - Funciona com parâmetros padrão/opcionais
 - Nomes de parâmetro desconhecidos causam erro em tempo de execução
 
+## Funções com Corpo de Expressão
+
+Para funções com um corpo de expressão única, use a sintaxe arrow (`=>`):
+
+```hemlock
+// Função nomeada com corpo de expressão
+fn double(x: i32): i32 => x * 2;
+fn max(a: i32, b: i32): i32 => a > b ? a : b;
+fn greet(name: string): string => "Hello, " + name + "!";
+
+// Função anônima com corpo de expressão
+let square = fn(x: i32): i32 => x * x;
+let isEven = fn(n: i32): bool => n % 2 == 0;
+```
+
+**Regras:**
+- O corpo é uma expressão única (sem palavra-chave `return` necessária)
+- O valor da expressão é retornado automaticamente
+- Anotações de tipo funcionam da mesma forma que funções com bloco
+- Funciona com funções nomeadas e anônimas
+
+**Quando usar:**
+- Transformações simples e predicados
+- Funções callback passadas para `map`, `filter`, etc.
+- Funções wrapper que delegam para outra chamada
+
+```hemlock
+// Ótimo para operações com arrays
+let nums = [1, 2, 3, 4, 5];
+let doubled = nums.map(fn(x) => x * 2);
+let evens = nums.filter(fn(x) => x % 2 == 0);
+```
+
+---
+
+## Parâmetros Ref (Passagem por Referência)
+
+O modificador `ref` passa uma referência à variável do chamador, permitindo que a função a modifique diretamente:
+
+### Parâmetros Ref Básicos
+
+```hemlock
+fn increment(ref x: i32) {
+    x = x + 1;  // Modifica a variável original
+}
+
+let count = 10;
+increment(count);
+print(count);  // 11 - original foi modificado
+```
+
+### Padrão Swap
+
+```hemlock
+fn swap(ref a: i32, ref b: i32) {
+    let temp = a;
+    a = b;
+    b = temp;
+}
+
+let x = 1;
+let y = 2;
+swap(x, y);
+print(x);  // 2
+print(y);  // 1
+```
+
+### Misturando Parâmetros Ref e Regulares
+
+```hemlock
+fn add_to(ref target: i32, amount: i32) {
+    target = target + amount;
+}
+
+let total = 100;
+add_to(total, 50);
+print(total);  // 150
+```
+
+### Regras para Parâmetros Ref
+
+- Parâmetros `ref` devem receber variáveis, não literais ou expressões
+- Funciona com todos os tipos (primitivos, arrays, objetos)
+- Combina com anotações de tipo: `ref x: i32`
+- Não pode combinar com `const` (são opostos)
+- Sem `ref`, tipos primitivos são passados por valor (copiados)
+
+---
+
 ## Limitações
 
 Limitações atuais a observar:
 
-- **Sem passagem por referência** - Palavra-chave `ref` é analisada mas não implementada
 - **Sem sobrecarga de função** - Apenas uma função por nome
 - **Sem otimização de chamada de cauda** - Recursão profunda limitada pelo tamanho da pilha
 

@@ -1,6 +1,6 @@
 # Referencia de la API de Strings
 
-Referencia completa para el tipo string de Hemlock y sus 19 metodos.
+Referencia completa para el tipo string de Hemlock y sus 22 metodos.
 
 ---
 
@@ -12,7 +12,7 @@ Los strings en Hemlock son secuencias **codificadas en UTF-8, mutables, asignada
 - Codificacion UTF-8 (U+0000 a U+10FFFF)
 - Mutable (puede modificar caracteres en su lugar)
 - Indexacion basada en puntos de codigo
-- 19 metodos integrados
+- 22 metodos integrados
 - Concatenacion automatica con el operador `+`
 
 ---
@@ -295,6 +295,50 @@ let clean = s.trim();           // "hello"
 
 let text = "\n\t  world  \n";
 let clean2 = text.trim();       // "world"
+```
+
+---
+
+#### trim_start
+
+Elimina espacios en blanco solo al inicio.
+
+**Firma:**
+```hemlock
+string.trim_start(): string
+```
+
+**Retorna:** Nuevo string con espacios en blanco al inicio eliminados
+
+**Ejemplos:**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_start();     // "hello  "
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_start(); // "world  \n"
+```
+
+---
+
+#### trim_end
+
+Elimina espacios en blanco solo al final.
+
+**Firma:**
+```hemlock
+string.trim_end(): string
+```
+
+**Retorna:** Nuevo string con espacios en blanco al final eliminados
+
+**Ejemplos:**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_end();       // "  hello"
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_end();   // "\n\t  world"
 ```
 
 ---
@@ -605,6 +649,55 @@ print(buf2.length);             // 4
 
 ---
 
+### Acceso a Puntero Crudo
+
+#### byte_ptr
+
+Obtiene un puntero crudo al buffer interno de bytes UTF-8 del string. Esta es una operacion sin asignacion -- no se hace copia.
+
+**Firma:**
+```hemlock
+string.byte_ptr(): ptr
+```
+
+**Retorna:** Puntero crudo (`ptr`) a los bytes UTF-8 internos del string
+
+**Ejemplos:**
+```hemlock
+let s = "Hello";
+let p = s.byte_ptr();
+print(typeof(p));              // "ptr"
+
+// Leer bytes a traves del puntero
+print(ptr_deref_u8(p));                    // 72 ('H')
+print(ptr_deref_u8(ptr_offset(p, 1, 1))); // 101 ('e')
+print(ptr_deref_u8(ptr_offset(p, 4, 1))); // 111 ('o')
+
+// Usar con memcpy para copiar bytes del string
+let buf = alloc(5);
+memcpy(buf, s.byte_ptr(), 5);
+print(ptr_deref_u8(buf));  // 72
+free(buf);
+
+// Combinar con .byte_length para rastreo seguro de tamano
+let emoji = "Hello 🚀";
+let ep = emoji.byte_ptr();
+print(emoji.byte_length);  // 10 (use byte_length, no length, para operaciones de bytes)
+```
+
+**Comportamiento:**
+- Retorna un puntero directamente a la memoria interna del string (copia cero)
+- No asigna memoria nueva
+
+**Casos de Uso:**
+- Llamadas FFI que necesitan un puntero a datos del string
+- Interoperabilidad copia cero con funciones C
+- Codigo critico en rendimiento que evita asignacion
+
+**Advertencia:** Modificar el string (ej., asignacion por indice) despues de llamar `byte_ptr()` puede invalidar el puntero si el buffer interno del string se reasigna.
+
+---
+
 ### Deserializacion JSON
 
 #### deserialize
@@ -678,6 +771,8 @@ let cleaned = "  HELLO  "
 | `contains`     | `(needle: string)`                           | `bool`    | Verificar si contiene subcadena       |
 | `split`        | `(delimiter: string)`                        | `array`   | Dividir en array                      |
 | `trim`         | `()`                                         | `string`  | Eliminar espacios en blanco           |
+| `trim_start`   | `()`                                         | `string`  | Eliminar espacios al inicio           |
+| `trim_end`     | `()`                                         | `string`  | Eliminar espacios al final            |
 | `to_upper`     | `()`                                         | `string`  | Convertir a mayusculas                |
 | `to_lower`     | `()`                                         | `string`  | Convertir a minusculas                |
 | `starts_with`  | `(prefix: string)`                           | `bool`    | Verificar si comienza con prefijo     |
@@ -690,6 +785,7 @@ let cleaned = "  HELLO  "
 | `chars`        | `()`                                         | `array`   | Convertir a array de runes            |
 | `bytes`        | `()`                                         | `array`   | Convertir a array de bytes            |
 | `to_bytes`     | `()`                                         | `buffer`  | Convertir a buffer (heredado)         |
+| `byte_ptr`     | `()`                                         | `ptr`     | Puntero crudo a bytes UTF-8 internos  |
 | `deserialize`  | `()`                                         | `any`     | Analizar string JSON                  |
 
 ---

@@ -455,6 +455,169 @@ print(buf.capacity);        // 256
 
 ---
 
+## Pointer/Buffer-Interoperabilität
+
+Alle `ptr_read_*`, `ptr_write_*` und `ptr_deref_*` Builtins akzeptieren sowohl `ptr`- als auch `buffer`-Typen direkt. Wenn ein Buffer übergeben wird, verwendet die Operation den zugrunde liegenden Datenpointer des Buffers.
+
+```hemlock
+let buf = buffer(16);
+
+// Direkt in einen Buffer schreiben (kein buffer_ptr() nötig)
+ptr_write_i32(buf, 42);
+ptr_write_f64(ptr_offset(buffer_ptr(buf), 4), 3.14);
+
+// Direkt aus einem Buffer lesen
+let val = ptr_read_i32(buf);      // 42
+let fval = ptr_deref_i32(buf);    // 42
+
+// Funktioniert auch mit rohen Pointern wie zuvor
+let p = alloc(8);
+ptr_write_i32(p, 99);
+let pval = ptr_read_i32(p);      // 99
+free(p);
+```
+
+Dies eliminiert die Notwendigkeit, vor jeder typisierten Lese-/Schreiboperation `buffer_ptr()` aufzurufen, und macht Buffer-basierten Code kompakter.
+
+---
+
+## Buffer-Methoden
+
+### .slice
+
+Erstellt eine Zero-Copy-Ansicht in den Speicher des Buffers. Die zurückgegebene Ansicht teilt den gleichen zugrunde liegenden Speicher wie der Eltern-Buffer -- Änderungen am Original sind durch die Ansicht sichtbar und umgekehrt.
+
+**Signatur:**
+```hemlock
+buffer.slice(start: i32, end?: i32): buffer
+```
+
+**Parameter:**
+- `start` - Startbyte-Offset (0-basiert, inklusiv). Negative Werte werden auf 0 geklemmt.
+- `end` - Endbyte-Offset (exklusiv). Standard ist `buffer.length` wenn ausgelassen. Werte jenseits der Bufferlänge werden geklemmt.
+
+**Rückgabe:** Buffer-Ansicht (Zero-Copy)
+
+**Beispiele:**
+```hemlock
+let buf = buffer(10);
+for (let i = 0; i < 10; i++) {
+    buf[i] = i + 65;  // A=65, B=66, ...
+}
+
+// Grundlegender Slice
+let view = buf.slice(2, 5);
+print(view.length);    // 3
+print(view[0]);        // 67 (C)
+print(view[1]);        // 68 (D)
+print(view[2]);        // 69 (E)
+
+// Zero-Copy-Beweis: Änderung am Original ist durch Ansicht sichtbar
+buf[3] = 90;           // D(68) zu Z(90) ändern
+print(view[1]);        // 90 (reflektiert Eltern-Änderung)
+
+// Einargument-Slice (Start bis Ende)
+let tail = buf.slice(7);
+print(tail.length);    // 3
+
+// Verkettete Slices (Slice eines Slices)
+let inner = view.slice(1, 3);
+print(inner.length);   // 2
+print(inner[0]);       // 90 (Z)
+
+// Leerer Slice
+let empty = buf.slice(5, 5);
+print(empty.length);   // 0
+```
+
+**Verhalten:**
+- Gibt eine Zero-Copy-Ansicht zurück -- kein Speicher wird für die Daten allokiert
+- Ansichten halten eine Referenz zum Wurzel-Buffer (verhindert Use-After-Free)
+- Verkettete Slices (Slice eines Slices) verfolgen den Wurzel-Besitzer, nicht die Zwischenansicht
+- Grenzenprüfung wird relativ zum Bereich der Ansicht durchgeführt
+- Außerhalb des Bereichs liegende `start`/`end`-Werte werden auf gültige Grenzen geklemmt
+- Sie **können** einen Ansicht-Buffer nicht `free()`en -- nur der Wurzel-Buffer sollte freigegeben werden
+- Setzen Sie Ansichten auf `null` bevor Sie den Eltern-Buffer freigeben, um Referenzen freizugeben
+
+---
+
+## Typisierte Buffer-Lese-/Schreibmethoden
+
+Buffer bieten Endian-bewusste typisierte Lese- und Schreibmethoden zum Erstellen und Parsen binärer Datenstrukturen wie Netzwerkpakete, Dateiformate und Wire-Protokolle. Diese Methoden sind grenzengeprüft und lösen Laufzeitfehler bei Zugriff außerhalb der Grenzen aus.
+
+### Schreibmethoden
+
+Schreiben eines typisierten Wertes an einem Byte-Offset. Die Suffixe `_le` und `_be` geben Little-Endian- bzw. Big-Endian-Bytereihenfolge an.
+
+```hemlock
+let pkt = buffer(64);
+let offset = 0;
+
+// Paketheader erstellen
+pkt.write_u16_be(offset, 0x0800);    // EtherType: IPv4
+offset += 2;
+pkt.write_u8(offset, 0x45);          // Version + IHL
+offset += 1;
+pkt.write_u8(offset, 0x00);          // DSCP/ECN
+offset += 1;
+pkt.write_u16_be(offset, 40);        // Gesamtlänge
+offset += 2;
+pkt.write_u32_be(offset, 0xC0A80001); // Quell-IP: 192.168.0.1
+offset += 4;
+
+// Float-Werte
+pkt.write_f32_le(offset, 3.14);
+offset += 4;
+pkt.write_f64_be(offset, 2.71828);
+offset += 8;
+```
+
+**Einzelbyte-Schreiboperationen** (`write_u8`, `write_i8`) haben kein Endianness-Suffix, da die Bytereihenfolge für einzelne Bytes irrelevant ist.
+
+### Lesemethoden
+
+Lesen eines typisierten Wertes von einem Byte-Offset. Die Endianness-Suffixe entsprechen den Schreibmethoden.
+
+```hemlock
+let pkt = buffer(64);
+// ... Buffer mit Daten füllen ...
+
+// Paketheader parsen
+let ether_type = pkt.read_u16_be(0);    // 0x0800
+let version = pkt.read_u8(2);            // 0x45
+let total_len = pkt.read_u16_be(4);      // 40
+let src_ip = pkt.read_u32_be(6);         // 0xC0A80001
+
+// Float-Werte lesen
+let pi = pkt.read_f32_le(10);
+let e = pkt.read_f64_be(14);
+```
+
+### Massenoperationen
+
+```hemlock
+let src = buffer(8);
+for (let i = 0; i < 8; i++) { src[i] = i + 1; }
+
+let dest = buffer(32);
+dest.write_bytes(4, src);          // src in dest an Offset 4 kopieren
+
+let chunk = dest.read_bytes(4, 8); // 8 Bytes ab Offset 4 lesen
+print(chunk[0]);                   // 1
+```
+
+### Grenzenprüfung
+
+Alle typisierten Lese-/Schreibmethoden validieren, dass der gesamte Wert innerhalb des Buffers passt. Beispielsweise prüft `write_u32_be(offset, val)`, dass `offset + 4 <= buffer.length`.
+
+```hemlock
+let buf = buffer(4);
+buf.write_u32_be(0, 42);    // OK: 4 Bytes passen
+// buf.write_u32_be(2, 42); // FEHLER: würde über das Ende hinaus schreiben (Offset 2 + 4 > 4)
+```
+
+---
+
 ## Verwendungsmuster
 
 ### Grundlegendes Allokationsmuster

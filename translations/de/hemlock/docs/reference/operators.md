@@ -336,6 +336,34 @@ fn get_config() { return null; }
 let config = get_config() ?? { default: true };
 ```
 
+### Null-Koaleszenz-Zuweisung (`??=`)
+
+Weist der Variablen nur zu, wenn ihr aktueller Wert null ist.
+
+| Operator | Name                         | Beispiel     | Beschreibung                          |
+|----------|------------------------------|--------------|---------------------------------------|
+| `??=`    | Null-Koaleszenz-Zuweisung    | `a ??= b`    | b an a zuweisen nur wenn a null ist   |
+
+**Beispiele:**
+```hemlock
+let config = null;
+config ??= { timeout: 30 };    // config ist jetzt { timeout: 30 }
+config ??= { timeout: 60 };    // config unverändert (nicht null)
+
+// Funktioniert mit Eigenschaften und Indizes
+let obj = { name: null };
+obj.name ??= "Anonym";         // obj.name ist jetzt "Anonym"
+obj.name ??= "Anderer";        // obj.name unverändert
+
+let arr = [null, 2, 3];
+arr[0] ??= "erstes";           // arr[0] ist jetzt "erstes"
+```
+
+**Verhalten:**
+- Wertet die rechte Seite nur aus wenn die linke null ist
+- Nützlich für verzögerte Initialisierung und Standardwerte
+- Kombiniert gut mit `??` für Fallback-Ketten
+
 ---
 
 ### Optionale Verkettung (`?.`)
@@ -477,7 +505,7 @@ Operatoren von höchster zu niedrigster Präzedenz:
 | 12         | `&&`                       | Logisches UND                  | Links-nach-rechts |
 | 13         | `||`                       | Logisches ODER                 | Links-nach-rechts |
 | 14         | `??`                       | Null-Koaleszenz                | Links-nach-rechts |
-| 15         | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` | Zuweisung | Rechts-nach-links |
+| 15         | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` `??=` | Zuweisung | Rechts-nach-links |
 
 ---
 

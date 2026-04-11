@@ -892,11 +892,99 @@ create_user("Eve", age: 21);          // OK
 - Funktioniert mit Standard/optionalen Parametern
 - Unbekannte Parameternamen verursachen Laufzeitfehler
 
+## Ausdruckskörper-Funktionen
+
+Für Funktionen mit einem einzelnen Ausdruckskörper verwenden Sie die Pfeil-Syntax (`=>`):
+
+```hemlock
+// Benannte Ausdruckskörper-Funktion
+fn double(x: i32): i32 => x * 2;
+fn max(a: i32, b: i32): i32 => a > b ? a : b;
+fn greet(name: string): string => "Hello, " + name + "!";
+
+// Anonyme Ausdruckskörper-Funktion
+let square = fn(x: i32): i32 => x * x;
+let isEven = fn(n: i32): bool => n % 2 == 0;
+```
+
+**Regeln:**
+- Der Körper ist ein einzelner Ausdruck (kein `return`-Schlüsselwort nötig)
+- Der Wert des Ausdrucks wird automatisch zurückgegeben
+- Typannotationen funktionieren wie bei Block-Funktionen
+- Funktioniert mit benannten und anonymen Funktionen
+
+**Wann verwenden:**
+- Einfache Transformationen und Prädikate
+- Callback-Funktionen die an `map`, `filter` etc. übergeben werden
+- Wrapper-Funktionen die an einen anderen Aufruf delegieren
+
+```hemlock
+// Ideal für Array-Operationen
+let nums = [1, 2, 3, 4, 5];
+let doubled = nums.map(fn(x) => x * 2);
+let evens = nums.filter(fn(x) => x % 2 == 0);
+```
+
+---
+
+## Ref-Parameter (Übergabe per Referenz)
+
+Der `ref`-Modifikator übergibt eine Referenz zur Variable des Aufrufers, sodass die Funktion sie direkt modifizieren kann:
+
+### Grundlegende Ref-Parameter
+
+```hemlock
+fn increment(ref x: i32) {
+    x = x + 1;  // Modifiziert die ursprüngliche Variable
+}
+
+let count = 10;
+increment(count);
+print(count);  // 11 - Original wurde modifiziert
+```
+
+### Swap-Muster
+
+```hemlock
+fn swap(ref a: i32, ref b: i32) {
+    let temp = a;
+    a = b;
+    b = temp;
+}
+
+let x = 1;
+let y = 2;
+swap(x, y);
+print(x);  // 2
+print(y);  // 1
+```
+
+### Mischen von Ref- und regulären Parametern
+
+```hemlock
+fn add_to(ref target: i32, amount: i32) {
+    target = target + amount;
+}
+
+let total = 100;
+add_to(total, 50);
+print(total);  // 150
+```
+
+### Regeln für Ref-Parameter
+
+- `ref`-Parameter müssen Variablen übergeben werden, keine Literale oder Ausdrücke
+- Funktioniert mit allen Typen (Primitives, Arrays, Objekte)
+- Kombiniere mit Typannotationen: `ref x: i32`
+- Kann nicht mit `const` kombiniert werden (sie sind Gegensätze)
+- Ohne `ref` werden Primitives per Wert übergeben (kopiert)
+
+---
+
 ## Einschränkungen
 
 Aktuelle Einschränkungen, die zu beachten sind:
 
-- **Keine Referenzübergabe** - `ref`-Schlüsselwort wird geparst aber nicht implementiert
 - **Kein Funktionsüberladen** - Eine Funktion pro Name
 - **Keine Tail-Call-Optimierung** - Tiefe Rekursion durch Stack-Größe begrenzt
 

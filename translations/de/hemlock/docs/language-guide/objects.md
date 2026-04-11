@@ -207,18 +207,101 @@ person.phone = "555-1234";
 print(person.email);  // "alice@example.com"
 ```
 
-### Feldlöschung
+### Klammernotation
 
-**Hinweis:** Feldlöschung wird derzeit nicht unterstützt. Setzen Sie stattdessen auf `null`:
+Dynamischer Zugriff auf Felder mit Klammernotation und einem String-Schlüssel:
+
+```hemlock
+let person = { name: "Alice", age: 30 };
+
+// Lesen mit Klammernotation
+let field = "name";
+print(person[field]);         // "Alice"
+print(person["age"]);         // 30
+
+// Schreiben mit Klammernotation
+person["city"] = "NYC";
+print(person.city);           // "NYC"
+```
+
+### Schlüssel-Koersion
+
+Nicht-String-Schlüssel werden bei Verwendung mit Klammernotation automatisch in Strings umgewandelt. Dies ermöglicht die Verwendung von Objekten als Maps mit numerischen, booleschen oder Rune-Schlüsseln:
+
+```hemlock
+let map = {};
+
+// Integer-Schlüssel (koerziert zu String: 42 -> "42")
+map[0] = "null";
+map[42] = "zweiundvierzig";
+print(map[0]);                // "null"
+print(map["0"]);              // "null" (äquivalent)
+
+// Boolean-Schlüssel (koerziert: true -> "true")
+map[true] = "ja";
+print(map[true]);             // "ja"
+print(map["true"]);           // "ja"
+
+// Rune-Schlüssel (koerziert: 'A' -> "A")
+map['A'] = "alpha";
+print(map['A']);               // "alpha"
+print(map["A"]);               // "alpha"
+
+// Float-Schlüssel (koerziert mit voller Präzision: 3.14 -> "3.1400000000000001")
+map[3.14] = "pi";
+print(map[3.14]);              // "pi"
+```
+
+**Unterstützte Koersionstypen:**
+- **Integers** (i8-i64, u8-u64): Dezimale String-Darstellung
+- **Floats** (f32, f64): `%.17g`-Format (volle Präzision)
+- **Booleans**: `"true"` oder `"false"`
+- **Runes**: UTF-8-kodiertes Zeichen
+
+**Hinweis:** Float-Schlüssel verwenden volle IEEE 754-Präzision, sodass `3.14` zu `"3.1400000000000001"` wird. Wenn Sie exakte Float-String-Schlüssel benötigen, konvertieren Sie explizit mit `"" + n`.
+
+### Eingebaute Objektmethoden
+
+#### `obj.keys()`
+
+Gibt ein Array aller Feldnamen als Strings zurück:
+
+```hemlock
+let obj = { x: 10, y: 20, name: "test" };
+let k = obj.keys();
+print(k);  // [x, y, name]
+```
+
+#### `obj.has(key)`
+
+Prüft ob ein Objekt ein bestimmtes Feld hat. Akzeptiert String-, Integer-, Float-, Bool- oder Rune-Schlüssel (Nicht-String-Schlüssel werden koerziert):
+
+```hemlock
+let obj = { x: 10, name: "test" };
+print(obj.has("x"));       // true
+print(obj.has("z"));       // false
+
+let map = {};
+map[42] = "wert";
+print(map.has(42));        // true
+print(map.has("42"));      // true
+```
+
+#### `obj.delete(key)`
+
+Entfernt ein Feld aus einem Objekt. Gibt `true` zurück wenn das Feld gefunden und gelöscht wurde, sonst `false`. Akzeptiert koerzierte Schlüssel wie `has()`:
 
 ```hemlock
 let obj = { x: 10, y: 20 };
+obj.delete("x");
+print(obj.has("x"));      // false
+print(obj.has("y"));      // true
 
-// Felder können nicht gelöscht werden (nicht unterstützt)
-// obj.x = undefined;  // Kein 'undefined' in Hemlock
-
-// Workaround: Auf null setzen
-obj.x = null;
+// Mit Integer-Schlüsseln
+let map = {};
+map[5] = "fünf";
+map.delete(5);
+print(map.has(5));         // false
 ```
 
 ## Methoden und `self`
@@ -963,9 +1046,7 @@ Aktuelle Einschränkungen:
 
 - **Keine tiefe Kopie** - Verschachtelte Objekte müssen manuell kopiert werden (Spread ist flach)
 - **Keine Wertübergabe** - Objekte werden immer als Referenz übergeben
-- **Keine berechneten Eigenschaften** - Keine `{[key]: value}`-Syntax
 - **`self` ist schreibgeschützt** - Kann `self` in Methoden nicht neu zuweisen
-- **Keine Eigenschaftslöschung** - Felder können nicht entfernt werden, sobald sie hinzugefügt sind
 
 **Hinweis:** Objekte sind referenzgezählt und werden automatisch freigegeben, wenn der Gültigkeitsbereich endet. Siehe [Speicherverwaltung](memory.md#internal-reference-counting) für Details.
 

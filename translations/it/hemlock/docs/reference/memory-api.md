@@ -416,6 +416,32 @@ free(bytes);
 
 ---
 
+## Interoperabilità Puntatore/Buffer
+
+Tutte le funzioni builtin `ptr_read_*`, `ptr_write_*` e `ptr_deref_*` accettano sia tipi `ptr` che `buffer` direttamente. Quando viene passato un buffer, l'operazione usa il puntatore dati sottostante del buffer.
+
+```hemlock
+let buf = buffer(16);
+
+// Scrivi direttamente su un buffer (non serve estrarre il ptr prima)
+ptr_write_i32(buf, 42);
+ptr_write_f64(ptr_offset(buffer_ptr(buf), 4), 3.14);
+
+// Leggi direttamente da un buffer
+let val = ptr_read_i32(buf);      // 42
+let fval = ptr_deref_i32(buf);    // 42
+
+// Funziona anche con puntatori grezzi come prima
+let p = alloc(8);
+ptr_write_i32(p, 99);
+let pval = ptr_read_i32(p);      // 99
+free(p);
+```
+
+Questo elimina la necessità di chiamare `buffer_ptr()` prima di ogni operazione di lettura/scrittura tipizzata, rendendo il codice basato su buffer più conciso.
+
+---
+
 ## Proprietà del Buffer
 
 ### .length
@@ -452,6 +478,127 @@ print(buf.capacity);        // 256
 ```
 
 **Nota:** Attualmente, `.length` e `.capacity` sono uguali per i buffer creati con `buffer()`.
+
+---
+
+## Metodi del Buffer
+
+### .slice
+
+Crea una vista a zero-copy nella memoria del buffer. La vista restituita condivide la stessa memoria sottostante del buffer padre -- le modifiche all'originale sono visibili attraverso la vista e viceversa.
+
+**Firma:**
+```hemlock
+buffer.slice(inizio: i32, fine?: i32): buffer
+```
+
+**Parametri:**
+- `inizio` - Offset byte iniziale (base 0, inclusivo). I valori negativi vengono limitati a 0.
+- `fine` - Offset byte finale (esclusivo). Default a `buffer.length` se omesso. I valori oltre la lunghezza del buffer vengono limitati.
+
+**Restituisce:** Vista del buffer (zero-copy)
+
+**Esempi:**
+```hemlock
+let buf = buffer(10);
+for (let i = 0; i < 10; i++) {
+    buf[i] = i + 65;  // A=65, B=66, ...
+}
+
+// Slice base
+let vista = buf.slice(2, 5);
+print(vista.length);    // 3
+print(vista[0]);        // 67 (C)
+
+// Prova zero-copy: modificare l'originale è visibile attraverso la vista
+buf[3] = 90;           // Cambia D(68) a Z(90)
+print(vista[1]);       // 90 (riflette la modifica del padre)
+
+// Slice a singolo argomento (dall'indice alla fine)
+let coda = buf.slice(7);
+print(coda.length);    // 3
+```
+
+**Comportamento:**
+- Restituisce una vista a zero-copy -- nessuna memoria viene allocata per i dati
+- Le viste mantengono un riferimento al buffer radice (previene use-after-free)
+- Il controllo dei limiti viene eseguito relativo all'intervallo della vista
+- **Non puoi** fare `free()` su un buffer vista -- solo il buffer radice dovrebbe essere liberato
+
+---
+
+## Metodi di Lettura/Scrittura Tipizzati del Buffer
+
+I buffer forniscono metodi di lettura e scrittura tipizzati con consapevolezza dell'endianness per costruire e analizzare strutture dati binarie come pacchetti di rete, formati di file e protocolli wire. Questi metodi hanno controllo dei limiti e sollevano errori a runtime in caso di accesso fuori dai limiti.
+
+### Metodi di Scrittura
+
+Scrivono un valore tipizzato a un offset in byte. I suffissi `_le` e `_be` specificano rispettivamente l'ordine dei byte little-endian e big-endian.
+
+```hemlock
+let pkt = buffer(64);
+let offset = 0;
+
+// Costruisci un header di pacchetto
+pkt.write_u16_be(offset, 0x0800);    // EtherType: IPv4
+offset += 2;
+pkt.write_u8(offset, 0x45);          // Version + IHL
+offset += 1;
+pkt.write_u32_be(offset, 0xC0A80001); // IP Sorgente: 192.168.0.1
+offset += 4;
+
+// Valori float
+pkt.write_f32_le(offset, 3.14);
+offset += 4;
+pkt.write_f64_be(offset, 2.71828);
+offset += 8;
+```
+
+**Le scritture a singolo byte** (`write_u8`, `write_i8`) non hanno suffisso di endianness poiché l'ordine dei byte è irrilevante per singoli byte.
+
+### Metodi di Lettura
+
+Leggono un valore tipizzato da un offset in byte. I suffissi di endianness corrispondono ai metodi di scrittura.
+
+```hemlock
+let pkt = buffer(64);
+// ... riempi il buffer con dati ...
+
+// Analizza un header di pacchetto
+let ether_type = pkt.read_u16_be(0);    // 0x0800
+let version = pkt.read_u8(2);            // 0x45
+let src_ip = pkt.read_u32_be(6);         // 0xC0A80001
+```
+
+### Operazioni in Blocco
+
+```hemlock
+let src = buffer(8);
+for (let i = 0; i < 8; i++) { src[i] = i + 1; }
+
+let dest = buffer(32);
+dest.write_bytes(4, src);          // Copia src in dest all'offset 4
+
+let chunk = dest.read_bytes(4, 8); // Leggi 8 byte a partire dall'offset 4
+print(chunk[0]);                   // 1
+```
+
+### Controllo dei Limiti
+
+Tutti i metodi di lettura/scrittura tipizzati validano che l'intero valore rientri nel buffer. Per esempio, `write_u32_be(offset, val)` verifica che `offset + 4 <= buffer.length`.
+
+```hemlock
+let buf = buffer(4);
+buf.write_u32_be(0, 42);    // OK: 4 byte ci stanno
+// buf.write_u32_be(2, 42); // ERRORE: scriverebbe oltre la fine (offset 2 + 4 > 4)
+```
+
+### Casi d'Uso
+
+- **Protocolli di rete:** Costruire/analizzare pacchetti TCP, UDP, DNS e personalizzati
+- **Formati file binari:** Leggere/scrivere header di immagini, formati di archivio, ecc.
+- **Protocolli wire:** Serializzare/deserializzare messaggi binari strutturati
+- **Scambio dati FFI:** Preparare buffer per chiamate a librerie C
 
 ---
 

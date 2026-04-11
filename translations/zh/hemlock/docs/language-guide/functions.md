@@ -892,11 +892,99 @@ create_user("Eve", age: 21);          // OK
 - 与默认/可选参数配合使用
 - 未知的参数名会导致运行时错误
 
+## 表达式体函数
+
+对于只有单个表达式体的函数，使用箭头（`=>`）语法：
+
+```hemlock
+// 命名表达式体函数
+fn double(x: i32): i32 => x * 2;
+fn max(a: i32, b: i32): i32 => a > b ? a : b;
+fn greet(name: string): string => "Hello, " + name + "!";
+
+// 匿名表达式体函数
+let square = fn(x: i32): i32 => x * x;
+let isEven = fn(n: i32): bool => n % 2 == 0;
+```
+
+**规则：**
+- 函数体是单个表达式（不需要 `return` 关键字）
+- 表达式的值自动返回
+- 类型注解与块体函数相同
+- 适用于命名和匿名函数
+
+**适用场景：**
+- 简单转换和谓词
+- 传递给 `map`、`filter` 等的回调函数
+- 委托给另一个调用的包装函数
+
+```hemlock
+// 非常适合数组操作
+let nums = [1, 2, 3, 4, 5];
+let doubled = nums.map(fn(x) => x * 2);
+let evens = nums.filter(fn(x) => x % 2 == 0);
+```
+
+---
+
+## Ref 参数（按引用传递）
+
+`ref` 修饰符传递对调用者变量的引用，允许函数直接修改它：
+
+### 基本 Ref 参数
+
+```hemlock
+fn increment(ref x: i32) {
+    x = x + 1;  // 修改原始变量
+}
+
+let count = 10;
+increment(count);
+print(count);  // 11 - 原始值已修改
+```
+
+### 交换模式
+
+```hemlock
+fn swap(ref a: i32, ref b: i32) {
+    let temp = a;
+    a = b;
+    b = temp;
+}
+
+let x = 1;
+let y = 2;
+swap(x, y);
+print(x);  // 2
+print(y);  // 1
+```
+
+### 混合 Ref 和普通参数
+
+```hemlock
+fn add_to(ref target: i32, amount: i32) {
+    target = target + amount;
+}
+
+let total = 100;
+add_to(total, 50);
+print(total);  // 150
+```
+
+### Ref 参数规则
+
+- `ref` 参数必须传递变量，不能是字面量或表达式
+- 适用于所有类型（原始类型、数组、对象）
+- 与类型注解结合：`ref x: i32`
+- 不能与 `const` 结合（它们是对立的）
+- 没有 `ref` 时，原始类型按值传递（复制）
+
+---
+
 ## 限制
 
 需要注意的当前限制：
 
-- **无按引用传递** - `ref` 关键字已解析但未实现
 - **无函数重载** - 每个名称只能有一个函数
 - **无尾调用优化** - 深度递归受栈大小限制
 

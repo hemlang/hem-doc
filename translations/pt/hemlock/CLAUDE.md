@@ -117,19 +117,24 @@ let f: f64 = 100;        // i32 convertido para f64 via anotação (coerção nu
 ```hemlock
 typeof(42);              // "i32"
 typeof("hello");         // "string"
-typeof([1, 2, 3]);       // "array"
-typeof(null);            // "null"
-len("hello");            // 5 (comprimento em bytes da string)
-len([1, 2, 3]);          // 3 (comprimento do array)
+"hello".length;          // 5 (contagem de runes)
+"hello".byte_length;     // 5 (contagem de bytes)
+
+// typeid() - detecção de tipo baseada em inteiro rápido (sem alocação de string)
+typeid(42);              // 2 (TYPEID_I32)
+if (typeid(val) == TYPEID_I32 || typeid(val) == TYPEID_I64) { ... }
 ```
+
+**Constantes TYPEID:** `TYPEID_I8` (0), `TYPEID_I16` (1), `TYPEID_I32` (2), `TYPEID_I64` (3), `TYPEID_U8` (4), `TYPEID_U16` (5), `TYPEID_U32` (6), `TYPEID_U64` (7), `TYPEID_F32` (8), `TYPEID_F64` (9), `TYPEID_BOOL` (10), `TYPEID_STRING` (11), `TYPEID_RUNE` (12), `TYPEID_PTR` (13), `TYPEID_BUFFER` (14), `TYPEID_ARRAY` (15), `TYPEID_OBJECT` (16), `TYPEID_FILE` (17), `TYPEID_FUNCTION` (18), `TYPEID_TASK` (19), `TYPEID_CHANNEL` (20), `TYPEID_NULL` (21)
 
 ### Memória
 ```hemlock
 let p = alloc(64);       // Ponteiro bruto
 let b = buffer(64);      // Buffer seguro (verificação de limites)
-memset(p, 0, 64);
-memcpy(dest, src, 64);
+memset(p, 0, 64); memcpy(dest, src, 64);
 free(p);                 // Limpeza manual necessária
+let view = b.slice(0, 16);  // visão zero-copy do buffer
+ptr_write_f32(b, 3.14);     // ptr_read/write aceitam buffers diretamente
 ```
 
 ### Fluxo de Controle
@@ -465,6 +470,7 @@ async fn compute(n: i32): i32 { return n * n; }
 let task = spawn(compute, 42);
 let result = await task;     // Ou join(task)
 detach(spawn(background_work));
+let t = spawn_with({ stack_size: 4194304, name: "worker" }, compute, 42);
 
 let ch = channel(10);
 ch.send(value);
@@ -508,11 +514,11 @@ raise(SIGUSR1);
 
 ---
 
-## Métodos de String (19)
+## Métodos de String (22)
 
-`substr`, `slice`, `find`, `contains`, `split`, `trim`, `to_upper`, `to_lower`,
-`starts_with`, `ends_with`, `replace`, `replace_all`, `repeat`, `char_at`,
-`byte_at`, `chars`, `bytes`, `to_bytes`, `deserialize`
+`substr`, `slice`, `find`, `contains`, `split`, `trim`, `trim_start`, `trim_end`,
+`to_upper`, `to_lower`, `starts_with`, `ends_with`, `replace`, `replace_all`,
+`repeat`, `char_at`, `byte_at`, `chars`, `bytes`, `to_bytes`, `byte_ptr`, `deserialize`
 
 Template strings: `` `Hello ${name}!` ``
 
@@ -527,11 +533,11 @@ print(s.length);       // 7 (contagem de caracteres/runes)
 print(s.byte_length);  // 10 (contagem de bytes - emoji é 4 bytes UTF-8)
 ```
 
-## Métodos de Array (23)
+## Métodos de Array (28)
 
-`push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
+`push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `findIndex`, `contains`,
 `slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
-`every`, `some`, `indexOf`, `sort`, `fill`
+`every`, `some`, `indexOf`, `lastIndexOf`, `sort`, `fill`, `reserve`, `flat`, `serialize`
 
 ```hemlock
 // every(predicate) - true se todos os elementos satisfazem o predicado
@@ -559,7 +565,7 @@ Arrays tipados: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Biblioteca Padrão (42 módulos)
+## Biblioteca Padrão (53 módulos)
 
 Importar com prefixo `@stdlib/`:
 ```hemlock
@@ -576,23 +582,30 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `assert` | Utilitários de asserção |
 | `async` | ThreadPool, parallel_map |
 | `async_fs` | Operações de I/O de arquivos assíncronas |
+| `atomic` | Operações atômicas (load, store, add, CAS, fence) |
+| `bytes` | Utilitários de ordem de bytes (bswap, hton/ntoh, I/O endian-aware) |
 | `collections` | HashMap, Queue, Stack, Set, LinkedList, LRUCache |
 | `compression` | gzip, gunzip, deflate |
 | `crypto` | aes_encrypt, rsa_sign, random_bytes |
 | `csv` | Parsing e geração de CSV |
+| `debug` | Inspeção de tarefas e gerenciamento de pilha |
 | `datetime` | Classe DateTime, formatação, parsing |
+| `decimal` | to_fixed, to_hex, parse_int, parse_float, StringBuilder |
 | `encoding` | base64_encode, hex_encode, url_encode |
 | `env` | getenv, setenv, exit, get_pid |
+| `ffi` | Gerenciamento de callbacks FFI |
 | `fmt` | Utilitários de formatação de string |
-| `fs` | read_file, write_file, list_dir, exists |
+| `fs` | open, read_file, write_file, list_dir, exists |
 | `glob` | Matching de padrões de arquivo |
-| `hash` | sha256, sha512, md5, djb2 |
+| `hash` | sha1, sha256, sha512, md5, djb2, crc32, adler32 |
 | `http` | http_get, http_post, http_request |
 | `ipc` | Comunicação entre processos |
 | `iter` | Utilitários de iterador |
 | `json` | parse, stringify, pretty, get, set |
 | `logging` | Logger com níveis |
 | `math` | sin, cos, sqrt, pow, rand, PI, E |
+| `matrix` | Operações de matriz densa (add, multiply, transpose, determinante, inversa) |
+| `mmap` | I/O de arquivo com mapeamento de memória (mmap, munmap, msync) |
 | `net` | TcpListener, TcpStream, UdpSocket |
 | `os` | platform, arch, cpu_count, hostname |
 | `path` | Manipulação de caminhos de arquivo |
@@ -609,10 +622,12 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `testing` | describe, test, expect |
 | `time` | now, time_ms, sleep, clock |
 | `toml` | Parsing e geração de TOML |
+| `unix_socket` | Sockets de domínio Unix (AF_UNIX stream/datagram) |
 | `url` | Parsing e manipulação de URL |
 | `uuid` | Geração de UUID |
 | `vector` | Busca de similaridade vetorial (USearch ANN) |
 | `websocket` | Cliente WebSocket |
+| `yaml` | Parsing e geração de YAML |
 
 Veja `stdlib/docs/` para documentação detalhada dos módulos.
 
@@ -706,14 +721,15 @@ hemlock/
 │   │   ├── lsp/          # Language Server Protocol
 │   │   └── bundler/      # Ferramenta de bundling/pacotes
 ├── runtime/              # Runtime de programas compilados (libhemlock_runtime.a)
-├── stdlib/               # Biblioteca padrão (42 módulos)
+├── stdlib/               # Biblioteca padrão
 │   └── docs/             # Documentação dos módulos
+├── include/              # Arquivos de cabeçalho C (hemlock_limits.h, etc.)
 ├── docs/                 # Documentação completa
-│   ├── language-guide/   # Tipos, strings, arrays, etc.
-│   ├── reference/        # Referência de API
-│   └── advanced/         # Async, FFI, sinais, etc.
-├── tests/                # 625+ testes
-└── examples/             # Programas de exemplo
+├── tests/                # 978+ testes
+├── examples/             # Programas de exemplo
+├── benchmark/            # Benchmarks
+├── editors/              # Integrações com editores
+└── wasm/                 # Suporte WebAssembly
 ```
 
 ---

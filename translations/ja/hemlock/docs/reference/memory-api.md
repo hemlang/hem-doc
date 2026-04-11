@@ -455,6 +455,157 @@ print(buf.capacity);        // 256
 
 ---
 
+## バッファメソッド
+
+### .slice
+
+バッファメモリへのゼロコピービューを作成します。返されたビューは親バッファと同じ基盤メモリを共有します -- 元への変更はビューを通じて見え、その逆も同様です。
+
+**シグネチャ：**
+```hemlock
+buffer.slice(start: i32, end?: i32): buffer
+```
+
+**パラメータ：**
+- `start` - 開始バイトオフセット（0ベース、含む）。負の値は0にクランプ。
+- `end` - 終了バイトオフセット（含まない）。省略時はデフォルトで`buffer.length`。バッファ長を超える値はクランプ。
+
+**戻り値：** バッファビュー（ゼロコピー）
+
+**例：**
+```hemlock
+let buf = buffer(10);
+for (let i = 0; i < 10; i++) {
+    buf[i] = i + 65;  // A=65, B=66, ...
+}
+
+// 基本的なスライス
+let view = buf.slice(2, 5);
+print(view.length);    // 3
+print(view[0]);        // 67 (C)
+print(view[1]);        // 68 (D)
+
+// ゼロコピーの証明：元の変更がビューに反映
+buf[3] = 90;           // D(68)をZ(90)に変更
+print(view[1]);        // 90（親の変更を反映）
+
+// 単一引数スライス（startから末尾まで）
+let tail = buf.slice(7);
+print(tail.length);    // 3
+
+// チェーンされたスライス（スライスのスライス）
+let inner = view.slice(1, 3);
+print(inner.length);   // 2
+```
+
+**動作：**
+- ゼロコピービューを返す -- データのためのメモリは割り当てられない
+- ビューはルートバッファへの参照を保持（解放後使用を防止）
+- チェーンされたスライスは中間ビューではなくルートオーナーを追跡
+- 境界チェックはビューの範囲に対して実行
+- ビューバッファは`free()`**できない** -- ルートバッファのみを解放すべき
+
+---
+
+## バッファ相互運用
+
+すべての`ptr_read_*`、`ptr_write_*`、`ptr_deref_*`関数は`ptr`型と`buffer`型の両方を直接受け付けます：
+
+```hemlock
+let buf = buffer(8);
+ptr_write_i32(buf, 42);          // buffer_ptr()不要で直接動作
+let val = ptr_read_i32(buf);     // 42
+
+// 生ポインタでも以前通り動作
+let p = alloc(8);
+ptr_write_i32(p, 99);
+let pval = ptr_read_i32(p);     // 99
+free(p);
+```
+
+これにより型付き読み書き操作ごとに`buffer_ptr()`を呼ぶ必要がなくなり、バッファベースのコードがより簡潔になります。
+
+---
+
+## 型付きバッファ読み書きメソッド
+
+バッファはネットワークパケット、ファイルフォーマット、ワイヤプロトコルなどのバイナリデータ構造の構築とパースのための、エンディアン対応の型付き読み書きメソッドを提供します。これらのメソッドは境界チェックされ、範囲外アクセスは実行時エラーを発生させます。
+
+### 書き込みメソッド
+
+バイトオフセットに型付き値を書き込みます。`_le`と`_be`サフィックスはリトルエンディアンとビッグエンディアンのバイト順序を指定します。
+
+```hemlock
+let pkt = buffer(64);
+let offset = 0;
+
+// パケットヘッダを構築
+pkt.write_u16_be(offset, 0x0800);    // EtherType: IPv4
+offset += 2;
+pkt.write_u8(offset, 0x45);          // Version + IHL
+offset += 1;
+pkt.write_u32_be(offset, 0xC0A80001); // ソースIP: 192.168.0.1
+offset += 4;
+
+// Float値
+pkt.write_f32_le(offset, 3.14);
+offset += 4;
+pkt.write_f64_be(offset, 2.71828);
+offset += 8;
+```
+
+**単一バイト書き込み**（`write_u8`、`write_i8`）はバイト順序が単一バイトでは無関係なため、エンディアンサフィックスがありません。
+
+### 読み取りメソッド
+
+バイトオフセットから型付き値を読み取ります。エンディアンサフィックスは書き込みメソッドに対応します。
+
+```hemlock
+let pkt = buffer(64);
+// ... バッファにデータを充填 ...
+
+// パケットヘッダをパース
+let ether_type = pkt.read_u16_be(0);    // 0x0800
+let version = pkt.read_u8(2);            // 0x45
+let src_ip = pkt.read_u32_be(6);         // 0xC0A80001
+
+// Float値を読み取り
+let pi = pkt.read_f32_le(10);
+let e = pkt.read_f64_be(14);
+```
+
+### バルク操作
+
+```hemlock
+let src = buffer(8);
+for (let i = 0; i < 8; i++) { src[i] = i + 1; }
+
+let dest = buffer(32);
+dest.write_bytes(4, src);          // srcをdestのオフセット4にコピー
+
+let chunk = dest.read_bytes(4, 8); // オフセット4から8バイトを読み取り
+print(chunk[0]);                   // 1
+```
+
+### 境界チェック
+
+すべての型付き読み書きメソッドは値全体がバッファ内に収まることを検証します。例えば`write_u32_be(offset, val)`は`offset + 4 <= buffer.length`をチェックします。
+
+```hemlock
+let buf = buffer(4);
+buf.write_u32_be(0, 42);    // OK: 4バイトが収まる
+// buf.write_u32_be(2, 42); // エラー: 末尾を超えて書き込み（offset 2 + 4 > 4）
+```
+
+### 使用ケース
+
+- **ネットワークプロトコル：** TCP、UDP、DNS、カスタムパケットの構築/パース
+- **バイナリファイルフォーマット：** 画像ヘッダ、アーカイブフォーマットの読み書き
+- **ワイヤプロトコル：** 構造化バイナリメッセージのシリアライズ/デシリアライズ
+- **FFIデータ交換：** Cライブラリ呼び出し用のバッファ準備
+
+---
+
 ## 使用パターン
 
 ### 基本的な割り当てパターン
@@ -660,6 +811,38 @@ free(p2);
 | `memcpy`  | `(dest: ptr, src: ptr, size: i32)`     | `null`   | メモリをコピー |
 | `sizeof`  | `(type)`                               | `i32`    | 型のバイトサイズを取得 |
 | `talloc`  | `(type, count: i32)`                   | `ptr`    | 型付き配列を割り当て |
+
+### バッファメソッド
+
+| メソッド | シグネチャ | 戻り値 | 説明 |
+|-----------|----------------------------------------|----------|----------------------------|
+| `.slice`  | `(start: i32, end?: i32)`             | `buffer` | バッファへのゼロコピービュー |
+| `.write_u8` | `(offset: i32, value: u8)`          | `null`   | 符号なし8ビット整数を書き込み |
+| `.write_i8` | `(offset: i32, value: i8)`          | `null`   | 符号付き8ビット整数を書き込み |
+| `.write_u16_le` | `(offset: i32, value: u16)`    | `null`   | u16書き込み、リトルエンディアン |
+| `.write_u16_be` | `(offset: i32, value: u16)`    | `null`   | u16書き込み、ビッグエンディアン |
+| `.write_u32_le` | `(offset: i32, value: u32)`    | `null`   | u32書き込み、リトルエンディアン |
+| `.write_u32_be` | `(offset: i32, value: u32)`    | `null`   | u32書き込み、ビッグエンディアン |
+| `.write_u64_le` | `(offset: i32, value: u64)`    | `null`   | u64書き込み、リトルエンディアン |
+| `.write_u64_be` | `(offset: i32, value: u64)`    | `null`   | u64書き込み、ビッグエンディアン |
+| `.write_f32_le` | `(offset: i32, value: f32)`    | `null`   | f32書き込み、リトルエンディアン |
+| `.write_f32_be` | `(offset: i32, value: f32)`    | `null`   | f32書き込み、ビッグエンディアン |
+| `.write_f64_le` | `(offset: i32, value: f64)`    | `null`   | f64書き込み、リトルエンディアン |
+| `.write_f64_be` | `(offset: i32, value: f64)`    | `null`   | f64書き込み、ビッグエンディアン |
+| `.write_bytes` | `(offset: i32, src: buffer)`    | `null`   | ソースバッファからバイトをコピー |
+| `.read_u8`  | `(offset: i32)`                      | `u8`     | 符号なし8ビット整数を読み取り |
+| `.read_i8`  | `(offset: i32)`                      | `i8`     | 符号付き8ビット整数を読み取り |
+| `.read_u16_le` | `(offset: i32)`                   | `u16`    | u16読み取り、リトルエンディアン |
+| `.read_u16_be` | `(offset: i32)`                   | `u16`    | u16読み取り、ビッグエンディアン |
+| `.read_u32_le` | `(offset: i32)`                   | `u32`    | u32読み取り、リトルエンディアン |
+| `.read_u32_be` | `(offset: i32)`                   | `u32`    | u32読み取り、ビッグエンディアン |
+| `.read_u64_le` | `(offset: i32)`                   | `u64`    | u64読み取り、リトルエンディアン |
+| `.read_u64_be` | `(offset: i32)`                   | `u64`    | u64読み取り、ビッグエンディアン |
+| `.read_f32_le` | `(offset: i32)`                   | `f32`    | f32読み取り、リトルエンディアン |
+| `.read_f32_be` | `(offset: i32)`                   | `f32`    | f32読み取り、ビッグエンディアン |
+| `.read_f64_le` | `(offset: i32)`                   | `f64`    | f64読み取り、リトルエンディアン |
+| `.read_f64_be` | `(offset: i32)`                   | `f64`    | f64読み取り、ビッグエンディアン |
+| `.read_bytes` | `(offset: i32, length: i32)`       | `buffer` | バイトを新しいバッファに読み取り |
 
 ---
 

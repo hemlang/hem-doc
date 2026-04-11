@@ -50,6 +50,48 @@ Hemlock requiere las siguientes dependencias para compilar:
 - **libwebsockets**: Soporte para cliente/servidor WebSocket y HTTP
 - **zlib**: Biblioteca de compresion
 
+### Dependencias Opcionales
+
+#### USearch (busqueda de similitud vectorial)
+
+Requerida solo si desea usar [`@stdlib/vector`](../../stdlib/docs/vector.md). Sin ella, el modulo de vectores no esta disponible y esas pruebas se omiten -- todo lo demas funciona correctamente.
+
+> **Nota:** `cmake --install` **no** instala la biblioteca compartida para usearch v2.x. Debe copiar los archivos manualmente (vea a continuacion).
+
+**Linux:**
+```bash
+sudo apt-get install -y cmake  # dependencia de compilacion
+
+git clone --depth 1 --branch v2.24.0 --recurse-submodules \
+  https://github.com/unum-cloud/usearch.git /tmp/usearch
+cmake -B /tmp/usearch/build -S /tmp/usearch -DUSEARCH_BUILD_LIB_C=ON
+cmake --build /tmp/usearch/build
+
+sudo cp $(find /tmp/usearch/build -name 'libusearch_c.so' | head -1) /usr/local/lib/
+sudo cp /tmp/usearch/c/usearch.h /usr/local/include/
+sudo ldconfig
+```
+
+**macOS:**
+```bash
+brew install cmake  # dependencia de compilacion
+
+git clone --depth 1 --branch v2.24.0 --recurse-submodules \
+  https://github.com/unum-cloud/usearch.git /tmp/usearch
+cmake -B /tmp/usearch/build -S /tmp/usearch -DUSEARCH_BUILD_LIB_C=ON
+cmake --build /tmp/usearch/build
+
+sudo mkdir -p /usr/local/lib /usr/local/include
+sudo cp $(find /tmp/usearch/build -name 'libusearch_c.dylib' | head -1) /usr/local/lib/
+sudo cp /tmp/usearch/c/usearch.h /usr/local/include/
+```
+
+#### libwebsockets (cliente/servidor HTTP y WebSocket)
+
+Requerida solo para `@stdlib/http` y `@stdlib/websocket`. Sin ella esos modulos no estan disponibles y sus pruebas se omiten.
+
+---
+
 ### Instalacion de Dependencias
 
 **macOS:**
@@ -107,7 +149,17 @@ Esto compilara el interprete de Hemlock y colocara el ejecutable en el directori
 
 Deberia ver la informacion de version de Hemlock.
 
-### 4. Probar la Compilacion
+### 4. Compilar los Modulos C de la Biblioteca Estandar (Opcional)
+
+Algunos modulos de stdlib (`@stdlib/http`, `@stdlib/websocket`, `@stdlib/vector`) requieren bibliotecas compartidas nativas. Compile sus wrappers con:
+
+```bash
+make stdlib
+```
+
+Esto compila `lws_wrapper.so` (HTTP/WebSocket) si libwebsockets esta instalada. USearch (`libusearch_c.so`) debe instalarse por separado -- vea [Dependencias Opcionales](#dependencias-opcionales) arriba.
+
+### 5. Probar la Compilacion
 
 Ejecute el conjunto de pruebas para asegurarse de que todo funciona correctamente:
 

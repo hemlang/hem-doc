@@ -1,6 +1,6 @@
 # Referencia da API de Strings
 
-Referencia completa do tipo string do Hemlock e todos os seus 19 metodos de string.
+Referencia completa do tipo string do Hemlock e todos os seus 22 metodos de string.
 
 ---
 
@@ -12,7 +12,7 @@ Strings em Hemlock sao sequencias **codificadas em UTF-8, mutaveis e alocadas no
 - Codificacao UTF-8 (U+0000 a U+10FFFF)
 - Mutavel (pode modificar caracteres no local)
 - Indexacao baseada em pontos de codigo
-- 19 metodos integrados
+- 22 metodos integrados
 - Concatenacao automatica com operador `+`
 
 ---
@@ -295,6 +295,50 @@ let clean = s.trim();           // "hello"
 
 let text = "\n\t  world  \n";
 let clean2 = text.trim();       // "world"
+```
+
+---
+
+#### trim_start
+
+Remove espacos em branco do inicio.
+
+**Assinatura:**
+```hemlock
+string.trim_start(): string
+```
+
+**Retorna:** Nova string com espacos do inicio removidos
+
+**Exemplo:**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_start();     // "hello  "
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_start(); // "world  \n"
+```
+
+---
+
+#### trim_end
+
+Remove espacos em branco do final.
+
+**Assinatura:**
+```hemlock
+string.trim_end(): string
+```
+
+**Retorna:** Nova string com espacos do final removidos
+
+**Exemplo:**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_end();       // "  hello"
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_end();   // "\n\t  world"
 ```
 
 ---
@@ -605,6 +649,56 @@ print(buf2.length);             // 4
 
 ---
 
+### Acesso a Ponteiro Bruto
+
+#### byte_ptr
+
+Obtem um ponteiro bruto para o buffer interno de bytes UTF-8 da string. Esta e uma operacao de alocacao zero -- nenhuma copia e feita.
+
+**Assinatura:**
+```hemlock
+string.byte_ptr(): ptr
+```
+
+**Retorna:** Ponteiro bruto (`ptr`) para os bytes UTF-8 internos da string
+
+**Exemplo:**
+```hemlock
+let s = "Hello";
+let p = s.byte_ptr();
+print(typeof(p));              // "ptr"
+
+// Ler bytes atraves do ponteiro
+print(ptr_deref_u8(p));                    // 72 ('H')
+print(ptr_deref_u8(ptr_offset(p, 1, 1))); // 101 ('e')
+
+// Usar com memcpy para copiar bytes da string
+let buf = alloc(5);
+memcpy(buf, s.byte_ptr(), 5);
+print(ptr_deref_u8(buf));  // 72
+free(buf);
+
+// Usar com .byte_length para rastreamento seguro de tamanho
+let emoji = "Hello 🚀";
+let ep = emoji.byte_ptr();
+print(emoji.byte_length);  // 10 (use byte_length, nao length, para operacoes de byte)
+```
+
+**Comportamento:**
+- Retorna um ponteiro diretamente na memoria interna da string (zero-copy)
+- O ponteiro e valido enquanto a string estiver viva e nao modificada
+- Use `.byte_length` (nao `.length`) para determinar o numero de bytes acessiveis pelo ponteiro
+- Diferente de `.to_bytes()`, nao aloca um novo buffer
+
+**Casos de Uso:**
+- Chamadas FFI que precisam de um ponteiro para dados da string
+- Interop zero-copy com funcoes C
+- Codigo critico em performance que evita alocacao
+
+**Aviso:** Modificar a string (ex.: atribuicao por indice) apos chamar `byte_ptr()` pode invalidar o ponteiro se o buffer interno da string for realocado.
+
+---
+
 ### Desserializacao JSON
 
 #### deserialize
@@ -678,6 +772,8 @@ let cleaned = "  HELLO  "
 | `contains`     | `(needle: string)`                               | `bool`    | Verifica se contem substring      |
 | `split`        | `(delimiter: string)`                            | `array`   | Divide em array                   |
 | `trim`         | `()`                                             | `string`  | Remove espacos em branco          |
+| `trim_start`   | `()`                                             | `string`  | Remove espacos do inicio          |
+| `trim_end`     | `()`                                             | `string`  | Remove espacos do final           |
 | `to_upper`     | `()`                                             | `string`  | Converte para maiusculas          |
 | `to_lower`     | `()`                                             | `string`  | Converte para minusculas          |
 | `starts_with`  | `(prefix: string)`                               | `bool`    | Verifica se comeca com prefixo    |
@@ -690,6 +786,7 @@ let cleaned = "  HELLO  "
 | `chars`        | `()`                                             | `array`   | Converte para array de runes      |
 | `bytes`        | `()`                                             | `array`   | Converte para array de bytes      |
 | `to_bytes`     | `()`                                             | `buffer`  | Converte para buffer (legado)     |
+| `byte_ptr`     | `()`                                             | `ptr`     | Ponteiro bruto para bytes UTF-8   |
 | `deserialize`  | `()`                                             | `any`     | Analisa string JSON               |
 
 ---

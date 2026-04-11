@@ -892,11 +892,99 @@ create_user("Eve", age: 21);          // OK
 - デフォルト/オプションパラメータと連携
 - 不明なパラメータ名は実行時エラーを引き起こす
 
+## 式本体関数
+
+単一の式本体を持つ関数には、アロー（`=>`）構文を使用：
+
+```hemlock
+// 名前付き式本体関数
+fn double(x: i32): i32 => x * 2;
+fn max(a: i32, b: i32): i32 => a > b ? a : b;
+fn greet(name: string): string => "Hello, " + name + "!";
+
+// 無名式本体関数
+let square = fn(x: i32): i32 => x * x;
+let isEven = fn(n: i32): bool => n % 2 == 0;
+```
+
+**ルール：**
+- 本体は単一の式（`return`キーワード不要）
+- 式の値が自動的に返される
+- 型注釈はブロック本体の関数と同様に動作
+- 名前付き関数と無名関数の両方で動作
+
+**使用場面：**
+- 単純な変換と述語
+- `map`、`filter`などに渡すコールバック関数
+- 別の呼び出しに委譲するラッパー関数
+
+```hemlock
+// 配列操作に最適
+let nums = [1, 2, 3, 4, 5];
+let doubled = nums.map(fn(x) => x * 2);
+let evens = nums.filter(fn(x) => x % 2 == 0);
+```
+
+---
+
+## Refパラメータ（参照渡し）
+
+`ref`修飾子は呼び出し元の変数への参照を渡し、関数がそれを直接変更できるようにします：
+
+### 基本的なRefパラメータ
+
+```hemlock
+fn increment(ref x: i32) {
+    x = x + 1;  // 元の変数を変更
+}
+
+let count = 10;
+increment(count);
+print(count);  // 11 - 元が変更された
+```
+
+### Swapパターン
+
+```hemlock
+fn swap(ref a: i32, ref b: i32) {
+    let temp = a;
+    a = b;
+    b = temp;
+}
+
+let x = 1;
+let y = 2;
+swap(x, y);
+print(x);  // 2
+print(y);  // 1
+```
+
+### Refと通常のパラメータの混合
+
+```hemlock
+fn add_to(ref target: i32, amount: i32) {
+    target = target + amount;
+}
+
+let total = 100;
+add_to(total, 50);
+print(total);  // 150
+```
+
+### Refパラメータのルール
+
+- `ref`パラメータには変数を渡す必要があり、リテラルや式は不可
+- すべての型で動作（プリミティブ、配列、オブジェクト）
+- 型注釈と組み合わせ可能：`ref x: i32`
+- `const`と組み合わせ不可（反対の意味）
+- `ref`がない場合、プリミティブは値渡し（コピー）される
+
+---
+
 ## 制限事項
 
 現在の制限事項：
 
-- **参照渡しなし** - `ref`キーワードはパースされるが未実装
 - **関数のオーバーロードなし** - 1つの名前に1つの関数
 - **末尾呼び出し最適化なし** - 深い再帰はスタックサイズで制限
 

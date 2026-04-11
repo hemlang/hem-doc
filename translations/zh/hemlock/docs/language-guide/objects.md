@@ -207,18 +207,95 @@ person.phone = "555-1234";
 print(person.email);  // "alice@example.com"
 ```
 
-### 字段删除
+### 方括号语法
 
-**注意：** 目前不支持字段删除。改为设置为 `null`：
+使用方括号语法通过字符串键动态访问字段：
+
+```hemlock
+let person = { name: "Alice", age: 30 };
+
+// 使用方括号语法读取
+let field = "name";
+print(person[field]);         // "Alice"
+print(person["age"]);         // 30
+
+// 使用方括号语法写入
+person["city"] = "NYC";
+print(person.city);           // "NYC"
+```
+
+### 键值强制转换
+
+使用方括号语法时，非字符串键会自动强制转换为字符串。这允许使用对象作为以数字、布尔值或 rune 为键的映射：
+
+```hemlock
+let map = {};
+
+// 整数键（强制转换为字符串：42 → "42"）
+map[0] = "zero";
+map[42] = "forty-two";
+print(map[0]);                // "zero"
+print(map["0"]);              // "zero"（等价）
+
+// 布尔键（强制转换：true → "true"）
+map[true] = "yes";
+print(map[true]);             // "yes"
+print(map["true"]);           // "yes"
+
+// Rune 键（强制转换：'A' → "A"）
+map['A'] = "alpha";
+print(map['A']);               // "alpha"
+print(map["A"]);               // "alpha"
+
+// 浮点键（以完整精度强制转换：3.14 → "3.1400000000000001"）
+map[3.14] = "pi";
+print(map[3.14]);              // "pi"
+```
+
+**支持的强制转换类型：**
+- **整数**（i8–i64、u8–u64）：十进制字符串表示
+- **浮点**（f32、f64）：`%.17g` 格式（完整精度）
+- **布尔值**：`"true"` 或 `"false"`
+- **Rune**：UTF-8 编码字符
+
+**注意：** 浮点键使用完整的 IEEE 754 精度，所以 `3.14` 变为 `"3.1400000000000001"`。如果需要精确的浮点字符串键，请显式转换：`"" + n`。
+
+### 内置对象方法
+
+#### `obj.keys()`
+
+返回所有字段名的字符串数组：
+
+```hemlock
+let obj = { x: 10, y: 20, name: "test" };
+let k = obj.keys();
+print(k);  // [x, y, name]
+```
+
+#### `obj.has(key)`
+
+检查对象是否具有特定字段。接受字符串、整数、浮点、布尔或 rune 键（非字符串键会被强制转换）：
+
+```hemlock
+let obj = { x: 10, name: "test" };
+print(obj.has("x"));       // true
+print(obj.has("z"));       // false
+
+let map = {};
+map[42] = "value";
+print(map.has(42));        // true
+print(map.has("42"));      // true
+```
+
+#### `obj.delete(key)`
+
+从对象中删除字段。如果找到并删除了字段返回 `true`，否则返回 `false`。接受与 `has()` 相同的强制转换键：
 
 ```hemlock
 let obj = { x: 10, y: 20 };
-
-// 无法删除字段（不支持）
-// obj.x = undefined;  // Hemlock 中没有 'undefined'
-
-// 变通方法：设置为 null
-obj.x = null;
+obj.delete("x");
+print(obj.has("x"));      // false
+print(obj.has("y"));      // true
 ```
 
 ## 方法和 `self`
@@ -965,7 +1042,6 @@ emitter.emit("message", "Hello!");
 - **无按值传递** - 对象始终按引用传递
 - **无计算属性** - 不支持 `{[key]: value}` 语法
 - **`self` 是只读的** - 无法在方法中重新赋值 `self`
-- **无属性删除** - 一旦添加字段无法删除
 
 **注意：** 对象使用引用计数，作用域退出时自动释放。详见 [内存管理](memory.md#internal-reference-counting)。
 

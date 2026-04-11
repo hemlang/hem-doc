@@ -892,11 +892,99 @@ create_user("Eve", age: 21);          // OK
 - Fonctionne avec les parametres par defaut/optionnels
 - Les noms de parametre inconnus causent des erreurs a l'execution
 
+## Fonctions a corps d'expression
+
+Pour les fonctions avec un corps a expression unique, utilisez la syntaxe fleche (`=>`) :
+
+```hemlock
+// Fonction nommee a corps d'expression
+fn double(x: i32): i32 => x * 2;
+fn max(a: i32, b: i32): i32 => a > b ? a : b;
+fn greet(name: string): string => "Bonjour, " + name + "!";
+
+// Fonction anonyme a corps d'expression
+let square = fn(x: i32): i32 => x * x;
+let isEven = fn(n: i32): bool => n % 2 == 0;
+```
+
+**Regles :**
+- Le corps est une expression unique (pas besoin du mot-cle `return`)
+- La valeur de l'expression est automatiquement retournee
+- Les annotations de type fonctionnent de la meme maniere que les fonctions a corps bloc
+- Fonctionne avec les fonctions nommees et anonymes
+
+**Quand utiliser :**
+- Transformations et predicats simples
+- Fonctions de callback passees a `map`, `filter`, etc.
+- Fonctions wrapper qui delegent a un autre appel
+
+```hemlock
+// Ideal pour les operations sur les tableaux
+let nums = [1, 2, 3, 4, 5];
+let doubled = nums.map(fn(x) => x * 2);
+let evens = nums.filter(fn(x) => x % 2 == 0);
+```
+
+---
+
+## Parametres ref (passage par reference)
+
+Le modificateur `ref` passe une reference a la variable de l'appelant, permettant a la fonction de la modifier directement :
+
+### Parametres ref basiques
+
+```hemlock
+fn increment(ref x: i32) {
+    x = x + 1;  // Modifie la variable originale
+}
+
+let count = 10;
+increment(count);
+print(count);  // 11 - l'original a ete modifie
+```
+
+### Patron de swap
+
+```hemlock
+fn swap(ref a: i32, ref b: i32) {
+    let temp = a;
+    a = b;
+    b = temp;
+}
+
+let x = 1;
+let y = 2;
+swap(x, y);
+print(x);  // 2
+print(y);  // 1
+```
+
+### Melange de parametres ref et reguliers
+
+```hemlock
+fn add_to(ref target: i32, amount: i32) {
+    target = target + amount;
+}
+
+let total = 100;
+add_to(total, 50);
+print(total);  // 150
+```
+
+### Regles pour les parametres ref
+
+- Les parametres `ref` doivent recevoir des variables, pas des litteraux ou expressions
+- Fonctionne avec tous les types (primitives, tableaux, objets)
+- Combiner avec les annotations de type : `ref x: i32`
+- Ne peut pas etre combine avec `const` (ils sont opposes)
+- Sans `ref`, les primitives sont passees par valeur (copiees)
+
+---
+
 ## Limitations
 
 Limitations actuelles a connaitre :
 
-- **Pas de passage par reference** - Mot-cle `ref` parse mais pas implemente
 - **Pas de surcharge de fonction** - Une fonction par nom
 - **Pas d'optimisation de la recursivite terminale** - Recursivite profonde limitee par la taille de la pile
 
@@ -906,6 +994,12 @@ Limitations actuelles a connaitre :
 - [Objets](objects.md) - Les methodes sont des fonctions stockees dans les objets
 - [Gestion des erreurs](error-handling.md) - Fonctions et gestion des exceptions
 - [Types](types.md) - Annotations de type et conversions
+
+## Voir aussi
+
+- **Closures** : Voir CLAUDE.md section "Fonctions" pour la semantique des closures
+- **Valeurs de premiere classe** : Les fonctions sont des valeurs comme toutes les autres
+- **Portee lexicale** : Les fonctions capturent leur environnement de definition
 
 ## Voir aussi
 

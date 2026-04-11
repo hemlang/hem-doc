@@ -1,6 +1,6 @@
 # Riferimento API degli Array
 
-Riferimento completo per il tipo array di Hemlock e tutti i suoi 18 metodi.
+Riferimento completo per il tipo array di Hemlock e tutti i suoi 28 metodi.
 
 ---
 
@@ -12,7 +12,7 @@ Gli array in Hemlock sono sequenze **dinamiche, allocate nell'heap** che possono
 - Dimensionamento dinamico (crescita automatica)
 - Indicizzazione a base zero
 - Tipi misti consentiti
-- 18 metodi integrati
+- 28 metodi integrati
 - Allocati nell'heap con tracciamento della capacità
 
 ---
@@ -93,6 +93,51 @@ print(arr.length);     // 3
 ---
 
 ## Metodi degli Array
+
+### Gestione della Capacità
+
+#### reserve
+
+Pre-alloca capacità per futuri elementi senza cambiare la lunghezza dell'array. Utile per evitare riallocazioni ripetute durante inserimenti in blocco.
+
+**Firma:**
+```hemlock
+array.reserve(n: i32): null
+```
+
+**Parametri:**
+- `n` - Numero di elementi per cui pre-allocare capacità
+
+**Restituisce:** `null`
+
+**Modifica:** Sì (modifica la capacità interna, ma non la lunghezza o gli elementi)
+
+**Esempi:**
+```hemlock
+let arr = [];
+arr.reserve(1000);
+print(arr.length);     // 0 - reserve non cambia la lunghezza
+
+// Push di 1000 elementi senza alcuna riallocazione
+for (let i = 0; i < 1000; i++) {
+    arr.push(i);
+}
+print(arr.length);     // 1000
+
+// Reserve su array pre-popolato preserva gli elementi esistenti
+let data = [1, 2, 3];
+data.reserve(1000);
+print(data.length);    // 3
+print(data[0]);        // 1
+```
+
+**Comportamento:**
+- Pre-alloca storage interno per almeno `n` elementi
+- Non cambia la lunghezza dell'array o gli elementi esistenti
+- Se `n` è minore o uguale alla capacità attuale, è un no-op
+- Migliora le prestazioni quando il numero di elementi da inserire è conosciuto in anticipo
+
+---
 
 ### Operazioni di Stack
 
@@ -298,6 +343,83 @@ let idx3 = arr2.find(2);     // 1 (prima occorrenza)
 ```
 
 **Confronto:** Usa l'uguaglianza di valore per i primitivi e le stringhe.
+
+---
+
+#### findIndex
+
+Trova l'indice del primo elemento che corrisponde a una funzione predicato.
+
+**Firma:**
+```hemlock
+array.findIndex(predicato: fn): i32
+```
+
+**Parametri:**
+- `predicato` - Funzione che prende un elemento e restituisce un valore truthy/falsy
+
+**Restituisce:** Indice del primo elemento corrispondente, o `-1` se nessuna corrispondenza
+
+**Esempi:**
+```hemlock
+let arr = [1, 4, 9, 16, 25];
+let idx = arr.findIndex(fn(x) { return x > 10; });  // 3 (16 > 10)
+let idx2 = arr.findIndex(fn(x) { return x > 100; }); // -1 (nessuna corrispondenza)
+
+// Trova il primo numero pari
+let nums = [1, 3, 4, 7, 8];
+let idx3 = nums.findIndex(fn(x) { return x % 2 == 0; }); // 2
+```
+
+**Nota:** A differenza di `find()` che cerca per uguaglianza di valore, `findIndex()` usa una funzione predicato per logica di corrispondenza personalizzata.
+
+---
+
+#### indexOf
+
+Trova il primo indice di un valore, o `-1` se non trovato.
+
+**Firma:**
+```hemlock
+array.indexOf(valore: any): i32
+```
+
+**Parametri:**
+- `valore` - Valore da cercare
+
+**Restituisce:** Indice della prima occorrenza, o `-1` se non trovato
+
+**Esempi:**
+```hemlock
+let arr = ["a", "b", "c", "b"];
+let idx = arr.indexOf("b");     // 1
+let idx2 = arr.indexOf("z");    // -1 (non trovato)
+```
+
+**Nota:** Si comporta in modo identico a `find()` — entrambi usano l'uguaglianza di valore e restituiscono il primo indice corrispondente.
+
+---
+
+#### lastIndexOf
+
+Trova l'ultimo indice di un valore, cercando dalla fine.
+
+**Firma:**
+```hemlock
+array.lastIndexOf(valore: any): i32
+```
+
+**Parametri:**
+- `valore` - Valore da cercare
+
+**Restituisce:** Indice dell'ultima occorrenza, o `-1` se non trovato
+
+**Esempi:**
+```hemlock
+let arr = ["a", "b", "c", "b", "d"];
+let idx = arr.lastIndexOf("b");  // 3 (ultima occorrenza)
+let idx2 = arr.lastIndexOf("z"); // -1 (non trovato)
+```
 
 ---
 
@@ -587,6 +709,175 @@ print(max);  // 5
 
 ---
 
+#### every
+
+Verifica se tutti gli elementi soddisfano un predicato.
+
+**Firma:**
+```hemlock
+array.every(predicato: fn): bool
+```
+
+**Parametri:**
+- `predicato` - Funzione che prende un elemento e restituisce un valore truthy/falsy
+
+**Restituisce:** `true` se tutti gli elementi corrispondono, `false` altrimenti. Gli array vuoti restituiscono `true` (verità vacua).
+
+**Modifica:** No
+
+**Esempi:**
+```hemlock
+let arr = [2, 4, 6, 8];
+let tutti_pari = arr.every(fn(x) { return x % 2 == 0; });
+print(tutti_pari);  // true
+```
+
+---
+
+#### some
+
+Verifica se qualche elemento soddisfa un predicato.
+
+**Firma:**
+```hemlock
+array.some(predicato: fn): bool
+```
+
+**Parametri:**
+- `predicato` - Funzione che prende un elemento e restituisce un valore truthy/falsy
+
+**Restituisce:** `true` se qualche elemento corrisponde, `false` altrimenti. Gli array vuoti restituiscono `false`.
+
+**Modifica:** No
+
+**Esempi:**
+```hemlock
+let arr = [1, 3, 5, 6];
+let ha_pari = arr.some(fn(x) { return x % 2 == 0; });
+print(ha_pari);  // true
+```
+
+---
+
+#### sort
+
+Ordina l'array in loco con comparatore opzionale.
+
+**Firma:**
+```hemlock
+array.sort(confronto?: fn): null
+```
+
+**Parametri:**
+- `confronto` (opzionale) - Funzione comparatore che prende (a, b), restituisce negativo se a < b, 0 se uguali, positivo se a > b
+
+**Restituisce:** `null`
+
+**Modifica:** Sì
+
+**Esempi:**
+```hemlock
+let arr = [3, 1, 4, 1, 5];
+arr.sort();
+print(arr);  // [1, 1, 3, 4, 5]
+
+// Comparatore personalizzato (discendente)
+let arr2 = [3, 1, 4, 1, 5];
+arr2.sort(fn(a, b) { return b - a; });
+print(arr2);  // [5, 4, 3, 1, 1]
+```
+
+---
+
+#### fill
+
+Riempie gli elementi dell'array con un valore, opzionalmente in un intervallo.
+
+**Firma:**
+```hemlock
+array.fill(valore: any, inizio?: i32, fine?: i32): null
+```
+
+**Parametri:**
+- `valore` - Valore con cui riempire
+- `inizio` (opzionale) - Indice iniziale (default: 0). Gli indici negativi contano dalla fine.
+- `fine` (opzionale) - Indice finale, esclusivo (default: lunghezza array). Gli indici negativi contano dalla fine.
+
+**Restituisce:** `null`
+
+**Modifica:** Sì
+
+**Esempi:**
+```hemlock
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);
+print(arr);  // [0, 0, 0, 0, 0]
+
+let arr2 = [1, 2, 3, 4, 5];
+arr2.fill(9, 1, 4);
+print(arr2);  // [1, 9, 9, 9, 5]
+```
+
+---
+
+#### flat
+
+Appiattisce un livello di array annidati.
+
+**Firma:**
+```hemlock
+array.flat(): array
+```
+
+**Restituisce:** Nuovo array con array annidati appiattiti di un livello
+
+**Modifica:** No
+
+**Esempi:**
+```hemlock
+let arr = [[1, 2], [3, 4], [5]];
+let piatto = arr.flat();
+print(piatto);  // [1, 2, 3, 4, 5]
+
+// Gli elementi non-array vengono mantenuti così come sono
+let misto = [1, [2, 3], 4, [5]];
+let piatto2 = misto.flat();
+print(piatto2);  // [1, 2, 3, 4, 5]
+
+// Appiattisce solo un livello
+let profondo = [[1, [2, 3]], [4]];
+let piatto3 = profondo.flat();
+print(piatto3);  // [1, [2, 3], 4]
+```
+
+---
+
+#### serialize
+
+Converte l'array in una rappresentazione stringa JSON.
+
+**Firma:**
+```hemlock
+array.serialize(): string
+```
+
+**Restituisce:** Rappresentazione stringa JSON dell'array
+
+**Modifica:** No
+
+**Esempi:**
+```hemlock
+let arr = [1, 2, 3];
+let json = arr.serialize();
+print(json);  // [1,2,3]
+
+let misto = ["ciao", true, null, 42];
+let json2 = misto.serialize();
+print(json2);  // ["ciao",true,null,42]
+```
+
+---
+
 ### Conversione a Stringa
 
 #### join
@@ -666,6 +957,9 @@ Metodi che modificano l'array in loco:
 | `remove`   | `(indice: i32)`            | `any`       | Rimuove all'indice             |
 | `reverse`  | `()`                       | `null`      | Inverte in loco                |
 | `clear`    | `()`                       | `null`      | Rimuove tutti gli elementi     |
+| `reserve`  | `(n: i32)`                 | `null`      | Pre-alloca capacità            |
+| `sort`     | `(confronto?: fn)`         | `null`      | Ordina in loco (comparatore opzionale) |
+| `fill`     | `(valore: any, inizio?: i32, fine?: i32)` | `null` | Riempie elementi con valore |
 
 ### Metodi Non Modificanti
 
@@ -674,15 +968,22 @@ Metodi che restituiscono nuovi valori senza modificare l'originale:
 | Metodo     | Firma                      | Restituisce | Descrizione                    |
 |------------|----------------------------|-------------|--------------------------------|
 | `find`     | `(valore: any)`            | `i32`       | Trova la prima occorrenza      |
+| `findIndex` | `(predicato: fn)`         | `i32`       | Trova indice per predicato     |
+| `indexOf`  | `(valore: any)`            | `i32`       | Trova indice del valore (-1 se non trovato) |
+| `lastIndexOf` | `(valore: any)`         | `i32`       | Trova ultimo indice del valore |
 | `contains` | `(valore: any)`            | `bool`      | Verifica se contiene il valore |
 | `slice`    | `(inizio: i32, fine: i32)` | `array`     | Estrae sottoarray              |
 | `first`    | `()`                       | `any`       | Ottiene il primo elemento      |
 | `last`     | `()`                       | `any`       | Ottiene l'ultimo elemento      |
 | `concat`   | `(altro: array)`           | `array`     | Concatena array                |
+| `flat`     | `()`                       | `array`     | Appiattisce un livello di annidamento |
 | `join`     | `(delimitatore: string)`   | `string`    | Unisce elementi in stringa     |
 | `map`      | `(callback: fn)`           | `array`     | Trasforma ogni elemento        |
 | `filter`   | `(predicato: fn)`          | `array`     | Seleziona elementi corrispondenti |
 | `reduce`   | `(callback: fn, iniziale: any)` | `any`  | Riduce a un singolo valore     |
+| `every`    | `(predicato: fn)`          | `bool`      | Verifica se tutti corrispondono |
+| `some`     | `(predicato: fn)`          | `bool`      | Verifica se qualcuno corrisponde |
+| `serialize` | `()`                      | `string`    | Converte in stringa JSON       |
 
 ---
 
@@ -768,7 +1069,7 @@ print(arr);  // [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 **Gestione della Capacità:**
 - Gli array crescono automaticamente quando necessario
 - La capacità raddoppia quando viene superata
-- Nessun controllo manuale della capacità
+- Usa `reserve(n)` per pre-allocare capacità per inserimenti in blocco
 
 **Confronto dei Valori:**
 - `find()` e `contains()` usano l'uguaglianza di valore

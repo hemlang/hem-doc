@@ -207,9 +207,71 @@ person.phone = "555-1234";
 print(person.email);  // "alice@example.com"
 ```
 
+### Notação de Colchetes
+
+Acesse campos dinamicamente usando notação de colchetes com uma chave string:
+
+```hemlock
+let person = { name: "Alice", age: 30 };
+
+// Leitura com notação de colchetes
+let field = "name";
+print(person[field]);         // "Alice"
+print(person["age"]);         // 30
+
+// Escrita com notação de colchetes
+person["city"] = "NYC";
+print(person.city);           // "NYC"
+```
+
+### Coerção de Chaves
+
+Chaves não-string são automaticamente coagidas para strings quando usadas com notação de colchetes. Isso permite usar objetos como mapas com chaves numéricas, booleanas ou rune:
+
+```hemlock
+let map = {};
+
+// Chaves inteiras (coagidas para string: 42 → "42")
+map[0] = "zero";
+map[42] = "quarenta e dois";
+print(map[0]);                // "zero"
+print(map["0"]);              // "zero" (equivalente)
+
+// Chaves booleanas (coagidas: true → "true")
+map[true] = "sim";
+print(map[true]);             // "sim"
+print(map["true"]);           // "sim"
+
+// Chaves rune (coagidas: 'A' → "A")
+map['A'] = "alfa";
+print(map['A']);               // "alfa"
+print(map["A"]);               // "alfa"
+```
+
+### Métodos Integrados de Objeto
+
+Objetos possuem métodos integrados para inspecão e manipulação de campos:
+
+```hemlock
+let obj = { name: "Alice", age: 30, city: "NYC" };
+
+// Verificar existência de campo
+print(obj.has("name"));       // true
+print(obj.has("email"));      // false
+print(obj.has(42));            // coerção de chave para "42"
+
+// Remover campo
+obj.delete("city");
+print(obj.has("city"));       // false
+
+// Obter todas as chaves
+let keys = obj.keys();
+print(keys);                  // ["name", "age"]
+```
+
 ### Remoção de Campos
 
-**Nota:** Remoção de campos não é suportada atualmente. Defina como `null` em vez disso:
+**Nota:** Use o método `.delete()` para remover campos. Alternativamente, defina como `null`:
 
 ```hemlock
 let obj = { x: 10, y: 20 };
@@ -965,7 +1027,7 @@ Limitações atuais:
 - **Sem passagem por valor** - Objetos são sempre passados por referência
 - **Sem propriedades computadas** - Sintaxe `{[key]: value}` não suportada
 - **`self` é somente leitura** - Não pode reatribuir `self` em métodos
-- **Sem remoção de propriedade** - Campos não podem ser removidos depois de adicionados
+- **Remoção de propriedade** - Use `.delete(key)` para remover campos
 
 **Nota:** Objetos usam contagem de referência, sendo liberados automaticamente ao sair do escopo. Veja [Gerenciamento de Memória](memory.md#internal-reference-counting) para detalhes.
 

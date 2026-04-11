@@ -1,6 +1,6 @@
 # 配列APIリファレンス
 
-Hemlockの配列型と全18個の配列メソッドの完全なリファレンスです。
+Hemlockの配列型と全28個の配列メソッドの完全なリファレンスです。
 
 ---
 
@@ -12,7 +12,7 @@ Hemlockの配列は**動的でヒープ割り当て**されるシーケンスで
 - 動的サイズ（自動拡張）
 - ゼロインデックス
 - 混合型を許可
-- 18個の組み込みメソッド
+- 28個の組み込みメソッド
 - 容量追跡付きヒープ割り当て
 
 ---
@@ -301,6 +301,52 @@ let idx3 = arr2.find(2);     // 1（最初の出現）
 
 ---
 
+#### findIndex
+
+述語に一致する最初の要素のインデックスを見つけます。
+
+**シグネチャ：**
+```hemlock
+array.findIndex(predicate: fn): i32
+```
+
+**パラメータ：**
+- `predicate` - 要素を受け取りboolを返す関数
+
+**戻り値：** 述語がtrueを返した最初の要素のインデックス、見つからない場合は`-1`
+
+**例：**
+```hemlock
+let arr = [1, 2, 3, 4, 5];
+let idx = arr.findIndex(fn(x) { return x > 3; });  // 3
+let idx2 = arr.findIndex(fn(x) { return x > 10; }); // -1
+```
+
+---
+
+#### lastIndexOf
+
+値の最後の出現位置のインデックスを見つけます。
+
+**シグネチャ：**
+```hemlock
+array.lastIndexOf(value: any): i32
+```
+
+**パラメータ：**
+- `value` - 検索する値
+
+**戻り値：** 最後の出現のインデックス、見つからない場合は`-1`
+
+**例：**
+```hemlock
+let arr = [1, 2, 3, 2, 1];
+let idx = arr.lastIndexOf(2);   // 3
+let idx2 = arr.lastIndexOf(99); // -1
+```
+
+---
+
 #### contains
 
 配列が値を含むかチェックします。
@@ -491,6 +537,35 @@ let all = a.concat(b).concat(c);  // [1, 2, 3, 4, 5, 6, 7, 8]
 
 ---
 
+### 容量管理
+
+#### reserve
+
+指定数の要素のための容量を事前に割り当てます。
+
+**シグネチャ：**
+```hemlock
+array.reserve(n: i32): null
+```
+
+**パラメータ：**
+- `n` - 事前割り当てする容量
+
+**戻り値：** `null`
+
+**変更：** はい（内部容量を変更）
+
+**例：**
+```hemlock
+let arr = [];
+arr.reserve(1000);  // 1000要素分を事前割り当て
+for (let i = 0; i < 1000; i++) {
+    arr.push(i);    // 再割り当てなしで追加
+}
+```
+
+---
+
 ### 関数型操作
 
 #### map
@@ -587,6 +662,66 @@ print(max);  // 5
 
 ---
 
+### 配列変換
+
+#### flat
+
+ネストされた配列を1レベル平坦化します。
+
+**シグネチャ：**
+```hemlock
+array.flat(): array
+```
+
+**戻り値：** ネストされた配列が1レベル平坦化された新しい配列
+
+**変更：** なし（新しい配列を返す）
+
+**例：**
+```hemlock
+let arr = [[1, 2], [3, 4], [5]];
+let flat = arr.flat();
+print(flat);  // [1, 2, 3, 4, 5]
+
+// 配列でない要素はそのまま保持
+let mixed = [1, [2, 3], 4, [5]];
+let flat2 = mixed.flat();
+print(flat2);  // [1, 2, 3, 4, 5]
+
+// 1レベルのみ平坦化
+let deep = [[1, [2, 3]], [4]];
+let flat3 = deep.flat();
+print(flat3);  // [1, [2, 3], 4]
+```
+
+---
+
+#### serialize
+
+配列をJSON文字列表現に変換します。
+
+**シグネチャ：**
+```hemlock
+array.serialize(): string
+```
+
+**戻り値：** 配列のJSON文字列表現
+
+**変更：** なし
+
+**例：**
+```hemlock
+let arr = [1, 2, 3];
+let json = arr.serialize();
+print(json);  // [1,2,3]
+
+let mixed = ["hello", true, null, 42];
+let json2 = mixed.serialize();
+print(json2);  // ["hello",true,null,42]
+```
+
+---
+
 ### 文字列変換
 
 #### join
@@ -666,6 +801,9 @@ let result2 = words
 | `remove`   | `(index: i32)`             | `any`     | インデックスから削除 |
 | `reverse`  | `()`                       | `null`    | その場で反転 |
 | `clear`    | `()`                       | `null`    | すべての要素を削除 |
+| `reserve`  | `(n: i32)`                 | `null`    | 容量を事前割り当て |
+| `sort`     | `(compare?: fn)`           | `null`    | インプレースソート（オプションのコンパレータ） |
+| `fill`     | `(value: any, start?: i32, end?: i32)` | `null` | 値で充填 |
 
 ### 非変更メソッド
 
@@ -674,15 +812,22 @@ let result2 = words
 | メソッド | シグネチャ | 戻り値 | 説明 |
 |----------|--------------------------|-----------|--------------------------------|
 | `find`     | `(value: any)`             | `i32`     | 最初の出現を見つける |
+| `findIndex`| `(predicate: fn)`          | `i32`     | 述語でインデックスを検索 |
+| `indexOf`  | `(value: any)`             | `i32`     | 値のインデックスを検索（見つからない場合-1）|
+| `lastIndexOf` | `(value: any)`          | `i32`     | 値の最後のインデックスを検索 |
 | `contains` | `(value: any)`             | `bool`    | 値を含むかチェック |
 | `slice`    | `(start: i32, end: i32)`   | `array`   | 部分配列を抽出 |
 | `first`    | `()`                       | `any`     | 最初の要素を取得 |
 | `last`     | `()`                       | `any`     | 最後の要素を取得 |
 | `concat`   | `(other: array)`           | `array`   | 配列を連結 |
+| `flat`     | `()`                       | `array`   | 1レベルのネストを平坦化 |
 | `join`     | `(delimiter: string)`      | `string`  | 要素を文字列に結合 |
 | `map`      | `(callback: fn)`           | `array`   | 各要素を変換 |
 | `filter`   | `(predicate: fn)`          | `array`   | 一致する要素を選択 |
 | `reduce`   | `(callback: fn, initial: any)` | `any` | 単一の値に削減 |
+| `every`    | `(predicate: fn)`          | `bool`    | すべての要素が一致するかチェック |
+| `some`     | `(predicate: fn)`          | `bool`    | いずれかの要素が一致するかチェック |
+| `serialize`| `()`                       | `string`  | JSON文字列に変換 |
 
 ---
 
@@ -768,7 +913,7 @@ print(arr);  // [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 **容量管理：**
 - 配列は必要に応じて自動的に拡張
 - 容量は超過時に2倍になる
-- 手動の容量制御なし
+- `reserve(n)`で大量挿入時の容量を事前割り当て可能
 
 **値の比較：**
 - `find()`と`contains()`は値の等価性を使用

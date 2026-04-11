@@ -207,18 +207,101 @@ person.phone = "555-1234";
 print(person.email);  // "alice@example.com"
 ```
 
-### Eliminacion de Campos
+### Notacion de Corchetes
 
-**Nota:** La eliminacion de campos no esta soportada actualmente. Establece a `null` en su lugar:
+Acceder a campos dinamicamente usando notacion de corchetes con una clave string:
+
+```hemlock
+let person = { name: "Alice", age: 30 };
+
+// Leer con notacion de corchetes
+let field = "name";
+print(person[field]);         // "Alice"
+print(person["age"]);         // 30
+
+// Escribir con notacion de corchetes
+person["city"] = "NYC";
+print(person.city);           // "NYC"
+```
+
+### Coercion de Claves
+
+Las claves no-string se convierten automaticamente a strings cuando se usan con notacion de corchetes. Esto le permite usar objetos como mapas con claves numericas, booleanas o rune:
+
+```hemlock
+let map = {};
+
+// Claves enteras (convertidas a string: 42 → "42")
+map[0] = "zero";
+map[42] = "forty-two";
+print(map[0]);                // "zero"
+print(map["0"]);              // "zero" (equivalente)
+
+// Claves booleanas (convertidas: true → "true")
+map[true] = "yes";
+print(map[true]);             // "yes"
+print(map["true"]);           // "yes"
+
+// Claves rune (convertidas: 'A' → "A")
+map['A'] = "alpha";
+print(map['A']);               // "alpha"
+print(map["A"]);               // "alpha"
+
+// Claves float (convertidas con precision completa: 3.14 → "3.1400000000000001")
+map[3.14] = "pi";
+print(map[3.14]);              // "pi"
+```
+
+**Tipos de coercion soportados:**
+- **Enteros** (i8-i64, u8-u64): representacion de string decimal
+- **Flotantes** (f32, f64): formato `%.17g` (precision completa)
+- **Booleanos**: `"true"` o `"false"`
+- **Runes**: caracter codificado en UTF-8
+
+**Nota:** Las claves float usan precision completa IEEE 754, por lo que `3.14` se convierte en `"3.1400000000000001"`. Si necesita claves string de float exactas, convierta explicitamente con `"" + n`.
+
+### Metodos Integrados de Objetos
+
+#### `obj.keys()`
+
+Retorna un array de todos los nombres de campos como strings:
+
+```hemlock
+let obj = { x: 10, y: 20, name: "test" };
+let k = obj.keys();
+print(k);  // [x, y, name]
+```
+
+#### `obj.has(key)`
+
+Verifica si un objeto tiene un campo especifico. Acepta claves string, enteras, float, bool o rune (las claves no-string se convierten):
+
+```hemlock
+let obj = { x: 10, name: "test" };
+print(obj.has("x"));       // true
+print(obj.has("z"));       // false
+
+let map = {};
+map[42] = "value";
+print(map.has(42));        // true
+print(map.has("42"));      // true
+```
+
+#### `obj.delete(key)`
+
+Elimina un campo de un objeto. Retorna `true` si el campo fue encontrado y eliminado, `false` en caso contrario. Acepta claves convertidas como `has()`:
 
 ```hemlock
 let obj = { x: 10, y: 20 };
+obj.delete("x");
+print(obj.has("x"));      // false
+print(obj.has("y"));      // true
 
-// No se pueden eliminar campos (no soportado)
-// obj.x = undefined;  // No hay 'undefined' en Hemlock
-
-// Alternativa: Establecer a null
-obj.x = null;
+// Con claves enteras
+let map = {};
+map[5] = "five";
+map.delete(5);
+print(map.has(5));         // false
 ```
 
 ## Metodos y `self`
@@ -965,7 +1048,6 @@ Limitaciones actuales:
 - **Sin paso por valor** - Los objetos siempre se pasan por referencia
 - **Sin propiedades computadas** - Sin sintaxis `{[key]: value}`
 - **`self` es de solo lectura** - No se puede reasignar `self` en metodos
-- **Sin eliminacion de propiedades** - No se pueden remover campos una vez agregados
 
 **Nota:** Los objetos tienen conteo de referencias y se liberan automaticamente cuando el alcance termina. Ver [Gestion de Memoria](memory.md#conteo-de-referencias-interno) para detalles.
 

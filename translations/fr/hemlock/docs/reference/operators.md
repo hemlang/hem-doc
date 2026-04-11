@@ -336,9 +336,37 @@ fn get_config() { return null; }
 let config = get_config() ?? { default: true };
 ```
 
+### Affectation avec coalescence null (`??=`)
+
+Affecte a la variable seulement si sa valeur actuelle est null.
+
+| Operateur | Nom                              | Exemple      | Description                               |
+|-----------|----------------------------------|--------------|-------------------------------------------|
+| `??=`     | Affectation coalescence null     | `a ??= b`    | Affecter b a a seulement si a est null    |
+
+**Exemples :**
+```hemlock
+let config = null;
+config ??= { timeout: 30 };    // config est maintenant { timeout: 30 }
+config ??= { timeout: 60 };    // config inchange (non null)
+
+// Fonctionne avec les proprietes et indices
+let obj = { name: null };
+obj.name ??= "Anonyme";        // obj.name est maintenant "Anonyme"
+obj.name ??= "Autre";          // obj.name inchange
+
+let arr = [null, 2, 3];
+arr[0] ??= "premier";          // arr[0] est maintenant "premier"
+```
+
+**Comportement :**
+- Evalue le cote droit seulement si le cote gauche est null
+- Utile pour l'initialisation paresseuse et les valeurs par defaut
+- Se combine bien avec `??` pour les chaines de repli
+
 ---
 
-### Chaînage optionnel (`?.`)
+### Chainage optionnel (`?.`)
 
 Accède en toute sécurité aux propriétés ou appelle des méthodes sur des valeurs potentiellement null.
 

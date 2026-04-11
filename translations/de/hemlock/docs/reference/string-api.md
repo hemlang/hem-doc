@@ -1,6 +1,6 @@
 # String-API-Referenz
 
-Vollständige Referenz für Hemlocks String-Typ und alle 19 String-Methoden.
+Vollständige Referenz für Hemlocks String-Typ und alle 22 String-Methoden.
 
 ---
 
@@ -12,7 +12,7 @@ Strings in Hemlock sind **UTF-8-kodierte, veränderbare, heap-allokierte** Seque
 - UTF-8-Kodierung (U+0000 bis U+10FFFF)
 - Veränderbar (kann Zeichen direkt ändern)
 - Codepoint-basierte Indizierung
-- 19 eingebaute Methoden
+- 22 eingebaute Methoden
 - Automatische Verkettung mit `+`-Operator
 
 ---
@@ -295,6 +295,48 @@ let clean = s.trim();           // "hello"
 
 let text = "\n\t  world  \n";
 let clean2 = text.trim();       // "world"
+```
+
+#### trim_start
+
+Entfernt führende Leerzeichen.
+
+**Signatur:**
+```hemlock
+string.trim_start(): string
+```
+
+**Rückgabe:** Neuer String ohne führende Leerzeichen
+
+**Beispiele:**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_start();     // "hello  "
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_start(); // "world  \n"
+```
+
+---
+
+#### trim_end
+
+Entfernt nachfolgende Leerzeichen.
+
+**Signatur:**
+```hemlock
+string.trim_end(): string
+```
+
+**Rückgabe:** Neuer String ohne nachfolgende Leerzeichen
+
+**Beispiele:**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_end();       // "  hello"
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_end();   // "\n\t  world"
 ```
 
 ---
@@ -605,6 +647,28 @@ print(buf2.length);             // 4
 
 ---
 
+#### byte_ptr
+
+Gibt einen rohen Pointer auf die UTF-8-Bytes des Strings zurück.
+
+**Signatur:**
+```hemlock
+string.byte_ptr(): ptr
+```
+
+**Rückgabe:** Roher Pointer (`ptr`) auf die internen Bytes des Strings
+
+**Beispiele:**
+```hemlock
+let s = "hello";
+let p = s.byte_ptr();
+let first_byte = ptr_read_u8(p);  // 104 (ASCII 'h')
+```
+
+**Hinweis:** Der zurückgegebene Pointer ist nur gültig, solange der String existiert. Verwenden Sie diesen für Low-Level-Operationen und FFI.
+
+---
+
 ### JSON-Deserialisierung
 
 #### deserialize
@@ -678,6 +742,8 @@ let cleaned = "  HELLO  "
 | `contains`     | `(needle: string)`                           | `bool`    | Prüfen ob Teilstring enthalten       |
 | `split`        | `(delimiter: string)`                        | `array`   | In Array teilen                       |
 | `trim`         | `()`                                         | `string`  | Leerzeichen entfernen                 |
+| `trim_start`   | `()`                                         | `string`  | Führende Leerzeichen entfernen       |
+| `trim_end`     | `()`                                         | `string`  | Nachfolgende Leerzeichen entfernen    |
 | `to_upper`     | `()`                                         | `string`  | Zu Grossbuchstaben konvertieren       |
 | `to_lower`     | `()`                                         | `string`  | Zu Kleinbuchstaben konvertieren       |
 | `starts_with`  | `(prefix: string)`                           | `bool`    | Prüfen ob mit Präfix beginnt        |
@@ -690,6 +756,7 @@ let cleaned = "  HELLO  "
 | `chars`        | `()`                                         | `array`   | Zu Array von Runes konvertieren       |
 | `bytes`        | `()`                                         | `array`   | Zu Array von Bytes konvertieren       |
 | `to_bytes`     | `()`                                         | `buffer`  | Zu Buffer konvertieren (Legacy)       |
+| `byte_ptr`     | `()`                                         | `ptr`     | Rohen Pointer auf Bytes holen         |
 | `deserialize`  | `()`                                         | `any`     | JSON-String parsen                    |
 
 ---

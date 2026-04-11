@@ -1,6 +1,6 @@
 # Référence de l'API Array
 
-Référence complète pour le type array de Hemlock et ses 23 méthodes.
+Reference complete pour le type array de Hemlock et ses 28 methodes.
 
 ---
 
@@ -12,7 +12,7 @@ Les tableaux (arrays) dans Hemlock sont des séquences **dynamiques, allouées s
 - Dimensionnement dynamique (croissance automatique)
 - Indexation à partir de zéro
 - Types mixtes autorisés
-- 23 méthodes intégrées
+- 28 methodes integrees
 - Alloués sur le tas avec suivi de la capacité
 
 ---
@@ -92,9 +92,54 @@ print(arr.length);     // 3
 
 ---
 
-## Méthodes des tableaux
+## Methodes des tableaux
 
-### Opérations de pile (Stack)
+### Gestion de la capacite
+
+#### reserve
+
+Pre-alloue de la capacite pour les futurs elements sans changer la longueur du tableau. Utile pour eviter les reallocations repetees lors d'insertions en masse.
+
+**Signature :**
+```hemlock
+array.reserve(n: i32): null
+```
+
+**Parametres :**
+- `n` - Nombre d'elements pour lesquels pre-allouer la capacite
+
+**Retourne :** `null`
+
+**Modifie :** Oui (modifie la capacite interne, mais pas la longueur ni les elements)
+
+**Exemples :**
+```hemlock
+let arr = [];
+arr.reserve(1000);
+print(arr.length);     // 0 - reserve ne change pas la longueur
+
+// Pousser 1000 elements sans aucune reallocation
+for (let i = 0; i < 1000; i++) {
+    arr.push(i);
+}
+print(arr.length);     // 1000
+
+// Reserve sur un tableau pre-rempli preserve les elements existants
+let data = [1, 2, 3];
+data.reserve(1000);
+print(data.length);    // 3
+print(data[0]);        // 1
+```
+
+**Comportement :**
+- Pre-alloue le stockage interne pour au moins `n` elements
+- Ne change pas la longueur du tableau ni les elements existants
+- Si `n` est inferieur ou egal a la capacite actuelle, c'est un no-op
+- Ameliore les performances quand le nombre d'elements a inserer est connu a l'avance
+
+---
+
+### Operations de pile (Stack)
 
 #### push
 
@@ -297,7 +342,84 @@ let arr2 = [1, 2, 3, 2, 4];
 let idx3 = arr2.find(2);     // 1 (première occurrence)
 ```
 
-**Comparaison :** Utilise l'égalité de valeur pour les primitives et les chaînes.
+**Comparaison :** Utilise l'egalite de valeur pour les primitives et les chaines.
+
+---
+
+#### findIndex
+
+Trouve l'index du premier element correspondant a une fonction predicat.
+
+**Signature :**
+```hemlock
+array.findIndex(predicate: fn): i32
+```
+
+**Parametres :**
+- `predicate` - Fonction qui prend un element et retourne une valeur truthy/falsy
+
+**Retourne :** Index du premier element correspondant, ou `-1` si aucune correspondance
+
+**Exemples :**
+```hemlock
+let arr = [1, 4, 9, 16, 25];
+let idx = arr.findIndex(fn(x) { return x > 10; });  // 3 (16 > 10)
+let idx2 = arr.findIndex(fn(x) { return x > 100; }); // -1 (aucun ne correspond)
+
+// Trouver le premier nombre pair
+let nums = [1, 3, 4, 7, 8];
+let idx3 = nums.findIndex(fn(x) { return x % 2 == 0; }); // 2
+```
+
+**Note :** Contrairement a `find()` qui cherche par egalite de valeur, `findIndex()` utilise une fonction predicat pour une logique de correspondance personnalisee.
+
+---
+
+#### indexOf
+
+Trouve le premier index d'une valeur, ou `-1` si non trouvee.
+
+**Signature :**
+```hemlock
+array.indexOf(value: any): i32
+```
+
+**Parametres :**
+- `value` - Valeur a rechercher
+
+**Retourne :** Index de la premiere occurrence, ou `-1` si non trouvee
+
+**Exemples :**
+```hemlock
+let arr = ["a", "b", "c", "b"];
+let idx = arr.indexOf("b");     // 1
+let idx2 = arr.indexOf("z");    // -1 (non trouvee)
+```
+
+**Note :** Se comporte de maniere identique a `find()` -- les deux utilisent l'egalite de valeur et retournent le premier index correspondant.
+
+---
+
+#### lastIndexOf
+
+Trouve le dernier index d'une valeur, en cherchant depuis la fin.
+
+**Signature :**
+```hemlock
+array.lastIndexOf(value: any): i32
+```
+
+**Parametres :**
+- `value` - Valeur a rechercher
+
+**Retourne :** Index de la derniere occurrence, ou `-1` si non trouvee
+
+**Exemples :**
+```hemlock
+let arr = ["a", "b", "c", "b", "d"];
+let idx = arr.lastIndexOf("b");  // 3 (derniere occurrence)
+let idx2 = arr.lastIndexOf("z"); // -1 (non trouvee)
+```
 
 ---
 
@@ -591,7 +713,65 @@ print(max);  // 5
 
 ---
 
-### Conversion en chaîne
+#### flat
+
+Aplatit un niveau de tableaux imbriques.
+
+**Signature :**
+```hemlock
+array.flat(): array
+```
+
+**Retourne :** Nouveau tableau avec les tableaux imbriques aplatis d'un niveau
+
+**Modifie :** Non
+
+**Exemples :**
+```hemlock
+let arr = [[1, 2], [3, 4], [5]];
+let flat = arr.flat();
+print(flat);  // [1, 2, 3, 4, 5]
+
+// Les elements non-tableau sont conserves tels quels
+let mixed = [1, [2, 3], 4, [5]];
+let flat2 = mixed.flat();
+print(flat2);  // [1, 2, 3, 4, 5]
+
+// N'aplatit qu'un seul niveau
+let deep = [[1, [2, 3]], [4]];
+let flat3 = deep.flat();
+print(flat3);  // [1, [2, 3], 4]
+```
+
+---
+
+#### serialize
+
+Convertit le tableau en representation JSON sous forme de chaine.
+
+**Signature :**
+```hemlock
+array.serialize(): string
+```
+
+**Retourne :** Representation JSON du tableau sous forme de chaine
+
+**Modifie :** Non
+
+**Exemples :**
+```hemlock
+let arr = [1, 2, 3];
+let json = arr.serialize();
+print(json);  // [1,2,3]
+
+let mixed = ["hello", true, null, 42];
+let json2 = mixed.serialize();
+print(json2);  // ["hello",true,null,42]
+```
+
+---
+
+### Conversion en chaine
 
 #### join
 

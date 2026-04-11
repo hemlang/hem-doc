@@ -207,18 +207,101 @@ person.phone = "555-1234";
 print(person.email);  // "alice@example.com"
 ```
 
-### Suppression de champs
+### Notation crochet
 
-**Note :** La suppression de champs n'est pas actuellement supportee. Definissez a `null` a la place :
+Acceder aux champs dynamiquement en utilisant la notation crochet avec une cle string :
+
+```hemlock
+let person = { name: "Alice", age: 30 };
+
+// Lecture avec notation crochet
+let field = "name";
+print(person[field]);         // "Alice"
+print(person["age"]);         // 30
+
+// Ecriture avec notation crochet
+person["city"] = "NYC";
+print(person.city);           // "NYC"
+```
+
+### Coercition de cle
+
+Les cles non-string sont automatiquement converties en strings quand elles sont utilisees avec la notation crochet. Cela vous permet d'utiliser les objets comme des maps avec des cles numeriques, booleennes ou rune :
+
+```hemlock
+let map = {};
+
+// Cles entieres (converties en string : 42 → "42")
+map[0] = "zero";
+map[42] = "quarante-deux";
+print(map[0]);                // "zero"
+print(map["0"]);              // "zero" (equivalent)
+
+// Cles booleennes (converties : true → "true")
+map[true] = "oui";
+print(map[true]);             // "oui"
+print(map["true"]);           // "oui"
+
+// Cles rune (converties : 'A' → "A")
+map['A'] = "alpha";
+print(map['A']);               // "alpha"
+print(map["A"]);               // "alpha"
+
+// Cles flottantes (converties avec precision complete : 3.14 → "3.1400000000000001")
+map[3.14] = "pi";
+print(map[3.14]);              // "pi"
+```
+
+**Types de coercition supportes :**
+- **Entiers** (i8-i64, u8-u64) : representation decimale en string
+- **Flottants** (f32, f64) : format `%.17g` (precision complete)
+- **Booleens** : `"true"` ou `"false"`
+- **Runes** : caractere encode en UTF-8
+
+**Note :** Les cles flottantes utilisent la precision IEEE 754 complete, donc `3.14` devient `"3.1400000000000001"`. Si vous avez besoin de cles string flottantes exactes, convertissez explicitement avec `"" + n`.
+
+### Methodes d'objet integrees
+
+#### `obj.keys()`
+
+Retourne un tableau de tous les noms de champs sous forme de strings :
+
+```hemlock
+let obj = { x: 10, y: 20, name: "test" };
+let k = obj.keys();
+print(k);  // [x, y, name]
+```
+
+#### `obj.has(key)`
+
+Verifie si un objet a un champ specifique. Accepte les cles string, entier, flottant, bool ou rune (les cles non-string sont converties) :
+
+```hemlock
+let obj = { x: 10, name: "test" };
+print(obj.has("x"));       // true
+print(obj.has("z"));       // false
+
+let map = {};
+map[42] = "value";
+print(map.has(42));        // true
+print(map.has("42"));      // true
+```
+
+#### `obj.delete(key)`
+
+Supprime un champ d'un objet. Retourne `true` si le champ a ete trouve et supprime, `false` sinon. Accepte les cles converties comme `has()` :
 
 ```hemlock
 let obj = { x: 10, y: 20 };
+obj.delete("x");
+print(obj.has("x"));      // false
+print(obj.has("y"));      // true
 
-// Impossible de supprimer des champs (non supporte)
-// obj.x = undefined;  // Pas de 'undefined' en Hemlock
-
-// Solution : Definir a null
-obj.x = null;
+// Avec des cles entieres
+let map = {};
+map[5] = "cinq";
+map.delete(5);
+print(map.has(5));         // false
 ```
 
 ## Methodes et `self`

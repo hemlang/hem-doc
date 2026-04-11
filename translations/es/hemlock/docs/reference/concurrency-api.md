@@ -122,6 +122,65 @@ let r3 = join(t3);
 
 ---
 
+### spawn_with
+
+Crea e inicia una nueva tarea concurrente con opciones de configuracion por hilo.
+
+**Firma:**
+```hemlock
+spawn_with(options: object, async_fn: function, ...args): task
+```
+
+**Parametros:**
+- `options` - Objeto de configuracion con campos opcionales:
+  - `stack_size` - Tamano de la pila en bytes para el nuevo hilo (por defecto: 16 MB)
+  - `name` - Nombre del hilo para depuracion (maximo 16 caracteres)
+- `async_fn` - Funcion async a ejecutar
+- `...args` - Argumentos a pasar a la funcion
+
+**Retorna:** Manejador de tarea
+
+**Ejemplos:**
+```hemlock
+async fn compute(n: i32): i32 {
+    let sum = 0;
+    let i = 0;
+    while (i < n) {
+        sum = sum + i;
+        i = i + 1;
+    }
+    return sum;
+}
+
+// Tamano de pila personalizado (8 MB)
+let t1 = spawn_with({ stack_size: 8 * 1024 * 1024 }, compute, 1000);
+let r1 = join(t1);
+
+// Hilo con nombre
+let t2 = spawn_with({ name: "worker-1" }, compute, 500);
+let r2 = join(t2);
+
+// Ambas opciones
+let t3 = spawn_with({ stack_size: 16 * 1024 * 1024, name: "compute-3" }, compute, 100);
+let r3 = join(t3);
+
+// Opciones vacias (usa valores por defecto - igual que spawn())
+let t4 = spawn_with({}, compute, 50);
+let r4 = join(t4);
+
+// Multiples argumentos de funcion
+async fn add(a, b) { return a + b; }
+let t5 = spawn_with({ name: "adder" }, add, 100, 200);
+print(join(t5));  // 300
+```
+
+**Comportamiento:**
+- Crea nuevo hilo del SO con la configuracion especificada
+- Funciona de manera identica a `spawn()` excepto por las opciones de configuracion
+- Usar `{}` como opciones es equivalente a usar `spawn()` directamente
+
+---
+
 ### join
 
 Espera la finalizacion de la tarea y recupera el resultado.
@@ -621,6 +680,7 @@ let parallel_time = get_time() - start2;
 | Funcion   | Firma                             | Retorna   | Descripcion                    |
 |-----------|-----------------------------------|-----------|--------------------------------|
 | `spawn`   | `(async_fn: function, ...args)`   | `task`    | Crear e iniciar tarea concurrente |
+| `spawn_with` | `(options: object, async_fn: function, ...args)` | `task` | Generar con config por hilo (stack_size, name) |
 | `join`    | `(task: task)`                    | `any`     | Esperar tarea, obtener resultado |
 | `detach`  | `(task: task)`                    | `null`    | Desvincular tarea (disparar y olvidar) |
 | `channel` | `(capacity: i32)`                 | `channel` | Crear canal seguro para hilos  |

@@ -47,7 +47,7 @@ Hemlock est un **langage de script systeme** avec gestion manuelle de la memoire
 - Operateurs identiques au C : `+`, `-`, `*`, `%`, `&&`, `||`, `!`, `&`, `|`, `^`, `<<`, `>>`
 - Increment/decrement : `++x`, `x++`, `--x`, `x--` (prefixe et postfixe)
 - Affectation composee : `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`
-- `/` retourne toujours un flottant (utilisez `divi()` pour la division entiere)
+- `/` retourne toujours un flottant (utilisez `divi()` de `@stdlib/math` pour la division entiere)
 - Syntaxe de type : `let x: type = valeur;`
 
 ---
@@ -63,7 +63,7 @@ Autres:     bool, string, rune, array, ptr, buffer, null, object, file, task, ch
 Alias:      integer (i32), number (f64), byte (u8)
 ```
 
-**Promotion de type :** i8 -> i16 -> i32 -> i64 -> f32 -> f64 (les flottants gagnent toujours, mais i64/u64 + f32 -> f64 pour preserver la precision)
+**Promotion de type :** i8 → u8 → i16 → u16 → i32 → u32 → i64 → u64 → f32 → f64 (les flottants gagnent toujours, mais i64/u64 + f32 → f64 pour preserver la precision)
 
 ### Litteraux
 ```hemlock
@@ -117,19 +117,24 @@ let f: f64 = 100;        // i32 vers f64 via annotation (coercition numerique OK
 ```hemlock
 typeof(42);              // "i32"
 typeof("hello");         // "string"
-typeof([1, 2, 3]);       // "array"
-typeof(null);            // "null"
-len("hello");            // 5 (longueur de la chaine en octets)
-len([1, 2, 3]);          // 3 (longueur du tableau)
+"hello".length;          // 5 (nombre de runes)
+"hello".byte_length;     // 5 (nombre d'octets)
+
+// typeid() - detection de type rapide basee sur des entiers (pas d'allocation de chaine)
+typeid(42);              // 2 (TYPEID_I32)
+if (typeid(val) == TYPEID_I32 || typeid(val) == TYPEID_I64) { ... }
 ```
+
+**Constantes TYPEID :** `TYPEID_I8` (0), `TYPEID_I16` (1), `TYPEID_I32` (2), `TYPEID_I64` (3), `TYPEID_U8` (4), `TYPEID_U16` (5), `TYPEID_U32` (6), `TYPEID_U64` (7), `TYPEID_F32` (8), `TYPEID_F64` (9), `TYPEID_BOOL` (10), `TYPEID_STRING` (11), `TYPEID_RUNE` (12), `TYPEID_PTR` (13), `TYPEID_BUFFER` (14), `TYPEID_ARRAY` (15), `TYPEID_OBJECT` (16), `TYPEID_FILE` (17), `TYPEID_FUNCTION` (18), `TYPEID_TASK` (19), `TYPEID_CHANNEL` (20), `TYPEID_NULL` (21)
 
 ### Memoire
 ```hemlock
 let p = alloc(64);       // pointeur brut
 let b = buffer(64);      // tampon securise (verification des limites)
-memset(p, 0, 64);
-memcpy(dest, src, 64);
+memset(p, 0, 64); memcpy(dest, src, 64);
 free(p);                 // nettoyage manuel requis
+let view = b.slice(0, 16);  // vue zero-copie du buffer
+ptr_write_f32(b, 3.14);     // ptr_read/write acceptent les buffers directement
 ```
 
 ### Flux de controle
@@ -270,6 +275,16 @@ let person = { name, age };         // equivalent a { name: name, age: age }
 // Operateur de propagation d'objet (spread)
 let defaults = { theme: "dark", size: "medium" };
 let config = { ...defaults, size: "large" };  // copie defaults, remplace size
+
+// Notation crochet avec coercition de cle (cles non-string auto-converties en string)
+let map = {};
+map[42] = "value";              // cle entiere → "42"
+map[true] = "yes";              // cle bool → "true"
+map['A'] = "alpha";             // cle rune → "A"
+print(map[42]);                 // "value"
+print(map.has(42));             // true
+map.delete(42);                 // supprime le champ "42"
+let keys = map.keys();          // retourne un tableau de cles string
 
 enum Color { RED, GREEN, BLUE }
 enum Status { OK = 0, ERROR = 1 }
@@ -465,11 +480,10 @@ async fn compute(n: i32): i32 { return n * n; }
 let task = spawn(compute, 42);
 let result = await task;     // ou join(task)
 detach(spawn(background_work));
+let t = spawn_with({ stack_size: 4194304, name: "worker" }, compute, 42);
 
 let ch = channel(10);
-ch.send(value);
-let val = ch.recv();
-ch.close();
+ch.send(value); let val = ch.recv(); ch.close();
 ```
 
 **Propriete de la memoire :** Les taches recoivent des copies des valeurs primitives mais partagent les pointeurs. Si vous passez un `ptr` a une tache lancee, vous devez vous assurer que la memoire reste valide jusqu'a ce que la tache se termine. Utilisez `join()` avant `free()`, ou utilisez des canaux pour signaler la completion.
@@ -506,11 +520,11 @@ raise(SIGUSR1);
 
 ---
 
-## Methodes de chaine (19)
+## Methodes de chaine (22)
 
-`substr`, `slice`, `find`, `contains`, `split`, `trim`, `to_upper`, `to_lower`,
-`starts_with`, `ends_with`, `replace`, `replace_all`, `repeat`, `char_at`,
-`byte_at`, `chars`, `bytes`, `to_bytes`, `deserialize`
+`substr`, `slice`, `find`, `contains`, `split`, `trim`, `trim_start`, `trim_end`,
+`to_upper`, `to_lower`, `starts_with`, `ends_with`, `replace`, `replace_all`,
+`repeat`, `char_at`, `byte_at`, `chars`, `bytes`, `to_bytes`, `byte_ptr`, `deserialize`
 
 Chaines de modele : `` `Bonjour ${name}!` ``
 
@@ -523,11 +537,11 @@ print(s.length);       // 7 (nombre de caracteres/runes)
 print(s.byte_length);  // 10 (nombre d'octets - l'emoji fait 4 octets UTF-8)
 ```
 
-## Methodes de tableau (23)
+## Methodes de tableau (28)
 
-`push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
+`push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `findIndex`, `contains`,
 `slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
-`every`, `some`, `indexOf`, `sort`, `fill`
+`every`, `some`, `indexOf`, `lastIndexOf`, `sort`, `fill`, `reserve`, `flat`, `serialize`
 
 ```hemlock
 // every(predicate) - true si tous les elements satisfont le predicat
@@ -555,15 +569,9 @@ Tableaux types : `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Bibliotheque standard (42 modules)
+## Bibliotheque standard (53 modules)
 
-Importer avec le prefixe `@stdlib/` :
-```hemlock
-import { sin, cos, PI } from "@stdlib/math";
-import { HashMap, Queue, Set } from "@stdlib/collections";
-import { read_file, write_file } from "@stdlib/fs";
-import { TcpStream, UdpSocket } from "@stdlib/net";
-```
+Importer avec le prefixe `@stdlib/` : `import { sin, cos, PI } from "@stdlib/math";`
 
 | Module | Description |
 |--------|-------------|
@@ -572,23 +580,31 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `assert` | Utilitaires d'assertion |
 | `async` | ThreadPool, parallel_map |
 | `async_fs` | Operations d'E/S fichier asynchrones |
+| `atomic` | Operations atomiques (load, store, add, CAS, fence) |
+| `bytes` | Utilitaires d'ordre d'octets (bswap, hton/ntoh, E/S endian) |
 | `collections` | HashMap, Queue, Stack, Set, LinkedList, LRUCache |
 | `compression` | gzip, gunzip, deflate |
 | `crypto` | aes_encrypt, rsa_sign, random_bytes |
 | `csv` | Analyse et generation CSV |
+| `debug` | Inspection de taches et gestion de pile |
 | `datetime` | Classe DateTime, formatage, analyse |
+| `decimal` | to_fixed, to_hex, parse_int, parse_float, StringBuilder |
 | `encoding` | base64_encode, hex_encode, url_encode |
 | `env` | getenv, setenv, exit, get_pid |
+| `ffi` | Gestion des callbacks FFI |
 | `fmt` | Utilitaires de formatage de chaine |
-| `fs` | read_file, write_file, list_dir, exists |
+| `fs` | open, read_file, write_file, list_dir, exists |
 | `glob` | Correspondance de motifs de fichier |
-| `hash` | sha256, sha512, md5, djb2 |
+| `hash` | sha1, sha256, sha512, md5, djb2, crc32, adler32 |
 | `http` | http_get, http_post, http_request |
 | `ipc` | Communication inter-processus |
 | `iter` | Utilitaires d'iterateur |
+| `jinja` | Rendu de modeles compatible Jinja2 |
 | `json` | parse, stringify, pretty, get, set |
 | `logging` | Logger avec niveaux |
 | `math` | sin, cos, sqrt, pow, rand, PI, E |
+| `matrix` | Operations sur matrices denses (add, multiply, transpose, determinant, inverse) |
+| `mmap` | E/S fichier mappee en memoire (mmap, munmap, msync) |
 | `net` | TcpListener, TcpStream, UdpSocket |
 | `os` | platform, arch, cpu_count, hostname |
 | `path` | Manipulation de chemins de fichier |
@@ -598,6 +614,7 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `retry` | Logique de reessai avec backoff |
 | `semver` | Versionnage semantique |
 | `shell` | Utilitaires de commandes shell |
+| `signal` | Constantes de signaux (SIGINT, SIGTERM, etc.) |
 | `sqlite` | Base de donnees SQLite, query, exec, transactions |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | Couleurs et styles ANSI |
@@ -606,9 +623,11 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `time` | now, time_ms, sleep, clock |
 | `toml` | Analyse et generation TOML |
 | `url` | Analyse et manipulation d'URL |
+| `unix_socket` | Sockets de domaine Unix (AF_UNIX stream/datagram) |
 | `uuid` | Generation d'UUID |
 | `vector` | Recherche de similarite vectorielle (USearch ANN) |
 | `websocket` | Client WebSocket |
+| `yaml` | Analyse et generation YAML |
 
 Voir `stdlib/docs/` pour la documentation detaillee des modules.
 
@@ -698,18 +717,23 @@ hemlock/
 │   ├── backends/
 │   │   ├── interpreter/  # hemlock : interpreteur par parcours d'arbre
 │   │   └── compiler/     # hemlockc : generateur de code C
+│   ├── modules/          # Implementations de modules natifs
+│   ├── runtime/          # Code C lie au runtime
+│   ├── shared/           # Utilitaires partages (promotion de type, etc.)
 │   ├── tools/
 │   │   ├── lsp/          # Language Server Protocol
-│   │   └── bundler/      # Outils de bundle/package
+│   │   ├── bundler/      # Outils de bundle/package
+│   │   └── formatter/    # Formateur de code
 ├── runtime/              # Runtime du programme compile (libhemlock_runtime.a)
-├── stdlib/               # Bibliotheque standard (42 modules)
+├── stdlib/               # Bibliotheque standard
 │   └── docs/             # Documentation des modules
+├── include/              # Fichiers d'en-tete C (hemlock_limits.h, etc.)
 ├── docs/                 # Documentation complete
-│   ├── language-guide/   # Types, chaines, tableaux, etc.
-│   ├── reference/        # References API
-│   └── advanced/         # Async, FFI, signaux, etc.
-├── tests/                # 625+ tests
-└── examples/             # Programmes d'exemple
+├── tests/                # 978+ tests
+├── examples/             # Programmes d'exemple
+├── benchmark/            # Benchmarks
+├── editors/              # Integrations d'editeurs
+└── wasm/                 # Support WebAssembly
 ```
 
 ---
@@ -991,12 +1015,12 @@ make parity
 - **Correction de precision de type** : i64/u64 + f32 -> f64 pour preserver la precision
 - Systeme de type unifie avec indications d'optimisation de deballage
 - Systeme de type complet (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
-- Chaines UTF-8 avec 19 methodes
-- Tableaux avec 23 methodes incluant map/filter/reduce/every/some/indexOf/sort/fill
+- Chaines UTF-8 avec 22 methodes
+- Tableaux avec 28 methodes incluant map/filter/reduce/every/some/indexOf/lastIndexOf/findIndex/sort/fill/reserve/flat/serialize
 - Gestion manuelle de la memoire avec `talloc()` et `sizeof()`
 - Async/await avec vrai parallelisme pthread
 - Operations atomiques pour la programmation concurrente sans verrou
-- 42 modules stdlib (+ arena, assert, semver, toml, retry, iter, random, shell, termios, vector)
+- 53 modules stdlib
 - FFI pour l'interoperabilite C avec `export extern fn` pour les wrappers de bibliotheque reutilisables
 - Support des structures FFI dans le compilateur (passer des structures C par valeur)
 - Helpers de pointeur FFI (`ptr_null`, `ptr_read_*`, `ptr_write_*`)

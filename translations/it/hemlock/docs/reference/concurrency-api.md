@@ -120,6 +120,62 @@ let r3 = join(t3);  // 900
 
 ---
 
+### spawn_with
+
+Crea un nuovo task concorrente con opzioni di configurazione per-thread.
+
+**Firma:**
+```hemlock
+spawn_with(opzioni: object, func: function, ...args): task
+```
+
+**Parametri:**
+- `opzioni` - Oggetto di configurazione con campi opzionali:
+  - `stack_size` - Dimensione dello stack in byte per il nuovo thread (default: 16 MB)
+  - `name` - Stringa nome del thread (massimo 16 caratteri)
+- `func` - Funzione da eseguire
+- `args` - Argomenti da passare alla funzione
+
+**Restituisce:** Handle del task
+
+**Esempi:**
+```hemlock
+async fn calcola(n: i32): i32 {
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+        sum = sum + i;
+    }
+    return sum;
+}
+
+// Dimensione stack personalizzata (8 MB)
+let t1 = spawn_with({ stack_size: 8 * 1024 * 1024 }, calcola, 1000);
+let r1 = join(t1);
+
+// Thread con nome
+let t2 = spawn_with({ name: "worker-1" }, calcola, 500);
+let r2 = join(t2);
+
+// Entrambe le opzioni
+let t3 = spawn_with({ stack_size: 16 * 1024 * 1024, name: "compute-3" }, calcola, 100);
+let r3 = join(t3);
+
+// Opzioni vuote (usa default - equivalente a spawn())
+let t4 = spawn_with({}, calcola, 50);
+let r4 = join(t4);
+```
+
+**Comportamento:**
+- Crea un nuovo thread OS con la configurazione specificata
+- `stack_size` controlla l'allocazione dello stack del thread (utile per task profondamente ricorsivi)
+- `name` imposta il nome del thread (visibile in debugger/profiler; troncato a 16 caratteri)
+- Passare `{}` per le opzioni è equivalente a chiamare `spawn()`
+- Restituisce handle del task per il successivo join, come `spawn()`
+
+**Vedi Anche:** `get_default_stack_size()` / `set_default_stack_size()` in `@stdlib/async` per cambiare la dimensione stack predefinita per tutte le chiamate `spawn()`.
+
+---
+
 ### join
 
 Attende il completamento del task e ottiene il risultato.
@@ -757,6 +813,7 @@ detach(t2);
 | Funzione  | Firma                          | Restituisce | Descrizione              |
 |-----------|--------------------------------|-------------|--------------------------|
 | `spawn`   | `(func, ...args)`              | `task`      | Crea nuovo task          |
+| `spawn_with` | `(opzioni: object, func, ...args)` | `task` | Spawn con config per-thread (stack_size, name) |
 | `join`    | `(t: task)`                    | `any`       | Attende risultato task   |
 | `detach`  | `(t: task)`                    | `null`      | Detach task              |
 | `channel` | `(capacita?: i32)`             | `channel`   | Crea canale              |

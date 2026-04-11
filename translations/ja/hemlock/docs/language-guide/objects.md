@@ -207,18 +207,99 @@ person.phone = "555-1234";
 print(person.email);  // "alice@example.com"
 ```
 
-### フィールド削除
+### ブラケット記法
 
-**注意：** フィールド削除は現在サポートされていません。代わりに`null`を設定：
+文字列キーを使用してブラケット記法で動的にフィールドにアクセス：
+
+```hemlock
+let person = { name: "Alice", age: 30 };
+
+// ブラケット記法での読み取り
+let field = "name";
+print(person[field]);         // "Alice"
+print(person["age"]);         // 30
+
+// ブラケット記法での書き込み
+person["city"] = "NYC";
+print(person.city);           // "NYC"
+```
+
+### キー強制変換
+
+ブラケット記法で非文字列キーを使用すると、自動的に文字列に強制変換されます。これにより数値、ブーリアン、runeキーを持つマップとしてオブジェクトを使用できます：
+
+```hemlock
+let map = {};
+
+// 整数キー（文字列に強制変換：42 → "42"）
+map[0] = "zero";
+map[42] = "forty-two";
+print(map[0]);                // "zero"
+print(map["0"]);              // "zero"（同等）
+
+// ブーリアンキー（強制変換：true → "true"）
+map[true] = "yes";
+print(map[true]);             // "yes"
+print(map["true"]);           // "yes"
+
+// Runeキー（強制変換：'A' → "A"）
+map['A'] = "alpha";
+print(map['A']);               // "alpha"
+print(map["A"]);               // "alpha"
+
+// Floatキー（完全精度で強制変換：3.14 → "3.1400000000000001"）
+map[3.14] = "pi";
+print(map[3.14]);              // "pi"
+```
+
+**サポートされる強制変換型：**
+- **整数**（i8-i64、u8-u64）：10進文字列表現
+- **Float**（f32、f64）：`%.17g`フォーマット（完全精度）
+- **ブーリアン**：`"true"`または`"false"`
+- **Rune**：UTF-8エンコード文字
+
+### 組み込みオブジェクトメソッド
+
+#### `obj.keys()`
+
+すべてのフィールド名を文字列の配列として返します：
+
+```hemlock
+let obj = { x: 10, y: 20, name: "test" };
+let k = obj.keys();
+print(k);  // [x, y, name]
+```
+
+#### `obj.has(key)`
+
+オブジェクトが特定のフィールドを持つかチェックします。文字列、整数、float、bool、runeキーを受け付けます（非文字列キーは強制変換されます）：
+
+```hemlock
+let obj = { x: 10, name: "test" };
+print(obj.has("x"));       // true
+print(obj.has("z"));       // false
+
+let map = {};
+map[42] = "value";
+print(map.has(42));        // true
+print(map.has("42"));      // true
+```
+
+#### `obj.delete(key)`
+
+オブジェクトからフィールドを削除します。フィールドが見つかり削除された場合は`true`、そうでなければ`false`を返します。`has()`と同様に強制変換されたキーを受け付けます：
 
 ```hemlock
 let obj = { x: 10, y: 20 };
+obj.delete("x");
+print(obj.has("x"));      // false
+print(obj.has("y"));      // true
 
-// フィールドを削除できない（サポートされていない）
-// obj.x = undefined;  // Hemlockには'undefined'がない
-
-// 回避策：nullを設定
-obj.x = null;
+// 整数キーで
+let map = {};
+map[5] = "five";
+map.delete(5);
+print(map.has(5));         // false
 ```
 
 ## メソッドと`self`
@@ -965,7 +1046,6 @@ emitter.emit("message", "Hello!");
 - **値渡しなし** - オブジェクトは常に参照で渡される
 - **計算プロパティなし** - `{[key]: value}`構文がない
 - **`self`は読み取り専用** - メソッド内で`self`を再代入できない
-- **プロパティ削除なし** - 一度追加したフィールドを削除できない
 
 **注意：** オブジェクトは参照カウントされ、スコープを抜けると自動的に解放されます。詳細は[メモリ管理](memory.md#internal-reference-counting)を参照してください。
 

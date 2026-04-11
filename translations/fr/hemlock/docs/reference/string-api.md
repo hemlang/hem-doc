@@ -1,6 +1,6 @@
 # Référence de l'API String
 
-Référence complète pour le type string de Hemlock et ses 19 méthodes.
+Reference complete pour le type string de Hemlock et ses 22 methodes.
 
 ---
 
@@ -12,7 +12,7 @@ Les chaînes de caractères (strings) dans Hemlock sont des séquences **encodé
 - Encodage UTF-8 (U+0000 à U+10FFFF)
 - Mutables (peuvent modifier les caractères sur place)
 - Indexation basée sur les points de code
-- 19 méthodes intégrées
+- 22 methodes integrees
 - Concaténation automatique avec l'opérateur `+`
 
 ---
@@ -295,6 +295,46 @@ let clean = s.trim();           // "hello"
 
 let text = "\n\t  world  \n";
 let clean2 = text.trim();       // "world"
+```
+
+#### trim_start
+
+Supprime les espaces blancs au debut uniquement.
+
+**Signature :**
+```hemlock
+string.trim_start(): string
+```
+
+**Retourne :** Nouvelle chaine sans espaces blancs au debut
+
+**Exemples :**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_start();     // "hello  "
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_start(); // "world  \n"
+```
+
+#### trim_end
+
+Supprime les espaces blancs a la fin uniquement.
+
+**Signature :**
+```hemlock
+string.trim_end(): string
+```
+
+**Retourne :** Nouvelle chaine sans espaces blancs a la fin
+
+**Exemples :**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_end();       // "  hello"
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_end();   // "\n\t  world"
 ```
 
 ---
@@ -601,11 +641,62 @@ let buf2 = emoji.to_bytes();
 print(buf2.length);             // 4
 ```
 
-**Note :** Ceci est une méthode héritée. Préférez `.bytes()` pour la plupart des cas d'utilisation.
+**Note :** Ceci est une methode heritee. Preferez `.bytes()` pour la plupart des cas d'utilisation.
 
 ---
 
-### Désérialisation JSON
+### Acces au pointeur brut
+
+#### byte_ptr
+
+Obtient un pointeur brut vers le buffer interne d'octets UTF-8 de la chaine. C'est une operation sans allocation -- aucune copie n'est faite.
+
+**Signature :**
+```hemlock
+string.byte_ptr(): ptr
+```
+
+**Retourne :** Pointeur brut (`ptr`) vers les octets UTF-8 internes de la chaine
+
+**Exemples :**
+```hemlock
+let s = "Hello";
+let p = s.byte_ptr();
+print(typeof(p));              // "ptr"
+
+// Lire les octets via le pointeur
+print(ptr_deref_u8(p));                    // 72 ('H')
+print(ptr_deref_u8(ptr_offset(p, 1, 1))); // 101 ('e')
+print(ptr_deref_u8(ptr_offset(p, 4, 1))); // 111 ('o')
+
+// Utiliser avec memcpy pour copier les octets de la chaine
+let buf = alloc(5);
+memcpy(buf, s.byte_ptr(), 5);
+print(ptr_deref_u8(buf));  // 72
+free(buf);
+
+// Associer avec .byte_length pour un suivi de taille securise
+let emoji = "Hello 🚀";
+let ep = emoji.byte_ptr();
+print(emoji.byte_length);  // 10 (utiliser byte_length, pas length, pour les operations en octets)
+```
+
+**Comportement :**
+- Retourne un pointeur directement dans la memoire interne de la chaine (zero-copie)
+- Le pointeur est valide tant que la chaine est vivante et non modifiee
+- Utilisez `.byte_length` (pas `.length`) pour determiner le nombre d'octets accessibles via le pointeur
+- Contrairement a `.to_bytes()`, ceci n'alloue pas un nouveau buffer
+
+**Cas d'utilisation :**
+- Appels FFI necessitant un pointeur vers les donnees de la chaine
+- Interoperabilite zero-copie avec les fonctions C
+- Code critique en performance qui evite les allocations
+
+**Avertissement :** Modifier la chaine (par ex., affectation par index) apres avoir appele `byte_ptr()` peut invalider le pointeur si le buffer interne de la chaine est realloue.
+
+---
+
+### Deserialisation JSON
 
 #### deserialize
 
@@ -678,6 +769,8 @@ let cleaned = "  HELLO  "
 | `contains`     | `(needle: string)`                           | `bool`    | Vérifier si contient sous-chaîne           |
 | `split`        | `(delimiter: string)`                        | `array`   | Séparer en tableau                         |
 | `trim`         | `()`                                         | `string`  | Supprimer espaces blancs                   |
+| `trim_start`   | `()`                                         | `string`  | Supprimer espaces blancs au debut          |
+| `trim_end`     | `()`                                         | `string`  | Supprimer espaces blancs a la fin          |
 | `to_upper`     | `()`                                         | `string`  | Convertir en majuscules                    |
 | `to_lower`     | `()`                                         | `string`  | Convertir en minuscules                    |
 | `starts_with`  | `(prefix: string)`                           | `bool`    | Vérifier si commence par préfixe           |
@@ -689,8 +782,9 @@ let cleaned = "  HELLO  "
 | `byte_at`      | `(index: i32)`                               | `u8`      | Obtenir octet à l'index                    |
 | `chars`        | `()`                                         | `array`   | Convertir en tableau de runes              |
 | `bytes`        | `()`                                         | `array`   | Convertir en tableau d'octets              |
-| `to_bytes`     | `()`                                         | `buffer`  | Convertir en buffer (hérité)               |
-| `deserialize`  | `()`                                         | `any`     | Parser chaîne JSON                         |
+| `to_bytes`     | `()`                                         | `buffer`  | Convertir en buffer (herite)               |
+| `byte_ptr`     | `()`                                         | `ptr`     | Pointeur brut vers les octets UTF-8 internes |
+| `deserialize`  | `()`                                         | `any`     | Parser chaine JSON                         |
 
 ---
 

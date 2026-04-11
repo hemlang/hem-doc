@@ -1,6 +1,6 @@
 # Referencia de la API de Arrays
 
-Referencia completa para el tipo array de Hemlock y sus 18 metodos.
+Referencia completa para el tipo array de Hemlock y sus 28 metodos.
 
 ---
 
@@ -12,7 +12,7 @@ Los arrays en Hemlock son secuencias **dinamicas, asignadas en el heap** que pue
 - Tamano dinamico (crecimiento automatico)
 - Indexacion desde cero
 - Tipos mixtos permitidos
-- 18 metodos integrados
+- 28 metodos integrados
 - Asignados en el heap con seguimiento de capacidad
 
 ---
@@ -38,6 +38,45 @@ print(mixed.length);   // 4
 // Array vacio
 let empty = [];
 print(empty.length);   // 0
+```
+
+---
+
+## Gestion de Capacidad
+
+### reserve
+
+Pre-asigna capacidad para futuros elementos sin cambiar la longitud del array. Util para evitar reasignaciones repetidas durante inserciones masivas.
+
+**Firma:**
+```hemlock
+array.reserve(n: i32): null
+```
+
+**Parametros:**
+- `n` - Capacidad minima a asegurar
+
+**Retorna:** `null`
+
+**Muta:** Si (modifica la capacidad interna)
+
+**Ejemplos:**
+```hemlock
+let arr = [];
+arr.reserve(1000);
+print(arr.length);     // 0 - reserve no cambia la longitud
+
+// Push 1000 elementos sin ninguna reasignacion
+for (let i = 0; i < 1000; i++) {
+    arr.push(i);
+}
+print(arr.length);     // 1000
+
+// Reserve en array con datos preserva elementos existentes
+let data = [1, 2, 3];
+data.reserve(1000);
+print(data.length);    // 3
+print(data[0]);        // 1
 ```
 
 ---
@@ -298,6 +337,35 @@ let idx3 = arr2.find(2);     // 1 (primera ocurrencia)
 ```
 
 **Comparacion:** Usa igualdad de valor para primitivos y strings.
+
+---
+
+#### findIndex
+
+Encuentra el indice del primer elemento que coincide con una funcion predicado.
+
+**Firma:**
+```hemlock
+array.findIndex(predicate: fn): i32
+```
+
+**Parametros:**
+- `predicate` - Funcion que toma un elemento y retorna bool
+
+**Retorna:** Indice del primer elemento que coincide, o `-1` si ninguno coincide
+
+**Ejemplos:**
+```hemlock
+let arr = [1, 4, 9, 16, 25];
+let idx = arr.findIndex(fn(x) { return x > 10; });  // 3 (16 > 10)
+let idx2 = arr.findIndex(fn(x) { return x > 100; }); // -1 (ninguno coincide)
+
+// Encontrar primer numero par
+let nums = [1, 3, 4, 7, 8];
+let idx3 = nums.findIndex(fn(x) { return x % 2 == 0; }); // 2
+```
+
+**Nota:** A diferencia de `find()` que busca por igualdad de valor, `findIndex()` usa una funcion predicado para logica de coincidencia personalizada.
 
 ---
 
@@ -639,6 +707,87 @@ print(reversed.join(""));  // "olleh"
 
 ---
 
+#### lastIndexOf
+
+Encuentra el ultimo indice de un valor, buscando desde el final.
+
+**Firma:**
+```hemlock
+array.lastIndexOf(value: any): i32
+```
+
+**Parametros:**
+- `value` - Valor a buscar
+
+**Retorna:** Indice de la ultima ocurrencia, o `-1` si no se encuentra
+
+**Ejemplos:**
+```hemlock
+let arr = ["a", "b", "c", "b", "d"];
+let idx = arr.lastIndexOf("b");  // 3 (ultima ocurrencia)
+let idx2 = arr.lastIndexOf("z"); // -1 (no encontrado)
+```
+
+---
+
+#### flat
+
+Aplana un nivel de arrays anidados.
+
+**Firma:**
+```hemlock
+array.flat(): array
+```
+
+**Retorna:** Nuevo array con arrays anidados aplanados por un nivel
+
+**Muta:** No
+
+**Ejemplos:**
+```hemlock
+let arr = [[1, 2], [3, 4], [5]];
+let flat = arr.flat();
+print(flat);  // [1, 2, 3, 4, 5]
+
+// Elementos no-array se mantienen tal cual
+let mixed = [1, [2, 3], 4, [5]];
+let flat2 = mixed.flat();
+print(flat2);  // [1, 2, 3, 4, 5]
+
+// Solo aplana un nivel
+let deep = [[1, [2, 3]], [4]];
+let flat3 = deep.flat();
+print(flat3);  // [1, [2, 3], 4]
+```
+
+---
+
+#### serialize
+
+Convierte el array a una representacion de string JSON.
+
+**Firma:**
+```hemlock
+array.serialize(): string
+```
+
+**Retorna:** Representacion de string JSON del array
+
+**Muta:** No
+
+**Ejemplos:**
+```hemlock
+let arr = [1, 2, 3];
+let json = arr.serialize();
+print(json);  // [1,2,3]
+
+let mixed = ["hello", true, null, 42];
+let json2 = mixed.serialize();
+print(json2);  // ["hello",true,null,42]
+```
+
+---
+
 ## Encadenamiento de Metodos
 
 Los metodos de array pueden encadenarse para operaciones concisas:
@@ -681,6 +830,9 @@ Metodos que modifican el array en su lugar:
 | `remove`   | `(index: i32)`             | `any`     | Eliminar en indice             |
 | `reverse`  | `()`                       | `null`    | Invertir en su lugar           |
 | `clear`    | `()`                       | `null`    | Eliminar todos los elementos   |
+| `reserve`  | `(n: i32)`                 | `null`    | Pre-asignar capacidad          |
+| `sort`     | `(compare?: fn)`           | `null`    | Ordenar en su lugar (comparador opcional) |
+| `fill`     | `(value: any, start?: i32, end?: i32)` | `null` | Rellenar elementos con valor |
 
 ### Metodos que No Mutan
 
@@ -689,15 +841,22 @@ Metodos que retornan nuevos valores sin modificar el original:
 | Metodo     | Firma                      | Retorna   | Descripcion                    |
 |------------|----------------------------|-----------|--------------------------------|
 | `find`     | `(value: any)`             | `i32`     | Encontrar primera ocurrencia   |
+| `findIndex`| `(predicate: fn)`          | `i32`     | Encontrar indice por predicado |
+| `indexOf`  | `(value: any)`             | `i32`     | Encontrar indice del valor (-1 si no se encuentra) |
+| `lastIndexOf`| `(value: any)`           | `i32`     | Encontrar ultimo indice del valor |
 | `contains` | `(value: any)`             | `bool`    | Verificar si contiene valor    |
 | `slice`    | `(start: i32, end: i32)`   | `array`   | Extraer subarray               |
 | `first`    | `()`                       | `any`     | Obtener primer elemento        |
 | `last`     | `()`                       | `any`     | Obtener ultimo elemento        |
 | `concat`   | `(other: array)`           | `array`   | Concatenar arrays              |
+| `flat`     | `()`                       | `array`   | Aplanar un nivel de anidamiento|
 | `join`     | `(delimiter: string)`      | `string`  | Unir elementos en string       |
 | `map`      | `(callback: fn)`           | `array`   | Transformar cada elemento      |
 | `filter`   | `(predicate: fn)`          | `array`   | Seleccionar elementos que coincidan |
 | `reduce`   | `(callback: fn, initial: any)` | `any` | Reducir a un solo valor        |
+| `every`    | `(predicate: fn)`          | `bool`    | Verificar si todos los elementos coinciden |
+| `some`     | `(predicate: fn)`          | `bool`    | Verificar si algun elemento coincide |
+| `serialize`| `()`                       | `string`  | Convertir a string JSON        |
 
 ---
 
@@ -783,7 +942,7 @@ print(arr);  // [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 **Gestion de Capacidad:**
 - Los arrays crecen automaticamente cuando es necesario
 - La capacidad se duplica cuando se excede
-- Sin control manual de capacidad
+- Use `reserve(n)` para pre-asignar capacidad para inserciones masivas
 
 **Comparacion de Valores:**
 - `find()` y `contains()` usan igualdad de valor
