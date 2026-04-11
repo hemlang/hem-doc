@@ -766,6 +766,19 @@ def read_file(path):
         return ""
 
 
+def get_hemlock_version():
+    """Read the Hemlock version from the submodule's version.h header."""
+    version_h = HEMLOCK_DIR / 'include' / 'version.h'
+    try:
+        content = read_file(version_h)
+        match = re.search(r'#define\s+HEMLOCK_VERSION\s+"([^"]+)"', content)
+        if match:
+            return match.group(1)
+    except Exception as e:
+        print(f"Warning: Could not read version from {version_h}: {e}")
+    return None
+
+
 def get_translated_path(original_path, lang):
     """Get the translated file path if it exists, otherwise return the original."""
     if lang == 'en':
@@ -1109,6 +1122,10 @@ def generate_html(docs, logo_data, lang='en'):
     }
     page_title = titles.get(lang, titles['en'])
 
+    # Read version from hemlock submodule
+    hemlock_version = get_hemlock_version()
+    version_badge_html = f'<span class="version-badge">v{hemlock_version}</span>' if hemlock_version else ''
+
     # Generate language switcher options
     lang_options = []
     for code, name in SUPPORTED_LANGUAGES.items():
@@ -1232,6 +1249,20 @@ def generate_html(docs, logo_data, lang='en'):
             font-weight: 600;
             letter-spacing: 0.5px;
             margin-right: auto;
+        }}
+
+        .version-badge {{
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            color: #E8F4E1;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.15em 0.55em;
+            border-radius: 4px;
+            margin-left: 0.6rem;
+            vertical-align: middle;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(255,255,255,0.2);
         }}
 
         @media (max-width: 1023px) {{
@@ -1864,7 +1895,7 @@ def generate_html(docs, logo_data, lang='en'):
     <header class="header" role="banner">
         <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu" aria-expanded="false">&#9776;</button>
         <img src="{logo_data}" alt="Hemlock Logo" class="header-logo">
-        <h1>{page_title}</h1>
+        <h1>{page_title}{version_badge_html}</h1>
         <!-- Search -->
         <div class="search-container" id="searchContainer" role="search" aria-label="Search documentation">
             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
