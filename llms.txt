@@ -38,51 +38,55 @@ TABLE OF CONTENTS
   19. Async Concurrency
   20. Atomics
   21. Bundling Packaging
-  22. Command Execution
-  23. Command Line Args
-  24. FFI
-  25. File IO
-  26. Memory Ownership
-  27. Profiling
-  28. Signals
+  22. Code Formatting
+  23. Command Execution
+  24. Command Line Args
+  25. Compiler Optimizations
+  26. FFI
+  27. File IO
+  28. Lsp
+  29. Memory Ownership
+  30. Profiling
+  31. Signals
 
 [API Reference]
-  29. Array API
-  30. Builtins
-  31. Concurrency API
-  32. File API
-  33. Memory API
-  34. Operators
-  35. String API
-  36. Type System
+  32. Array API
+  33. Builtins
+  34. Concurrency API
+  35. File API
+  36. Memory API
+  37. Operators
+  38. Stdlib Overview
+  39. String API
+  40. Type System
 
 [Design & Philosophy]
-  37. Implementation
-  38. Philosophy
-  39. Signature Syntax
+  41. Implementation
+  42. Philosophy
+  43. Signature Syntax
 
 [Contributing]
-  40. Guidelines
-  41. Testing
+  44. Guidelines
+  45. Testing
 
 [hpm: Getting Started]
-  42. Installation
-  43. Project Setup
-  44. Quick Start
+  46. Installation
+  47. Project Setup
+  48. Quick Start
 
 [hpm: User Guide]
-  45. Commands
-  46. Configuration
-  47. Troubleshooting
+  49. Commands
+  50. Configuration
+  51. Troubleshooting
 
 [hpm: Package Development]
-  48. Creating Packages
-  49. Package Spec
-  50. Versioning
+  52. Creating Packages
+  53. Package Spec
+  54. Versioning
 
 [hpm: Reference]
-  51. Architecture
-  52. Exit Codes
+  55. Architecture
+  56. Exit Codes
 
 
 ================================================================================
@@ -225,7 +229,7 @@ Hemlock is a **systems scripting language** with manual memory management and ex
 - Operators match C: `+`, `-`, `*`, `%`, `&&`, `||`, `!`, `&`, `|`, `^`, `<<`, `>>`
 - Increment/decrement: `++x`, `x++`, `--x`, `x--` (prefix and postfix)
 - Compound assignment: `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`
-- `/` always returns float (use `divi()` for integer division)
+- `/` always returns float (use `divi()` from `@stdlib/math` for integer division)
 - Type syntax: `let x: type = value;`
 
 ---
@@ -241,7 +245,7 @@ Other:    bool, string, rune, array, ptr, buffer, null, object, file, task, chan
 Aliases:  integer (i32), number (f64), byte (u8)
 ```
 
-**Type promotion:** i8 → i16 → i32 → i64 → f32 → f64 (floats always win, but i64/u64 + f32 → f64 to preserve precision)
+**Type promotion:** i8 → u8 → i16 → u16 → i32 → u32 → i64 → u64 → f32 → f64 (floats always win, but i64/u64 + f32 → f64 to preserve precision)
 
 ### Literals
 ```hemlock
@@ -256,37 +260,16 @@ let half = .5;           // f64 (no leading zero)
 let s = "hello";         // string
 let esc = "\x41\u{1F600}"; // hex and unicode escapes
 let ch = 'A';            // rune
-let emoji = '🚀';        // rune (Unicode)
 let arr = [1, 2, 3];     // array
 let obj = { x: 10 };     // object
 ```
 
 ### Type Conversion
 ```hemlock
-// Type constructor functions - parse strings to types
 let n = i32("42");       // Parse string to i32
 let f = f64("3.14");     // Parse string to f64
-let b = bool("true");    // Parse string to bool ("true" or "false")
-
-// All numeric types supported
-let a = i8("-128");      // i8, i16, i32, i64
-let c = u8("255");       // u8, u16, u32, u64
-let d = f32("1.5");      // f32, f64
-
-// Hex and negative numbers
-let hex = i32("0xFF");   // 255
-let neg = i32("-42");    // -42
-
-// Type aliases work too
-let x = integer("100");  // Same as i32("100")
-let y = number("1.5");   // Same as f64("1.5")
-let z = byte("200");     // Same as u8("200")
-
-// Convert between numeric types
 let big = i64(42);       // i32 to i64
 let truncated = i32(3.99); // f64 to i32 (truncates to 3)
-
-// Type annotations validate types (but don't parse strings)
 let f: f64 = 100;        // i32 to f64 via annotation (numeric coercion OK)
 // let n: i32 = "42";    // ERROR - use i32("42") for string parsing
 ```
@@ -295,19 +278,24 @@ let f: f64 = 100;        // i32 to f64 via annotation (numeric coercion OK)
 ```hemlock
 typeof(42);              // "i32"
 typeof("hello");         // "string"
-typeof([1, 2, 3]);       // "array"
-typeof(null);            // "null"
-len("hello");            // 5 (string length in bytes)
-len([1, 2, 3]);          // 3 (array length)
+"hello".length;          // 5 (rune count)
+"hello".byte_length;     // 5 (byte count)
+
+// typeid() - fast integer-based type detection (no string allocation)
+typeid(42);              // 2 (TYPEID_I32)
+if (typeid(val) == TYPEID_I32 || typeid(val) == TYPEID_I64) { ... }
 ```
+
+**TYPEID constants:** `TYPEID_I8` (0), `TYPEID_I16` (1), `TYPEID_I32` (2), `TYPEID_I64` (3), `TYPEID_U8` (4), `TYPEID_U16` (5), `TYPEID_U32` (6), `TYPEID_U64` (7), `TYPEID_F32` (8), `TYPEID_F64` (9), `TYPEID_BOOL` (10), `TYPEID_STRING` (11), `TYPEID_RUNE` (12), `TYPEID_PTR` (13), `TYPEID_BUFFER` (14), `TYPEID_ARRAY` (15), `TYPEID_OBJECT` (16), `TYPEID_FILE` (17), `TYPEID_FUNCTION` (18), `TYPEID_TASK` (19), `TYPEID_CHANNEL` (20), `TYPEID_NULL` (21)
 
 ### Memory
 ```hemlock
 let p = alloc(64);       // raw pointer
 let b = buffer(64);      // safe buffer (bounds checked)
-memset(p, 0, 64);
-memcpy(dest, src, 64);
+memset(p, 0, 64); memcpy(dest, src, 64);
 free(p);                 // manual cleanup required
+let view = b.slice(0, 16);  // zero-copy buffer view
+ptr_write_f32(b, 3.14);     // ptr_read/write accept buffers directly
 ```
 
 ### Control Flow
@@ -316,76 +304,36 @@ if (x > 0) { } else if (x < 0) { } else { }
 while (cond) { break; continue; }
 for (let i = 0; i < 10; i++) { }
 for (item in array) { }
-loop { if (done) { break; } }   // infinite loop (cleaner than while(true))
+loop { if (done) { break; } }   // infinite loop
 switch (x) { case 1: break; default: break; }  // C-style fall-through
 defer cleanup();         // runs when function returns
 
-// Loop labels for targeted break/continue in nested loops
+// Loop labels for nested break/continue
 outer: while (cond) {
-    inner: for (let i = 0; i < 10; i++) {
-        if (i == 5) { break outer; }     // break outer loop
-        if (i == 3) { continue outer; }  // continue outer loop
+    for (let i = 0; i < 10; i++) {
+        if (i == 5) { break outer; }
     }
 }
 ```
 
 ### Pattern Matching
 ```hemlock
-// Match expression - returns value
 let result = match (value) {
-    0 => "zero",                    // Literal pattern
+    0 => "zero",
     1 | 2 | 3 => "small",           // OR pattern
-    n if n < 10 => "medium",        // Guard expression
+    n if n < 10 => "medium",        // Guard
     n => "large: " + n              // Variable binding
 };
 
-// Type patterns
-match (val) {
-    n: i32 => "integer",
-    s: string => "string",
-    _ => "other"                    // Wildcard
-}
-
-// Object destructuring
-match (point) {
-    { x: 0, y: 0 } => "origin",
-    { x, y } => "at " + x + "," + y
-}
-
-// Array destructuring with rest
-match (arr) {
-    [] => "empty",
-    [first, ...rest] => "head: " + first,
-    _ => "other"
-}
-
-// Nested patterns
-match (user) {
-    { name, address: { city } } => name + " in " + city
-}
+// Also supports: type patterns (n: i32), object/array destructuring,
+// nested patterns, wildcard (_). See docs/language-guide/pattern-matching.md
 ```
 
-See `docs/language-guide/pattern-matching.md` for full documentation.
-
-### Null Coalescing Operators
+### Null Coalescing
 ```hemlock
-// Null coalescing (??) - returns left if non-null, else right
-let name = user.name ?? "Anonymous";
-let first = a ?? b ?? c ?? "fallback";
-
-// Null coalescing assignment (??=) - assigns only if null
-let config = null;
-config ??= { timeout: 30 };    // config is now { timeout: 30 }
-config ??= { timeout: 60 };    // config unchanged (not null)
-
-// Works with properties and indices
-obj.field ??= "default";
-arr[0] ??= "first";
-
-// Safe navigation (?.) - returns null if object is null
-let city = user?.address?.city;  // null if any part is null
-let upper = name?.to_upper();    // safe method call
-let item = arr?.[0];             // safe indexing
+let name = user.name ?? "Anonymous";     // null coalescing
+config ??= { timeout: 30 };             // null coalescing assignment
+let city = user?.address?.city;          // safe navigation
 ```
 
 ### Functions
@@ -393,243 +341,46 @@ let item = arr?.[0];             // safe indexing
 fn add(a: i32, b: i32): i32 { return a + b; }
 fn greet(name: string, msg?: "Hello") { print(msg + " " + name); }
 let f = fn(x) { return x * 2; };  // anonymous/closure
-
-// Expression-bodied functions (arrow syntax)
-fn double(x: i32): i32 => x * 2;
-fn max(a: i32, b: i32): i32 => a > b ? a : b;
-let square = fn(x: i32): i32 => x * x;  // anonymous expression-bodied
+fn double(x: i32): i32 => x * 2;  // expression-bodied
 
 // Parameter modifiers
 fn swap(ref a: i32, ref b: i32) { let t = a; a = b; b = t; }  // pass-by-reference
 fn print_all(const items: array) { for (i in items) { print(i); } }  // immutable
-```
 
-### Named Arguments
-```hemlock
-// Functions can be called with named arguments
-fn create_user(name: string, age?: 18, active?: true) {
-    print(name + " is " + age + " years old");
-}
-
-// Positional arguments (traditional)
-create_user("Alice", 25, false);
-
-// Named arguments - can be in any order
+// Named arguments
 create_user(name: "Bob", age: 30);
-create_user(age: 25, name: "Charlie", active: false);
-
-// Skip optional parameters by naming what you need
-create_user("David", active: false);  // Uses default age=18
-
-// Named arguments must come after positional arguments
-create_user("Eve", age: 21);          // OK: positional then named
-// create_user(name: "Bad", 25);      // ERROR: positional after named
+create_user("David", active: false);  // positional then named
 ```
 
-**Rules:**
-- Named arguments use `name: value` syntax
-- Can appear in any order after positional arguments
-- Positional arguments cannot follow named arguments
-- Works with default/optional parameters
-- Unknown parameter names cause runtime errors
-
-### Objects & Enums
+### Objects, Enums & Types
 ```hemlock
 define Person { name: string, age: i32, active?: true }
 let p: Person = { name: "Alice", age: 30 };
-let json = p.serialize();
-let restored = json.deserialize();
+let person = { name, age };             // shorthand syntax
+let config = { ...defaults, size: "large" }; // spread operator
 
-// Object shorthand syntax (ES6-style)
-let name = "Alice";
-let age = 30;
-let person = { name, age };         // equivalent to { name: name, age: age }
-
-// Object spread operator
-let defaults = { theme: "dark", size: "medium" };
-let config = { ...defaults, size: "large" };  // copies defaults, overrides size
+// Bracket notation with key coercion (non-string keys auto-coerce to string)
+let map = {};
+map[42] = "value";              // integer key → "42"
+map[true] = "yes";              // bool key → "true"
+map['A'] = "alpha";             // rune key → "A"
+print(map[42]);                 // "value"
+print(map.has(42));             // true
+map.delete(42);                 // removes field "42"
+let keys = map.keys();          // returns array of string keys
 
 enum Color { RED, GREEN, BLUE }
-enum Status { OK = 0, ERROR = 1 }
-```
 
-### Compound Types (Intersection/Duck Types)
-```hemlock
-// Define structural types
-define HasName { name: string }
-define HasAge { age: i32 }
-define HasEmail { email: string }
+// Compound types (intersection/duck typing)
+let p: HasName & HasAge = { name: "Alice", age: 30 };
 
-// Compound type: object must satisfy ALL types
-let person: HasName & HasAge = { name: "Alice", age: 30 };
-
-// Function parameters with compound types
-fn greet(p: HasName & HasAge) {
-    print(p.name + " is " + p.age);
-}
-
-// Three or more types
-fn describe(p: HasName & HasAge & HasEmail) {
-    print(p.name + " <" + p.email + ">");
-}
-
-// Extra fields allowed (duck typing)
-let employee: HasName & HasAge = {
-    name: "Bob",
-    age: 25,
-    department: "Engineering"  // OK - extra fields ignored
-};
-```
-
-Compound types provide interface-like behavior without a separate `interface` keyword,
-building on the existing `define` and duck typing paradigms.
-
-### Type Aliases
-```hemlock
-// Simple type alias
-type Integer = i32;
-type Text = string;
-
-// Function type alias
+// Type aliases
 type Callback = fn(i32): void;
-type Predicate = fn(i32): bool;
-type AsyncHandler = async fn(string): i32;
-
-// Compound type alias (great for reusable interfaces)
-define HasName { name: string }
-define HasAge { age: i32 }
 type Person = HasName & HasAge;
 
-// Generic type alias
-type Pair<T> = { first: T, second: T };
-
-// Using type aliases
-let x: Integer = 42;
-let cb: Callback = fn(n) { print(n); };
-let p: Person = { name: "Alice", age: 30 };
+// Method signatures in define
+define Comparable { value: i32, fn compare(other: Self): i32 }
 ```
-
-Type aliases create named shortcuts for complex types, improving readability and maintainability.
-
-### Function Types
-```hemlock
-// Function type annotations for parameters
-fn apply_fn(f: fn(i32): i32, x: i32): i32 {
-    return f(x);
-}
-
-// Higher-order function returning a function
-fn make_adder(n: i32): fn(i32): i32 {
-    return fn(x) { return x + n; };
-}
-
-// Async function types
-fn run_async(handler: async fn(): void) {
-    spawn(handler);
-}
-
-// Function types with multiple parameters
-type BinaryOp = fn(i32, i32): i32;
-let add: BinaryOp = fn(a, b) { return a + b; };
-```
-
-### Const Parameters
-```hemlock
-// Const parameter - deep immutability
-fn print_all(const items: array) {
-    // items.push(4);  // ERROR: cannot mutate const parameter
-    for (item in items) {
-        print(item);
-    }
-}
-
-// Const with objects - no mutation through any path
-fn describe(const person: object) {
-    print(person.name);       // OK: reading is allowed
-    // person.name = "Bob";   // ERROR: cannot mutate
-}
-
-// Nested access is allowed for reading
-fn get_city(const user: object) {
-    return user.address.city;  // OK: reading nested properties
-}
-```
-
-The `const` modifier prevents any mutation of the parameter, including nested properties.
-This provides compile-time safety for functions that should not modify their inputs.
-
-### Ref Parameters (Pass-by-Reference)
-```hemlock
-// Ref parameter - caller's variable is modified directly
-fn increment(ref x: i32) {
-    x = x + 1;  // Modifies the original variable
-}
-
-let count = 10;
-increment(count);
-print(count);  // 11 - original was modified
-
-// Classic swap function
-fn swap(ref a: i32, ref b: i32) {
-    let temp = a;
-    a = b;
-    b = temp;
-}
-
-let x = 1;
-let y = 2;
-swap(x, y);
-print(x, y);  // 2 1
-
-// Mix ref and regular parameters
-fn add_to(ref target: i32, amount: i32) {
-    target = target + amount;
-}
-
-let total = 100;
-add_to(total, 50);
-print(total);  // 150
-```
-
-The `ref` modifier passes a reference to the caller's variable, allowing the function to
-modify it directly. Without `ref`, primitives are passed by value (copied). Use `ref` when
-you need to mutate the caller's state without returning a value.
-
-**Rules:**
-- `ref` parameters must be passed variables, not literals or expressions
-- Works with all types (primitives, arrays, objects)
-- Combine with type annotations: `ref x: i32`
-- Cannot combine with `const` (they're opposites)
-
-### Method Signatures in Define
-```hemlock
-// Define with method signatures (interface pattern)
-define Comparable {
-    value: i32,
-    fn compare(other: Self): i32   // Required method signature
-}
-
-// Objects must provide the required method
-let a: Comparable = {
-    value: 10,
-    compare: fn(other) { return self.value - other.value; }
-};
-
-// Optional methods with ?
-define Serializable {
-    fn serialize(): string,        // Required
-    fn pretty?(): string           // Optional method
-}
-
-// Self type refers to the defining type
-define Cloneable {
-    fn clone(): Self   // Returns same type as the object
-}
-```
-
-Method signatures in `define` blocks use comma delimiters (like TypeScript interfaces),
-establishing contracts that objects must fulfill and enabling interface-like programming
-patterns with Hemlock's duck typing system.
 
 ### Error Handling
 ```hemlock
@@ -643,104 +394,47 @@ async fn compute(n: i32): i32 { return n * n; }
 let task = spawn(compute, 42);
 let result = await task;     // or join(task)
 detach(spawn(background_work));
+let t = spawn_with({ stack_size: 4194304, name: "worker" }, compute, 42);
 
 let ch = channel(10);
-ch.send(value);
-let val = ch.recv();
-ch.close();
+ch.send(value); let val = ch.recv(); ch.close();
 ```
 
-**Memory ownership:** Tasks receive copies of primitive values but share pointers. If you pass a `ptr` to a spawned task, you must ensure the memory remains valid until the task completes. Use `join()` before `free()`, or use channels to signal completion.
+**Memory ownership:** Tasks share pointers but copy primitives. Use `join()` before `free()` when sharing `ptr`.
 
-### User Input
+### I/O
 ```hemlock
-let name = read_line();          // Read line from stdin (blocks)
-print("Hello, " + name);
-eprint("Error message");         // Print to stderr
-
-// read_line() returns null on EOF
-while (true) {
-    let line = read_line();
-    if (line == null) { break; }
-    print("Got:", line);
-}
-```
-
-### File I/O
-```hemlock
+let name = read_line();          // stdin (returns null on EOF)
+print("hello"); write("no newline"); eprint("stderr");
 let f = open("file.txt", "r");  // modes: r, w, a, r+, w+, a+
-let content = f.read();
-f.write("data");
-f.seek(0);
-f.close();
-```
-
-### Signals
-```hemlock
-signal(SIGINT, fn(sig) { print("Interrupted"); });
-raise(SIGUSR1);
+f.read(); f.write("data"); f.close();
 ```
 
 ---
 
-## String Methods (19)
+## String Methods (22)
 
-`substr`, `slice`, `find`, `contains`, `split`, `trim`, `to_upper`, `to_lower`,
-`starts_with`, `ends_with`, `replace`, `replace_all`, `repeat`, `char_at`,
-`byte_at`, `chars`, `bytes`, `to_bytes`, `deserialize`
+`substr`, `slice`, `find`, `contains`, `split`, `trim`, `trim_start`, `trim_end`,
+`to_upper`, `to_lower`, `starts_with`, `ends_with`, `replace`, `replace_all`,
+`repeat`, `char_at`, `byte_at`, `chars`, `bytes`, `to_bytes`, `byte_ptr`, `deserialize`
 
 Template strings: `` `Hello ${name}!` ``
 
-**String mutability:** Strings are mutable via index assignment (`s[0] = 'H'`), but all string methods return new strings without modifying the original. This allows in-place mutation when needed while keeping method chaining functional.
+**String mutability:** Strings are mutable via index assignment (`s[0] = 'H'`), but all string methods return new strings.
 
-**String length properties:**
-```hemlock
-let s = "hello 🚀";
-print(s.length);       // 7 (character/rune count)
-print(s.byte_length);  // 10 (byte count - emoji is 4 bytes UTF-8)
-```
+## Array Methods (28)
 
-## Array Methods (23)
-
-`push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `contains`,
+`push`, `pop`, `shift`, `unshift`, `insert`, `remove`, `find`, `findIndex`, `contains`,
 `slice`, `join`, `concat`, `reverse`, `first`, `last`, `clear`, `map`, `filter`, `reduce`,
-`every`, `some`, `indexOf`, `sort`, `fill`
-
-```hemlock
-// every(predicate) - true if all elements satisfy predicate
-let allPositive = [1, 2, 3].every(fn(x) { return x > 0; });  // true
-
-// some(predicate) - true if any element satisfies predicate
-let hasEven = [1, 2, 3].some(fn(x) { return x % 2 == 0; });  // true
-
-// indexOf(value) - find first index of value, or -1
-let idx = ["a", "b", "c"].indexOf("b");  // 1
-
-// sort(comparator?) - sort in-place, optional comparator
-let nums = [3, 1, 4, 1, 5];
-nums.sort();                              // [1, 1, 3, 4, 5]
-nums.sort(fn(a, b) { return b - a; });    // descending
-
-// fill(value, start?, end?) - fill with value
-let arr = [1, 2, 3, 4, 5];
-arr.fill(0);        // [0, 0, 0, 0, 0]
-arr.fill(9, 2);     // [0, 0, 9, 9, 9]
-arr.fill(7, 1, 4);  // [0, 7, 7, 7, 9]
-```
+`every`, `some`, `indexOf`, `lastIndexOf`, `sort`, `fill`, `reserve`, `flat`, `serialize`
 
 Typed arrays: `let nums: array<i32> = [1, 2, 3];`
 
 ---
 
-## Standard Library (41 modules)
+## Standard Library (53 modules)
 
-Import with `@stdlib/` prefix:
-```hemlock
-import { sin, cos, PI } from "@stdlib/math";
-import { HashMap, Queue, Set } from "@stdlib/collections";
-import { read_file, write_file } from "@stdlib/fs";
-import { TcpStream, UdpSocket } from "@stdlib/net";
-```
+Import with `@stdlib/` prefix: `import { sin, cos, PI } from "@stdlib/math";`
 
 | Module | Description |
 |--------|-------------|
@@ -749,23 +443,31 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `assert` | Assertion utilities |
 | `async` | ThreadPool, parallel_map |
 | `async_fs` | Async file I/O operations |
+| `atomic` | Atomic operations (load, store, add, CAS, fence) |
+| `bytes` | Byte order utils (bswap, hton/ntoh, endian-aware I/O) |
 | `collections` | HashMap, Queue, Stack, Set, LinkedList, LRUCache |
 | `compression` | gzip, gunzip, deflate |
 | `crypto` | aes_encrypt, rsa_sign, random_bytes |
 | `csv` | CSV parsing and generation |
+| `debug` | Task inspection and stack management |
 | `datetime` | DateTime class, formatting, parsing |
+| `decimal` | to_fixed, to_hex, parse_int, parse_float, StringBuilder |
 | `encoding` | base64_encode, hex_encode, url_encode |
 | `env` | getenv, setenv, exit, get_pid |
+| `ffi` | FFI callback management |
 | `fmt` | String formatting utilities |
-| `fs` | read_file, write_file, list_dir, exists |
+| `fs` | open, read_file, write_file, list_dir, exists |
 | `glob` | File pattern matching |
-| `hash` | sha256, sha512, md5, djb2 |
+| `hash` | sha1, sha256, sha512, md5, djb2, crc32, adler32 |
 | `http` | http_get, http_post, http_request |
 | `ipc` | Inter-process communication |
 | `iter` | Iterator utilities |
+| `jinja` | Jinja2-compatible template rendering |
 | `json` | parse, stringify, pretty, get, set |
 | `logging` | Logger with levels |
 | `math` | sin, cos, sqrt, pow, rand, PI, E |
+| `matrix` | Dense matrix operations (add, multiply, transpose, determinant, inverse) |
+| `mmap` | Memory-mapped file I/O (mmap, munmap, msync) |
 | `net` | TcpListener, TcpStream, UdpSocket |
 | `os` | platform, arch, cpu_count, hostname |
 | `path` | File path manipulation |
@@ -775,6 +477,7 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `retry` | Retry logic with backoff |
 | `semver` | Semantic versioning |
 | `shell` | Shell command utilities |
+| `signal` | Signal constants (SIGINT, SIGTERM, etc.) |
 | `sqlite` | SQLite database, query, exec, transactions |
 | `strings` | pad_left, is_alpha, reverse, lines |
 | `terminal` | ANSI colors and styles |
@@ -783,8 +486,11 @@ import { TcpStream, UdpSocket } from "@stdlib/net";
 | `time` | now, time_ms, sleep, clock |
 | `toml` | TOML parsing and generation |
 | `url` | URL parsing and manipulation |
+| `unix_socket` | Unix domain sockets (AF_UNIX stream/datagram) |
 | `uuid` | UUID generation |
+| `vector` | Vector similarity search (USearch ANN) |
 | `websocket` | WebSocket client |
+| `yaml` | YAML parsing and generation |
 
 See `stdlib/docs/` for detailed module documentation.
 
@@ -792,76 +498,19 @@ See `stdlib/docs/` for detailed module documentation.
 
 ## FFI (Foreign Function Interface)
 
-Declare and call C functions from shared libraries:
 ```hemlock
 import "libc.so.6";
-
 extern fn strlen(s: string): i32;
-extern fn getpid(): i32;
-
 let len = strlen("Hello!");  // 6
-let pid = getpid();
-```
 
-Export FFI functions from modules:
-```hemlock
-// string_utils.hml
-import "libc.so.6";
-
-export extern fn strlen(s: string): i32;
-export fn string_length(s: string): i32 {
-    return strlen(s);
-}
-```
-
-Dynamic FFI (runtime binding):
-```hemlock
+// Dynamic FFI
 let lib = ffi_open("libc.so.6");
 let puts = ffi_bind(lib, "puts", [FFI_POINTER], FFI_INT);
 puts("Hello from C!");
 ffi_close(lib);
 ```
 
-Types: `FFI_INT`, `FFI_DOUBLE`, `FFI_POINTER`, `FFI_STRING`, `FFI_VOID`, etc.
-
----
-
-## Atomic Operations
-
-Lock-free concurrent programming with atomic operations:
-
-```hemlock
-// Allocate memory for atomic i32
-let p = alloc(4);
-ptr_write_i32(p, 0);
-
-// Atomic load/store
-let val = atomic_load_i32(p);        // Read atomically
-atomic_store_i32(p, 42);             // Write atomically
-
-// Fetch-and-modify operations (return OLD value)
-let old = atomic_add_i32(p, 10);     // Add, return old
-old = atomic_sub_i32(p, 5);          // Subtract, return old
-old = atomic_and_i32(p, 0xFF);       // Bitwise AND
-old = atomic_or_i32(p, 0x10);        // Bitwise OR
-old = atomic_xor_i32(p, 0x0F);       // Bitwise XOR
-
-// Compare-and-swap (CAS)
-let success = atomic_cas_i32(p, 42, 100);  // If *p == 42, set to 100
-// Returns true if swap succeeded, false otherwise
-
-// Atomic exchange
-old = atomic_exchange_i32(p, 999);   // Swap, return old
-
-free(p);
-
-// i64 variants available (atomic_load_i64, atomic_add_i64, etc.)
-
-// Memory fence (full barrier)
-atomic_fence();
-```
-
-All operations use sequential consistency (`memory_order_seq_cst`).
+See `docs/advanced/ffi.md` for full documentation.
 
 ---
 
@@ -874,52 +523,46 @@ hemlock/
 │   ├── backends/
 │   │   ├── interpreter/  # hemlock: tree-walking interpreter
 │   │   └── compiler/     # hemlockc: C code generator
+│   ├── modules/          # Native module implementations
+│   ├── runtime/          # Runtime-related C code
+│   ├── shared/           # Shared utilities (type promotion, etc.)
 │   ├── tools/
 │   │   ├── lsp/          # Language Server Protocol
-│   │   └── bundler/      # Bundle/package tools
+│   │   ├── bundler/      # Bundle/package tools
+│   │   └── formatter/    # Code formatter
 ├── runtime/              # Compiled program runtime (libhemlock_runtime.a)
-├── stdlib/               # Standard library (41 modules)
+├── stdlib/               # Standard library
 │   └── docs/             # Module documentation
+├── include/              # C header files (hemlock_limits.h, etc.)
 ├── docs/                 # Full documentation
-│   ├── language-guide/   # Types, strings, arrays, etc.
-│   ├── reference/        # API references
-│   └── advanced/         # Async, FFI, signals, etc.
-├── tests/                # 625+ tests
-└── examples/             # Example programs
+├── tests/                # 978+ tests
+├── examples/             # Example programs
+├── benchmark/            # Benchmarks
+├── editors/              # Editor integrations
+└── wasm/                 # WebAssembly support
 ```
+
+### Compiler/Interpreter Architecture
+
+Both backends share a common frontend (lexer, parser, AST). The interpreter does tree-walk evaluation; the compiler generates C code and links with GCC. See `docs/` for details.
 
 ---
 
 ## Code Style Guidelines
 
-### Constants and Magic Numbers
-
-When adding numeric constants to the C codebase, follow these guidelines:
-
-1. **Define constants in `include/hemlock_limits.h`** - This file is the central location for all compile-time and runtime limits, capacities, and named constants.
-
-2. **Use descriptive names with `HML_` prefix** - All constants should be prefixed with `HML_` for namespace clarity.
-
-3. **Avoid magic numbers** - Replace hard-coded numeric values with named constants. Examples:
-   - Type range limits: `HML_I8_MIN`, `HML_I8_MAX`, `HML_U32_MAX`
-   - Buffer capacities: `HML_INITIAL_ARRAY_CAPACITY`, `HML_INITIAL_LEXER_BUFFER_CAPACITY`
-   - Time conversions: `HML_NANOSECONDS_PER_SECOND`, `HML_MILLISECONDS_PER_SECOND`
-   - Hash seeds: `HML_DJB2_HASH_SEED`
-   - ASCII values: `HML_ASCII_CASE_OFFSET`, `HML_ASCII_PRINTABLE_START`
-
-4. **Include `hemlock_limits.h`** - Source files should include this header (often via `internal.h`) to access constants.
-
-5. **Document the purpose** - Add a comment explaining what each constant represents.
+1. **Define constants in `include/hemlock_limits.h`** with `HML_` prefix
+2. **Avoid magic numbers** - use named constants
+3. **Include `hemlock_limits.h`** via `internal.h` to access constants
 
 ---
 
 ## What NOT to Do
 
-❌ Add implicit behavior (ASI, GC, auto-cleanup)
-❌ Hide complexity (magic optimizations, hidden refcounts)
-❌ Break existing semantics (semicolons, manual memory, mutable strings)
-❌ Lose precision in implicit conversions
-❌ Use magic numbers - define named constants in `hemlock_limits.h` instead
+- Add implicit behavior (ASI, GC, auto-cleanup)
+- Hide complexity (magic optimizations, hidden refcounts)
+- Break existing semantics (semicolons, manual memory, mutable strings)
+- Lose precision in implicit conversions
+- Use magic numbers - define named constants in `hemlock_limits.h` instead
 
 ---
 
@@ -932,84 +575,10 @@ make parity            # Run parity tests (both must match)
 make test-all          # Run all test suites
 ```
 
-**Important:** Tests may hang due to async/concurrency issues. Always use a timeout when running tests:
+**Important:** Always use a timeout when running tests (async tests may hang):
 ```bash
-timeout 60 make test   # 60 second timeout
+timeout 60 make test
 timeout 120 make parity
-```
-
-Test categories: primitives, memory, strings, arrays, functions, objects, async, ffi, defer, signals, switch, bitwise, typed_arrays, modules, stdlib_*
-
----
-
-## Compiler/Interpreter Architecture
-
-Hemlock has two execution backends that share a common frontend:
-
-```
-Source (.hml)
-    ↓
-┌─────────────────────────────┐
-│  SHARED FRONTEND            │
-│  - Lexer (src/frontend/)    │
-│  - Parser (src/frontend/)   │
-│  - AST (src/frontend/)      │
-└─────────────────────────────┘
-    ↓                    ↓
-┌────────────┐    ┌────────────┐
-│ INTERPRETER│    │  COMPILER  │
-│ (hemlock)  │    │ (hemlockc) │
-│            │    │            │
-│ Tree-walk  │    │ Type check │
-│ evaluation │    │ AST → C    │
-│            │    │ gcc link   │
-└────────────┘    └────────────┘
-```
-
-### Compiler Type Checking
-
-The compiler (`hemlockc`) includes compile-time type checking, **enabled by default**:
-
-```bash
-hemlockc program.hml -o program    # Type checks, then compiles
-hemlockc --check program.hml       # Type check only, don't compile
-hemlockc --no-type-check prog.hml  # Disable type checking
-hemlockc --strict-types prog.hml   # Warn on implicit 'any' types
-```
-
-The type checker:
-- Validates type annotations at compile time
-- Treats untyped code as dynamic (`any` type) - always valid
-- Provides optimization hints for unboxing
-- Uses permissive numeric conversions (range validated at runtime)
-
-### Directory Structure
-
-```
-hemlock/
-├── src/
-│   ├── frontend/           # Shared: lexer, parser, AST, modules
-│   │   ├── lexer.c
-│   │   ├── parser/
-│   │   ├── ast.c
-│   │   └── module.c
-│   ├── backends/
-│   │   ├── interpreter/    # hemlock: tree-walking interpreter
-│   │   │   ├── main.c
-│   │   │   ├── runtime/
-│   │   │   └── builtins/
-│   │   └── compiler/       # hemlockc: C code generator
-│   │       ├── main.c
-│   │       └── codegen/
-│   ├── tools/
-│   │   ├── lsp/            # Language server
-│   │   └── bundler/        # Bundle/package tools
-├── runtime/                # libhemlock_runtime.a for compiled programs
-├── stdlib/                 # Shared standard library
-└── tests/
-    ├── parity/             # Tests that MUST pass both backends
-    ├── interpreter/        # Interpreter-specific tests
-    └── compiler/           # Compiler-specific tests
 ```
 
 ---
@@ -1018,154 +587,14 @@ hemlock/
 
 **Both the interpreter and compiler must produce identical output for the same input.**
 
-### Development Policy
+When adding/modifying language features:
+1. Design the AST/semantic change in the shared frontend
+2. Implement in interpreter (tree-walking evaluation)
+3. Implement in compiler (C code generation)
+4. Add parity test in `tests/parity/` with `.expected` file
+5. Run `make parity` before merging
 
-When adding or modifying language features:
-
-1. **Design** - Define the AST/semantic change in the shared frontend
-2. **Implement interpreter** - Add tree-walking evaluation
-3. **Implement compiler** - Add C code generation
-4. **Add parity test** - Write test in `tests/parity/` with `.expected` file
-5. **Verify** - Run `make parity` before merging
-
-### Parity Test Structure
-
-```
-tests/parity/
-├── language/       # Core language features (control flow, closures, etc.)
-├── builtins/       # Built-in functions (print, typeof, memory, etc.)
-├── methods/        # String and array methods
-└── modules/        # Import/export, stdlib imports
-```
-
-Each test has two files:
-- `feature.hml` - The test program
-- `feature.expected` - Expected output (must match for both backends)
-
-### Parity Test Results
-
-| Status | Meaning |
-|--------|---------|
-| `✓ PASSED` | Both interpreter and compiler match expected output |
-| `◐ INTERP_ONLY` | Interpreter works, compiler fails (needs compiler fix) |
-| `◑ COMPILER_ONLY` | Compiler works, interpreter fails (rare) |
-| `✗ FAILED` | Both fail (test or implementation bug) |
-
-### What Requires Parity
-
-- All language constructs (if, while, for, switch, defer, try/catch)
-- All operators (arithmetic, bitwise, logical, comparison)
-- All built-in functions (print, typeof, alloc, etc.)
-- All string and array methods
-- Type coercion and promotion rules
-- Error messages for runtime errors
-
-### What May Differ
-
-- Performance characteristics
-- Memory layout details
-- Debug/stack trace format
-- Compilation errors (compiler may catch more at compile time)
-
-### Adding a Parity Test
-
-```bash
-# 1. Create test file
-cat > tests/parity/language/my_feature.hml << 'EOF'
-// Test description
-let x = some_feature();
-print(x);
-EOF
-
-# 2. Generate expected output from interpreter
-./hemlock tests/parity/language/my_feature.hml > tests/parity/language/my_feature.expected
-
-# 3. Verify parity
-make parity
-```
-
----
-
-## Version
-
-**v1.8.7** - Current release with:
-- **Multi-argument print/eprint fix** - Fixed compiler codegen for `print()` and `eprint()` with multiple arguments (e.g., `print("x:", x, y)`)
-- **SSO string fix** - Fixed segfault in `hml_string_append_inplace` when growing strings using Small String Optimization
-- **`@stdlib/termios` module** - Cross-platform raw terminal input (Linux/macOS):
-  - `enable_raw_mode()` / `disable_raw_mode()` for instant keypresses
-  - `read_key()` / `read_key_timeout(ms)` for single keypress reading
-  - Arrow keys, function keys, control keys detection
-  - `is_terminal()` to check if stdin is a TTY
-  - Documentation at `stdlib/docs/termios.md`
-- **Memory leak prevention** - Comprehensive fixes ensuring the runtime is leak-free:
-  - Exception-safe expression evaluation (arrays, objects, function calls)
-  - Task result proper retain/release on join()
-  - Channel drain on close (releases buffered values)
-  - Optimizer cleanup for null coalescing constant folding
-  - Leak regression test suite (`make leak-regression`)
-  - Memory ownership documentation (`docs/advanced/memory-ownership.md`)
-- **Pattern matching** (`match` expressions) - Powerful destructuring and control flow:
-  - Literal, wildcard, and variable binding patterns
-  - OR patterns (`1 | 2 | 3`)
-  - Guard expressions (`n if n > 0`)
-  - Object destructuring (`{ x, y }`)
-  - Array destructuring with rest (`[first, ...rest]`)
-  - Type patterns (`n: i32`)
-  - Full parity between interpreter and compiler
-- **Compiler helper annotations** - 11 optimization annotations for GCC/Clang control:
-  - `@inline`, `@noinline` - function inlining control
-  - `@hot`, `@cold` - branch prediction hints
-  - `@pure`, `@const` - side-effect annotations
-  - `@flatten` - inline all calls within function
-  - `@optimize(level)` - per-function optimization level ("0", "1", "2", "3", "s", "fast")
-  - `@warn_unused` - warn on ignored return values
-  - `@section(name)` - custom ELF section placement (e.g., `@section(".text.hot")`)
-- **Expression-bodied functions** (`fn double(x): i32 => x * 2;`) - concise single-expression function syntax
-- **Single-line statements** - braceless `if`, `while`, `for` syntax (e.g., `if (x > 0) print(x);`)
-- **Type aliases** (`type Name = Type;`) - named shortcuts for complex types
-- **Function type annotations** (`fn(i32): i32`) - first-class function types
-- **Const parameters** (`fn(const x: array)`) - deep immutability for parameters
-- **Ref parameters** (`fn(ref x: i32)`) - pass-by-reference for direct caller mutation
-- **Method signatures in define** (`fn method(): Type`) - interface-like contracts (comma-delimited)
-- **Self type** in method signatures - refers to the defining type
-- **Loop keyword** (`loop { }`) - cleaner infinite loops, replaces `while (true)`
-- **Loop labels** (`outer: while`) - targeted break/continue for nested loops
-- **Object shorthand** (`{ name }`) - ES6-style shorthand property syntax
-- **Object spread** (`{ ...obj }`) - copy and merge object fields
-- **Compound duck types** (`A & B & C`) - intersection types for structural typing
-- **Named arguments** for function calls (`foo(name: "value", age: 30)`)
-- **Null coalescing operators** (`??`, `??=`, `?.`) for safe null handling
-- **Octal literals** (`0o777`, `0O123`)
-- **Numeric separators** (`1_000_000`, `0xFF_FF`, `0b1111_0000`)
-- **Block comments** (`/* ... */`)
-- **Hex escape sequences** in strings/runes (`\x41` = 'A')
-- **Unicode escape sequences** in strings (`\u{1F600}` = 😀)
-- **Float literals without leading zero** (`.5`, `.123`, `.5e2`)
-- **Compile-time type checking** in hemlockc (enabled by default)
-- **LSP integration** with type checking for real-time diagnostics
-- **Compound assignment operators** (`+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `|=`, `^=`, `<<=`, `>>=`)
-- **Increment/decrement operators** (`++x`, `x++`, `--x`, `x--`)
-- **Type precision fix**: i64/u64 + f32 → f64 to preserve precision
-- Unified type system with unboxing optimization hints
-- Full type system (i8-i64, u8-u64, f32/f64, bool, string, rune, ptr, buffer, array, object, enum, file, task, channel)
-- UTF-8 strings with 19 methods
-- Arrays with 23 methods including map/filter/reduce/every/some/indexOf/sort/fill
-- Manual memory management with `talloc()` and `sizeof()`
-- Async/await with true pthread parallelism
-- Atomic operations for lock-free concurrent programming
-- 41 stdlib modules (+ arena, assert, semver, toml, retry, iter, random, shell, termios)
-- FFI for C interop with `export extern fn` for reusable library wrappers
-- FFI struct support in compiler (pass C structs by value)
-- FFI pointer helpers (`ptr_null`, `ptr_read_*`, `ptr_write_*`)
-- defer, try/catch/finally/throw, panic
-- File I/O, signal handling, command execution
-- [hpm](https://github.com/hemlang/hpm) package manager with GitHub-based registry
-- Compiler backend (C code generation) with 100% interpreter parity
-- LSP server with go-to-definition and find-references
-- AST optimization pass and variable resolution for O(1) lookup
-- apply() builtin for dynamic function calls
-- Unbuffered channels and many-params support
-- 159 parity tests (100% pass rate)
+Each test has `feature.hml` + `feature.expected`. Both backends must match the expected output.
 
 ---
 
@@ -1239,6 +668,48 @@ Hemlock requires the following dependencies to build:
 - **libwebsockets**: WebSocket and HTTP client/server support
 - **zlib**: Compression library
 
+### Optional Dependencies
+
+#### USearch (vector similarity search)
+
+Required only if you want to use [`@stdlib/vector`](#stdlib-vector). Without it, the vector module is unavailable and those tests are skipped — everything else works fine.
+
+> **Note:** `cmake --install` does **not** install the shared library for usearch v2.x. You must copy the files manually (see below).
+
+**Linux:**
+```bash
+sudo apt-get install -y cmake  # build dependency
+
+git clone --depth 1 --branch v2.24.0 --recurse-submodules \
+  https://github.com/unum-cloud/usearch.git /tmp/usearch
+cmake -B /tmp/usearch/build -S /tmp/usearch -DUSEARCH_BUILD_LIB_C=ON
+cmake --build /tmp/usearch/build
+
+sudo cp $(find /tmp/usearch/build -name 'libusearch_c.so' | head -1) /usr/local/lib/
+sudo cp /tmp/usearch/c/usearch.h /usr/local/include/
+sudo ldconfig
+```
+
+**macOS:**
+```bash
+brew install cmake  # build dependency
+
+git clone --depth 1 --branch v2.24.0 --recurse-submodules \
+  https://github.com/unum-cloud/usearch.git /tmp/usearch
+cmake -B /tmp/usearch/build -S /tmp/usearch -DUSEARCH_BUILD_LIB_C=ON
+cmake --build /tmp/usearch/build
+
+sudo mkdir -p /usr/local/lib /usr/local/include
+sudo cp $(find /tmp/usearch/build -name 'libusearch_c.dylib' | head -1) /usr/local/lib/
+sudo cp /tmp/usearch/c/usearch.h /usr/local/include/
+```
+
+#### libwebsockets (HTTP and WebSocket client/server)
+
+Required only for `@stdlib/http` and `@stdlib/websocket`. Without it those modules are unavailable and their tests are skipped.
+
+---
+
 ### Installing Dependencies
 
 **macOS:**
@@ -1296,7 +767,17 @@ This will compile the Hemlock interpreter and place the executable in the curren
 
 You should see the Hemlock version information.
 
-### 4. Test the Build
+### 4. Build the Standard Library C Modules (Optional)
+
+Some stdlib modules (`@stdlib/http`, `@stdlib/websocket`, `@stdlib/vector`) require native shared libraries. Build their wrappers with:
+
+```bash
+make stdlib
+```
+
+This compiles `lws_wrapper.so` (HTTP/WebSocket) if libwebsockets is installed. USearch (`libusearch_c.so`) must be installed separately — see [Optional Dependencies](#optional-dependencies) above.
+
+### 5. Test the Build
 
 Run the test suite to ensure everything works correctly:
 
@@ -1304,7 +785,7 @@ Run the test suite to ensure everything works correctly:
 make test
 ```
 
-All tests should pass. If you see any failures, please report them as an issue.
+All tests should pass. Modules whose native dependencies aren't installed are skipped with a `⊘` notice rather than failing. If you see actual failures, please report them as an issue.
 
 ## Installing System-Wide (Optional)
 
@@ -1370,6 +851,141 @@ hemlock/
 ├── Makefile          # Build configuration
 └── README.md         # Project README
 ```
+
+## WebAssembly (WASM) Build
+
+Hemlock can be compiled to WebAssembly via [Emscripten](https://emscripten.org/), allowing the full interpreter to run in a web browser or Node.js.
+
+### Installing Emscripten
+
+The Emscripten SDK (`emsdk`) provides the `emcc` compiler used to build the WASM interpreter.
+
+**All platforms (Linux, macOS, Windows WSL):**
+
+```bash
+# Clone the emsdk repository
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+
+# Install and activate the latest SDK
+./emsdk install latest
+./emsdk activate latest
+
+# Add emcc to your PATH (run this in every new terminal, or add to your shell profile)
+source ./emsdk_env.sh
+```
+
+Verify the installation:
+
+```bash
+emcc --version
+```
+
+You should see output like `emcc (Emscripten gcc/clang-like replacement ...) 3.x.x`.
+
+For detailed instructions, see the [Emscripten Getting Started guide](https://emscripten.org/docs/getting_started/downloads.html).
+
+**Optional: Add to shell profile**
+
+To avoid running `source emsdk_env.sh` every time, add it to your shell profile:
+
+```bash
+# For bash (~/.bashrc or ~/.bash_profile)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.bashrc
+
+# For zsh (~/.zshrc)
+echo 'source /path/to/emsdk/emsdk_env.sh' >> ~/.zshrc
+```
+
+### WASM Dependencies
+
+The WASM build has fewer dependencies than the native build. Emscripten provides its own versions of standard C libraries. The following native libraries are **not needed** (and not available) in the WASM build:
+
+| Library | Native | WASM | Notes |
+|---------|--------|------|-------|
+| libffi | Required | Stubbed | FFI is not available in WASM |
+| OpenSSL | Required | Stubbed | Crypto builtins return errors in WASM |
+| libwebsockets | Optional | Stubbed | WebSocket support not available |
+| zlib | Required | Emscripten provides | Automatically linked with `-sUSE_ZLIB=1` |
+| pthreads | Required | Optional | Available with threaded build (requires SharedArrayBuffer) |
+
+**In short:** You only need the Emscripten SDK installed. No additional system libraries are required for the WASM build.
+
+### Building the WASM Interpreter
+
+```bash
+# Build the interpreter as WebAssembly
+make wasm-interpreter
+```
+
+This produces two files in the `wasm/` directory:
+
+| File | Description |
+|------|-------------|
+| `wasm/hemlock.js` | JavaScript loader and Emscripten glue code |
+| `wasm/hemlock.wasm` | WebAssembly binary module |
+
+### Running in Node.js
+
+```bash
+node -- wasm/hemlock.js -e 'print("Hello from WASM!");'
+node -- wasm/hemlock.js examples/fibonacci.hml
+```
+
+### Running in a Browser
+
+WASM files must be served over HTTP with the correct MIME type (`application/wasm`). Opening the HTML file directly via `file://` will not work.
+
+**Using the included example:**
+
+```bash
+make wasm-browser-example
+# Opens http://localhost:8080/examples/wasm-browser/index.html
+```
+
+**Or manually with Python:**
+
+```bash
+python3 -m http.server 8080
+# Open http://localhost:8080/wasm/playground.html
+```
+
+**Or manually with Node.js:**
+
+```bash
+npx serve .
+# Open the URL shown in the terminal
+```
+
+See `examples/wasm-browser/` for a complete browser integration example with an interactive code editor.
+
+### WASM Limitations
+
+Some features are unavailable in the WASM environment:
+
+- **FFI** - No shared library loading (`dlopen`/`dlsym`)
+- **Crypto** - No OpenSSL (`sha256`, `md5`, etc. return errors)
+- **File I/O** - No native filesystem access (Emscripten virtual FS only)
+- **Networking** - No raw sockets or HTTP client
+- **Signals** - No POSIX signal handling
+- **Process** - No `fork`, `exec`, or process management
+- **Threading** - `spawn`/`join`/channels require a threaded WASM build with `SharedArrayBuffer`
+
+All core language features work: variables, functions, closures, objects, arrays, pattern matching, type annotations, try/catch, and the full standard library of pure-Hemlock modules.
+
+### Compiling Hemlock Programs to WASM
+
+In addition to running the interpreter in WASM, you can compile individual Hemlock programs to standalone WASM binaries using the compiler backend:
+
+```bash
+# Compile a Hemlock program to WASM (requires both hemlockc and Emscripten)
+make wasm-compile FILE=program.hml
+
+# With threading support
+make wasm-compile-threaded FILE=program.hml
+```
+
+This uses `hemlockc` to generate C code, then Emscripten to compile it to WASM.
 
 ## Build Options
 
@@ -1460,6 +1076,25 @@ If you encounter compilation errors:
    ```bash
    make clean && make
    ```
+
+### Vector tests skipped (`@stdlib/vector` not available)
+
+If you see `⊘ Skipping stdlib_vector tests (libusearch_c not installed)`, the USearch library isn't on the system library path. Install it following the [USearch optional dependency steps](#usearch-vector-similarity-search) above.
+
+Verify it's discoverable after installation:
+```bash
+# Linux
+ldconfig -p | grep usearch
+
+# macOS
+ls /usr/local/lib/libusearch_c.dylib
+```
+
+If the file is in a non-standard location, add it to your library path:
+```bash
+export LD_LIBRARY_PATH=/path/to/lib:$LD_LIBRARY_PATH  # Linux
+export DYLD_LIBRARY_PATH=/path/to/lib:$DYLD_LIBRARY_PATH  # macOS
+```
 
 ### Test Failures
 
@@ -1786,7 +1421,7 @@ No matter your goal, start with these fundamentals:
 | `for i in range(10):` | `for (let i = 0; i < 10; i++) { }` | C-style for loops |
 | `for item in list:` | `for (item in array) { }` | For-in works same |
 | `list.append(x)` | `array.push(x);` | Different method name |
-| `len(s)` | `s.length` or `len(s)` | Both work |
+| `len(s)` | `s.length` | Use `.length` property |
 | Automatic memory | Manual for `ptr` | Most types auto-cleanup |
 
 ### From JavaScript
@@ -2100,6 +1735,8 @@ Arguments: 2
 ## File I/O
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 // Write to file
 let f = open("data.txt", "w");
 f.write("Hello, File!");
@@ -3159,11 +2796,12 @@ let has2 = arr.contains(99); // false
 
 ### Extraction Operations
 
-**`slice(start, end)`** - Extract subarray (end exclusive):
+**`slice(start, end?)`** - Extract subarray (end exclusive, defaults to length):
 ```hemlock
 let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4] (indices 1, 2, 3)
 let first = arr.slice(0, 2); // [1, 2]
+let tail = arr.slice(2);     // [3, 4, 5] (from index 2 to end)
 
 // Original unchanged
 print(arr);                  // [1, 2, 3, 4, 5]
@@ -3204,6 +2842,11 @@ let csv = numbers.join(",");   // "1,2,3"
 // Works with mixed types
 let mixed = [1, "hello", true, null];
 print(mixed.join(" | "));  // "1 | hello | true | null"
+
+// Works with rune arrays (from chars())
+let chars = "hello".chars();
+chars.reverse();
+print(chars.join(""));     // "olleh"
 ```
 
 **`concat(other)`** - Concatenate with another array:
@@ -3257,8 +2900,9 @@ let numbers = [5, 3, 8, 1, 9]
 | `insert(index, value)` | i32, any | void | Yes | Insert at index |
 | `remove(index)` | i32 | any | Yes | Remove and return at index |
 | `find(value)` | any | i32 | No | Find first occurrence (-1 if not found) |
+| `findIndex(predicate)` | fn | i32 | No | Find first index matching predicate (-1 if not found) |
 | `contains(value)` | any | bool | No | Check if contains value |
-| `slice(start, end)` | i32, i32 | array | No | Extract subarray (new array) |
+| `slice(start, end?)` | i32, i32? | array | No | Extract subarray (new array) |
 | `join(delimiter)` | string | string | No | Join into string |
 | `concat(other)` | array | array | No | Concatenate (new array) |
 | `reverse()` | - | void | Yes | Reverse in-place |
@@ -3268,6 +2912,15 @@ let numbers = [5, 3, 8, 1, 9]
 | `map(callback)` | fn | array | No | Transform each element |
 | `filter(predicate)` | fn | array | No | Select matching elements |
 | `reduce(callback, initial)` | fn, any | any | No | Reduce to single value |
+| `every(predicate)` | fn | bool | No | True if all elements match |
+| `some(predicate)` | fn | bool | No | True if any element matches |
+| `indexOf(value)` | any | i32 | No | First index of value (-1 if not found) |
+| `lastIndexOf(value)` | any | i32 | No | Last index of value (-1 if not found) |
+| `sort(comparator?)` | fn? | void | Yes | Sort in-place with optional comparator |
+| `fill(value, start?, end?)` | any, i32?, i32? | void | Yes | Fill elements with a value |
+| `reserve(n)` | i32 | void | Yes | Pre-allocate capacity |
+| `flat()` | - | array | No | Flatten nested arrays by one level |
+| `serialize()` | - | string | No | Serialize array to string representation |
 
 ## Implementation Details
 
@@ -4243,6 +3896,8 @@ try {
 The primary use case for `defer` is ensuring resources are cleaned up:
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn process_file(filename: string) {
     let file = open(filename, "r");
     defer file.close();  // Always closes, even on error
@@ -4256,6 +3911,8 @@ fn process_file(filename: string) {
 
 **Without defer (error-prone):**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn process_file_bad(filename: string) {
     let file = open(filename, "r");
     let content = file.read();
@@ -4297,6 +3954,7 @@ fn example() {
 
 1. **Place defer immediately after acquiring a resource:**
    ```hemlock
+   import { open } from "@stdlib/fs";
    let file = open("data.txt", "r");
    defer file.close();
    // ... use file ...
@@ -4304,6 +3962,7 @@ fn example() {
 
 2. **Use multiple defers for multiple resources:**
    ```hemlock
+   import { open } from "@stdlib/fs";
    let file1 = open("input.txt", "r");
    defer file1.close();
 
@@ -5588,7 +5247,6 @@ print("5: after try/catch/finally");
 
 ## Current Limitations
 
-- **No stack trace** - Uncaught exceptions don't show stack trace (planned)
 - **Some built-ins exit** - Some built-in functions still `exit()` instead of throwing (to be reviewed)
 - **No custom exception types** - Any value can be thrown, but no formal exception hierarchy
 
@@ -6503,11 +6161,99 @@ create_user("Eve", age: 21);          // OK
 - Works with default/optional parameters
 - Unknown parameter names cause runtime errors
 
+## Expression-Bodied Functions
+
+For functions with a single expression body, use the arrow (`=>`) syntax:
+
+```hemlock
+// Named expression-bodied function
+fn double(x: i32): i32 => x * 2;
+fn max(a: i32, b: i32): i32 => a > b ? a : b;
+fn greet(name: string): string => "Hello, " + name + "!";
+
+// Anonymous expression-bodied function
+let square = fn(x: i32): i32 => x * x;
+let isEven = fn(n: i32): bool => n % 2 == 0;
+```
+
+**Rules:**
+- The body is a single expression (no `return` keyword needed)
+- The expression's value is automatically returned
+- Type annotations work the same as block-bodied functions
+- Works with both named and anonymous functions
+
+**When to use:**
+- Simple transformations and predicates
+- Callback functions passed to `map`, `filter`, etc.
+- Wrapper functions that delegate to another call
+
+```hemlock
+// Great for array operations
+let nums = [1, 2, 3, 4, 5];
+let doubled = nums.map(fn(x) => x * 2);
+let evens = nums.filter(fn(x) => x % 2 == 0);
+```
+
+---
+
+## Ref Parameters (Pass-by-Reference)
+
+The `ref` modifier passes a reference to the caller's variable, allowing the function to modify it directly:
+
+### Basic Ref Parameters
+
+```hemlock
+fn increment(ref x: i32) {
+    x = x + 1;  // Modifies the original variable
+}
+
+let count = 10;
+increment(count);
+print(count);  // 11 - original was modified
+```
+
+### Swap Pattern
+
+```hemlock
+fn swap(ref a: i32, ref b: i32) {
+    let temp = a;
+    a = b;
+    b = temp;
+}
+
+let x = 1;
+let y = 2;
+swap(x, y);
+print(x);  // 2
+print(y);  // 1
+```
+
+### Mixing Ref and Regular Parameters
+
+```hemlock
+fn add_to(ref target: i32, amount: i32) {
+    target = target + amount;
+}
+
+let total = 100;
+add_to(total, 50);
+print(total);  // 150
+```
+
+### Rules for Ref Parameters
+
+- `ref` parameters must be passed variables, not literals or expressions
+- Works with all types (primitives, arrays, objects)
+- Combine with type annotations: `ref x: i32`
+- Cannot combine with `const` (they are opposites)
+- Without `ref`, primitives are passed by value (copied)
+
+---
+
 ## Limitations
 
 Current limitations to be aware of:
 
-- **No pass-by-reference** - `ref` keyword parsed but not implemented
 - **No function overloading** - One function per name
 - **No tail call optimization** - Deep recursion limited by stack size
 
@@ -7624,18 +7370,101 @@ person.phone = "555-1234";
 print(person.email);  // "alice@example.com"
 ```
 
-### Field Deletion
+### Bracket Notation
 
-**Note:** Field deletion is not currently supported. Set to `null` instead:
+Access fields dynamically using bracket notation with a string key:
+
+```hemlock
+let person = { name: "Alice", age: 30 };
+
+// Read with bracket notation
+let field = "name";
+print(person[field]);         // "Alice"
+print(person["age"]);         // 30
+
+// Write with bracket notation
+person["city"] = "NYC";
+print(person.city);           // "NYC"
+```
+
+### Key Coercion
+
+Non-string keys are automatically coerced to strings when used with bracket notation. This lets you use objects as maps with numeric, boolean, or rune keys:
+
+```hemlock
+let map = {};
+
+// Integer keys (coerced to string: 42 → "42")
+map[0] = "zero";
+map[42] = "forty-two";
+print(map[0]);                // "zero"
+print(map["0"]);              // "zero" (equivalent)
+
+// Boolean keys (coerced: true → "true")
+map[true] = "yes";
+print(map[true]);             // "yes"
+print(map["true"]);           // "yes"
+
+// Rune keys (coerced: 'A' → "A")
+map['A'] = "alpha";
+print(map['A']);               // "alpha"
+print(map["A"]);               // "alpha"
+
+// Float keys (coerced with full precision: 3.14 → "3.1400000000000001")
+map[3.14] = "pi";
+print(map[3.14]);              // "pi"
+```
+
+**Supported coercion types:**
+- **Integers** (i8–i64, u8–u64): decimal string representation
+- **Floats** (f32, f64): `%.17g` format (full precision)
+- **Booleans**: `"true"` or `"false"`
+- **Runes**: UTF-8 encoded character
+
+**Note:** Float keys use full IEEE 754 precision, so `3.14` becomes `"3.1400000000000001"`. If you need exact float string keys, convert explicitly with `"" + n`.
+
+### Built-in Object Methods
+
+#### `obj.keys()`
+
+Returns an array of all field names as strings:
+
+```hemlock
+let obj = { x: 10, y: 20, name: "test" };
+let k = obj.keys();
+print(k);  // [x, y, name]
+```
+
+#### `obj.has(key)`
+
+Check if an object has a specific field. Accepts string, integer, float, bool, or rune keys (non-string keys are coerced):
+
+```hemlock
+let obj = { x: 10, name: "test" };
+print(obj.has("x"));       // true
+print(obj.has("z"));       // false
+
+let map = {};
+map[42] = "value";
+print(map.has(42));        // true
+print(map.has("42"));      // true
+```
+
+#### `obj.delete(key)`
+
+Remove a field from an object. Returns `true` if the field was found and deleted, `false` otherwise. Accepts coerced keys like `has()`:
 
 ```hemlock
 let obj = { x: 10, y: 20 };
+obj.delete("x");
+print(obj.has("x"));      // false
+print(obj.has("y"));      // true
 
-// Cannot delete fields (not supported)
-// obj.x = undefined;  // No 'undefined' in Hemlock
-
-// Workaround: Set to null
-obj.x = null;
+// With integer keys
+let map = {};
+map[5] = "five";
+map.delete(5);
+print(map.has(5));         // false
 ```
 
 ## Methods and `self`
@@ -8380,9 +8209,8 @@ Current limitations:
 
 - **No deep copy** - Must manually copy nested objects (spread is shallow)
 - **No pass-by-value** - Objects always passed by reference
-- **No computed properties** - No `{[key]: value}` syntax
+- **No computed properties** - No `{[key]: value}` syntax in literals (use bracket assignment instead)
 - **`self` is read-only** - Cannot reassign `self` in methods
-- **No property deletion** - Cannot remove fields once added
 
 **Note:** Objects are refcounted and automatically freed when scope exits. See [Memory Management](memory.md#internal-reference-counting) for details.
 
@@ -9383,7 +9211,7 @@ let s = "Hello" + '!';          // "Hello!"
 
 ## String Methods
 
-Hemlock provides 19 string methods for comprehensive text manipulation.
+Hemlock provides 20 string methods for comprehensive text manipulation.
 
 ### Substring & Slicing
 
@@ -9398,16 +9226,17 @@ let text = "Hi🚀!";
 let emoji = text.substr(2, 1);  // "🚀" (position 2, length 1)
 ```
 
-**`slice(start, end)`** - Extract substring by range (end exclusive):
+**`slice(start, end?)`** - Extract substring by range (end exclusive, defaults to length):
 ```hemlock
 let s = "hello world";
 let slice = s.slice(0, 5);      // "hello" (index 0 to 4)
 let slice2 = s.slice(6, 11);    // "world"
+let tail = s.slice(6);          // "world" (from index 6 to end)
 ```
 
 **Difference:**
 - `substr(start, length)` - Uses length parameter
-- `slice(start, end)` - Uses end index (exclusive)
+- `slice(start, end?)` - Uses end index (exclusive), end defaults to string length
 
 ### Search & Find
 
@@ -9600,6 +9429,8 @@ let processed = "foo,bar,baz"
 | `chars()` | - | array | Convert to array of runes |
 | `bytes()` | - | array | Convert to array of u8 bytes |
 | `to_bytes()` | - | buffer | Convert to buffer (must free) |
+| `byte_ptr()` | - | ptr | Get raw byte pointer |
+| `deserialize()` | - | any | Deserialize string to value |
 
 ## Examples
 
@@ -9762,19 +9593,21 @@ let x = 42  // ERROR: Missing semicolon
 let y = 10  // ERROR: Missing semicolon
 ```
 
-### Braces Are Always Required
+### Braces
 
-All control flow blocks must use braces, even for single statements:
+Braces are required for multi-statement blocks. Single-statement bodies may omit braces:
 
 ```hemlock
-// ✅ CORRECT
+// Multi-statement: braces required
 if (x > 0) {
-    print("positive");
+    let y = x * 2;
+    print(y);
 }
 
-// ❌ ERROR: Missing braces
-if (x > 0)
-    print("positive");
+// Single-statement: braces optional
+if (x > 0) print("positive");
+while (x > 0) x--;
+for (let i = 0; i < 10; i++) print(i);
 ```
 
 ### Comments
@@ -10854,6 +10687,7 @@ let task: Task = {
 ### File Type
 
 ```hemlock
+import { open } from "@stdlib/fs";
 let f: file = open("data.txt", "r");
 f.close();
 ```
@@ -11016,9 +10850,7 @@ When mixing types in operations, Hemlock promotes to the "higher" type:
 
 **Promotion Hierarchy (lowest to highest):**
 ```
-i8 → i16 → i32 → u32 → i64 → u64 → f32 → f64
-      ↑     ↑     ↑
-     u8    u16
+i8 → u8 → i16 → u16 → i32 → u32 → i64 → u64 → f32 → f64
 ```
 
 **Float always wins:**
@@ -11463,7 +11295,7 @@ async fn compute(n: i32): i32 {
 - Async functions can be spawned as concurrent tasks using `spawn()`
 - Async functions can also be called directly (runs synchronously in current thread)
 - When spawned, each task runs on its **own OS thread** (not a coroutine!)
-- `await` keyword is reserved for future use
+- `await` keyword works as an alias for `join()` — awaits task completion and returns the result
 
 ### Example: Direct Call vs Spawn
 
@@ -12393,6 +12225,8 @@ Atomic operations are **indivisible** operations that complete without the possi
 
 **Example use case - Shared counter:**
 ```hemlock
+import { atomic_add_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 // Allocate shared counter
 let counter = alloc(4);
 ptr_write_i32(counter, 0);
@@ -12453,6 +12287,8 @@ atomic_load_i64(ptr: ptr): i64
 
 **Example:**
 ```hemlock
+import { atomic_load_i32 } from "@stdlib/atomic";
+
 let p = alloc(4);
 ptr_write_i32(p, 42);
 
@@ -12482,6 +12318,8 @@ atomic_store_i64(ptr: ptr, value: i64): null
 
 **Example:**
 ```hemlock
+import { atomic_store_i64, atomic_load_i64 } from "@stdlib/atomic";
+
 let p = alloc(8);
 
 atomic_store_i64(p, 5000000000);
@@ -12510,6 +12348,8 @@ atomic_add_i64(ptr: ptr, value: i64): i64
 
 **Example:**
 ```hemlock
+import { atomic_add_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 let p = alloc(4);
 ptr_write_i32(p, 100);
 
@@ -12536,6 +12376,8 @@ atomic_sub_i64(ptr: ptr, value: i64): i64
 
 **Example:**
 ```hemlock
+import { atomic_sub_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 let p = alloc(4);
 ptr_write_i32(p, 100);
 
@@ -12562,6 +12404,8 @@ atomic_and_i64(ptr: ptr, value: i64): i64
 
 **Example:**
 ```hemlock
+import { atomic_and_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 let p = alloc(4);
 ptr_write_i32(p, 0xFF);  // 255 in binary: 11111111
 
@@ -12588,6 +12432,8 @@ atomic_or_i64(ptr: ptr, value: i64): i64
 
 **Example:**
 ```hemlock
+import { atomic_or_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 let p = alloc(4);
 ptr_write_i32(p, 0x0F);  // 15 in binary: 00001111
 
@@ -12614,6 +12460,8 @@ atomic_xor_i64(ptr: ptr, value: i64): i64
 
 **Example:**
 ```hemlock
+import { atomic_xor_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 let p = alloc(4);
 ptr_write_i32(p, 0xAA);  // 170 in binary: 10101010
 
@@ -12649,6 +12497,8 @@ atomic_cas_i64(ptr: ptr, expected: i64, desired: i64): bool
 
 **Example:**
 ```hemlock
+import { atomic_cas_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 let p = alloc(4);
 ptr_write_i32(p, 100);
 
@@ -12693,6 +12543,8 @@ atomic_exchange_i64(ptr: ptr, value: i64): i64
 
 **Example:**
 ```hemlock
+import { atomic_exchange_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 let p = alloc(4);
 ptr_write_i32(p, 100);
 
@@ -12720,6 +12572,8 @@ atomic_fence(): null
 
 **Example:**
 ```hemlock
+import { atomic_fence } from "@stdlib/atomic";
+
 // Ensure all previous writes are visible
 atomic_fence();
 ```
@@ -12771,6 +12625,8 @@ atomic_fence();
 ### Pattern: Atomic Counter
 
 ```hemlock
+import { atomic_add_i32, atomic_sub_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 // Thread-safe counter
 let counter = alloc(4);
 ptr_write_i32(counter, 0);
@@ -12799,6 +12655,8 @@ free(counter);
 ### Pattern: Spinlock
 
 ```hemlock
+import { atomic_cas_i32, atomic_store_i32 } from "@stdlib/atomic";
+
 // Simple spinlock implementation
 let lock = alloc(4);
 ptr_write_i32(lock, 0);  // 0 = unlocked, 1 = locked
@@ -12825,6 +12683,8 @@ free(lock);
 ### Pattern: One-Time Initialization
 
 ```hemlock
+import { atomic_cas_i32 } from "@stdlib/atomic";
+
 let initialized = alloc(4);
 ptr_write_i32(initialized, 0);  // 0 = not initialized, 1 = initialized
 
@@ -12841,6 +12701,8 @@ fn ensure_initialized() {
 ### Pattern: Atomic Flag
 
 ```hemlock
+import { atomic_store_i32, atomic_exchange_i32, atomic_load_i32 } from "@stdlib/atomic";
+
 let flag = alloc(4);
 ptr_write_i32(flag, 0);
 
@@ -12865,6 +12727,8 @@ fn check_flag(): bool {
 ### Pattern: Bounded Counter
 
 ```hemlock
+import { atomic_load_i32, atomic_cas_i32 } from "@stdlib/atomic";
+
 let counter = alloc(4);
 ptr_write_i32(counter, 0);
 let max_value = 100;
@@ -13230,6 +13094,77 @@ Refactor your imports to break the cycle. Consider using a shared module for com
 
 
 --------------------------------------------------------------------------------
+## Code Formatting
+--------------------------------------------------------------------------------
+
+# Code Formatting
+
+Hemlock includes a built-in code formatter to enforce consistent style.
+
+## Usage
+
+```bash
+hemlock format <FILE>         # Format a file in-place
+hemlock format --check <FILE> # Check if file is formatted (exit 1 if not)
+```
+
+## Style Rules
+
+The formatter enforces these conventions:
+
+| Rule | Value |
+|------|-------|
+| Indentation | Tabs |
+| Brace style | K&R (opening brace on same line) |
+| Max line width | 100 characters |
+| Trailing commas | Yes, in multiline contexts |
+| Max consecutive blank lines | 1 |
+
+## Automatic Line Breaking
+
+The formatter automatically breaks long lines:
+
+- **Function parameters** - Long parameter lists break with one parameter per line
+- **Binary expressions** - Long logical/comparison chains break at operators
+- **Import statements** - Long import lists break with each item on its own line
+- **Method chains** - Long chains break before dots
+
+## Example
+
+Before:
+```hemlock
+fn create_user(name: string, email: string, age: i32, active: bool, role: string) { return { name: name, email: email, age: age, active: active, role: role }; }
+```
+
+After:
+```hemlock
+fn create_user(
+	name: string,
+	email: string,
+	age: i32,
+	active: bool,
+	role: string,
+) {
+	return {
+		name: name,
+		email: email,
+		age: age,
+		active: active,
+		role: role,
+	};
+}
+```
+
+## CI Integration
+
+Use `--check` in CI pipelines to enforce formatting:
+
+```bash
+hemlock format --check src/main.hml || echo "File not formatted"
+```
+
+
+--------------------------------------------------------------------------------
 ## Command Execution
 --------------------------------------------------------------------------------
 
@@ -13281,6 +13216,8 @@ exec(command: string): object
 ### Basic Example
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 let result = exec("echo hello");
 print(result.output);      // "hello\n"
 print(result.exit_code);   // 0
@@ -13309,6 +13246,8 @@ Contains all text written to stdout by the command.
 
 **Examples:**
 ```hemlock
+import { exec } from "@stdlib/process";
+
 let r1 = exec("echo test");
 print(r1.output);  // "test\n"
 
@@ -13330,6 +13269,8 @@ The command's exit status code.
 
 **Examples:**
 ```hemlock
+import { exec } from "@stdlib/process";
+
 let r1 = exec("true");
 print(r1.exit_code);  // 0 (success)
 
@@ -13345,6 +13286,8 @@ print(r3.exit_code);  // 2 (file not found, varies by command)
 ### Simple Command
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 let r = exec("ls -la");
 print(r.output);
 print("Exit code: " + typeof(r.exit_code));
@@ -13353,6 +13296,8 @@ print("Exit code: " + typeof(r.exit_code));
 ### Checking Exit Status
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 let r = exec("grep pattern file.txt");
 if (r.exit_code == 0) {
     print("Found: " + r.output);
@@ -13387,6 +13332,8 @@ print(r.output);  // Current date
 ### Handling Failures
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 let r = exec("ls /nonexistent");
 if (r.exit_code != 0) {
     print("Command failed with code: " + typeof(r.exit_code));
@@ -13397,6 +13344,8 @@ if (r.exit_code != 0) {
 ### Processing Multi-Line Output
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 let r = exec("cat file.txt");
 let lines = r.output.split("\n");
 let i = 0;
@@ -13518,6 +13467,8 @@ print(r3.exit_code);  // 127 (not an exception)
 ### Safe Execution Pattern
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 fn safe_exec(command: string) {
     try {
         let r = exec(command);
@@ -13788,6 +13739,8 @@ print("Running instances: " + count);
 
 **6. Automation scripts:**
 ```hemlock
+import { exec } from "@stdlib/process";
+
 exec("git add .");
 exec("git commit -m 'Auto commit'");
 let r = exec("git push");
@@ -13914,6 +13867,8 @@ let r = exec("test -f file.txt && cat file.txt");
 ### Example 1: System Information Gatherer
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 fn get_system_info() {
     print("=== System Information ===");
 
@@ -13942,6 +13897,8 @@ get_system_info();
 ### Example 2: Log Analyzer
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 fn analyze_log(logfile: string) {
     print("Analyzing log: " + logfile);
 
@@ -13983,6 +13940,8 @@ if (args.length < 2) {
 ### Example 3: Git Helper
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 fn git_status() {
     let r = exec("git status --short");
     if (r.exit_code != 0) {
@@ -14028,6 +13987,8 @@ if (args.length > 1) {
 ### Example 4: Backup Script
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 fn backup_directory(source: string, dest: string) {
     print("Backing up " + source + " to " + dest);
 
@@ -14849,6 +14810,230 @@ Common patterns:
 
 
 --------------------------------------------------------------------------------
+## Compiler Optimizations
+--------------------------------------------------------------------------------
+
+# Compiler Optimizations
+
+The Hemlock compiler (`hemlockc`) applies several optimization passes when generating C code. These optimizations are automatic and require no user intervention, but understanding them helps explain performance characteristics.
+
+---
+
+## Overview
+
+```
+Source (.hml)
+    ↓
+  Parse → AST
+    ↓
+  Type Check (optional)
+    ↓
+  AST Optimization Pass
+    ↓
+  C Code Generation (with inlining + unboxing)
+    ↓
+  GCC/Clang Compilation
+```
+
+---
+
+## Expression-Level Unboxing
+
+Hemlock's runtime represents all values as tagged `HmlValue` structs. In the interpreter, every arithmetic operation boxes and unboxes values through runtime dispatch. The compiler eliminates this overhead for expressions with known primitive types.
+
+**Before (naive codegen):**
+```c
+// x + 1 where x is i32
+hml_i32_add(hml_val_i32(x), hml_val_i32(1))  // 2 boxing calls + runtime dispatch
+```
+
+**After (with expression unboxing):**
+```c
+// x + 1 where x is i32
+hml_val_i32((x + 1))  // Pure C arithmetic, single box at the end
+```
+
+### What Gets Unboxed
+
+- Binary arithmetic: `+`, `-`, `*`, `%`
+- Bitwise operations: `&`, `|`, `^`, `<<`, `>>`
+- Comparisons: `<`, `>`, `<=`, `>=`, `==`, `!=`
+- Unary operations: `-`, `~`, `!`
+- Type-annotated variables and loop counters
+
+### What Falls Back to HmlValue
+
+- Function calls (return type may be dynamic)
+- Array/object access (element type unknown at compile time)
+- Variables without type annotations and no inferred type
+
+### Tip
+
+Adding type annotations to hot-path variables helps the compiler apply unboxing:
+
+```hemlock
+// The compiler can unbox this entire expression
+fn dot(a: i32, b: i32, c: i32, d: i32): i32 {
+    return a * c + b * d;
+}
+```
+
+---
+
+## Multi-Level Function Inlining
+
+The compiler inlines small functions at call sites, replacing function call overhead with direct code. Hemlock supports multi-level inlining up to depth 3, meaning nested helper calls are also inlined.
+
+### How It Works
+
+```hemlock
+fn rotr(x: u32, n: i32): u32 => (x >> n) | (x << (32 - n));
+
+fn ep0(x: u32): u32 => rotr(x, 2) ^ rotr(x, 13) ^ rotr(x, 22);
+
+fn sha256_round(a: u32, ...): u32 {
+    let s0 = ep0(a);  // Both ep0 AND rotr get inlined here
+    // ...
+}
+```
+
+At depth 1, `ep0()` is inlined into `sha256_round()`. At depth 2, the `rotr()` calls inside `ep0()` are also inlined. The result is a single block of native arithmetic with no function call overhead.
+
+### Inlining Criteria
+
+Functions are inlined when:
+- The function body is small (single expression or a few statements)
+- The function is not recursive
+- The current inline depth is less than 3
+
+### Controlling Inlining with Annotations
+
+```hemlock
+@inline
+fn always_inline(x: i32): i32 => x * 2;
+
+@noinline
+fn never_inline(x: i32): i32 {
+    // Complex function that should not be duplicated
+    return x;
+}
+```
+
+---
+
+## While-Loop Accumulator Unboxing
+
+For top-level while loops, the compiler detects counter and accumulator variables and shadows them with native C locals, eliminating boxing/unboxing overhead on every iteration.
+
+### What Gets Optimized
+
+```hemlock
+let sum = 0;
+let i = 0;
+while (i < 1000000) {
+    sum += i;
+    i++;
+}
+print(sum);
+```
+
+The compiler detects that `sum` and `i` are integer accumulators used only within the loop, and generates native `int32_t` locals instead of `HmlValue` operations. This eliminates retain/release overhead and type dispatch on every iteration.
+
+### Performance Impact
+
+Benchmark improvements from these optimizations (measured on typical workloads):
+
+| Benchmark | Before | After | Improvement |
+|-----------|--------|-------|-------------|
+| primes_sieve | 10ms | 6ms | -40% |
+| binary_tree | 11ms | 8ms | -27% |
+| json_serialize | 8ms | 5ms | -37% |
+| json_deserialize | 10ms | 7ms | -30% |
+| fibonacci | 29ms | 24ms | -17% |
+| array_sum | 41ms | 36ms | -12% |
+
+---
+
+## Helper Annotations
+
+The compiler supports 10 optimization annotations that map to GCC/Clang attributes:
+
+| Annotation | Effect |
+|------------|--------|
+| `@inline` | Encourage function inlining |
+| `@noinline` | Prevent function inlining |
+| `@hot` | Mark as frequently executed (branch prediction) |
+| `@cold` | Mark as rarely executed |
+| `@pure` | Function has no side effects (reads external state) |
+| `@const` | Function depends only on arguments (no external state) |
+| `@flatten` | Inline all calls within the function |
+| `@optimize(level)` | Per-function optimization level ("0"-"3", "s", "fast") |
+| `@warn_unused` | Warn if return value is ignored |
+| `@section(name)` | Place function in custom ELF section |
+
+### Example
+
+```hemlock
+@hot @inline
+fn fast_hash(key: string): u32 {
+    // Hot-path hashing function
+    let h: u32 = 5381;
+    for (ch in key.chars()) {
+        h = ((h << 5) + h) + ch;
+    }
+    return h;
+}
+
+@cold
+fn handle_error(msg: string) {
+    eprint("Error: " + msg);
+    panic(msg);
+}
+```
+
+---
+
+## Allocation Pools
+
+The runtime uses pre-allocated object pools to avoid `malloc`/`free` overhead for frequently created short-lived objects:
+
+| Pool | Slots | Description |
+|------|-------|-------------|
+| Environment pool | 1024 | Closure/function scope environments (up to 16 variables each) |
+| Object pool | 512 | Anonymous objects with up to 8 fields |
+| Function pool | 512 | Closure structs for captured functions |
+
+Pools use free-list stacks for O(1) allocation and deallocation. When a pool is exhausted, the runtime falls back to `malloc`. Objects that outgrow their pool slot (e.g., an object gaining a 9th field) are transparently migrated to heap storage.
+
+### AST-Borrowed Parameters
+
+Closures borrow parameter metadata directly from the AST instead of deep-copying, eliminating approximately 6 `malloc` + N `strdup` calls per closure creation. Parameter name hashes are lazily computed and cached on the AST node.
+
+---
+
+## Type Checking
+
+The compiler includes compile-time type checking (enabled by default):
+
+```bash
+hemlockc program.hml -o program       # Type check + compile
+hemlockc --check program.hml          # Type check only
+hemlockc --no-type-check program.hml  # Skip type checking
+hemlockc --strict-types program.hml   # Warn on implicit 'any' types
+```
+
+Untyped code is treated as dynamic (`any` type) and always passes type checking. Type annotations provide optimization hints that enable unboxing.
+
+---
+
+## See Also
+
+- [Helper Annotations Proposal](#proposals-compiler-helper-annotations) - Detailed annotation reference
+- [Memory API](#reference-memory-api) - Buffer and pointer operations
+- [Functions](#language-guide-functions) - Type annotations and expression-bodied functions
+
+
+--------------------------------------------------------------------------------
 ## FFI
 --------------------------------------------------------------------------------
 
@@ -15229,6 +15414,8 @@ process_array(arr);  // Pass to C function
 
 **3. Function Pointer Callbacks** ✅ (Implemented!)
 ```hemlock
+import { callback, callback_free } from "@stdlib/ffi";
+
 // Pass Hemlock functions to C as callbacks
 fn my_compare(a: ptr, b: ptr): i32 {
     let va = ptr_deref_i32(a);
@@ -15294,6 +15481,8 @@ Hemlock supports passing functions to C code as callbacks using libffi closures.
 Use `callback()` to create a C-callable function pointer from a Hemlock function:
 
 ```hemlock
+import { callback } from "@stdlib/ffi";
+
 // callback(function, param_types, return_type) -> ptr
 let cb = callback(my_function, ["ptr", "ptr"], "i32");
 ```
@@ -15314,6 +15503,7 @@ let cb = callback(my_function, ["ptr", "ptr"], "i32");
 ### Example: qsort
 
 ```hemlock
+import { callback, callback_free } from "@stdlib/ffi";
 import "libc.so.6";
 extern fn qsort(base: ptr, nmemb: u64, size: u64, compar: ptr): void;
 
@@ -15386,8 +15576,25 @@ Hemlock provides comprehensive helper functions for working with raw pointers. T
 | `ptr_deref_ptr(ptr)` | Dereference pointer-to-pointer |
 | `ptr_write_ptr(ptr, value)` | Write pointer to pointer location |
 | `ptr_offset(ptr, index, size)` | Calculate offset: `ptr + index * size` |
-| `ptr_read_i32(ptr)` | Read i32 through pointer-to-pointer (for qsort callbacks) |
 | `ptr_null()` | Get a null pointer constant |
+
+#### Pointer Read Functions
+
+Read typed values directly from memory (complements `ptr_write_*`).
+
+| Function | Description |
+|----------|-------------|
+| `ptr_read_i8(ptr)` | Read i8 from pointer |
+| `ptr_read_i16(ptr)` | Read i16 from pointer |
+| `ptr_read_i32(ptr)` | Read i32 from pointer |
+| `ptr_read_i64(ptr)` | Read i64 from pointer |
+| `ptr_read_u8(ptr)` | Read u8 from pointer |
+| `ptr_read_u16(ptr)` | Read u16 from pointer |
+| `ptr_read_u32(ptr)` | Read u32 from pointer |
+| `ptr_read_u64(ptr)` | Read u64 from pointer |
+| `ptr_read_f32(ptr)` | Read f32 from pointer |
+| `ptr_read_f64(ptr)` | Read f64 from pointer |
+| `ptr_read_ptr(ptr)` | Read pointer from pointer (returns null if stored value is NULL) |
 
 #### Buffer Conversion Helpers
 
@@ -15451,6 +15658,8 @@ free(p);
 **Important:** Always free callbacks when done to prevent memory leaks:
 
 ```hemlock
+import { callback, callback_free } from "@stdlib/ffi";
+
 let cb = callback(my_fn, ["ptr"], "void");
 // ... use callback ...
 callback_free(cb);  // Free when done
@@ -15463,6 +15672,8 @@ Callbacks are also automatically freed when the program exits.
 Callbacks capture their closure environment, so they can access outer scope variables:
 
 ```hemlock
+import { callback } from "@stdlib/ffi";
+
 let multiplier = 10;
 
 fn scale(a: ptr, b: ptr): i32 {
@@ -15834,6 +16045,8 @@ The File object API provides:
 Use `open(path, mode?)` to open a file:
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.txt", "r");     // Read mode (default)
 let f2 = open("output.txt", "w");  // Write mode (truncate)
 let f3 = open("log.txt", "a");     // Append mode
@@ -15855,6 +16068,8 @@ let f4 = open("data.bin", "r+");   // Read/write mode
 
 **Reading an existing file:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("config.json", "r");
 // or simply:
 let f = open("config.json");  // "r" is default
@@ -15862,16 +16077,22 @@ let f = open("config.json");  // "r" is default
 
 **Creating a new file for writing:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("output.txt", "w");  // Creates or truncates
 ```
 
 **Appending to a file:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("log.txt", "a");  // Creates if doesn't exist
 ```
 
 **Read and write mode:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.bin", "r+");  // Existing file, can read/write
 ```
 
@@ -15885,6 +16106,8 @@ Read text from file (optional size parameter).
 
 **Without size (read all):**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.txt", "r");
 let all = f.read();  // Read from current position to EOF
 f.close();
@@ -15892,6 +16115,8 @@ f.close();
 
 **With size (read specific bytes):**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.txt", "r");
 let chunk = f.read(1024);  // Read up to 1024 bytes
 let next = f.read(1024);   // Read next 1024 bytes
@@ -15902,6 +16127,8 @@ f.close();
 
 **Example - Reading entire file:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("poem.txt", "r");
 let content = f.read();
 print(content);
@@ -15910,6 +16137,8 @@ f.close();
 
 **Example - Reading in chunks:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("large.txt", "r");
 while (true) {
     let chunk = f.read(4096);  // 4KB chunks
@@ -15929,6 +16158,8 @@ Read binary data (returns buffer).
 **Returns:** Buffer containing the read bytes
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("image.png", "r");
 let binary = f.read_bytes(256);  // Read 256 bytes
 print(binary.length);  // 256 (or less if EOF)
@@ -15942,6 +16173,8 @@ f.close();
 
 **Example - Reading entire binary file:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.bin", "r");
 let size = 10240;  // Expected size
 let data = f.read_bytes(size);
@@ -15968,6 +16201,8 @@ Write text to file (returns bytes written).
 **Returns:** Number of bytes written (i32)
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("output.txt", "w");
 let written = f.write("Hello, World!\n");
 print("Wrote " + typeof(written) + " bytes");  // "Wrote 14 bytes"
@@ -15976,6 +16211,8 @@ f.close();
 
 **Example - Writing multiple lines:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("output.txt", "w");
 f.write("Line 1\n");
 f.write("Line 2\n");
@@ -15985,6 +16222,8 @@ f.close();
 
 **Example - Appending to log file:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("app.log", "a");
 f.write("[INFO] Application started\n");
 f.write("[INFO] User logged in\n");
@@ -16001,6 +16240,8 @@ Write binary data (returns bytes written).
 **Returns:** Number of bytes written (i32)
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("output.bin", "w");
 
 // Create binary data
@@ -16017,6 +16258,8 @@ f.close();
 
 **Example - Copying binary file:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let src = open("input.bin", "r");
 let dst = open("output.bin", "w");
 
@@ -16042,6 +16285,8 @@ Move to specific position (returns new position).
 **Returns:** New position (i32)
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.txt", "r");
 
 // Move to byte 100
@@ -16058,6 +16303,8 @@ f.close();
 
 **Example - Random access:**
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("records.dat", "r");
 
 // Read record at offset 1000
@@ -16078,6 +16325,8 @@ Get current position in file.
 **Returns:** Current byte offset (i32)
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.txt", "r");
 
 let pos1 = f.tell();  // 0 (at start)
@@ -16133,6 +16382,8 @@ File objects have three read-only properties:
 The file path used to open the file.
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("/path/to/file.txt", "r");
 print(f.path);  // "/path/to/file.txt"
 f.close();
@@ -16143,6 +16394,8 @@ f.close();
 The mode the file was opened with.
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.txt", "r");
 print(f.mode);  // "r"
 f.close();
@@ -16157,6 +16410,8 @@ f2.close();
 Whether the file is closed.
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.txt", "r");
 print(f.closed);  // false
 
@@ -16217,6 +16472,8 @@ f.read();
 ### Using try/catch
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 try {
     let f = open("data.txt", "r");
     let content = f.read();
@@ -16234,6 +16491,8 @@ try {
 Always close files explicitly:
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.txt", "r");
 let content = f.read();
 f.close();
@@ -16244,6 +16503,8 @@ f.close();
 Use `finally` to ensure files are closed even on errors:
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let f = open("data.txt", "r");
 try {
     let content = f.read();
@@ -16256,6 +16517,8 @@ try {
 ### Multiple Files
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 let src = null;
 let dst = null;
 
@@ -16274,6 +16537,8 @@ try {
 ### Helper Function Pattern
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn with_file(path: string, mode: string, callback) {
     let f = open(path, mode);
     try {
@@ -16322,6 +16587,8 @@ with_file("data.txt", "r", fn(f) {
 ### Reading Entire File
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn read_file(path: string): string {
     let f = open(path, "r");
     try {
@@ -16337,6 +16604,8 @@ let content = read_file("config.json");
 ### Writing Entire File
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn write_file(path: string, content: string) {
     let f = open(path, "w");
     try {
@@ -16352,6 +16621,8 @@ write_file("output.txt", "Hello, World!");
 ### Appending to File
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn append_file(path: string, content: string) {
     let f = open(path, "a");
     try {
@@ -16367,6 +16638,8 @@ append_file("log.txt", "[INFO] Event occurred\n");
 ### Reading Lines
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn read_lines(path: string) {
     let f = open(path, "r");
     try {
@@ -16388,6 +16661,8 @@ while (i < lines.length) {
 ### Processing Large Files in Chunks
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn process_large_file(path: string) {
     let f = open(path, "r");
     try {
@@ -16407,6 +16682,8 @@ fn process_large_file(path: string) {
 ### Binary File Copy
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn copy_file(src_path: string, dst_path: string) {
     let src = null;
     let dst = null;
@@ -16433,6 +16710,8 @@ copy_file("input.dat", "output.dat");
 ### File Truncation
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn truncate_file(path: string) {
     let f = open(path, "w");  // "w" mode truncates
     f.close();
@@ -16444,6 +16723,8 @@ truncate_file("empty_me.txt");
 ### Random Access Read
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn read_at_offset(path: string, offset: i32, size: i32): string {
     let f = open(path, "r");
     try {
@@ -16460,6 +16741,8 @@ let data = read_at_offset("records.dat", 1000, 100);
 ### File Size
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn file_size(path: string): i32 {
     let f = open(path, "r");
     try {
@@ -16479,6 +16762,8 @@ print("File size: " + typeof(size) + " bytes");
 ### Conditional Read/Write
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn update_file(path: string, condition, new_content: string) {
     let f = open(path, "r+");
     try {
@@ -16499,6 +16784,8 @@ fn update_file(path: string, condition, new_content: string) {
 ### 1. Always Use try/finally
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 // Good
 let f = open("data.txt", "r");
 try {
@@ -16544,6 +16831,8 @@ let f = open("log.txt", "a");
 ### 4. Handle Errors Gracefully
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn safe_read_file(path: string): string {
     try {
         let f = open(path, "r");
@@ -16617,6 +16906,98 @@ Remember:
 - Choose appropriate open modes
 - Handle errors gracefully
 - Process large files in chunks
+
+
+--------------------------------------------------------------------------------
+## Lsp
+--------------------------------------------------------------------------------
+
+# Language Server Protocol (LSP)
+
+Hemlock includes a built-in LSP server for IDE integration, providing real-time diagnostics, navigation, and completion.
+
+## Starting the Server
+
+```bash
+hemlock lsp --stdio    # Stdio transport (recommended)
+hemlock lsp --tcp 5007 # TCP transport on specified port
+```
+
+## Features
+
+- **Diagnostics** - Real-time syntax error and type checking
+- **Hover** - Type information and keyword documentation
+- **Go to Definition** - Navigate to function and variable definitions
+- **Find References** - Find all references to a symbol
+- **Document Symbols** - Outline view of functions and definitions
+- **Completion** - Symbol completion suggestions
+
+## Editor Setup
+
+### VS Code
+
+Use the [Hemlock VS Code extension](../editors/vscode/) or create `.vscode/settings.json`:
+
+```json
+{
+  "hemlock.lsp.path": "/path/to/hemlock",
+  "hemlock.lsp.args": ["lsp", "--stdio"]
+}
+```
+
+Or use any generic LSP client extension with the command `hemlock lsp --stdio`.
+
+### Neovim (nvim-lspconfig)
+
+```lua
+local lspconfig = require('lspconfig')
+local configs = require('lspconfig.configs')
+
+if not configs.hemlock then
+  configs.hemlock = {
+    default_config = {
+      cmd = { 'hemlock', 'lsp', '--stdio' },
+      filetypes = { 'hemlock' },
+      root_dir = lspconfig.util.root_pattern('.git', 'hemlock.toml'),
+      settings = {},
+    },
+  }
+end
+
+lspconfig.hemlock.setup({})
+```
+
+### Vim (vim-lsp)
+
+```vim
+if executable('hemlock')
+  au User lsp_setup call lsp#register_server({
+    \ 'name': 'hemlock',
+    \ 'cmd': {server_info->['hemlock', 'lsp', '--stdio']},
+    \ 'allowlist': ['hemlock'],
+    \ })
+endif
+```
+
+### Emacs (lsp-mode)
+
+```elisp
+(with-eval-after-load 'lsp-mode
+  (add-to-list 'lsp-language-id-configuration '(hemlock-mode . "hemlock"))
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection '("hemlock" "lsp" "--stdio"))
+    :major-modes '(hemlock-mode)
+    :server-id 'hemlock-lsp)))
+```
+
+## Debugging
+
+Capture server logs by redirecting stderr:
+
+```bash
+hemlock lsp --stdio 2>lsp.log
+```
 
 
 --------------------------------------------------------------------------------
@@ -17493,6 +17874,8 @@ Register a signal handler function.
 
 **Example:**
 ```hemlock
+import { signal, SIGINT } from "@stdlib/signal";
+
 fn my_handler(sig) {
     print("Caught signal: " + typeof(sig));
 }
@@ -17502,6 +17885,8 @@ let old_handler = signal(SIGINT, my_handler);
 
 **Resetting to default:**
 ```hemlock
+import { signal, SIGINT } from "@stdlib/signal";
+
 signal(SIGINT, null);  // Reset SIGINT to default behavior
 ```
 
@@ -17516,6 +17901,8 @@ Send a signal to the current process.
 
 **Example:**
 ```hemlock
+import { raise, SIGUSR1 } from "@stdlib/signal";
+
 raise(SIGUSR1);  // Trigger SIGUSR1 handler
 ```
 
@@ -17535,6 +17922,8 @@ Hemlock provides standard POSIX signal constants as i32 values.
 
 **Examples:**
 ```hemlock
+import { signal, SIGINT, SIGTERM, SIGHUP } from "@stdlib/signal";
+
 signal(SIGINT, handle_interrupt);   // Ctrl+C
 signal(SIGTERM, handle_terminate);  // kill command
 signal(SIGHUP, handle_hangup);      // Terminal closes
@@ -17549,6 +17938,8 @@ signal(SIGHUP, handle_hangup);      // Terminal closes
 
 **Examples:**
 ```hemlock
+import { signal, SIGUSR1, SIGUSR2 } from "@stdlib/signal";
+
 // Use for custom communication
 signal(SIGUSR1, reload_config);
 signal(SIGUSR2, rotate_logs);
@@ -17566,6 +17957,8 @@ signal(SIGUSR2, rotate_logs);
 
 **Examples:**
 ```hemlock
+import { signal, SIGALRM, SIGCHLD } from "@stdlib/signal";
+
 signal(SIGALRM, handle_timeout);
 signal(SIGCHLD, handle_child_exit);
 ```
@@ -17580,6 +17973,8 @@ signal(SIGCHLD, handle_child_exit);
 
 **Examples:**
 ```hemlock
+import { signal, SIGPIPE } from "@stdlib/signal";
+
 signal(SIGPIPE, handle_broken_pipe);
 ```
 
@@ -17588,6 +17983,8 @@ signal(SIGPIPE, handle_broken_pipe);
 ### Catching Ctrl+C
 
 ```hemlock
+import { signal, SIGINT } from "@stdlib/signal";
+
 let interrupted = false;
 
 fn handle_interrupt(sig) {
@@ -17612,6 +18009,8 @@ print("Exiting due to interrupt");
 Signal handlers receive one argument: the signal number (i32)
 
 ```hemlock
+import { signal, SIGINT, SIGTERM } from "@stdlib/signal";
+
 fn my_handler(signum) {
     print("Received signal: " + typeof(signum));
     // signum contains the signal number (e.g., 2 for SIGINT)
@@ -17630,6 +18029,8 @@ signal(SIGTERM, my_handler);  // Same handler for multiple signals
 Different handlers for different signals:
 
 ```hemlock
+import { signal, SIGINT, SIGTERM, SIGUSR1 } from "@stdlib/signal";
+
 fn handle_int(sig) {
     print("SIGINT received");
 }
@@ -17652,6 +18053,8 @@ signal(SIGUSR1, handle_usr1);
 Pass `null` as the handler to reset to default behavior:
 
 ```hemlock
+import { signal, SIGINT } from "@stdlib/signal";
+
 // Register custom handler
 signal(SIGINT, my_handler);
 
@@ -17664,6 +18067,8 @@ signal(SIGINT, null);
 Send signals to your own process:
 
 ```hemlock
+import { signal, raise, SIGUSR1 } from "@stdlib/signal";
+
 let count = 0;
 
 fn increment(sig) {
@@ -17686,6 +18091,8 @@ print(count);  // 2
 Common pattern for cleanup on termination:
 
 ```hemlock
+import { signal, SIGINT, SIGTERM } from "@stdlib/signal";
+
 let should_exit = false;
 
 fn handle_shutdown(sig) {
@@ -17710,6 +18117,8 @@ print("Cleanup complete");
 Track number of signals received:
 
 ```hemlock
+import { signal, SIGUSR1 } from "@stdlib/signal";
+
 let signal_count = 0;
 
 fn count_signals(sig) {
@@ -17726,6 +18135,8 @@ print("Total signals: " + typeof(signal_count));
 ### Configuration Reload on Signal
 
 ```hemlock
+import { signal, SIGHUP } from "@stdlib/signal";
+
 let config = load_config();
 
 fn reload_config(sig) {
@@ -17743,6 +18154,8 @@ signal(SIGHUP, reload_config);  // Reload on SIGHUP
 ### Timeout Using SIGALRM
 
 ```hemlock
+import { signal, SIGALRM } from "@stdlib/signal";
+
 let timed_out = false;
 
 fn handle_alarm(sig) {
@@ -17763,6 +18176,8 @@ while (!timed_out) {
 ### Signal-Based State Machine
 
 ```hemlock
+import { signal, SIGUSR1, SIGUSR2 } from "@stdlib/signal";
+
 let state = 0;
 
 fn next_state(sig) {
@@ -17848,6 +18263,8 @@ Signal handling is **inherently unsafe** in Hemlock's philosophy.
 Handlers can be called at any time, interrupting normal execution:
 
 ```hemlock
+import { signal, SIGUSR1 } from "@stdlib/signal";
+
 let counter = 0;
 
 fn increment(sig) {
@@ -17876,6 +18293,8 @@ Hemlock does **not** guarantee async-signal-safety:
 Simple boolean assignments are generally safe:
 
 ```hemlock
+import { signal, SIGINT } from "@stdlib/signal";
+
 let should_exit = false;
 
 fn handler(sig) {
@@ -17903,6 +18322,8 @@ fn handler(sig) {
 **3. Defer Complex Operations**
 
 ```hemlock
+import { signal, SIGHUP } from "@stdlib/signal";
+
 let pending_reload = false;
 
 fn signal_reload(sig) {
@@ -17942,6 +18363,8 @@ fn careful_handler(sig) {
 ### 1. Graceful Server Shutdown
 
 ```hemlock
+import { signal, SIGINT, SIGTERM } from "@stdlib/signal";
+
 let running = true;
 
 fn shutdown(sig) {
@@ -17964,6 +18387,8 @@ print("Server stopped");
 ### 2. Configuration Reload (Without Restart)
 
 ```hemlock
+import { signal, SIGHUP } from "@stdlib/signal";
+
 let config = load_config("app.conf");
 let reload_needed = false;
 
@@ -17987,6 +18412,8 @@ while (true) {
 ### 3. Log Rotation
 
 ```hemlock
+import { signal, SIGUSR1 } from "@stdlib/signal";
+
 let log_file = open("app.log", "a");
 let rotate_needed = false;
 
@@ -18013,6 +18440,8 @@ while (true) {
 ### 4. Status Reporting
 
 ```hemlock
+import { signal, SIGUSR1 } from "@stdlib/signal";
+
 let requests_handled = 0;
 
 fn report_status(sig) {
@@ -18032,6 +18461,8 @@ while (true) {
 ### 5. Debug Mode Toggle
 
 ```hemlock
+import { signal, SIGUSR2 } from "@stdlib/signal";
+
 let debug_mode = false;
 
 fn toggle_debug(sig) {
@@ -18053,6 +18484,8 @@ signal(SIGUSR2, toggle_debug);
 ### Example 1: Interrupt Handler with Cleanup
 
 ```hemlock
+import { signal, raise, SIGINT, SIGUSR1 } from "@stdlib/signal";
+
 let running = true;
 let signal_count = 0;
 
@@ -18092,6 +18525,8 @@ print("Total signals received: " + typeof(signal_count));
 ### Example 2: Multi-Signal State Machine
 
 ```hemlock
+import { signal, SIGUSR1, SIGUSR2, SIGHUP } from "@stdlib/signal";
+
 let state = "idle";
 let request_count = 0;
 
@@ -18127,6 +18562,8 @@ while (true) {
 ### Example 3: Worker Pool Controller
 
 ```hemlock
+import { signal, SIGUSR1, SIGUSR2, SIGINT, SIGTERM } from "@stdlib/signal";
+
 let worker_count = 4;
 let should_exit = false;
 
@@ -18162,6 +18599,8 @@ while (!should_exit) {
 ### Example 4: Timeout Pattern
 
 ```hemlock
+import { signal, SIGALRM } from "@stdlib/signal";
+
 let operation_complete = false;
 let timed_out = false;
 
@@ -18200,6 +18639,8 @@ if (!operation_complete) {
 ### Add Diagnostic Prints
 
 ```hemlock
+import { signal, SIGINT } from "@stdlib/signal";
+
 fn debug_handler(sig) {
     print("Handler called for signal: " + typeof(sig));
     print("Stack: (not yet available)");
@@ -18226,6 +18667,8 @@ fn counting_handler(sig) {
 ### Test with raise()
 
 ```hemlock
+import { signal, raise, SIGUSR1 } from "@stdlib/signal";
+
 fn test_handler(sig) {
     print("Test signal received: " + typeof(sig));
 }
@@ -18274,7 +18717,7 @@ Common patterns:
 
 # Array API Reference
 
-Complete reference for Hemlock's array type and all 18 array methods.
+Complete reference for Hemlock's array type and all 28 array methods.
 
 ---
 
@@ -18286,7 +18729,7 @@ Arrays in Hemlock are **dynamic, heap-allocated** sequences that can hold mixed 
 - Dynamic sizing (automatic growth)
 - Zero-indexed
 - Mixed types allowed
-- 18 built-in methods
+- 28 built-in methods
 - Heap-allocated with capacity tracking
 
 ---
@@ -18367,6 +18810,60 @@ print(arr.length);     // 3
 ---
 
 ## Array Methods
+
+### Capacity Management
+
+#### reserve
+
+Pre-allocate capacity for future elements without changing the array's length. Useful for avoiding repeated reallocations during bulk inserts.
+
+**Signature:**
+```hemlock
+array.reserve(n: i32): null
+```
+
+**Parameters:**
+- `n` - Number of elements to pre-allocate capacity for
+
+**Returns:** `null`
+
+**Mutates:** Yes (modifies internal capacity, but not length or elements)
+
+**Examples:**
+```hemlock
+let arr = [];
+arr.reserve(1000);
+print(arr.length);     // 0 - reserve doesn't change length
+
+// Push 1000 elements without any reallocation
+for (let i = 0; i < 1000; i++) {
+    arr.push(i);
+}
+print(arr.length);     // 1000
+
+// Reserve on pre-populated array preserves existing elements
+let data = [1, 2, 3];
+data.reserve(1000);
+print(data.length);    // 3
+print(data[0]);        // 1
+
+// Reserve smaller than current capacity is a no-op
+data.reserve(5);
+print(data.length);    // 3 (unchanged)
+
+// Reserve with zero is valid (no-op)
+let empty = [];
+empty.reserve(0);
+print(empty.length);   // 0
+```
+
+**Behavior:**
+- Pre-allocates internal storage for at least `n` elements
+- Does not change the array's length or existing elements
+- If `n` is less than or equal to current capacity, this is a no-op
+- Improves performance when the number of elements to insert is known in advance
+
+---
 
 ### Stack Operations
 
@@ -18575,6 +19072,83 @@ let idx3 = arr2.find(2);     // 1 (first occurrence)
 
 ---
 
+#### findIndex
+
+Find index of first element matching a predicate function.
+
+**Signature:**
+```hemlock
+array.findIndex(predicate: fn): i32
+```
+
+**Parameters:**
+- `predicate` - Function that takes an element and returns a truthy/falsy value
+
+**Returns:** Index of first matching element, or `-1` if no match
+
+**Examples:**
+```hemlock
+let arr = [1, 4, 9, 16, 25];
+let idx = arr.findIndex(fn(x) { return x > 10; });  // 3 (16 > 10)
+let idx2 = arr.findIndex(fn(x) { return x > 100; }); // -1 (none match)
+
+// Find first even number
+let nums = [1, 3, 4, 7, 8];
+let idx3 = nums.findIndex(fn(x) { return x % 2 == 0; }); // 2
+```
+
+**Note:** Unlike `find()` which searches by value equality, `findIndex()` uses a predicate function for custom matching logic.
+
+---
+
+#### indexOf
+
+Find first index of a value, or `-1` if not found.
+
+**Signature:**
+```hemlock
+array.indexOf(value: any): i32
+```
+
+**Parameters:**
+- `value` - Value to search for
+
+**Returns:** Index of first occurrence, or `-1` if not found
+
+**Examples:**
+```hemlock
+let arr = ["a", "b", "c", "b"];
+let idx = arr.indexOf("b");     // 1
+let idx2 = arr.indexOf("z");    // -1 (not found)
+```
+
+**Note:** Behaves identically to `find()` - both use value equality and return the first matching index.
+
+---
+
+#### lastIndexOf
+
+Find last index of a value, searching from the end.
+
+**Signature:**
+```hemlock
+array.lastIndexOf(value: any): i32
+```
+
+**Parameters:**
+- `value` - Value to search for
+
+**Returns:** Index of last occurrence, or `-1` if not found
+
+**Examples:**
+```hemlock
+let arr = ["a", "b", "c", "b", "d"];
+let idx = arr.lastIndexOf("b");  // 3 (last occurrence)
+let idx2 = arr.lastIndexOf("z"); // -1 (not found)
+```
+
+---
+
 #### contains
 
 Check if array contains value.
@@ -18610,12 +19184,12 @@ Extract subarray by range (end exclusive).
 
 **Signature:**
 ```hemlock
-array.slice(start: i32, end: i32): array
+array.slice(start: i32, end?: i32): array
 ```
 
 **Parameters:**
 - `start` - Starting index (0-based, inclusive)
-- `end` - Ending index (exclusive)
+- `end` - Ending index (exclusive). Defaults to `array.length` if omitted.
 
 **Returns:** New array with elements from [start, end)
 
@@ -18627,6 +19201,10 @@ let arr = [1, 2, 3, 4, 5];
 let sub = arr.slice(1, 4);   // [2, 3, 4]
 let first_three = arr.slice(0, 3);  // [1, 2, 3]
 let last_two = arr.slice(3, 5);     // [4, 5]
+
+// Single-arg: from index to end
+let tail = arr.slice(2);     // [3, 4, 5]
+let copy = arr.slice(0);     // [1, 2, 3, 4, 5] (shallow copy)
 
 // Empty slice
 let empty = arr.slice(2, 2); // []
@@ -18859,6 +19437,193 @@ let max = arr.reduce(fn(acc, x) {
 print(max);  // 5
 ```
 
+#### every
+
+Check if all elements satisfy a predicate.
+
+**Signature:**
+```hemlock
+array.every(predicate: fn): bool
+```
+
+**Parameters:**
+- `predicate` - Function that takes an element and returns a truthy/falsy value
+
+**Returns:** `true` if all elements match, `false` otherwise. Empty arrays return `true` (vacuous truth).
+
+**Mutates:** No
+
+**Examples:**
+```hemlock
+let arr = [2, 4, 6, 8];
+let all_even = arr.every(fn(x) { return x % 2 == 0; });
+print(all_even);  // true
+
+let arr2 = [2, 3, 6, 8];
+let all_even2 = arr2.every(fn(x) { return x % 2 == 0; });
+print(all_even2);  // false
+```
+
+---
+
+#### some
+
+Check if any element satisfies a predicate.
+
+**Signature:**
+```hemlock
+array.some(predicate: fn): bool
+```
+
+**Parameters:**
+- `predicate` - Function that takes an element and returns a truthy/falsy value
+
+**Returns:** `true` if any element matches, `false` otherwise. Empty arrays return `false`.
+
+**Mutates:** No
+
+**Examples:**
+```hemlock
+let arr = [1, 3, 5, 6];
+let has_even = arr.some(fn(x) { return x % 2 == 0; });
+print(has_even);  // true
+
+let arr2 = [1, 3, 5, 7];
+let has_even2 = arr2.some(fn(x) { return x % 2 == 0; });
+print(has_even2);  // false
+```
+
+---
+
+#### sort
+
+Sort array in place with optional comparator.
+
+**Signature:**
+```hemlock
+array.sort(compare?: fn): null
+```
+
+**Parameters:**
+- `compare` (optional) - Comparator function taking (a, b), returning negative if a < b, 0 if equal, positive if a > b
+
+**Returns:** `null`
+
+**Mutates:** Yes
+
+**Examples:**
+```hemlock
+let arr = [3, 1, 4, 1, 5];
+arr.sort();
+print(arr);  // [1, 1, 3, 4, 5]
+
+// Custom comparator (descending)
+let arr2 = [3, 1, 4, 1, 5];
+arr2.sort(fn(a, b) { return b - a; });
+print(arr2);  // [5, 4, 3, 1, 1]
+
+// Sort strings
+let words = ["banana", "apple", "cherry"];
+words.sort();
+print(words);  // ["apple", "banana", "cherry"]
+```
+
+**Note:** Default comparison orders by value type, then by value within type. Uses stable insertion sort.
+
+---
+
+#### fill
+
+Fill array elements with a value, optionally within a range.
+
+**Signature:**
+```hemlock
+array.fill(value: any, start?: i32, end?: i32): null
+```
+
+**Parameters:**
+- `value` - Value to fill with
+- `start` (optional) - Start index (default: 0). Negative indices count from end.
+- `end` (optional) - End index, exclusive (default: array length). Negative indices count from end.
+
+**Returns:** `null`
+
+**Mutates:** Yes
+
+**Examples:**
+```hemlock
+let arr = [1, 2, 3, 4, 5];
+arr.fill(0);
+print(arr);  // [0, 0, 0, 0, 0]
+
+let arr2 = [1, 2, 3, 4, 5];
+arr2.fill(9, 1, 4);
+print(arr2);  // [1, 9, 9, 9, 5]
+
+// Negative indices
+let arr3 = [1, 2, 3, 4, 5];
+arr3.fill(0, -2);
+print(arr3);  // [1, 2, 3, 0, 0]
+```
+
+---
+
+#### flat
+
+Flatten one level of nested arrays.
+
+**Signature:**
+```hemlock
+array.flat(): array
+```
+
+**Returns:** New array with nested arrays flattened by one level
+
+**Mutates:** No
+
+**Examples:**
+```hemlock
+let arr = [[1, 2], [3, 4], [5]];
+let flat = arr.flat();
+print(flat);  // [1, 2, 3, 4, 5]
+
+// Non-array elements are kept as-is
+let mixed = [1, [2, 3], 4, [5]];
+let flat2 = mixed.flat();
+print(flat2);  // [1, 2, 3, 4, 5]
+
+// Only flattens one level
+let deep = [[1, [2, 3]], [4]];
+let flat3 = deep.flat();
+print(flat3);  // [1, [2, 3], 4]
+```
+
+---
+
+#### serialize
+
+Convert array to a JSON string representation.
+
+**Signature:**
+```hemlock
+array.serialize(): string
+```
+
+**Returns:** JSON string representation of the array
+
+**Mutates:** No
+
+**Examples:**
+```hemlock
+let arr = [1, 2, 3];
+let json = arr.serialize();
+print(json);  // [1,2,3]
+
+let mixed = ["hello", true, null, 42];
+let json2 = mixed.serialize();
+print(json2);  // ["hello",true,null,42]
+```
+
 ---
 
 ### String Conversion
@@ -18894,7 +19659,18 @@ let arr = ["a", "b", "c"];
 let s = arr.join("");          // "abc"
 ```
 
-**Behavior:** Automatically converts all elements to strings.
+**Behavior:** Automatically converts all elements to strings, including rune values returned by `string.chars()`.
+
+```hemlock
+// Join rune arrays (from chars())
+let chars = "hello".chars();
+print(chars.join("-"));   // "h-e-l-l-o"
+
+// String reversal idiom
+let reversed = "hello".chars();
+reversed.reverse();
+print(reversed.join(""));  // "olleh"
+```
 
 ---
 
@@ -18930,33 +19706,43 @@ let result2 = words
 
 Methods that modify the array in place:
 
-| Method     | Signature                  | Returns   | Description                    |
-|------------|----------------------------|-----------|--------------------------------|
-| `push`     | `(value: any)`             | `null`    | Add to end                     |
-| `pop`      | `()`                       | `any`     | Remove from end                |
-| `shift`    | `()`                       | `any`     | Remove from start              |
-| `unshift`  | `(value: any)`             | `null`    | Add to start                   |
-| `insert`   | `(index: i32, value: any)` | `null`    | Insert at index                |
-| `remove`   | `(index: i32)`             | `any`     | Remove at index                |
-| `reverse`  | `()`                       | `null`    | Reverse in place               |
-| `clear`    | `()`                       | `null`    | Remove all elements            |
+| Method     | Signature                          | Returns   | Description                    |
+|------------|------------------------------------|-----------|--------------------------------|
+| `push`     | `(value: any)`                     | `null`    | Add to end                     |
+| `pop`      | `()`                               | `any`     | Remove from end                |
+| `shift`    | `()`                               | `any`     | Remove from start              |
+| `unshift`  | `(value: any)`                     | `null`    | Add to start                   |
+| `insert`   | `(index: i32, value: any)`         | `null`    | Insert at index                |
+| `remove`   | `(index: i32)`                     | `any`     | Remove at index                |
+| `reverse`  | `()`                               | `null`    | Reverse in place               |
+| `clear`    | `()`                               | `null`    | Remove all elements            |
+| `reserve`  | `(n: i32)`                         | `null`    | Pre-allocate capacity          |
+| `sort`     | `(compare?: fn)`                   | `null`    | Sort in place (optional comparator) |
+| `fill`     | `(value: any, start?: i32, end?: i32)` | `null` | Fill elements with value       |
 
 ### Non-Mutating Methods
 
 Methods that return new values without modifying the original:
 
-| Method     | Signature                  | Returns   | Description                    |
-|------------|----------------------------|-----------|--------------------------------|
-| `find`     | `(value: any)`             | `i32`     | Find first occurrence          |
-| `contains` | `(value: any)`             | `bool`    | Check if contains value        |
-| `slice`    | `(start: i32, end: i32)`   | `array`   | Extract subarray               |
-| `first`    | `()`                       | `any`     | Get first element              |
-| `last`     | `()`                       | `any`     | Get last element               |
-| `concat`   | `(other: array)`           | `array`   | Concatenate arrays             |
-| `join`     | `(delimiter: string)`      | `string`  | Join elements into string      |
-| `map`      | `(callback: fn)`           | `array`   | Transform each element         |
-| `filter`   | `(predicate: fn)`          | `array`   | Select matching elements       |
-| `reduce`   | `(callback: fn, initial: any)` | `any` | Reduce to single value         |
+| Method       | Signature                      | Returns   | Description                          |
+|--------------|--------------------------------|-----------|--------------------------------------|
+| `find`       | `(value: any)`                 | `i32`     | Find first occurrence                |
+| `findIndex`  | `(predicate: fn)`              | `i32`     | Find index by predicate              |
+| `indexOf`    | `(value: any)`                 | `i32`     | Find index of value (-1 if not found)|
+| `lastIndexOf`| `(value: any)`                 | `i32`     | Find last index of value             |
+| `contains`   | `(value: any)`                 | `bool`    | Check if contains value              |
+| `slice`      | `(start: i32, end: i32)`      | `array`   | Extract subarray                     |
+| `first`      | `()`                           | `any`     | Get first element                    |
+| `last`       | `()`                           | `any`     | Get last element                     |
+| `concat`     | `(other: array)`               | `array`   | Concatenate arrays                   |
+| `flat`       | `()`                           | `array`   | Flatten one level of nesting         |
+| `join`       | `(delimiter: string)`          | `string`  | Join elements into string            |
+| `map`        | `(callback: fn)`               | `array`   | Transform each element               |
+| `filter`     | `(predicate: fn)`              | `array`   | Select matching elements             |
+| `reduce`     | `(callback: fn, initial: any)` | `any`     | Reduce to single value               |
+| `every`      | `(predicate: fn)`              | `bool`    | Check if all elements match          |
+| `some`       | `(predicate: fn)`              | `bool`    | Check if any element matches         |
+| `serialize`  | `()`                           | `string`  | Convert to JSON string               |
 
 ---
 
@@ -19042,7 +19828,7 @@ print(arr);  // [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 **Capacity Management:**
 - Arrays automatically grow when needed
 - Capacity doubles when exceeded
-- No manual capacity control
+- Use `reserve(n)` to pre-allocate capacity for bulk inserts
 
 **Value Comparison:**
 - `find()` and `contains()` use value equality
@@ -19069,1181 +19855,309 @@ print(arr);  // [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
 
 # Built-in Functions Reference
 
-Complete reference for all built-in functions and constants in Hemlock.
+Complete reference for all built-in functions and constants in Hemlock v2.0.0.
+
+> **v2.0.0 Breaking Change:** 63 builtins were moved from the global namespace to
+> `@stdlib` modules. Functions like `sin()`, `open()`, `exec()`, `signal()`, and
+> constants like `SIGINT`, `AF_INET` now require imports. See [Moved to Stdlib](#moved-to-stdlib-modules)
+> for the full list.
 
 ---
 
-## Overview
+## Global Builtins (No Import Required)
 
-Hemlock provides a set of built-in functions for I/O, type introspection, memory management, concurrency, and system interaction. All built-ins are available globally without imports.
-
----
-
-## I/O Functions
-
-### print
-
-Print values to stdout with newline.
-
-**Signature:**
-```hemlock
-print(...values): null
-```
-
-**Parameters:**
-- `...values` - Any number of values to print
-
-**Returns:** `null`
-
-**Examples:**
-```hemlock
-print("Hello, World!");
-print(42);
-print(3.14);
-print(true);
-print([1, 2, 3]);
-print({ x: 10, y: 20 });
-
-// Multiple values
-print("x =", 10, "y =", 20);
-```
-
-**Behavior:**
-- Converts all values to strings
-- Separates multiple values with spaces
-- Adds newline at end
-- Flushes stdout
-
----
-
-### read_line
-
-Read a line of text from stdin (user input).
-
-**Signature:**
-```hemlock
-read_line(): string | null
-```
-
-**Parameters:** None
-
-**Returns:**
-- `string` - The line read from stdin (newline stripped)
-- `null` - On EOF (end of file/input)
-
-**Examples:**
-```hemlock
-// Simple prompt
-print("What is your name?");
-let name = read_line();
-print("Hello, " + name + "!");
-
-// Reading numbers (requires manual parsing)
-print("Enter a number:");
-let input = read_line();
-let num = parse_int(input);  // See below for parse_int
-print("Double:", num * 2);
-
-// Handle EOF
-let line = read_line();
-if (line == null) {
-    print("End of input");
-}
-
-// Read multiple lines
-print("Enter lines (Ctrl+D to stop):");
-while (true) {
-    let line = read_line();
-    if (line == null) {
-        break;
-    }
-    print("You said:", line);
-}
-```
-
-**Behavior:**
-- Blocks until user presses Enter
-- Strips trailing newline (`\n`) and carriage return (`\r`)
-- Returns `null` on EOF (Ctrl+D on Unix, Ctrl+Z on Windows)
-- Reads from stdin only (not from files)
-
-**Parsing User Input:**
-
-Since `read_line()` always returns a string, you need to parse numeric input manually:
-
-```hemlock
-// Simple integer parser
-fn parse_int(s: string): i32 {
-    let result: i32 = 0;
-    let negative = false;
-    let i = 0;
-
-    if (s.length > 0 && s.char_at(0) == '-') {
-        negative = true;
-        i = 1;
-    }
-
-    while (i < s.length) {
-        let c = s.char_at(i);
-        let code: i32 = c;
-        if (code >= 48 && code <= 57) {
-            result = result * 10 + (code - 48);
-        } else {
-            break;
-        }
-        i = i + 1;
-    }
-
-    if (negative) {
-        return -result;
-    }
-    return result;
-}
-
-// Usage
-print("Enter your age:");
-let age = parse_int(read_line());
-print("In 10 years you'll be", age + 10);
-```
-
-**See Also:** [File API](#reference-file-api) for reading from files
-
----
-
-### eprint
-
-Print a value to stderr with newline.
-
-**Signature:**
-```hemlock
-eprint(value: any): null
-```
-
-**Parameters:**
-- `value` - Single value to print to stderr
-
-**Returns:** `null`
-
-**Examples:**
-```hemlock
-eprint("Error: file not found");
-eprint(404);
-eprint("Warning: " + message);
-
-// Typical error handling pattern
-fn load_config(path: string) {
-    if (!exists(path)) {
-        eprint("Error: config file not found: " + path);
-        return null;
-    }
-    // ...
-}
-```
-
-**Behavior:**
-- Prints to stderr (standard error stream)
-- Adds newline at end
-- Only accepts one argument (unlike `print`)
-- Useful for error messages that shouldn't mix with normal output
-
-**Difference from print:**
-- `print()` → stdout (normal output, can be redirected with `>`)
-- `eprint()` → stderr (error output, can be redirected with `2>`)
-
-```bash
-# Shell example: separate stdout and stderr
-./hemlock script.hml > output.txt 2> errors.txt
-```
-
----
-
-## Type Introspection
-
-### typeof
-
-Get the type name of a value.
-
-**Signature:**
-```hemlock
-typeof(value: any): string
-```
-
-**Parameters:**
-- `value` - Any value
-
-**Returns:** Type name as string
-
-**Examples:**
-```hemlock
-print(typeof(42));              // "i32"
-print(typeof(3.14));            // "f64"
-print(typeof("hello"));         // "string"
-print(typeof('A'));             // "rune"
-print(typeof(true));            // "bool"
-print(typeof(null));            // "null"
-print(typeof([1, 2, 3]));       // "array"
-print(typeof({ x: 10 }));       // "object"
-
-// Typed objects
-define Person { name: string }
-let p: Person = { name: "Alice" };
-print(typeof(p));               // "Person"
-
-// Other types
-print(typeof(alloc(10)));       // "ptr"
-print(typeof(buffer(10)));      // "buffer"
-print(typeof(open("file.txt"))); // "file"
-```
-
-**Type Names:**
-- Primitives: `"i8"`, `"i16"`, `"i32"`, `"i64"`, `"u8"`, `"u16"`, `"u32"`, `"u64"`, `"f32"`, `"f64"`, `"bool"`, `"string"`, `"rune"`, `"null"`
-- Composites: `"array"`, `"object"`, `"ptr"`, `"buffer"`, `"function"`
-- Special: `"file"`, `"task"`, `"channel"`
-- Custom: User-defined type names from `define`
-
-**See Also:** [Type System](#reference-type-system)
-
----
-
-## Command Execution
-
-### exec
-
-Execute shell command and capture output.
-
-**Signature:**
-```hemlock
-exec(command: string): object
-```
-
-**Parameters:**
-- `command` - Shell command to execute
-
-**Returns:** Object with fields:
-- `output` (string) - Command's stdout
-- `exit_code` (i32) - Exit status code (0 = success)
-
-**Examples:**
-```hemlock
-let result = exec("echo hello");
-print(result.output);      // "hello\n"
-print(result.exit_code);   // 0
-
-// Check exit status
-let r = exec("grep pattern file.txt");
-if (r.exit_code == 0) {
-    print("Found:", r.output);
-} else {
-    print("Pattern not found");
-}
-
-// Process multi-line output
-let r2 = exec("ls -la");
-let lines = r2.output.split("\n");
-```
-
-**Behavior:**
-- Executes command via `/bin/sh`
-- Captures stdout only (stderr goes to terminal)
-- Blocks until command completes
-- Returns empty string if no output
-
-**Error Handling:**
-```hemlock
-try {
-    let r = exec("nonexistent_command");
-} catch (e) {
-    print("Failed to execute:", e);
-}
-```
-
-**Security Warning:** ⚠️ Vulnerable to shell injection. Always validate/sanitize user input.
-
-**Limitations:**
-- No stderr capture
-- No streaming
-- No timeout
-- No signal handling
-
----
-
-### exec_argv
-
-Execute a command with explicit argument array (no shell interpretation).
-
-**Signature:**
-```hemlock
-exec_argv(argv: array): object
-```
-
-**Parameters:**
-- `argv` - Array of strings: `[command, arg1, arg2, ...]`
-
-**Returns:** Object with fields:
-- `output` (string) - Command's stdout
-- `exit_code` (i32) - Exit status code (0 = success)
-
-**Examples:**
-```hemlock
-// Simple command
-let result = exec_argv(["ls", "-la"]);
-print(result.output);
-
-// Command with arguments containing spaces (safe!)
-let r = exec_argv(["grep", "hello world", "file.txt"]);
-
-// Run a script with arguments
-let r2 = exec_argv(["python", "script.py", "--input", "data.json"]);
-print(r2.exit_code);
-```
-
-**Difference from exec:**
-```hemlock
-// exec() uses shell - UNSAFE with user input
-exec("ls " + user_input);  // Shell injection risk!
-
-// exec_argv() bypasses shell - SAFE
-exec_argv(["ls", user_input]);  // No injection possible
-```
-
-**When to use:**
-- When arguments contain spaces, quotes, or special characters
-- When processing user input (security)
-- When you need predictable argument parsing
-
-**See Also:** `exec()` for simple shell commands
-
----
-
-## Error Handling
-
-### throw
-
-Throw an exception.
-
-**Signature:**
-```hemlock
-throw expression
-```
-
-**Parameters:**
-- `expression` - Value to throw (any type)
-
-**Returns:** Never returns (transfers control)
-
-**Examples:**
-```hemlock
-throw "error message";
-throw 404;
-throw { code: 500, message: "Internal error" };
-throw null;
-```
-
-**See Also:** try/catch/finally statements
-
----
-
-### panic
-
-Immediately terminate program with error message (unrecoverable).
-
-**Signature:**
-```hemlock
-panic(message?: any): never
-```
-
-**Parameters:**
-- `message` (optional) - Error message to print
-
-**Returns:** Never returns (program exits)
-
-**Examples:**
-```hemlock
-panic();                          // Default: "panic!"
-panic("unreachable code reached");
-panic(42);
-
-// Common use case
-fn process_state(state: i32): string {
-    if (state == 1) { return "ready"; }
-    if (state == 2) { return "running"; }
-    panic("invalid state: " + typeof(state));
-}
-```
-
-**Behavior:**
-- Prints error to stderr: `panic: <message>`
-- Exits with code 1
-- **NOT catchable** with try/catch
-- Use for bugs and unrecoverable errors
-
-**Panic vs Throw:**
-- `panic()` - Unrecoverable error, exits immediately
-- `throw` - Recoverable error, can be caught
-
----
-
-### assert
-
-Assert that a condition is true, or terminate with an error message.
-
-**Signature:**
-```hemlock
-assert(condition: any, message?: string): null
-```
-
-**Parameters:**
-- `condition` - Value to check for truthiness
-- `message` (optional) - Custom error message if assertion fails
-
-**Returns:** `null` (if assertion passes)
-
-**Examples:**
-```hemlock
-// Basic assertions
-assert(x > 0);
-assert(name != null);
-assert(arr.length > 0, "Array must not be empty");
-
-// With custom messages
-fn divide(a: i32, b: i32): f64 {
-    assert(b != 0, "Division by zero");
-    return a / b;
-}
-
-// Validate function arguments
-fn process_data(data: array) {
-    assert(data != null, "data cannot be null");
-    assert(data.length > 0, "data cannot be empty");
-    // ...
-}
-```
-
-**Behavior:**
-- If condition is truthy: returns `null`, execution continues
-- If condition is falsy: prints error and exits with code 1
-- Falsy values: `false`, `0`, `0.0`, `null`, `""` (empty string)
-- Truthy values: everything else
-
-**Output on failure:**
-```
-Assertion failed: Array must not be empty
-```
-
-**When to use:**
-- Validating function preconditions
-- Checking invariants during development
-- Catching programmer errors early
-
-**assert vs panic:**
-- `assert(cond, msg)` - Checks a condition, fails if false
-- `panic(msg)` - Always fails unconditionally
-
----
-
-## Signal Handling
-
-### signal
-
-Register or reset signal handler.
-
-**Signature:**
-```hemlock
-signal(signum: i32, handler: function | null): function | null
-```
-
-**Parameters:**
-- `signum` - Signal number (use constants like `SIGINT`)
-- `handler` - Function to call when signal received, or `null` to reset to default
-
-**Returns:** Previous handler function, or `null`
-
-**Examples:**
-```hemlock
-fn handle_interrupt(sig) {
-    print("Caught SIGINT!");
-}
-
-signal(SIGINT, handle_interrupt);
-
-// Reset to default
-signal(SIGINT, null);
-```
-
-**Handler Signature:**
-```hemlock
-fn handler(signum: i32) {
-    // signum contains the signal number
-}
-```
-
-**See Also:**
-- [Signal constants](#signal-constants)
-- `raise()`
-
----
-
-### raise
-
-Send signal to current process.
-
-**Signature:**
-```hemlock
-raise(signum: i32): null
-```
-
-**Parameters:**
-- `signum` - Signal number to raise
-
-**Returns:** `null`
-
-**Examples:**
-```hemlock
-let count = 0;
-
-fn increment(sig) {
-    count = count + 1;
-}
-
-signal(SIGUSR1, increment);
-
-raise(SIGUSR1);
-raise(SIGUSR1);
-print(count);  // 2
-```
-
----
-
-## Global Variables
-
-### args
-
-Command-line arguments array.
-
-**Type:** `array` of strings
-
-**Structure:**
-- `args[0]` - Script filename
-- `args[1..n]` - Command-line arguments
-
-**Examples:**
-```bash
-# Command: ./hemlock script.hml hello world
-```
-
-```hemlock
-print(args[0]);        // "script.hml"
-print(args.length);    // 3
-print(args[1]);        // "hello"
-print(args[2]);        // "world"
-
-// Iterate arguments
-let i = 1;
-while (i < args.length) {
-    print("Argument", i, ":", args[i]);
-    i = i + 1;
-}
-```
-
-**REPL Behavior:** In the REPL, `args.length` is 0 (empty array)
-
----
-
-## Signal Constants
-
-Standard POSIX signal constants (i32 values):
-
-### Interrupt & Termination
-
-| Constant   | Value | Description                            |
-|------------|-------|----------------------------------------|
-| `SIGINT`   | 2     | Interrupt from keyboard (Ctrl+C)       |
-| `SIGTERM`  | 15    | Termination request                    |
-| `SIGQUIT`  | 3     | Quit from keyboard (Ctrl+\)            |
-| `SIGHUP`   | 1     | Hangup detected on controlling terminal|
-| `SIGABRT`  | 6     | Abort signal                           |
-
-### User-Defined
-
-| Constant   | Value | Description                |
-|------------|-------|----------------------------|
-| `SIGUSR1`  | 10    | User-defined signal 1      |
-| `SIGUSR2`  | 12    | User-defined signal 2      |
-
-### Process Control
-
-| Constant   | Value | Description                     |
-|------------|-------|---------------------------------|
-| `SIGALRM`  | 14    | Alarm clock timer               |
-| `SIGCHLD`  | 17    | Child process status change     |
-| `SIGCONT`  | 18    | Continue if stopped             |
-| `SIGSTOP`  | 19    | Stop process (cannot be caught) |
-| `SIGTSTP`  | 20    | Terminal stop (Ctrl+Z)          |
+These are available everywhere without any `import` statement.
 
 ### I/O
 
-| Constant   | Value | Description                        |
-|------------|-------|------------------------------------|
-| `SIGPIPE`  | 13    | Broken pipe                        |
-| `SIGTTIN`  | 21    | Background read from terminal      |
-| `SIGTTOU`  | 22    | Background write to terminal       |
+| Function | Description |
+|----------|-------------|
+| `print(value, ...)` | Print values to stdout with newline |
+| `write(value)` | Print value to stdout without newline (flushes immediately) |
+| `eprint(value, ...)` | Print values to stderr with newline |
+| `read_line()` | Read a line from stdin; returns `string` or `null` on EOF |
 
-**Examples:**
 ```hemlock
-fn handle_signal(sig) {
-    if (sig == SIGINT) {
-        print("Interrupt detected");
-    }
-    if (sig == SIGTERM) {
-        print("Termination requested");
-    }
-}
-
-signal(SIGINT, handle_signal);
-signal(SIGTERM, handle_signal);
+print("Hello", "world");    // Hello world\n
+write("no newline");        // no newline (no \n)
+eprint("error!");           // -> stderr
+let name = read_line();     // blocks until input
 ```
 
-**Note:** `SIGKILL` (9) and `SIGSTOP` (19) cannot be caught or ignored.
+### Memory Management
 
----
+| Function | Description |
+|----------|-------------|
+| `alloc(size)` | Allocate `size` bytes of raw memory, returns `ptr` |
+| `talloc(type, count)` | Type-aware allocation: `talloc(i32, 10)` allocates 10 i32s |
+| `realloc(ptr, new_size)` | Resize previously allocated memory |
+| `free(ptr)` | Free allocated memory |
+| `memset(ptr, value, size)` | Set `size` bytes to `value` |
+| `memcpy(dest, src, size)` | Copy `size` bytes from `src` to `dest` |
+| `buffer(size)` | Create a bounds-checked buffer of `size` bytes |
 
-## Math/Arithmetic Functions
-
-### div
-
-Floor division returning a float.
-
-**Signature:**
 ```hemlock
-div(a: number, b: number): f64
+let p = alloc(64);       // raw pointer, no bounds checking
+let b = buffer(64);      // safe buffer, bounds checked
+memset(p, 0, 64);
+memcpy(b, p, 64);
+free(p);                 // manual cleanup
 ```
 
-**Parameters:**
-- `a` - Dividend
-- `b` - Divisor
+### Type System
 
-**Returns:** Floor of `a / b` as a float (f64)
+| Function | Description |
+|----------|-------------|
+| `typeof(value)` | Returns type name as string (`"i32"`, `"string"`, etc.) |
+| `typeid(value)` | Returns type as integer constant (faster than `typeof()` for comparisons) |
+| `sizeof(type)` | Returns byte size of a type (`sizeof(i32)` → 4) |
 
-**Examples:**
+**Type constructors** (used for conversion and typed allocation):
+
+`i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `f32`, `f64`, `bool`, `rune`, `ptr`
+
+**Type aliases:** `integer` (i32), `number` (f64), `byte` (u8)
+
+**TYPEID constants** (for use with `typeid()`):
+
+| Constant | Value | Constant | Value |
+|----------|-------|----------|-------|
+| `TYPEID_I8` | 0 | `TYPEID_STRING` | 11 |
+| `TYPEID_I16` | 1 | `TYPEID_RUNE` | 12 |
+| `TYPEID_I32` | 2 | `TYPEID_PTR` | 13 |
+| `TYPEID_I64` | 3 | `TYPEID_BUFFER` | 14 |
+| `TYPEID_U8` | 4 | `TYPEID_ARRAY` | 15 |
+| `TYPEID_U16` | 5 | `TYPEID_OBJECT` | 16 |
+| `TYPEID_U32` | 6 | `TYPEID_FILE` | 17 |
+| `TYPEID_U64` | 7 | `TYPEID_FUNCTION` | 18 |
+| `TYPEID_F32` | 8 | `TYPEID_TASK` | 19 |
+| `TYPEID_F64` | 9 | `TYPEID_CHANNEL` | 20 |
+| `TYPEID_BOOL` | 10 | `TYPEID_NULL` | 21 |
+
 ```hemlock
-let result = div(7, 2);    // 3.0 (not 3.5)
-let result2 = div(10, 3);  // 3.0
-let result3 = div(-7, 2);  // -4.0 (floor rounds toward negative infinity)
-```
+typeof(42);         // "i32"
+typeof("hello");    // "string"
+sizeof(i64);        // 8
+let n = i32("42");  // parse string to i32
 
-**Note:** In Hemlock, the `/` operator always returns a float. Use `div()` for floor division when you need the integer part as a float, or `divi()` when you need an integer result.
-
----
-
-### divi
-
-Floor division returning an integer.
-
-**Signature:**
-```hemlock
-divi(a: number, b: number): i64
-```
-
-**Parameters:**
-- `a` - Dividend
-- `b` - Divisor
-
-**Returns:** Floor of `a / b` as an integer (i64)
-
-**Examples:**
-```hemlock
-let result = divi(7, 2);    // 3
-let result2 = divi(10, 3);  // 3
-let result3 = divi(-7, 2);  // -4 (floor rounds toward negative infinity)
-```
-
-**Comparison:**
-```hemlock
-print(7 / 2);      // 3.5 (regular division, always float)
-print(div(7, 2));  // 3.0 (floor division, float result)
-print(divi(7, 2)); // 3   (floor division, integer result)
-```
-
----
-
-## Memory Management Functions
-
-See [Memory API](#reference-memory-api) for complete reference:
-- `alloc(size)` - Allocate raw memory
-- `free(ptr)` - Free memory
-- `buffer(size)` - Allocate safe buffer
-- `memset(ptr, byte, size)` - Fill memory
-- `memcpy(dest, src, size)` - Copy memory
-- `realloc(ptr, new_size)` - Resize allocation
-
-### sizeof
-
-Get the size of a type in bytes.
-
-**Signature:**
-```hemlock
-sizeof(type): i32
-```
-
-**Parameters:**
-- `type` - A type constant (`i32`, `f64`, `ptr`, etc.) or type name string
-
-**Returns:** Size in bytes as `i32`
-
-**Examples:**
-```hemlock
-print(sizeof(i8));       // 1
-print(sizeof(i16));      // 2
-print(sizeof(i32));      // 4
-print(sizeof(i64));      // 8
-print(sizeof(f32));      // 4
-print(sizeof(f64));      // 8
-print(sizeof(ptr));      // 8
-print(sizeof(rune));     // 4
-
-// Using type aliases
-print(sizeof(byte));     // 1 (same as u8)
-print(sizeof(integer));  // 4 (same as i32)
-print(sizeof(number));   // 8 (same as f64)
-
-// String form also works
-print(sizeof("i32"));    // 4
-```
-
-**Supported Types:**
-| Type | Size | Aliases |
-|------|------|---------|
-| `i8` | 1 | - |
-| `i16` | 2 | - |
-| `i32` | 4 | `integer` |
-| `i64` | 8 | - |
-| `u8` | 1 | `byte` |
-| `u16` | 2 | - |
-| `u32` | 4 | - |
-| `u64` | 8 | - |
-| `f32` | 4 | - |
-| `f64` | 8 | `number` |
-| `ptr` | 8 | - |
-| `rune` | 4 | - |
-| `bool` | 1 | - |
-
-**See Also:** `talloc()` for typed allocation
-
----
-
-### talloc
-
-Allocate memory for a typed array (type-aware allocation).
-
-**Signature:**
-```hemlock
-talloc(type, count: i32): ptr
-```
-
-**Parameters:**
-- `type` - A type constant (`i32`, `f64`, `ptr`, etc.)
-- `count` - Number of elements to allocate
-
-**Returns:** `ptr` to allocated memory, or `null` on failure
-
-**Examples:**
-```hemlock
-// Allocate array of 10 i32s (40 bytes)
-let int_arr = talloc(i32, 10);
-ptr_write_i32(int_arr, 42);
-ptr_write_i32(ptr_offset(int_arr, 1, 4), 100);
-
-// Allocate array of 5 f64s (40 bytes)
-let float_arr = talloc(f64, 5);
-
-// Allocate array of 100 bytes
-let byte_arr = talloc(u8, 100);
-
-// Don't forget to free!
-free(int_arr);
-free(float_arr);
-free(byte_arr);
-```
-
-**Comparison with alloc:**
-```hemlock
-// These are equivalent:
-let p1 = talloc(i32, 10);      // Type-aware: 10 i32s
-let p2 = alloc(sizeof(i32) * 10);  // Manual calculation
-
-// talloc is clearer and less error-prone
-```
-
-**Error Handling:**
-- Returns `null` if allocation fails
-- Exits with error if count is not positive
-- Checks for size overflow (count * element_size)
-
-**See Also:** `alloc()`, `sizeof()`, `free()`
-
----
-
-## FFI Pointer Helpers
-
-These functions help read and write typed values to raw memory, useful for FFI and low-level memory manipulation.
-
-### ptr_null
-
-Create a null pointer.
-
-**Signature:**
-```hemlock
-ptr_null(): ptr
-```
-
-**Returns:** A null pointer
-
-**Example:**
-```hemlock
-let p = ptr_null();
-if (p == null) {
-    print("Pointer is null");
+// typeid() returns an integer - faster than typeof() string comparisons
+typeid(42);                          // 2 (TYPEID_I32)
+typeid(42) == TYPEID_I32;            // true
+let tid = typeid(val);
+if (tid == TYPEID_I32 || tid == TYPEID_I64) {
+    print("integer type");
 }
 ```
 
----
+### Control Flow
 
-### ptr_offset
+| Function | Description |
+|----------|-------------|
+| `assert(condition, message?)` | Panic if condition is false |
+| `panic(message)` | Immediate unrecoverable exit (not catchable by try/catch) |
 
-Calculate pointer offset (pointer arithmetic).
-
-**Signature:**
 ```hemlock
-ptr_offset(ptr: ptr, index: i32, element_size: i32): ptr
+assert(x > 0, "x must be positive");
+panic("unrecoverable error");
 ```
 
-**Parameters:**
-- `ptr` - Base pointer
-- `index` - Element index
-- `element_size` - Size of each element in bytes
+### Concurrency
 
-**Returns:** Pointer to the element at the given index
+| Function | Description |
+|----------|-------------|
+| `spawn(fn, args...)` | Spawn an async task, returns task handle |
+| `spawn_with(options, fn, args...)` | Spawn with per-thread config (`stack_size` in bytes, `name` string max 16 chars) |
+| `join(task)` | Wait for task completion, returns result |
+| `detach(task)` | Let task run independently (fire and forget) |
+| `channel(capacity?)` | Create a communication channel (0 = unbuffered) |
+| `select(channels)` | Wait on multiple channels |
+| `apply(fn, args_array)` | Call function with array of arguments |
 
-**Example:**
 ```hemlock
-let arr = talloc(i32, 10);
-ptr_write_i32(arr, 100);                      // arr[0] = 100
-ptr_write_i32(ptr_offset(arr, 1, 4), 200);    // arr[1] = 200
-ptr_write_i32(ptr_offset(arr, 2, 4), 300);    // arr[2] = 300
+let task = spawn(fn(n) { return n * n; }, 42);
+let result = join(task);  // 1764
 
-print(ptr_read_i32(ptr_offset(arr, 1, 4)));   // 200
-free(arr);
+let ch = channel(10);
+ch.send("hello");
+let msg = ch.recv();
 ```
 
----
+### Pointer / FFI Helpers
 
-### Pointer Read Functions
+These are global because they're low-level primitives used with `alloc`/`free`.
 
-Read typed values from memory.
+| Function | Description |
+|----------|-------------|
+| `ptr_offset(ptr, bytes)` | Offset a pointer by bytes |
+| `ptr_null()` | Get a null pointer |
+| `ptr_to_buffer(ptr, size)` | Wrap a pointer in a bounds-checked buffer |
+| `buffer_ptr(buffer)` | Get the raw pointer from a buffer |
 
-| Function | Signature | Returns | Description |
-|----------|-----------|---------|-------------|
-| `ptr_read_i8` | `(ptr)` | `i8` | Read signed 8-bit integer |
-| `ptr_read_i16` | `(ptr)` | `i16` | Read signed 16-bit integer |
-| `ptr_read_i32` | `(ptr)` | `i32` | Read signed 32-bit integer |
-| `ptr_read_i64` | `(ptr)` | `i64` | Read signed 64-bit integer |
-| `ptr_read_u8` | `(ptr)` | `u8` | Read unsigned 8-bit integer |
-| `ptr_read_u16` | `(ptr)` | `u16` | Read unsigned 16-bit integer |
-| `ptr_read_u32` | `(ptr)` | `u32` | Read unsigned 32-bit integer |
-| `ptr_read_u64` | `(ptr)` | `u64` | Read unsigned 64-bit integer |
-| `ptr_read_f32` | `(ptr)` | `f32` | Read 32-bit float |
-| `ptr_read_f64` | `(ptr)` | `f64` | Read 64-bit float |
-| `ptr_read_ptr` | `(ptr)` | `ptr` | Read pointer value |
+**Pointer read/write/deref** for all numeric types and `ptr`:
 
-**Example:**
+```
+ptr_read_i8, ptr_read_i16, ptr_read_i32, ptr_read_i64
+ptr_read_u8, ptr_read_u16, ptr_read_u32, ptr_read_u64
+ptr_read_f32, ptr_read_f64, ptr_read_ptr
+
+ptr_write_i8, ptr_write_i16, ptr_write_i32, ptr_write_i64
+ptr_write_u8, ptr_write_u16, ptr_write_u32, ptr_write_u64
+ptr_write_f32, ptr_write_f64, ptr_write_ptr
+
+ptr_deref_i8, ptr_deref_i16, ptr_deref_i32, ptr_deref_i64
+ptr_deref_u8, ptr_deref_u16, ptr_deref_u32, ptr_deref_u64
+ptr_deref_f32, ptr_deref_f64, ptr_deref_ptr
+```
+
+All `ptr_read_*`, `ptr_write_*`, and `ptr_deref_*` functions accept both `ptr` and `buffer` types directly:
+
 ```hemlock
 let p = alloc(8);
-ptr_write_f64(p, 3.14159);
-let value = ptr_read_f64(p);
-print(value);  // 3.14159
-free(p);
-```
-
----
-
-### Pointer Write Functions
-
-Write typed values to memory.
-
-| Function | Signature | Returns | Description |
-|----------|-----------|---------|-------------|
-| `ptr_write_i8` | `(ptr, value)` | `null` | Write signed 8-bit integer |
-| `ptr_write_i16` | `(ptr, value)` | `null` | Write signed 16-bit integer |
-| `ptr_write_i32` | `(ptr, value)` | `null` | Write signed 32-bit integer |
-| `ptr_write_i64` | `(ptr, value)` | `null` | Write signed 64-bit integer |
-| `ptr_write_u8` | `(ptr, value)` | `null` | Write unsigned 8-bit integer |
-| `ptr_write_u16` | `(ptr, value)` | `null` | Write unsigned 16-bit integer |
-| `ptr_write_u32` | `(ptr, value)` | `null` | Write unsigned 32-bit integer |
-| `ptr_write_u64` | `(ptr, value)` | `null` | Write unsigned 64-bit integer |
-| `ptr_write_f32` | `(ptr, value)` | `null` | Write 32-bit float |
-| `ptr_write_f64` | `(ptr, value)` | `null` | Write 64-bit float |
-| `ptr_write_ptr` | `(ptr, value)` | `null` | Write pointer value |
-
-**Example:**
-```hemlock
-let p = alloc(4);
 ptr_write_i32(p, 42);
-print(ptr_read_i32(p));  // 42
+let val = ptr_read_i32(p);  // 42
+let p2 = ptr_offset(p, 4);
+ptr_write_i32(p2, 99);
 free(p);
+
+// Also works directly with buffers (no buffer_ptr() needed)
+let buf = buffer(8);
+ptr_write_i32(buf, 42);
+let bval = ptr_read_i32(buf);  // 42
 ```
 
 ---
 
-### Buffer/Pointer Conversion
+## Moved to Stdlib Modules
 
-#### buffer_ptr
+These builtins were moved in v2.0.0 and now require imports.
 
-Get raw pointer from a buffer.
+### `@stdlib/math`
 
-**Signature:**
 ```hemlock
-buffer_ptr(buf: buffer): ptr
+import { sin, cos, sqrt, floor, PI } from "@stdlib/math";
 ```
 
-**Example:**
+**Functions:** `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `sqrt`, `pow`, `exp`, `log`, `log10`, `log2`, `floor`, `ceil`, `round`, `trunc`, `floori`, `ceili`, `roundi`, `trunci`, `div`, `divi`, `abs`, `min`, `max`, `clamp`, `rand`, `rand_range`, `seed`
+
+**Constants:** `PI`, `E`, `TAU`, `INF`, `NAN`
+
+### `@stdlib/env`
+
 ```hemlock
-let buf = buffer(64);
-let p = buffer_ptr(buf);
-// Now p points to the same memory as buf
+import { getenv, setenv } from "@stdlib/env";
 ```
 
-#### ptr_to_buffer
+**Functions:** `getenv`, `setenv`, `unsetenv`, `get_pid`, `exit`
 
-Create a buffer wrapper around a raw pointer.
+### `@stdlib/signal`
 
-**Signature:**
 ```hemlock
-ptr_to_buffer(ptr: ptr, size: i32): buffer
+import { signal, raise, SIGUSR1 } from "@stdlib/signal";
 ```
 
-**Example:**
+**Functions:** `signal`, `raise`
+
+**Constants:** `SIGINT`, `SIGTERM`, `SIGHUP`, `SIGQUIT`, `SIGABRT`, `SIGUSR1`, `SIGUSR2`, `SIGALRM`, `SIGCHLD`, `SIGPIPE`, `SIGCONT`, `SIGSTOP`, `SIGTSTP`, `SIGTTIN`, `SIGTTOU`
+
+### `@stdlib/net`
+
 ```hemlock
-let p = alloc(64);
-let buf = ptr_to_buffer(p, 64);
-buf[0] = 65;  // Now has bounds checking
-// Note: freeing buf will free the underlying memory
+import { AF_INET, SOCK_STREAM, socket_create } from "@stdlib/net";
 ```
+
+**Functions:** `socket_create`, `dns_resolve`, `poll`
+
+**Constants:** `AF_INET`, `AF_INET6`, `SOCK_STREAM`, `SOCK_DGRAM`, `IPPROTO_TCP`, `IPPROTO_UDP`, `SOL_SOCKET`, `SO_REUSEADDR`, `SO_KEEPALIVE`, `SO_RCVTIMEO`, `SO_SNDTIMEO`, `POLLIN`, `POLLOUT`, `POLLERR`, `POLLHUP`, `POLLNVAL`, `POLLPRI`
+
+### `@stdlib/process`
+
+```hemlock
+import { exec, fork, kill } from "@stdlib/process";
+```
+
+**Functions:** `exec`, `exec_argv`, `fork`, `wait`, `waitpid`, `kill`, `abort`, `exit`, `get_pid`, `getppid`, `getuid`, `geteuid`, `getgid`, `getegid`
+
+### `@stdlib/fs`
+
+```hemlock
+import { open, read_file } from "@stdlib/fs";
+```
+
+**Functions:** `open`, `read_file`, `write_file`, `append_file`, `remove_file`, `rename`, `copy_file`, `is_file`, `is_dir`, `file_stat`, `make_dir`, `remove_dir`, `list_dir`, `cwd`, `chdir`, `absolute_path`, `exists`
+
+### `@stdlib/time`
+
+```hemlock
+import { now, sleep } from "@stdlib/time";
+```
+
+**Functions:** `now`, `time_ms`, `sleep`, `clock`
+
+### `@stdlib/atomic`
+
+```hemlock
+import { atomic_load_i32, atomic_cas_i32, atomic_fence } from "@stdlib/atomic";
+```
+
+**Functions (i32):** `atomic_load_i32`, `atomic_store_i32`, `atomic_add_i32`, `atomic_sub_i32`, `atomic_and_i32`, `atomic_or_i32`, `atomic_xor_i32`, `atomic_cas_i32`, `atomic_exchange_i32`
+
+**Functions (i64):** `atomic_load_i64`, `atomic_store_i64`, `atomic_add_i64`, `atomic_sub_i64`, `atomic_and_i64`, `atomic_or_i64`, `atomic_xor_i64`, `atomic_cas_i64`, `atomic_exchange_i64`
+
+**Functions:** `atomic_fence`
+
+### `@stdlib/debug`
+
+```hemlock
+import { task_debug_info, set_stack_limit } from "@stdlib/debug";
+```
+
+**Functions:** `task_debug_info`, `set_stack_limit`, `get_stack_limit`
+
+### `@stdlib/ffi`
+
+```hemlock
+import { callback, callback_free } from "@stdlib/ffi";
+```
+
+**Functions:** `callback`, `callback_free`
+
+### `@stdlib/strings`
+
+```hemlock
+import { string_concat_many } from "@stdlib/strings";
+```
+
+**Functions:** `string_concat_many`
 
 ---
 
-## File I/O Functions
+## Migration Guide (v1.x → v2.0.0)
 
-See [File API](#reference-file-api) for complete reference:
-- `open(path, mode?)` - Open file
-
----
-
-## Concurrency Functions
-
-See [Concurrency API](#reference-concurrency-api) for complete reference:
-- `spawn(fn, args...)` - Spawn task
-- `join(task)` - Wait for task
-- `detach(task)` - Detach task
-- `channel(capacity)` - Create channel
-
-### apply
-
-Call a function dynamically with an array of arguments.
-
-**Signature:**
+### Before (v1.x)
 ```hemlock
-apply(fn: function, args: array): any
+let x = sin(PI / 2);
+let pid = get_pid();
+signal(SIGUSR1, handler);
+let f = open("file.txt", "r");
+let r = exec("echo hello");
 ```
 
-**Parameters:**
-- `fn` - The function to call
-- `args` - Array of arguments to pass to the function
-
-**Returns:** The return value of the called function
-
-**Examples:**
+### After (v2.0.0)
 ```hemlock
-fn add(a, b) {
-    return a + b;
-}
+import { sin, PI } from "@stdlib/math";
+import { get_pid } from "@stdlib/env";
+import { signal, SIGUSR1 } from "@stdlib/signal";
+import { open } from "@stdlib/fs";
+import { exec } from "@stdlib/process";
 
-// Call with array of arguments
-let result = apply(add, [2, 3]);
-print(result);  // 5
-
-// Dynamic dispatch
-let operations = {
-    add: fn(a, b) { return a + b; },
-    mul: fn(a, b) { return a * b; },
-    sub: fn(a, b) { return a - b; }
-};
-
-fn calculate(op: string, args: array) {
-    return apply(operations[op], args);
-}
-
-print(calculate("add", [10, 5]));  // 15
-print(calculate("mul", [10, 5]));  // 50
-print(calculate("sub", [10, 5]));  // 5
-
-// Variable arguments
-fn sum(...nums) {
-    let total = 0;
-    for (n in nums) {
-        total = total + n;
-    }
-    return total;
-}
-
-let numbers = [1, 2, 3, 4, 5];
-print(apply(sum, numbers));  // 15
+let x = sin(PI / 2);
+let pid = get_pid();
+signal(SIGUSR1, handler);
+let f = open("file.txt", "r");
+let r = exec("echo hello");
 ```
 
-**Use Cases:**
-- Dynamic function dispatch based on runtime values
-- Calling functions with variable argument lists
-- Implementing higher-order utilities (map, filter, etc.)
-- Plugin/extension systems
-
----
-
-### select
-
-Wait for data from multiple channels, returning when any has data.
-
-**Signature:**
-```hemlock
-select(channels: array, timeout_ms?: i32): object | null
-```
-
-**Parameters:**
-- `channels` - Array of channel values
-- `timeout_ms` (optional) - Timeout in milliseconds (-1 or omit for infinite)
-
-**Returns:**
-- `{ channel, value }` - Object with the channel that had data and the received value
-- `null` - On timeout
-
-**Examples:**
-```hemlock
-let ch1 = channel(1);
-let ch2 = channel(1);
-
-// Producer tasks
-spawn(fn() {
-    sleep(100);
-    ch1.send("from channel 1");
-});
-
-spawn(fn() {
-    sleep(50);
-    ch2.send("from channel 2");
-});
-
-// Wait for first message
-let result = select([ch1, ch2]);
-print(result.value);  // "from channel 2" (arrived first)
-
-// With timeout
-let result2 = select([ch1, ch2], 1000);  // Wait up to 1 second
-if (result2 == null) {
-    print("Timeout - no data received");
-} else {
-    print("Received:", result2.value);
-}
-
-// Continuous select loop
-while (true) {
-    let msg = select([ch1, ch2], 5000);
-    if (msg == null) {
-        print("No activity for 5 seconds");
-        break;
-    }
-    print("Got message:", msg.value);
-}
-```
-
-**Behavior:**
-- Blocks until one channel has data or timeout expires
-- Returns immediately if a channel already has data
-- If channel is closed and empty, returns `{ channel, value: null }`
-- Polls channels in order (first ready channel wins)
-
-**Use Cases:**
-- Multiplexing multiple producers
-- Implementing timeouts on channel operations
-- Building event loops with multiple sources
-
----
-
-## Summary Table
-
-### Functions
-
-| Function   | Category        | Returns      | Description                     |
-|------------|-----------------|--------------|----------------------------------|
-| `print`    | I/O             | `null`       | Print to stdout                  |
-| `read_line`| I/O             | `string?`    | Read line from stdin             |
-| `eprint`   | I/O             | `null`       | Print to stderr                  |
-| `typeof`   | Type            | `string`     | Get type name                    |
-| `exec`     | Command         | `object`     | Execute shell command            |
-| `exec_argv`| Command         | `object`     | Execute with argument array      |
-| `assert`   | Error           | `null`       | Assert condition or exit         |
-| `panic`    | Error           | `never`      | Unrecoverable error (exits)      |
-| `signal`   | Signal          | `function?`  | Register signal handler          |
-| `raise`    | Signal          | `null`       | Send signal to process           |
-| `alloc`    | Memory          | `ptr`        | Allocate raw memory              |
-| `talloc`   | Memory          | `ptr`        | Typed allocation                 |
-| `sizeof`   | Memory          | `i32`        | Get type size in bytes           |
-| `free`     | Memory          | `null`       | Free memory                      |
-| `buffer`   | Memory          | `buffer`     | Allocate safe buffer             |
-| `memset`   | Memory          | `null`       | Fill memory                      |
-| `memcpy`   | Memory          | `null`       | Copy memory                      |
-| `realloc`  | Memory          | `ptr`        | Resize allocation                |
-| `open`     | File I/O        | `file`       | Open file                        |
-| `spawn`    | Concurrency     | `task`       | Spawn concurrent task            |
-| `join`     | Concurrency     | `any`        | Wait for task result             |
-| `detach`   | Concurrency     | `null`       | Detach task                      |
-| `channel`  | Concurrency     | `channel`    | Create communication channel     |
-| `select`   | Concurrency     | `object?`    | Wait on multiple channels        |
-| `apply`    | Functions       | `any`        | Call function with args array    |
-
-### Global Variables
-
-| Variable   | Type     | Description                       |
-|------------|----------|-----------------------------------|
-| `args`     | `array`  | Command-line arguments            |
-
-### Constants
-
-| Constant   | Type  | Category | Value | Description               |
-|------------|-------|----------|-------|---------------------------|
-| `SIGINT`   | `i32` | Signal   | 2     | Keyboard interrupt        |
-| `SIGTERM`  | `i32` | Signal   | 15    | Termination request       |
-| `SIGQUIT`  | `i32` | Signal   | 3     | Keyboard quit             |
-| `SIGHUP`   | `i32` | Signal   | 1     | Hangup                    |
-| `SIGABRT`  | `i32` | Signal   | 6     | Abort                     |
-| `SIGUSR1`  | `i32` | Signal   | 10    | User-defined 1            |
-| `SIGUSR2`  | `i32` | Signal   | 12    | User-defined 2            |
-| `SIGALRM`  | `i32` | Signal   | 14    | Alarm timer               |
-| `SIGCHLD`  | `i32` | Signal   | 17    | Child status change       |
-| `SIGCONT`  | `i32` | Signal   | 18    | Continue                  |
-| `SIGSTOP`  | `i32` | Signal   | 19    | Stop (uncatchable)        |
-| `SIGTSTP`  | `i32` | Signal   | 20    | Terminal stop             |
-| `SIGPIPE`  | `i32` | Signal   | 13    | Broken pipe               |
-| `SIGTTIN`  | `i32` | Signal   | 21    | Background terminal read  |
-| `SIGTTOU`  | `i32` | Signal   | 22    | Background terminal write |
-
----
-
-## See Also
-
-- [Type System](#reference-type-system) - Types and conversions
-- [Memory API](#reference-memory-api) - Memory allocation functions
-- [File API](#reference-file-api) - File I/O functions
-- [Concurrency API](#reference-concurrency-api) - Async/concurrency functions
-- [String API](#reference-string-api) - String methods
-- [Array API](#reference-array-api) - Array methods
+The function calls themselves are identical — only the imports change.
 
 
 --------------------------------------------------------------------------------
@@ -20317,7 +20231,7 @@ async fn process_data(data: string) {
 - Can be spawned as concurrent task (runs on new thread)
 - When spawned, runs on its own OS thread
 
-**Note:** The `await` keyword is reserved for future use but not currently implemented.
+**Note:** The `await` keyword works as an alias for `join()` — it awaits task completion and returns the result. If used on a non-task value, it returns the value as-is.
 
 ---
 
@@ -20371,6 +20285,67 @@ let r3 = join(t3);
 - Starts executing function immediately
 - Returns task handle for later joining
 - Tasks run in parallel on separate CPU cores
+
+---
+
+### spawn_with
+
+Create and start a new concurrent task with per-thread configuration options.
+
+**Signature:**
+```hemlock
+spawn_with(options: object, async_fn: function, ...args): task
+```
+
+**Parameters:**
+- `options` - Configuration object with optional fields:
+  - `stack_size` - Stack size in bytes for the new thread (default: 16 MB)
+  - `name` - Thread name string (max 16 characters)
+- `async_fn` - Async function to execute
+- `...args` - Arguments to pass to function
+
+**Returns:** Task handle
+
+**Examples:**
+```hemlock
+async fn compute(n: i32): i32 {
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+        sum = sum + i;
+    }
+    return sum;
+}
+
+// Custom stack size (8 MB)
+let t1 = spawn_with({ stack_size: 8 * 1024 * 1024 }, compute, 1000);
+let r1 = join(t1);
+
+// Named thread
+let t2 = spawn_with({ name: "worker-1" }, compute, 500);
+let r2 = join(t2);
+
+// Both options
+let t3 = spawn_with({ stack_size: 16 * 1024 * 1024, name: "compute-3" }, compute, 100);
+let r3 = join(t3);
+
+// Empty options (uses defaults - same as spawn())
+let t4 = spawn_with({}, compute, 50);
+let r4 = join(t4);
+
+// Multiple function arguments
+async fn add(a, b) { return a + b; }
+let t5 = spawn_with({ name: "adder" }, add, 100, 200);
+print(join(t5));  // 300
+```
+
+**Behavior:**
+- Creates new OS thread with the specified configuration
+- `stack_size` controls the thread's stack allocation (useful for deeply recursive tasks)
+- `name` sets the thread name (visible in debuggers/profilers; truncated to 16 characters)
+- Passing `{}` for options is equivalent to calling `spawn()`
+- Returns task handle for later joining, same as `spawn()`
+
+**See Also:** `get_default_stack_size()` / `set_default_stack_size()` in `@stdlib/async` for changing the default stack size for all `spawn()` calls.
 
 ---
 
@@ -20859,7 +20834,6 @@ let parallel_time = get_time() - start2;
 
 ## Limitations
 
-- No `select()` for multiplexing multiple channels
 - No work-stealing scheduler (1 thread per task)
 - No async I/O integration (file/network operations block)
 - Channel capacity fixed at creation time
@@ -20870,12 +20844,13 @@ let parallel_time = get_time() - start2;
 
 ### Functions
 
-| Function  | Signature                         | Returns   | Description                    |
-|-----------|-----------------------------------|-----------|--------------------------------|
-| `spawn`   | `(async_fn: function, ...args)`   | `task`    | Create and start concurrent task|
-| `join`    | `(task: task)`                    | `any`     | Wait for task, get result      |
-| `detach`  | `(task: task)`                    | `null`    | Detach task (fire-and-forget)  |
-| `channel` | `(capacity: i32)`                 | `channel` | Create thread-safe channel     |
+| Function  | Signature                                    | Returns   | Description                    |
+|-----------|----------------------------------------------|-----------|--------------------------------|
+| `spawn`   | `(async_fn: function, ...args)`              | `task`    | Create and start concurrent task|
+| `spawn_with` | `(options: object, async_fn: function, ...args)` | `task` | Spawn with per-thread config (stack_size, name) |
+| `join`    | `(task: task)`                               | `any`     | Wait for task, get result      |
+| `detach`  | `(task: task)`                               | `null`    | Detach task (fire-and-forget)  |
+| `channel` | `(capacity: i32)`                            | `channel` | Create thread-safe channel     |
 
 ### Channel Methods
 
@@ -21991,6 +21966,32 @@ let total = sizeof(i32) * count; // 400 bytes
 
 ---
 
+## Pointer/Buffer Interoperability
+
+All `ptr_read_*`, `ptr_write_*`, and `ptr_deref_*` builtins accept both `ptr` and `buffer` types directly. When a buffer is passed, the operation uses the buffer's underlying data pointer.
+
+```hemlock
+let buf = buffer(16);
+
+// Write directly to a buffer (no need to extract ptr first)
+ptr_write_i32(buf, 42);
+ptr_write_f64(ptr_offset(buffer_ptr(buf), 4), 3.14);
+
+// Read directly from a buffer
+let val = ptr_read_i32(buf);      // 42
+let fval = ptr_deref_i32(buf);    // 42
+
+// Also works with raw pointers as before
+let p = alloc(8);
+ptr_write_i32(p, 99);
+let pval = ptr_read_i32(p);      // 99
+free(p);
+```
+
+This eliminates the need to call `buffer_ptr()` before every typed read/write operation, making buffer-based code more concise.
+
+---
+
 ### talloc
 
 Allocate array of typed values.
@@ -22070,6 +22071,66 @@ print(buf.capacity);        // 256
 ```
 
 **Note:** Currently, `.length` and `.capacity` are the same for buffers created with `buffer()`.
+
+---
+
+## Buffer Methods
+
+### .slice
+
+Create a zero-copy view into the buffer's memory. The returned view shares the same underlying memory as the parent buffer -- modifications to the original are visible through the view and vice versa.
+
+**Signature:**
+```hemlock
+buffer.slice(start: i32, end?: i32): buffer
+```
+
+**Parameters:**
+- `start` - Starting byte offset (0-based, inclusive). Negative values are clamped to 0.
+- `end` - Ending byte offset (exclusive). Defaults to `buffer.length` if omitted. Values beyond buffer length are clamped.
+
+**Returns:** Buffer view (zero-copy)
+
+**Examples:**
+```hemlock
+let buf = buffer(10);
+for (let i = 0; i < 10; i++) {
+    buf[i] = i + 65;  // A=65, B=66, ...
+}
+
+// Basic slice
+let view = buf.slice(2, 5);
+print(view.length);    // 3
+print(view[0]);        // 67 (C)
+print(view[1]);        // 68 (D)
+print(view[2]);        // 69 (E)
+
+// Zero-copy proof: modifying original is visible through view
+buf[3] = 90;           // Change D(68) to Z(90)
+print(view[1]);        // 90 (reflects parent change)
+
+// Single-arg slice (start to end)
+let tail = buf.slice(7);
+print(tail.length);    // 3
+
+// Chained slices (slice of a slice)
+let inner = view.slice(1, 3);
+print(inner.length);   // 2
+print(inner[0]);       // 90 (Z)
+
+// Empty slice
+let empty = buf.slice(5, 5);
+print(empty.length);   // 0
+```
+
+**Behavior:**
+- Returns a zero-copy view -- no memory is allocated for the data
+- Views hold a reference to the root buffer (prevents use-after-free)
+- Chained slices (slice of a slice) track the root owner, not the intermediate view
+- Bounds checking is performed relative to the view's range
+- Out-of-range `start`/`end` values are clamped to valid bounds
+- You **cannot** `free()` a view buffer -- only the root buffer should be freed
+- Set views to `null` before freeing the parent buffer to release references
 
 ---
 
@@ -22278,6 +22339,134 @@ free(p2);
 | `memcpy`  | `(dest: ptr, src: ptr, size: i32)`     | `null`   | Copy memory                |
 | `sizeof`  | `(type)`                               | `i32`    | Get type size in bytes     |
 | `talloc`  | `(type, count: i32)`                   | `ptr`    | Allocate typed array       |
+
+### Buffer Methods
+
+| Method    | Signature                              | Returns  | Description                     |
+|-----------|----------------------------------------|----------|---------------------------------|
+| `.slice`  | `(start: i32, end?: i32)`             | `buffer` | Zero-copy view into buffer      |
+| `.write_u8` | `(offset: i32, value: u8)`          | `null`   | Write unsigned 8-bit integer    |
+| `.write_i8` | `(offset: i32, value: i8)`          | `null`   | Write signed 8-bit integer      |
+| `.write_u16_le` | `(offset: i32, value: u16)`    | `null`   | Write u16, little-endian        |
+| `.write_u16_be` | `(offset: i32, value: u16)`    | `null`   | Write u16, big-endian           |
+| `.write_i16_le` | `(offset: i32, value: i16)`    | `null`   | Write i16, little-endian        |
+| `.write_i16_be` | `(offset: i32, value: i16)`    | `null`   | Write i16, big-endian           |
+| `.write_u32_le` | `(offset: i32, value: u32)`    | `null`   | Write u32, little-endian        |
+| `.write_u32_be` | `(offset: i32, value: u32)`    | `null`   | Write u32, big-endian           |
+| `.write_i32_le` | `(offset: i32, value: i32)`    | `null`   | Write i32, little-endian        |
+| `.write_i32_be` | `(offset: i32, value: i32)`    | `null`   | Write i32, big-endian           |
+| `.write_u64_le` | `(offset: i32, value: u64)`    | `null`   | Write u64, little-endian        |
+| `.write_u64_be` | `(offset: i32, value: u64)`    | `null`   | Write u64, big-endian           |
+| `.write_i64_le` | `(offset: i32, value: i64)`    | `null`   | Write i64, little-endian        |
+| `.write_i64_be` | `(offset: i32, value: i64)`    | `null`   | Write i64, big-endian           |
+| `.write_f32_le` | `(offset: i32, value: f32)`    | `null`   | Write f32, little-endian        |
+| `.write_f32_be` | `(offset: i32, value: f32)`    | `null`   | Write f32, big-endian           |
+| `.write_f64_le` | `(offset: i32, value: f64)`    | `null`   | Write f64, little-endian        |
+| `.write_f64_be` | `(offset: i32, value: f64)`    | `null`   | Write f64, big-endian           |
+| `.write_bytes` | `(offset: i32, src: buffer)`    | `null`   | Copy bytes from source buffer   |
+| `.read_u8`  | `(offset: i32)`                      | `u8`     | Read unsigned 8-bit integer     |
+| `.read_i8`  | `(offset: i32)`                      | `i8`     | Read signed 8-bit integer       |
+| `.read_u16_le` | `(offset: i32)`                   | `u16`    | Read u16, little-endian         |
+| `.read_u16_be` | `(offset: i32)`                   | `u16`    | Read u16, big-endian            |
+| `.read_i16_le` | `(offset: i32)`                   | `i16`    | Read i16, little-endian         |
+| `.read_i16_be` | `(offset: i32)`                   | `i16`    | Read i16, big-endian            |
+| `.read_u32_le` | `(offset: i32)`                   | `u32`    | Read u32, little-endian         |
+| `.read_u32_be` | `(offset: i32)`                   | `u32`    | Read u32, big-endian            |
+| `.read_i32_le` | `(offset: i32)`                   | `i32`    | Read i32, little-endian         |
+| `.read_i32_be` | `(offset: i32)`                   | `i32`    | Read i32, big-endian            |
+| `.read_u64_le` | `(offset: i32)`                   | `u64`    | Read u64, little-endian         |
+| `.read_u64_be` | `(offset: i32)`                   | `u64`    | Read u64, big-endian            |
+| `.read_i64_le` | `(offset: i32)`                   | `i64`    | Read i64, little-endian         |
+| `.read_i64_be` | `(offset: i32)`                   | `i64`    | Read i64, big-endian            |
+| `.read_f32_le` | `(offset: i32)`                   | `f32`    | Read f32, little-endian         |
+| `.read_f32_be` | `(offset: i32)`                   | `f32`    | Read f32, big-endian            |
+| `.read_f64_le` | `(offset: i32)`                   | `f64`    | Read f64, little-endian         |
+| `.read_f64_be` | `(offset: i32)`                   | `f64`    | Read f64, big-endian            |
+| `.read_bytes` | `(offset: i32, length: i32)`       | `buffer` | Read bytes into new buffer      |
+
+---
+
+## Typed Buffer Read/Write Methods
+
+Buffers provide endian-aware typed read and write methods for building and parsing binary data structures like network packets, file formats, and wire protocols. These methods are bounds-checked and raise runtime errors on out-of-bounds access.
+
+### Write Methods
+
+Write a typed value at a byte offset. The `_le` and `_be` suffixes specify little-endian and big-endian byte order respectively.
+
+```hemlock
+let pkt = buffer(64);
+let offset = 0;
+
+// Build a packet header
+pkt.write_u16_be(offset, 0x0800);    // EtherType: IPv4
+offset += 2;
+pkt.write_u8(offset, 0x45);          // Version + IHL
+offset += 1;
+pkt.write_u8(offset, 0x00);          // DSCP/ECN
+offset += 1;
+pkt.write_u16_be(offset, 40);        // Total length
+offset += 2;
+pkt.write_u32_be(offset, 0xC0A80001); // Source IP: 192.168.0.1
+offset += 4;
+
+// Float values
+pkt.write_f32_le(offset, 3.14);
+offset += 4;
+pkt.write_f64_be(offset, 2.71828);
+offset += 8;
+```
+
+**Single-byte writes** (`write_u8`, `write_i8`) have no endianness suffix since byte order is irrelevant for single bytes.
+
+### Read Methods
+
+Read a typed value from a byte offset. Endianness suffixes match the write methods.
+
+```hemlock
+let pkt = buffer(64);
+// ... fill buffer with data ...
+
+// Parse a packet header
+let ether_type = pkt.read_u16_be(0);    // 0x0800
+let version = pkt.read_u8(2);            // 0x45
+let total_len = pkt.read_u16_be(4);      // 40
+let src_ip = pkt.read_u32_be(6);         // 0xC0A80001
+
+// Read float values
+let pi = pkt.read_f32_le(10);
+let e = pkt.read_f64_be(14);
+```
+
+### Bulk Operations
+
+```hemlock
+let src = buffer(8);
+for (let i = 0; i < 8; i++) { src[i] = i + 1; }
+
+let dest = buffer(32);
+dest.write_bytes(4, src);          // Copy src into dest at offset 4
+
+let chunk = dest.read_bytes(4, 8); // Read 8 bytes starting at offset 4
+print(chunk[0]);                   // 1
+```
+
+### Bounds Checking
+
+All typed read/write methods validate that the entire value fits within the buffer. For example, `write_u32_be(offset, val)` checks that `offset + 4 <= buffer.length`.
+
+```hemlock
+let buf = buffer(4);
+buf.write_u32_be(0, 42);    // OK: 4 bytes fit
+// buf.write_u32_be(2, 42); // ERROR: would write past end (offset 2 + 4 > 4)
+```
+
+### Use Cases
+
+- **Network protocols:** Build/parse TCP, UDP, DNS, and custom packets
+- **Binary file formats:** Read/write image headers, archive formats, etc.
+- **Wire protocols:** Serialize/deserialize structured binary messages
+- **FFI data exchange:** Prepare buffers for C library calls
 
 ---
 
@@ -22630,6 +22819,34 @@ fn get_config() { return null; }
 let config = get_config() ?? { default: true };
 ```
 
+### Null Coalescing Assignment (`??=`)
+
+Assigns to the variable only if its current value is null.
+
+| Operator | Name                        | Example      | Description                          |
+|----------|-----------------------------|--------------|--------------------------------------|
+| `??=`    | Null coalescing assignment  | `a ??= b`    | Assign b to a only if a is null      |
+
+**Examples:**
+```hemlock
+let config = null;
+config ??= { timeout: 30 };    // config is now { timeout: 30 }
+config ??= { timeout: 60 };    // config unchanged (not null)
+
+// Works with properties and indices
+let obj = { name: null };
+obj.name ??= "Anonymous";      // obj.name is now "Anonymous"
+obj.name ??= "Other";          // obj.name unchanged
+
+let arr = [null, 2, 3];
+arr[0] ??= "first";            // arr[0] is now "first"
+```
+
+**Behavior:**
+- Evaluates the right-hand side only if the left is null
+- Useful for lazy initialization and default values
+- Combines well with `??` for fallback chains
+
 ---
 
 ### Optional Chaining (`?.`)
@@ -22918,12 +23135,227 @@ let c = a + b;             // i32 (promoted)
 
 
 --------------------------------------------------------------------------------
+## Stdlib Overview
+--------------------------------------------------------------------------------
+
+# Standard Library Overview
+
+Hemlock ships with 53 standard library modules covering systems programming, I/O, networking, data formats, concurrency, and more. All modules are imported with the `@stdlib/` prefix.
+
+```hemlock
+import { sin, cos, PI } from "@stdlib/math";
+import { parse, stringify } from "@stdlib/json";
+import { ThreadPool } from "@stdlib/async";
+```
+
+---
+
+## Module Categories
+
+### Core Utilities
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`assert`](#stdlib-assert) | `@stdlib/assert` | Assertion utilities for testing and validation |
+| [`collections`](#stdlib-collections) | `@stdlib/collections` | HashMap, Queue, Stack, Set, LinkedList, LRUCache |
+| [`debug`](#stdlib-debug) | `@stdlib/debug` | Task inspection and stack management |
+| [`fmt`](#stdlib-fmt) | `@stdlib/fmt` | Printf-style string formatting |
+| [`iter`](#stdlib-iter) | `@stdlib/iter` | Iterator utilities (range, enumerate, zip, chain) |
+| [`logging`](#stdlib-logging) | `@stdlib/logging` | Structured logger with levels and file output |
+| [`random`](#stdlib-random) | `@stdlib/random` | Random number generation and shuffling |
+| [`strings`](#stdlib-strings) | `@stdlib/strings` | Extended string utilities (pad, reverse, lines) |
+| [`testing`](#stdlib-testing) | `@stdlib/testing` | BDD-style test framework (describe, test, expect) |
+
+### Math & Science
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`math`](#stdlib-math) | `@stdlib/math` | sin, cos, sqrt, pow, rand, PI, E, divi |
+| [`decimal`](#stdlib-decimal) | `@stdlib/decimal` | to_fixed, to_hex, parse_int, parse_float, StringBuilder |
+| [`matrix`](#stdlib-matrix) | `@stdlib/matrix` | Dense matrix operations (multiply, transpose, determinant, inverse) |
+| [`vector`](#stdlib-vector) | `@stdlib/vector` | Vector similarity search using USearch ANN |
+
+### Memory & Low-Level
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`arena`](#stdlib-arena) | `@stdlib/arena` | Arena (bump) memory allocator |
+| [`atomic`](#stdlib-atomic) | `@stdlib/atomic` | Atomic operations (load, store, add, CAS, fence) |
+| [`bytes`](#stdlib-bytes) | `@stdlib/bytes` | Byte swapping, endian conversion, buffer I/O |
+| [`mmap`](#stdlib-mmap) | `@stdlib/mmap` | Memory-mapped file I/O |
+
+### File System & I/O
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`fs`](#stdlib-fs) | `@stdlib/fs` | File and directory operations (open, read_file, write_file, list_dir) |
+| [`async_fs`](#stdlib-async_fs) | `@stdlib/async_fs` | Non-blocking file I/O via thread pool |
+| [`glob`](#stdlib-glob) | `@stdlib/glob` | File pattern matching |
+| [`path`](#stdlib-path) | `@stdlib/path` | Path manipulation (join, dirname, basename, extname) |
+
+### Concurrency & Async
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`async`](#stdlib-async) | `@stdlib/async` | ThreadPool, parallel_map |
+| [`ipc`](#stdlib-ipc) | `@stdlib/ipc` | Inter-process communication (pipes, message queues) |
+| [`signal`](#stdlib-signal) | `@stdlib/signal` | Signal constants and handling (SIGINT, SIGTERM, etc.) |
+
+### Networking
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`http`](#stdlib-http) | `@stdlib/http` | HTTP client (get, post, request with headers) |
+| [`net`](#stdlib-net) | `@stdlib/net` | TCP/UDP sockets (TcpListener, TcpStream, UdpSocket) |
+| [`unix_socket`](#stdlib-unix_socket) | `@stdlib/unix_socket` | Unix domain sockets (AF_UNIX stream/datagram) |
+| [`url`](#stdlib-url) | `@stdlib/url` | URL parsing and manipulation |
+| [`websocket`](#stdlib-websocket) | `@stdlib/websocket` | WebSocket client |
+
+### Data Formats
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`json`](#stdlib-json) | `@stdlib/json` | JSON parse, stringify, pretty, path access |
+| [`toml`](#stdlib-toml) | `@stdlib/toml` | TOML parsing and generation |
+| [`yaml`](#stdlib-yaml) | `@stdlib/yaml` | YAML parsing and generation |
+| [`csv`](#stdlib-csv) | `@stdlib/csv` | CSV parsing and generation |
+
+### Encoding & Cryptography
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`encoding`](#stdlib-encoding) | `@stdlib/encoding` | Base64, Base32, hex, URL encoding |
+| [`hash`](#stdlib-hash) | `@stdlib/hash` | SHA-1, SHA-256, SHA-512, MD5, CRC32, DJB2 |
+| [`crypto`](#stdlib-crypto) | `@stdlib/crypto` | AES encryption, RSA signing, random_bytes |
+| [`compression`](#stdlib-compression) | `@stdlib/compression` | gzip, gunzip, deflate |
+
+### Text Processing
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`regex`](#stdlib-regex) | `@stdlib/regex` | Regular expressions (POSIX ERE) |
+| [`jinja`](#stdlib-jinja) | `@stdlib/jinja` | Jinja2-compatible template rendering |
+
+### Date, Time & Versioning
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`datetime`](#stdlib-datetime) | `@stdlib/datetime` | DateTime class, formatting, parsing |
+| [`time`](#stdlib-time) | `@stdlib/time` | Timestamps, sleep, clock measurement |
+| [`semver`](#stdlib-semver) | `@stdlib/semver` | Semantic version parsing and comparison |
+| [`uuid`](#stdlib-uuid) | `@stdlib/uuid` | UUID v4 and v7 generation |
+
+### System & Environment
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`args`](#stdlib-args) | `@stdlib/args` | Command-line argument parsing |
+| [`env`](#stdlib-env) | `@stdlib/env` | Environment variables, exit, get_pid |
+| [`os`](#stdlib-os) | `@stdlib/os` | Platform detection, CPU count, hostname |
+| [`process`](#stdlib-process) | `@stdlib/process` | fork, exec, wait, kill |
+| [`shell`](#stdlib-shell) | `@stdlib/shell` | Shell command execution and argument escaping |
+
+### Terminal & UI
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`terminal`](#stdlib-terminal) | `@stdlib/terminal` | ANSI colors, styles, and cursor control |
+| [`termios`](#stdlib-termios) | `@stdlib/termios` | Raw terminal input and key detection |
+
+### Database
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`sqlite`](#stdlib-sqlite) | `@stdlib/sqlite` | SQLite database, query, exec, transactions |
+
+### FFI & Interop
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`ffi`](#stdlib-ffi) | `@stdlib/ffi` | FFI callback management and type constants |
+
+### Utility
+
+| Module | Import | Description |
+|--------|--------|-------------|
+| [`retry`](#stdlib-retry) | `@stdlib/retry` | Retry logic with exponential backoff |
+
+---
+
+## Quick Examples
+
+### Read and parse a config file
+
+```hemlock
+import { parse_file } from "@stdlib/yaml";
+import { get } from "@stdlib/yaml";
+
+let config = parse_file("config.yaml");
+let db_host = get(config, "database.host");
+print("Connecting to " + db_host);
+```
+
+### HTTP request with JSON
+
+```hemlock
+import { http_get } from "@stdlib/http";
+import { parse } from "@stdlib/json";
+
+let resp = http_get("https://api.example.com/data");
+let data = parse(resp.body);
+print(data["name"]);
+```
+
+### Concurrent processing
+
+```hemlock
+import { ThreadPool, parallel_map } from "@stdlib/async";
+
+let pool = ThreadPool(4);
+let results = parallel_map(pool, fn(x) { return x * x; }, [1, 2, 3, 4, 5]);
+pool.shutdown();
+```
+
+### Hash and encode
+
+```hemlock
+import { sha256 } from "@stdlib/hash";
+import { base64_encode } from "@stdlib/encoding";
+
+let digest = sha256("hello world");
+let encoded = base64_encode(digest);
+print(encoded);
+```
+
+### Template rendering
+
+```hemlock
+import { render } from "@stdlib/jinja";
+
+let html = render(`
+<h1>{{ title }}</h1>
+<ul>
+{% for item in items %}<li>{{ item }}</li>
+{% endfor %}</ul>
+`, { title: "Menu", items: ["Home", "About", "Contact"] });
+```
+
+---
+
+## See Also
+
+- [Built-in Functions Reference](#.-builtins) — functions available without imports
+- [Migration Guide (v2.0)](../migration-2.0.md) — builtins moved to stdlib in v2.0
+- Individual module docs in [`stdlib/docs/`](../../stdlib/docs/)
+
+
+--------------------------------------------------------------------------------
 ## String API
 --------------------------------------------------------------------------------
 
 # String API Reference
 
-Complete reference for Hemlock's string type and all 19 string methods.
+Complete reference for Hemlock's string type and all 22 string methods.
 
 ---
 
@@ -22935,7 +23367,7 @@ Strings in Hemlock are **UTF-8 encoded, mutable, heap-allocated** sequences with
 - UTF-8 encoding (U+0000 to U+10FFFF)
 - Mutable (can modify characters in place)
 - Codepoint-based indexing
-- 19 built-in methods
+- 22 built-in methods
 - Automatic concatenation with `+` operator
 
 ---
@@ -23099,12 +23531,12 @@ Extract substring by range (end exclusive).
 
 **Signature:**
 ```hemlock
-string.slice(start: i32, end: i32): string
+string.slice(start: i32, end?: i32): string
 ```
 
 **Parameters:**
 - `start` - Starting codepoint index (0-based)
-- `end` - Ending codepoint index (exclusive)
+- `end` - Ending codepoint index (exclusive). Defaults to `string.length` if omitted.
 
 **Returns:** New string
 
@@ -23113,6 +23545,9 @@ string.slice(start: i32, end: i32): string
 let s = "hello world";
 let sub = s.slice(0, 5);        // "hello"
 let world = s.slice(6, 11);     // "world"
+
+// Single-arg: from index to end
+let tail = s.slice(6);          // "world"
 
 // UTF-8 example
 let text = "Hi🚀!";
@@ -23218,6 +23653,46 @@ let clean = s.trim();           // "hello"
 
 let text = "\n\t  world  \n";
 let clean2 = text.trim();       // "world"
+```
+
+#### trim_start
+
+Remove leading whitespace only.
+
+**Signature:**
+```hemlock
+string.trim_start(): string
+```
+
+**Returns:** New string with leading whitespace removed
+
+**Examples:**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_start();     // "hello  "
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_start(); // "world  \n"
+```
+
+#### trim_end
+
+Remove trailing whitespace only.
+
+**Signature:**
+```hemlock
+string.trim_end(): string
+```
+
+**Returns:** New string with trailing whitespace removed
+
+**Examples:**
+```hemlock
+let s = "  hello  ";
+let clean = s.trim_end();       // "  hello"
+
+let text = "\n\t  world  \n";
+let clean2 = text.trim_end();   // "\n\t  world"
 ```
 
 ---
@@ -23528,6 +24003,57 @@ print(buf2.length);             // 4
 
 ---
 
+### Raw Pointer Access
+
+#### byte_ptr
+
+Get a raw pointer to the string's internal UTF-8 byte buffer. This is a zero-allocation operation -- no copy is made.
+
+**Signature:**
+```hemlock
+string.byte_ptr(): ptr
+```
+
+**Returns:** Raw pointer (`ptr`) to the string's internal UTF-8 bytes
+
+**Examples:**
+```hemlock
+let s = "Hello";
+let p = s.byte_ptr();
+print(typeof(p));              // "ptr"
+
+// Read bytes through the pointer
+print(ptr_deref_u8(p));                    // 72 ('H')
+print(ptr_deref_u8(ptr_offset(p, 1, 1))); // 101 ('e')
+print(ptr_deref_u8(ptr_offset(p, 4, 1))); // 111 ('o')
+
+// Use with memcpy to copy string bytes
+let buf = alloc(5);
+memcpy(buf, s.byte_ptr(), 5);
+print(ptr_deref_u8(buf));  // 72
+free(buf);
+
+// Pair with .byte_length for safe size tracking
+let emoji = "Hello 🚀";
+let ep = emoji.byte_ptr();
+print(emoji.byte_length);  // 10 (use byte_length, not length, for byte operations)
+```
+
+**Behavior:**
+- Returns a pointer directly into the string's internal memory (zero-copy)
+- The pointer is valid as long as the string is alive and unmodified
+- Use `.byte_length` (not `.length`) to determine the number of bytes accessible through the pointer
+- Unlike `.to_bytes()`, this does not allocate a new buffer
+
+**Use Cases:**
+- FFI calls that need a pointer to string data
+- Zero-copy interop with C functions
+- Performance-critical code that avoids allocation
+
+**Warning:** Modifying the string (e.g., index assignment) after calling `byte_ptr()` may invalidate the pointer if the string's internal buffer is reallocated.
+
+---
+
 ### JSON Deserialization
 
 #### deserialize
@@ -23601,6 +24127,8 @@ let cleaned = "  HELLO  "
 | `contains`     | `(needle: string)`                           | `bool`    | Check if contains substring           |
 | `split`        | `(delimiter: string)`                        | `array`   | Split into array                      |
 | `trim`         | `()`                                         | `string`  | Remove whitespace                     |
+| `trim_start`   | `()`                                         | `string`  | Remove leading whitespace             |
+| `trim_end`     | `()`                                         | `string`  | Remove trailing whitespace            |
 | `to_upper`     | `()`                                         | `string`  | Convert to uppercase                  |
 | `to_lower`     | `()`                                         | `string`  | Convert to lowercase                  |
 | `starts_with`  | `(prefix: string)`                           | `bool`    | Check if starts with prefix           |
@@ -23613,6 +24141,7 @@ let cleaned = "  HELLO  "
 | `chars`        | `()`                                         | `array`   | Convert to array of runes             |
 | `bytes`        | `()`                                         | `array`   | Convert to array of bytes             |
 | `to_bytes`     | `()`                                         | `buffer`  | Convert to buffer (legacy)            |
+| `byte_ptr`     | `()`                                         | `ptr`     | Raw pointer to internal UTF-8 bytes   |
 | `deserialize`  | `()`                                         | `any`     | Parse JSON string                     |
 
 ---
@@ -25099,6 +25628,42 @@ Buffer *create_buffer(size_t size) {
 - Environment is heap-allocated
 - Closure environments are properly freed when no longer referenced
 
+### Allocation Pools
+
+The interpreter uses pre-allocated **object pools** to avoid `malloc`/`free` overhead for frequently created short-lived values. This is especially impactful for factory patterns that create objects with closure methods in hot loops.
+
+**Environment Pool** (1024 slots):
+- Pre-allocates `Environment` structs with variable storage for up to 16 vars
+- Free-list stack for O(1) alloc/free
+- Falls back to `malloc` when exhausted
+- Defined in `src/backends/interpreter/environment.c`
+
+**Object Pool** (512 slots):
+- Pre-allocates `Object` structs with embedded `FieldEntry[8]` storage
+- Objects with ≤8 fields use pool storage; more fields trigger heap growth via `object_grow_fields()`
+- Anonymous objects (no `type_name`) are pool candidates
+- Defined in `src/backends/interpreter/values.c`
+
+**Function Pool** (512 slots):
+- Pre-allocates `Function` structs for closure creation
+- Works with AST-borrowed params (see below) to minimize per-closure allocation
+- Defined in `src/backends/interpreter/values.c`
+
+**AST-Borrowed Parameters:**
+Closures created from `EXPR_FUNCTION` evaluation borrow parameter metadata directly from the AST node instead of deep-copying it. Since the AST outlives all closures, this is safe and eliminates ~6 `malloc` + N `strdup` calls per closure:
+- `param_names`, `param_types`, `param_defaults`, `param_is_ref` → borrowed from AST
+- `param_hashes` → lazily computed once on the AST node and shared across all closures
+- `rest_param`, `rest_param_type`, `return_type` → borrowed from AST
+- `borrows_ast_params` flag on `Function` prevents `function_free()` from freeing borrowed data
+
+Pool sizes are defined in `include/hemlock_limits.h`:
+```c
+#define HML_ENV_POOL_SIZE            1024
+#define HML_OBJECT_POOL_SIZE          512
+#define HML_OBJECT_POOL_FIELDS_CAPACITY 8
+#define HML_FUNCTION_POOL_SIZE        512
+```
+
 ---
 
 ## Concurrency Model
@@ -25257,8 +25822,16 @@ When implementing new features, follow these guidelines:
 - String concatenation (allocates new string each time)
 - Type checking overhead on every operation
 
-**Optimization opportunities:**
-- Cache variable locations (inline caching)
+**Implemented optimizations:**
+- Inline caching (PropertyIC) for repeated property access on same-shape objects
+- Environment pool (1024 slots) for O(1) scope creation in recursive calls
+- Object pool (512 slots) for O(1) allocation of small anonymous objects
+- Function pool (512 slots) for O(1) closure struct allocation
+- AST-borrowed params eliminate deep-copy overhead per closure creation
+- Pre-computed param name hashes (lazily cached on AST nodes)
+- DJB2 hash with lazy hash table initialization for object field lookup
+
+**Remaining optimization opportunities:**
 - Tail call optimization
 - String builder for concatenation
 - Type inference to skip runtime checks
@@ -26062,7 +26635,7 @@ fn bad(const arr: array) {
 
 fn ok(const arr: array) {
     let x = arr[0];      // OK: reading
-    let len = len(arr);  // OK: length check
+    let n = arr.length;  // OK: length check
     let copy = arr.slice(0, 10);  // OK: creates new array
     for (item in arr) {  // OK: iteration
         print(item);
