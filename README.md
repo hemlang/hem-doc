@@ -153,9 +153,13 @@ hem-doc/
 ├── docs-*.html            # Generated output (other languages)
 ├── llms.txt               # LLM-friendly plain text (English)
 ├── llms-*.txt             # LLM-friendly plain text (other languages)
+├── check_translations.py  # Flags translations whose source changed since last update
+├── translations/
+│   └── manifest.json      # Source-file hashes recorded at each translation's last update
 └── .github/workflows/
-    ├── build-docs.yml     # Builds and deploys to GitHub Pages
-    └── sync-submodule.yml # Daily sync of submodules
+    ├── build-docs.yml         # Builds all languages and deploys to GitHub Pages
+    ├── sync-submodule.yml     # Daily sync of submodules (validates the build before pushing)
+    └── check-translations.yml # Flags stale translations via a tracking issue
 ```
 
 ## Make Targets
@@ -173,5 +177,20 @@ hem-doc/
 
 ## CI/CD
 
-- **build-docs.yml**: Builds and deploys documentation to GitHub Pages on push to main
-- **sync-submodule.yml**: Automatically updates the hemlock and hpm submodules daily and on-demand
+- **build-docs.yml**: Builds documentation for all 9 languages and deploys them to GitHub Pages on push to main
+- **sync-submodule.yml**: Automatically updates the hemlock and hpm submodules daily and on-demand. Runs a full build against the updated submodules before pushing, so a breaking upstream change never lands on `main`
+- **check-translations.yml**: After a submodule sync (or weekly, as a backstop), checks whether any translation's English source changed since it was last updated and files/updates a tracking issue listing exactly which files need attention
+
+## Translation Freshness
+
+Translations under `translations/<lang>/` are tracked against the English source they were translated from via `translations/manifest.json`, which records a hash of each source file at the time of translation.
+
+```bash
+# Report which translations are stale, unstamped, or orphaned
+python3 check_translations.py
+
+# After finishing a translation update, stamp the new baseline
+python3 check_translations.py --update-manifest
+```
+
+If you update a source file in `hemlock/` or `hpm/` without touching its translations, `check_translations.py` (run automatically in CI) will flag every language whose translation is now behind.
