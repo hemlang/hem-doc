@@ -1,336 +1,46 @@
 // Hemlock Documentation Server
-// Serves the docs.html and llms.txt files using Sprout
+// Serves docs.html, llms.txt and their translations using Sprout.
+// Routes and handlers live in server.hml.
 
-import { App } from "hemlang/sprout";
-import { read_file } from "@stdlib/fs";
+import {
+    create_app, load_content, supported_langs,
+    docs_filename, llms_filename, lang_name
+} from "./server.hml";
+import { exit } from "@stdlib/env";
 
-// Supported languages for documentation
-let supported_langs = ["en", "de", "es", "fr", "it", "ja", "pt", "ru", "zh"];
+// Read all documentation files at startup (missing files are optional)
+let content = load_content("");
 
-// Read the docs HTML at startup
-let docs_html = read_file("docs.html");
-if (docs_html == null) {
+// English docs are the fallback for every other language, so they are required
+if (content.docs["en"] == null) {
     print("Error: docs.html not found");
     print("Run this from the hem-doc directory");
     exit(1);
 }
 
-// Read language-specific documentation files
-let docs_de = read_file("docs-de.html");
-if (docs_de == null) {
-    print("Warning: docs-de.html not found, German docs will fall back to English");
-}
-
-let docs_es = read_file("docs-es.html");
-if (docs_es == null) {
-    print("Warning: docs-es.html not found, Spanish docs will fall back to English");
-}
-
-let docs_fr = read_file("docs-fr.html");
-if (docs_fr == null) {
-    print("Warning: docs-fr.html not found, French docs will fall back to English");
-}
-
-let docs_zh = read_file("docs-zh.html");
-if (docs_zh == null) {
-    print("Warning: docs-zh.html not found, Chinese docs will fall back to English");
-}
-
-let docs_ja = read_file("docs-ja.html");
-if (docs_ja == null) {
-    print("Warning: docs-ja.html not found, Japanese docs will fall back to English");
-}
-
-let docs_pt = read_file("docs-pt.html");
-if (docs_pt == null) {
-    print("Warning: docs-pt.html not found, Portuguese docs will fall back to English");
-}
-
-let docs_it = read_file("docs-it.html");
-if (docs_it == null) {
-    print("Warning: docs-it.html not found, Italian docs will fall back to English");
-}
-
-let docs_ru = read_file("docs-ru.html");
-if (docs_ru == null) {
-    print("Warning: docs-ru.html not found, Russian docs will fall back to English");
-}
-
-// Read the LLM-friendly documentation at startup
-let llms_txt = read_file("llms.txt");
-if (llms_txt == null) {
-    print("Warning: llms.txt not found, /llms.txt endpoint will be unavailable");
-}
-
-// Read language-specific LLM documentation files
-let llms_de = read_file("llms-de.txt");
-if (llms_de == null) {
-    print("Warning: llms-de.txt not found, German LLM docs will fall back to English");
-}
-
-let llms_es = read_file("llms-es.txt");
-if (llms_es == null) {
-    print("Warning: llms-es.txt not found, Spanish LLM docs will fall back to English");
-}
-
-let llms_fr = read_file("llms-fr.txt");
-if (llms_fr == null) {
-    print("Warning: llms-fr.txt not found, French LLM docs will fall back to English");
-}
-
-let llms_zh = read_file("llms-zh.txt");
-if (llms_zh == null) {
-    print("Warning: llms-zh.txt not found, Chinese LLM docs will fall back to English");
-}
-
-let llms_ja = read_file("llms-ja.txt");
-if (llms_ja == null) {
-    print("Warning: llms-ja.txt not found, Japanese LLM docs will fall back to English");
-}
-
-let llms_pt = read_file("llms-pt.txt");
-if (llms_pt == null) {
-    print("Warning: llms-pt.txt not found, Portuguese LLM docs will fall back to English");
-}
-
-let llms_it = read_file("llms-it.txt");
-if (llms_it == null) {
-    print("Warning: llms-it.txt not found, Italian LLM docs will fall back to English");
-}
-
-let llms_ru = read_file("llms-ru.txt");
-if (llms_ru == null) {
-    print("Warning: llms-ru.txt not found, Russian LLM docs will fall back to English");
-}
-
-let app = App(null);
-
-// Serve the documentation (English at root and /docs.html)
-app.get("/", fn(req, res, next) {
-    res.type("html").send(docs_html);
-});
-
-app.get("/docs.html", fn(req, res, next) {
-    res.type("html").send(docs_html);
-});
-
-// Serve German documentation
-app.get("/docs-de.html", fn(req, res, next) {
-    if (docs_de != null) {
-        res.type("html").send(docs_de);
-    } else {
-        res.type("html").send(docs_html);
-    }
-});
-
-// Serve Spanish documentation
-app.get("/docs-es.html", fn(req, res, next) {
-    if (docs_es != null) {
-        res.type("html").send(docs_es);
-    } else {
-        res.type("html").send(docs_html);
-    }
-});
-
-// Serve French documentation
-app.get("/docs-fr.html", fn(req, res, next) {
-    if (docs_fr != null) {
-        res.type("html").send(docs_fr);
-    } else {
-        res.type("html").send(docs_html);
-    }
-});
-
-// Serve Chinese documentation
-app.get("/docs-zh.html", fn(req, res, next) {
-    if (docs_zh != null) {
-        res.type("html").send(docs_zh);
-    } else {
-        res.type("html").send(docs_html);
-    }
-});
-
-// Serve Japanese documentation
-app.get("/docs-ja.html", fn(req, res, next) {
-    if (docs_ja != null) {
-        res.type("html").send(docs_ja);
-    } else {
-        res.type("html").send(docs_html);
-    }
-});
-
-// Serve Portuguese documentation
-app.get("/docs-pt.html", fn(req, res, next) {
-    if (docs_pt != null) {
-        res.type("html").send(docs_pt);
-    } else {
-        res.type("html").send(docs_html);
-    }
-});
-
-// Serve Italian documentation
-app.get("/docs-it.html", fn(req, res, next) {
-    if (docs_it != null) {
-        res.type("html").send(docs_it);
-    } else {
-        res.type("html").send(docs_html);
-    }
-});
-
-// Serve Russian documentation
-app.get("/docs-ru.html", fn(req, res, next) {
-    if (docs_ru != null) {
-        res.type("html").send(docs_ru);
-    } else {
-        res.type("html").send(docs_html);
-    }
-});
-
-// Serve LLM-friendly documentation
-app.get("/llms.txt", fn(req, res, next) {
-    if (llms_txt == null) {
-        res.status(404).type("text").send("llms.txt not found. Run 'make docs' to generate it.");
-    } else {
-        res.type("text").send(llms_txt);
-    }
-});
-
-// Serve German LLM documentation
-app.get("/llms-de.txt", fn(req, res, next) {
-    if (llms_de != null) {
-        res.type("text").send(llms_de);
-    } else if (llms_txt != null) {
-        res.type("text").send(llms_txt);
-    } else {
-        res.status(404).type("text").send("llms-de.txt not found. Run 'make docs' to generate it.");
-    }
-});
-
-// Serve Spanish LLM documentation
-app.get("/llms-es.txt", fn(req, res, next) {
-    if (llms_es != null) {
-        res.type("text").send(llms_es);
-    } else if (llms_txt != null) {
-        res.type("text").send(llms_txt);
-    } else {
-        res.status(404).type("text").send("llms-es.txt not found. Run 'make docs' to generate it.");
-    }
-});
-
-// Serve French LLM documentation
-app.get("/llms-fr.txt", fn(req, res, next) {
-    if (llms_fr != null) {
-        res.type("text").send(llms_fr);
-    } else if (llms_txt != null) {
-        res.type("text").send(llms_txt);
-    } else {
-        res.status(404).type("text").send("llms-fr.txt not found. Run 'make docs' to generate it.");
-    }
-});
-
-// Serve Chinese LLM documentation
-app.get("/llms-zh.txt", fn(req, res, next) {
-    if (llms_zh != null) {
-        res.type("text").send(llms_zh);
-    } else if (llms_txt != null) {
-        res.type("text").send(llms_txt);
-    } else {
-        res.status(404).type("text").send("llms-zh.txt not found. Run 'make docs' to generate it.");
-    }
-});
-
-// Serve Japanese LLM documentation
-app.get("/llms-ja.txt", fn(req, res, next) {
-    if (llms_ja != null) {
-        res.type("text").send(llms_ja);
-    } else if (llms_txt != null) {
-        res.type("text").send(llms_txt);
-    } else {
-        res.status(404).type("text").send("llms-ja.txt not found. Run 'make docs' to generate it.");
-    }
-});
-
-// Serve Portuguese LLM documentation
-app.get("/llms-pt.txt", fn(req, res, next) {
-    if (llms_pt != null) {
-        res.type("text").send(llms_pt);
-    } else if (llms_txt != null) {
-        res.type("text").send(llms_txt);
-    } else {
-        res.status(404).type("text").send("llms-pt.txt not found. Run 'make docs' to generate it.");
-    }
-});
-
-// Serve Italian LLM documentation
-app.get("/llms-it.txt", fn(req, res, next) {
-    if (llms_it != null) {
-        res.type("text").send(llms_it);
-    } else if (llms_txt != null) {
-        res.type("text").send(llms_txt);
-    } else {
-        res.status(404).type("text").send("llms-it.txt not found. Run 'make docs' to generate it.");
-    }
-});
-
-// Serve Russian LLM documentation
-app.get("/llms-ru.txt", fn(req, res, next) {
-    if (llms_ru != null) {
-        res.type("text").send(llms_ru);
-    } else if (llms_txt != null) {
-        res.type("text").send(llms_txt);
-    } else {
-        res.status(404).type("text").send("llms-ru.txt not found. Run 'make docs' to generate it.");
-    }
-});
-
-// Health check endpoint
-app.get("/health", fn(req, res, next) {
-    res.json({
-        status: "ok",
-        docs_size: docs_html.length,
-        docs_de_size: docs_de != null ? docs_de.length : 0,
-        docs_es_size: docs_es != null ? docs_es.length : 0,
-        docs_fr_size: docs_fr != null ? docs_fr.length : 0,
-        docs_it_size: docs_it != null ? docs_it.length : 0,
-        docs_ja_size: docs_ja != null ? docs_ja.length : 0,
-        docs_pt_size: docs_pt != null ? docs_pt.length : 0,
-        docs_ru_size: docs_ru != null ? docs_ru.length : 0,
-        docs_zh_size: docs_zh != null ? docs_zh.length : 0,
-        llms_size: llms_txt != null ? llms_txt.length : 0,
-        llms_de_size: llms_de != null ? llms_de.length : 0,
-        llms_es_size: llms_es != null ? llms_es.length : 0,
-        llms_fr_size: llms_fr != null ? llms_fr.length : 0,
-        llms_it_size: llms_it != null ? llms_it.length : 0,
-        llms_ja_size: llms_ja != null ? llms_ja.length : 0,
-        llms_pt_size: llms_pt != null ? llms_pt.length : 0,
-        llms_ru_size: llms_ru != null ? llms_ru.length : 0,
-        llms_zh_size: llms_zh != null ? llms_zh.length : 0
-    });
-});
+let app = create_app(content);
 
 // Serve on port 5169
 let port = 5169;
 
+fn pad(s, width) {
+    while (s.length < width) {
+        s = s + " ";
+    }
+    return s;
+}
+
 app.listen(port, fn() {
+    let base = "http://localhost:" + port;
     print("Hemlock Documentation Server");
-    print("Serving docs at http://localhost:" + port);
-    print("  English:    http://localhost:" + port + "/");
-    print("  German:     http://localhost:" + port + "/docs-de.html");
-    print("  Spanish:    http://localhost:" + port + "/docs-es.html");
-    print("  French:     http://localhost:" + port + "/docs-fr.html");
-    print("  Italian:    http://localhost:" + port + "/docs-it.html");
-    print("  Japanese:   http://localhost:" + port + "/docs-ja.html");
-    print("  Portuguese: http://localhost:" + port + "/docs-pt.html");
-    print("  Russian:    http://localhost:" + port + "/docs-ru.html");
-    print("  Chinese:    http://localhost:" + port + "/docs-zh.html");
+    print("Serving docs at " + base);
+    for (let lang in supported_langs) {
+        let path = lang == "en" ? "/" : "/" + docs_filename(lang);
+        print("  " + pad(lang_name(lang) + ":", 12) + base + path);
+    }
     print("LLM docs:");
-    print("  English:    http://localhost:" + port + "/llms.txt");
-    print("  German:     http://localhost:" + port + "/llms-de.txt");
-    print("  Spanish:    http://localhost:" + port + "/llms-es.txt");
-    print("  French:     http://localhost:" + port + "/llms-fr.txt");
-    print("  Italian:    http://localhost:" + port + "/llms-it.txt");
-    print("  Japanese:   http://localhost:" + port + "/llms-ja.txt");
-    print("  Portuguese: http://localhost:" + port + "/llms-pt.txt");
-    print("  Russian:    http://localhost:" + port + "/llms-ru.txt");
-    print("  Chinese:    http://localhost:" + port + "/llms-zh.txt");
+    for (let lang in supported_langs) {
+        print("  " + pad(lang_name(lang) + ":", 12) + base + "/" + llms_filename(lang));
+    }
+    print("Other: /robots.txt /sitemap.xml /favicon.ico /health");
 });

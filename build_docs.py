@@ -1123,6 +1123,7 @@ def generate_html(docs, logo_data, lang='en'):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{page_title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico">
     <style>
         * {{
             margin: 0;
