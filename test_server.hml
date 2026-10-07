@@ -1,0 +1,492 @@
+// Tests for the documentation server routes (server.hml)
+//
+// Follows Sprout's test pattern: a mock stream collects what the response
+// writes, and requests are driven through app._process_request in-process,
+// so no port is bound. Run with: make test
+
+import { describe, test, expect, before_each, run } from "@stdlib/testing";
+import { create_request, create_response } from "hemlang/sprout";
+import { parse as json_parse } from "@stdlib/json";
+import { read_file, write_file, make_dir, remove_file, remove_dir, exists } from "@stdlib/fs";
+import { get_pid, exit } from "@stdlib/env";
+
+import {
+    VERSION, SITE_URL, supported_langs,
+    docs_filename, llms_filename,
+    try_read, load_content,
+    build_routes, build_health, build_sitemap_xml, build_robots_txt,
+    create_app
+} from "./server.hml";
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+let STARTED_AT = "2026-01-01T00:00:00Z";
+let FAVICON = "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>";
+
+// Fixture with every file loaded. Bodies include multi-byte characters so
+// byte sizes differ from character counts.
+fn full_content() {
+    let docs = {};
+    let llms = {};
+    for (let lang in supported_langs) {
+        docs[lang] = "<html>docs " + lang + " ✓</html>";
+        llms[lang] = "llms " + lang + " — text";
+    }
+    docs["ja"] = "<html>日本語</html>";
+    return { docs: docs, llms: llms, favicon: FAVICON };
+}
+
+// Split a raw HTTP response into status, lowercase headers and body
+fn parse_response(raw) {
+    let end = raw.find("\r\n\r\n");
+    let head = raw.substr(0, end);
+    let body = raw.substr(end + 4);
+    let lines = head.split("\r\n");
+    let headers = {};
+    for (let i = 1; i < lines.length; i = i + 1) {
+        let colon = lines[i].find(":");
+        headers[lines[i].substr(0, colon).to_lower()] = lines[i].substr(colon + 1).trim();
+    }
+    return {
+        raw: raw,
+        head: head,
+        status_line: lines[0],
+        status: i32(lines[0].split(" ")[1]),
+        headers: headers,
+        body: body
+    };
+}
+
+fn request(app, method, url) {
+    let out = { data: "" };
+    let stream = {
+        write: fn(data) {
+            out.data = out.data + data;
+        }
+    };
+    let req = create_request(method, url, {}, "", app._options);
+    req.app = app;
+    let res = create_response(stream);
+    app._process_request(req, res);
+    return parse_response(out.data);
+}
+
+fn get(app, url) {
+    return request(app, "GET", url);
+}
+
+fn head(app, url) {
+    return request(app, "HEAD", url);
+}
+
+// Every public path the server should answer
+fn all_paths() {
+    let paths = ["/", "/robots.txt", "/sitemap.xml", "/favicon.ico", "/health"];
+    for (let lang in supported_langs) {
+        paths.push("/" + docs_filename(lang));
+        paths.push("/" + llms_filename(lang));
+    }
+    return paths;
+}
+
+// ============================================================================
+// File loading
+// ============================================================================
+
+describe("file loading", fn() {
+    let dir = "/tmp/hem-doc-test-" + get_pid();
+
+    test("try_read returns null for a missing file instead of throwing", fn() {
+        expect(fn() { try_read("/nonexistent/hem-doc/missing.html"); }).not_to_throw();
+        expect(try_read("/nonexistent/hem-doc/missing.html")).to_be_null();
+    });
+
+    test("try_read returns file contents when present", fn() {
+        expect(try_read("package.json")).to_contain("hemlang/hem-doc");
+    });
+
+    test("load_content tolerates missing optional files", fn() {
+        if (!exists(dir)) {
+            make_dir(dir);
+        }
+        write_file(dir + "/docs.html", "<html>en</html>");
+        write_file(dir + "/docs-fr.html", "<html>fr</html>");
+        write_file(dir + "/llms.txt", "llms en");
+
+        let content = null;
+        expect(fn() { content = load_content(dir); }).not_to_throw();
+
+        expect(content.docs["en"]).to_equal("<html>en</html>");
+        expect(content.docs["fr"]).to_equal("<html>fr</html>");
+        expect(content.docs["de"]).to_be_null();
+        expect(content.llms["en"]).to_equal("llms en");
+        expect(content.llms["fr"]).to_be_null();
+        expect(content.favicon).to_be_null();
+
+        remove_file(dir + "/docs.html");
+        remove_file(dir + "/docs-fr.html");
+        remove_file(dir + "/llms.txt");
+        remove_dir(dir);
+    });
+
+    test("load_content does not throw when docs.html itself is missing", fn() {
+        let content = load_content("/nonexistent/hem-doc");
+        expect(content.docs["en"]).to_be_null();
+    });
+
+    test("repository favicon.svg loads", fn() {
+        let content = load_content("");
+        expect(content.favicon).not_to_be_null();
+        expect(content.favicon).to_contain("<svg");
+    });
+});
+
+// ============================================================================
+// Route table
+// ============================================================================
+
+describe("route table", fn() {
+    test("has a docs and llms route for every supported language", fn() {
+        let routes = build_routes(full_content(), STARTED_AT);
+        let names = routes.map(fn(r) { return r.name; });
+        for (let lang in supported_langs) {
+            expect(names).to_contain("docs_" + lang);
+            expect(names).to_contain("llms_" + lang);
+        }
+        expect(names).to_contain("docs_root");
+        expect(names).to_contain("robots");
+        expect(names).to_contain("sitemap");
+        expect(names).to_contain("favicon");
+        expect(names).to_contain("health");
+    });
+
+    test("route names and paths are unique", fn() {
+        let routes = build_routes(full_content(), STARTED_AT);
+        let names = [];
+        let paths = [];
+        for (let r in routes) {
+            expect(names).not_to_contain(r.name);
+            expect(paths).not_to_contain(r.path);
+            names.push(r.name);
+            paths.push(r.path);
+        }
+    });
+
+    test("every route is registered for both GET and HEAD", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        let routes = build_routes(full_content(), STARTED_AT);
+        for (let r in routes) {
+            let get_found = false;
+            let head_found = false;
+            for (let registered in app._routes) {
+                if (registered.path == r.path && registered.method == "GET") { get_found = true; }
+                if (registered.path == r.path && registered.method == "HEAD") { head_found = true; }
+            }
+            expect(get_found).to_be_true();
+            expect(head_found).to_be_true();
+        }
+        expect(app._routes.length).to_equal(routes.length * 2);
+    });
+
+    test("create_app defaults started_at to an ISO-8601 UTC timestamp", fn() {
+        let app = create_app(full_content());
+        let health = json_parse(get(app, "/health").body);
+        expect(health.started_at.length).to_equal(20);
+        expect(health.started_at.ends_with("Z")).to_be_true();
+        expect(health.started_at.char_at(10)).to_equal('T');
+    });
+});
+
+// ============================================================================
+// Docs routes
+// ============================================================================
+
+describe("docs routes", fn() {
+    test("/ and /docs.html serve English HTML", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        for (let path in ["/", "/docs.html"]) {
+            let res = get(app, path);
+            expect(res.status).to_equal(200);
+            expect(res.headers["content-type"]).to_equal("text/html; charset=utf-8");
+            expect(res.body).to_equal("<html>docs en ✓</html>");
+        }
+    });
+
+    test("each language serves its own docs when loaded", fn() {
+        let content = full_content();
+        let app = create_app(content, STARTED_AT);
+        for (let lang in supported_langs) {
+            let res = get(app, "/" + docs_filename(lang));
+            expect(res.status).to_equal(200);
+            expect(res.body).to_equal(content.docs[lang]);
+        }
+    });
+
+    test("missing language docs fall back to English", fn() {
+        let content = full_content();
+        content.docs["de"] = null;
+        let app = create_app(content, STARTED_AT);
+        let res = get(app, "/docs-de.html");
+        expect(res.status).to_equal(200);
+        expect(res.body).to_equal(content.docs["en"]);
+    });
+
+    test("Content-Length is the UTF-8 byte length", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        let res = get(app, "/docs-ja.html");
+        expect(res.headers["content-length"]).to_equal("" + "<html>日本語</html>".byte_length);
+    });
+
+    test("unknown paths still 404", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        expect(get(app, "/nope").status).to_equal(404);
+    });
+});
+
+// ============================================================================
+// LLM routes
+// ============================================================================
+
+describe("llms routes", fn() {
+    test("each language serves its own llms text when loaded", fn() {
+        let content = full_content();
+        let app = create_app(content, STARTED_AT);
+        for (let lang in supported_langs) {
+            let res = get(app, "/" + llms_filename(lang));
+            expect(res.status).to_equal(200);
+            expect(res.body).to_equal(content.llms[lang]);
+        }
+    });
+
+    test("keeps the existing content type (Sprout maps \"text\" to octet-stream)", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        expect(get(app, "/llms.txt").headers["content-type"]).to_equal("application/octet-stream");
+    });
+
+    test("missing language llms falls back to English", fn() {
+        let content = full_content();
+        content.llms["ru"] = null;
+        let app = create_app(content, STARTED_AT);
+        let res = get(app, "/llms-ru.txt");
+        expect(res.status).to_equal(200);
+        expect(res.body).to_equal(content.llms["en"]);
+    });
+
+    test("404s with a hint when neither language nor English llms loaded", fn() {
+        let content = full_content();
+        content.llms["en"] = null;
+        content.llms["it"] = null;
+        let app = create_app(content, STARTED_AT);
+
+        let res = get(app, "/llms-it.txt");
+        expect(res.status).to_equal(404);
+        expect(res.body).to_equal("llms-it.txt not found. Run 'make docs' to generate it.");
+
+        let en = get(app, "/llms.txt");
+        expect(en.status).to_equal(404);
+        expect(en.body).to_equal("llms.txt not found. Run 'make docs' to generate it.");
+    });
+});
+
+// ============================================================================
+// HEAD support
+// ============================================================================
+
+describe("HEAD requests", fn() {
+    test("return the same status and headers as GET, with no body", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        for (let path in all_paths()) {
+            let g = get(app, path);
+            let h = head(app, path);
+            expect(h.head).to_equal(g.head);
+            expect(h.body).to_equal("");
+            expect(h.raw.ends_with("\r\n\r\n")).to_be_true();
+        }
+    });
+
+    test("Content-Length reports the GET body size", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        let h = head(app, "/docs-ja.html");
+        expect(h.headers["content-length"]).to_equal("" + "<html>日本語</html>".byte_length);
+    });
+
+    test("error responses have no body either", fn() {
+        let content = full_content();
+        content.llms["en"] = null;
+        content.favicon = null;
+        let app = create_app(content, STARTED_AT);
+        for (let path in ["/llms.txt", "/favicon.ico"]) {
+            let h = head(app, path);
+            expect(h.status).to_equal(404);
+            expect(h.body).to_equal("");
+        }
+    });
+
+    test("GET is unaffected after a HEAD on the same app", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        head(app, "/");
+        expect(get(app, "/").body).to_equal("<html>docs en ✓</html>");
+    });
+});
+
+// ============================================================================
+// robots.txt / sitemap.xml / favicon
+// ============================================================================
+
+describe("robots.txt", fn() {
+    test("allows everything and points at the sitemap", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        let res = get(app, "/robots.txt");
+        expect(res.status).to_equal(200);
+        expect(res.headers["content-type"]).to_equal("text/plain; charset=utf-8");
+        expect(res.body).to_equal("User-agent: *\nAllow: /\n\nSitemap: https://hemlang.dev/sitemap.xml\n");
+        expect(build_robots_txt()).to_equal(res.body);
+    });
+});
+
+describe("sitemap.xml", fn() {
+    test("lists every language when all loaded, English at the root", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        let res = get(app, "/sitemap.xml");
+        expect(res.status).to_equal(200);
+        expect(res.headers["content-type"]).to_equal("application/xml; charset=utf-8");
+        expect(res.body.starts_with("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")).to_be_true();
+        expect(res.body).to_contain("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
+        expect(res.body).to_contain("<loc>https://hemlang.dev/</loc>");
+        expect(res.body).not_to_contain("docs.html");
+        for (let lang in supported_langs) {
+            if (lang != "en") {
+                expect(res.body).to_contain("<loc>https://hemlang.dev/docs-" + lang + ".html</loc>");
+            }
+        }
+        expect(res.body.split("<url>").length - 1).to_equal(supported_langs.length);
+    });
+
+    test("omits languages whose docs did not load", fn() {
+        let content = full_content();
+        content.docs["de"] = null;
+        content.docs["zh"] = null;
+        let xml = build_sitemap_xml(content);
+        expect(xml).not_to_contain("docs-de.html");
+        expect(xml).not_to_contain("docs-zh.html");
+        expect(xml).to_contain("docs-fr.html");
+        expect(xml.split("<url>").length - 1).to_equal(supported_langs.length - 2);
+    });
+
+    test("uses the configured site URL", fn() {
+        expect(SITE_URL).to_equal("https://hemlang.dev/");
+    });
+});
+
+describe("favicon.ico", fn() {
+    test("serves the SVG with an SVG content type", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        let res = get(app, "/favicon.ico");
+        expect(res.status).to_equal(200);
+        expect(res.headers["content-type"]).to_equal("image/svg+xml");
+        expect(res.body).to_equal(FAVICON);
+    });
+
+    test("404s when favicon.svg did not load", fn() {
+        let content = full_content();
+        content.favicon = null;
+        let app = create_app(content, STARTED_AT);
+        expect(get(app, "/favicon.ico").status).to_equal(404);
+    });
+
+    test("both build scripts link the favicon", fn() {
+        let link_py = "<link rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.ico\">";
+        let link_hml = "<link rel=\\\"icon\\\" type=\\\"image/svg+xml\\\" href=\\\"/favicon.ico\\\">";
+        expect(read_file("build_docs.py")).to_contain(link_py);
+        expect(read_file("build_docs.hml")).to_contain(link_hml);
+    });
+});
+
+// ============================================================================
+// /health
+// ============================================================================
+
+describe("/health", fn() {
+    test("reports ok, version and started_at when everything loaded", fn() {
+        let app = create_app(full_content(), STARTED_AT);
+        let res = get(app, "/health");
+        expect(res.status).to_equal(200);
+        expect(res.headers["content-type"]).to_equal("application/json; charset=utf-8");
+        let h = json_parse(res.body);
+        expect(h.status).to_equal("ok");
+        expect(h.version).to_equal(VERSION);
+        expect(h.started_at).to_equal(STARTED_AT);
+        expect(h.favicon).to_be_true();
+    });
+
+    test("reports per-language loaded status and byte sizes", fn() {
+        let content = full_content();
+        let h = build_health(content, STARTED_AT);
+        for (let lang in supported_langs) {
+            expect(h.languages[lang].docs_loaded).to_be_true();
+            expect(h.languages[lang].llms_loaded).to_be_true();
+            expect(h.languages[lang].docs_size).to_equal(content.docs[lang].byte_length);
+            expect(h.languages[lang].llms_size).to_equal(content.llms[lang].byte_length);
+        }
+        // byte_length, not character length: 6 + 9 (three 3-byte chars) + 7
+        expect(h.languages["ja"].docs_size).to_equal(22);
+        expect(h.languages["ja"].docs_size).not_to_equal("<html>日本語</html>".length);
+    });
+
+    test("keeps the flat *_size fields, now in bytes", fn() {
+        let content = full_content();
+        let h = build_health(content, STARTED_AT);
+        expect(h["docs_size"]).to_equal(content.docs["en"].byte_length);
+        expect(h["llms_size"]).to_equal(content.llms["en"].byte_length);
+        expect(h["docs_ja_size"]).to_equal(22);
+        expect(h["llms_zh_size"]).to_equal(content.llms["zh"].byte_length);
+    });
+
+    test("is degraded when a language's docs are missing", fn() {
+        let content = full_content();
+        content.docs["pt"] = null;
+        let h = json_parse(get(create_app(content, STARTED_AT), "/health").body);
+        expect(h.status).to_equal("degraded");
+        expect(h.languages["pt"].docs_loaded).to_be_false();
+        expect(h.languages["pt"].docs_size).to_equal(0);
+        expect(h.languages["pt"].llms_loaded).to_be_true();
+        expect(h["docs_pt_size"]).to_equal(0);
+    });
+
+    test("is degraded when an llms file is missing", fn() {
+        let content = full_content();
+        content.llms["en"] = null;
+        let h = build_health(content, STARTED_AT);
+        expect(h.status).to_equal("degraded");
+        expect(h.languages["en"].llms_loaded).to_be_false();
+    });
+
+    test("a missing favicon is reported but does not degrade status", fn() {
+        let content = full_content();
+        content.favicon = null;
+        let h = build_health(content, STARTED_AT);
+        expect(h.status).to_equal("ok");
+        expect(h.favicon).to_be_false();
+    });
+
+    test("VERSION matches package.json", fn() {
+        let pkg = json_parse(read_file("package.json"));
+        expect(VERSION).to_equal(pkg.version);
+    });
+});
+
+// ============================================================================
+// Run Tests
+// ============================================================================
+
+let results = run({ verbose: true });
+
+if (!results.success) {
+    print("");
+    print("Tests failed!");
+    exit(1);
+}
+print("");
+print("All tests passed!");

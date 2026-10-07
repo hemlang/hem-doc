@@ -6,7 +6,7 @@ HPM ?= hpm
 PYTHON ?= python3
 VERSION := 1.0.5
 
-.PHONY: all deps docs docs-all docs-py docs-py-all server package dist clean help
+.PHONY: all deps docs docs-all docs-py docs-py-all server package dist run test clean help
 
 all: docs
 
@@ -53,13 +53,17 @@ server: docs
 dist: server
 	@echo "Creating distribution package..."
 	@rm -f hem-doc-$(VERSION).zip
-	@zip -j hem-doc-$(VERSION).zip hem-doc-server docs.html llms.txt
+	@zip -j hem-doc-$(VERSION).zip hem-doc-server docs.html llms.txt favicon.svg
 	@ls -l hem-doc-$(VERSION).zip | awk '{print "Done: " $$9 " (" $$5 " bytes)"}'
 
 # Run the documentation server locally
 run: server
 	@echo "Starting documentation server on http://localhost:5169"
 	@./hem-doc-server
+
+# Run the server route tests (requires Sprout: make deps)
+test:
+	@$(HEMLOCK) test_server.hml
 
 # Clean build artifacts
 clean:
@@ -77,8 +81,9 @@ help:
 	@echo "  make docs-py     - Generate docs.html and llms.txt using Python (fallback)"
 	@echo "  make docs-py-all - Generate docs for all 9 languages using Python"
 	@echo "  make server  - Package the documentation server executable"
-	@echo "  make dist    - Create distribution zip (server + docs + llms.txt)"
+	@echo "  make dist    - Create distribution zip (server + docs + llms.txt + favicon)"
 	@echo "  make run     - Run the documentation server locally"
+	@echo "  make test    - Run the server route tests"
 	@echo "  make clean   - Remove build artifacts"
 	@echo "  make help    - Show this help message"
 	@echo ""

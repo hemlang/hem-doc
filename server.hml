@@ -1,0 +1,322 @@
+// Hemlock Documentation Server - application module
+//
+// Builds the Sprout app without starting it, so the routes can be tested
+// in-process (see test_server.hml). serve.hml is the executable entry point.
+
+import { App } from "hemlang/sprout";
+import { read_file } from "@stdlib/fs";
+import { now } from "@stdlib/datetime";
+
+// Keep in sync with package.json (test_server.hml checks this)
+export let VERSION = "1.0.6";
+
+// Canonical public URL, used by robots.txt and sitemap.xml
+export let SITE_URL = "https://hemlang.dev/";
+
+// Supported languages for documentation. "en" is the default and must be first.
+export let supported_langs = ["en", "de", "es", "fr", "it", "ja", "pt", "ru", "zh"];
+
+let lang_names = {
+    en: "English",
+    de: "German",
+    es: "Spanish",
+    fr: "French",
+    it: "Italian",
+    ja: "Japanese",
+    pt: "Portuguese",
+    ru: "Russian",
+    zh: "Chinese"
+};
+
+export fn lang_name(lang) {
+    return lang_names[lang];
+}
+
+export fn docs_filename(lang) {
+    if (lang == "en") {
+        return "docs.html";
+    }
+    return "docs-" + lang + ".html";
+}
+
+export fn llms_filename(lang) {
+    if (lang == "en") {
+        return "llms.txt";
+    }
+    return "llms-" + lang + ".txt";
+}
+
+// ============================================================================
+// Content loading
+// ============================================================================
+
+// read_file throws when a file is missing or unreadable, so wrap it.
+// Returns the file contents, or null if the file could not be read.
+export fn try_read(path) {
+    try {
+        return read_file(path);
+    } catch (e) {
+        return null;
+    }
+}
+
+// Load every docs/llms file plus the favicon from `dir`.
+// Missing files are reported with a warning and stored as null.
+// Note: a missing docs.html is NOT fatal here; serve.hml decides that.
+export fn load_content(dir) {
+    let prefix = "";
+    if (dir != null && dir != "") {
+        prefix = dir + "/";
+    }
+
+    let docs = {};
+    let llms = {};
+
+    for (let lang in supported_langs) {
+        let docs_file = docs_filename(lang);
+        docs[lang] = try_read(prefix + docs_file);
+        if (docs[lang] == null && lang != "en") {
+            print("Warning: " + docs_file + " not found, " + lang_name(lang) + " docs will fall back to English");
+        }
+
+        let llms_file = llms_filename(lang);
+        llms[lang] = try_read(prefix + llms_file);
+        if (llms[lang] == null) {
+            if (lang == "en") {
+                print("Warning: llms.txt not found, /llms.txt endpoint will be unavailable");
+            } else {
+                print("Warning: " + llms_file + " not found, " + lang_name(lang) + " LLM docs will fall back to English");
+            }
+        }
+    }
+
+    let favicon = try_read(prefix + "favicon.svg");
+    if (favicon == null) {
+        print("Warning: favicon.svg not found, /favicon.ico will return 404");
+    }
+
+    return {
+        docs: docs,
+        llms: llms,
+        favicon: favicon
+    };
+}
+
+// ============================================================================
+// Generated documents
+// ============================================================================
+
+export fn build_robots_txt() {
+    return "User-agent: *\nAllow: /\n\nSitemap: " + SITE_URL + "sitemap.xml\n";
+}
+
+// Only languages whose docs file actually loaded are listed; a language that
+// is falling back to English would otherwise appear as a duplicate page.
+export fn build_sitemap_xml(content) {
+    let xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    xml = xml + "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
+    for (let lang in supported_langs) {
+        if (content.docs[lang] != null) {
+            // English is canonical at the site root rather than /docs.html
+            let loc = SITE_URL;
+            if (lang != "en") {
+                loc = SITE_URL + docs_filename(lang);
+            }
+            xml = xml + "  <url><loc>" + loc + "</loc></url>\n";
+        }
+    }
+    xml = xml + "</urlset>\n";
+    return xml;
+}
+
+fn size_of(s) {
+    if (s == null) {
+        return 0;
+    }
+    return s.byte_length;
+}
+
+// "ok" only when every docs and llms file loaded; otherwise "degraded".
+// (The favicon is reported but does not affect status.)
+export fn build_health(content, started_at) {
+    let all_loaded = true;
+    let languages = {};
+
+    let report = {
+        status: "ok",
+        version: VERSION,
+        started_at: started_at,
+        languages: languages,
+        favicon: content.favicon != null
+    };
+
+    for (let lang in supported_langs) {
+        let docs = content.docs[lang];
+        let llms = content.llms[lang];
+        if (docs == null || llms == null) {
+            all_loaded = false;
+        }
+        languages[lang] = {
+            docs_loaded: docs != null,
+            docs_size: size_of(docs),
+            llms_loaded: llms != null,
+            llms_size: size_of(llms)
+        };
+
+        // Flat size fields kept for compatibility with existing monitors
+        if (lang == "en") {
+            report["docs_size"] = size_of(docs);
+            report["llms_size"] = size_of(llms);
+        } else {
+            report["docs_" + lang + "_size"] = size_of(docs);
+            report["llms_" + lang + "_size"] = size_of(llms);
+        }
+    }
+
+    if (!all_loaded) {
+        report.status = "degraded";
+    }
+    return report;
+}
+
+// ============================================================================
+// HEAD support
+// ============================================================================
+
+// Sprout can register HEAD routes but always writes the body. Swap the
+// response stream for one that cuts the output at the end of the headers, so
+// HEAD gets exactly the GET status and headers (including the GET
+// Content-Length, as RFC 9110 permits) and no body.
+fn strip_body(res) {
+    let inner = res._stream;
+    res._stream = {
+        write: fn(data) {
+            let end = data.find("\r\n\r\n");
+            if (end == -1) {
+                inner.write(data);
+            } else {
+                inner.write(data.substr(0, end + 4));
+            }
+        }
+    };
+}
+
+// Wrap a handler so that it sends headers only when the request is HEAD
+export fn head_aware(handler) {
+    return fn(req, res, next) {
+        if (req.method == "HEAD") {
+            strip_body(res);
+        }
+        handler(req, res, next);
+    };
+}
+
+// ============================================================================
+// Handlers
+// ============================================================================
+
+// Note: res.type("text") resolves to application/octet-stream in Sprout. The
+// llms routes have always been served that way, so it is kept as-is here.
+
+fn make_docs_handler(content, lang) {
+    return fn(req, res, next) {
+        let body = content.docs[lang];
+        if (body == null) {
+            body = content.docs["en"];
+        }
+        res.type("html").send(body);
+    };
+}
+
+fn make_llms_handler(content, lang) {
+    let file = llms_filename(lang);
+    return fn(req, res, next) {
+        if (content.llms[lang] != null) {
+            res.type("text").send(content.llms[lang]);
+        } else if (lang != "en" && content.llms["en"] != null) {
+            res.type("text").send(content.llms["en"]);
+        } else {
+            res.status(404).type("text").send(file + " not found. Run 'make docs' to generate it.");
+        }
+    };
+}
+
+fn make_static_handler(body, content_type) {
+    return fn(req, res, next) {
+        res.type(content_type).send(body);
+    };
+}
+
+fn make_favicon_handler(content) {
+    return fn(req, res, next) {
+        if (content.favicon == null) {
+            res.status(404).type("txt").send("favicon not found");
+        } else {
+            res.type("image/svg+xml").send(content.favicon);
+        }
+    };
+}
+
+fn make_health_handler(content, started_at) {
+    return fn(req, res, next) {
+        res.json(build_health(content, started_at));
+    };
+}
+
+// ============================================================================
+// Route table
+// ============================================================================
+
+// Returns the route table: an array of { name, path, handler }.
+// Every route is registered for both GET and HEAD by create_app.
+export fn build_routes(content, started_at) {
+    let routes = [];
+
+    routes.push({ name: "docs_root", path: "/", handler: make_docs_handler(content, "en") });
+
+    for (let lang in supported_langs) {
+        routes.push({
+            name: "docs_" + lang,
+            path: "/" + docs_filename(lang),
+            handler: make_docs_handler(content, lang)
+        });
+    }
+
+    for (let lang in supported_langs) {
+        routes.push({
+            name: "llms_" + lang,
+            path: "/" + llms_filename(lang),
+            handler: make_llms_handler(content, lang)
+        });
+    }
+
+    routes.push({
+        name: "robots",
+        path: "/robots.txt",
+        handler: make_static_handler(build_robots_txt(), "txt")
+    });
+    routes.push({
+        name: "sitemap",
+        path: "/sitemap.xml",
+        handler: make_static_handler(build_sitemap_xml(content), "xml")
+    });
+    routes.push({ name: "favicon", path: "/favicon.ico", handler: make_favicon_handler(content) });
+    routes.push({ name: "health", path: "/health", handler: make_health_handler(content, started_at) });
+
+    return routes;
+}
+
+// Build the Sprout app. `started_at` defaults to the current UTC time.
+export fn create_app(content, started_at?: null) {
+    if (started_at == null) {
+        started_at = now().to_iso_string();
+    }
+
+    let app = App(null);
+    for (let route in build_routes(content, started_at)) {
+        let handler = head_aware(route.handler);
+        app.get(route.path, handler);
+        app.head(route.path, handler);
+    }
+    return app;
+}

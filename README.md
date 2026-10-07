@@ -83,9 +83,17 @@ make server
 # Serving docs at http://localhost:3000
 ```
 
-The server provides:
-- `/` - The documentation HTML
-- `/health` - Health check endpoint (JSON)
+The server provides (every route also answers `HEAD`):
+- `/`, `/docs.html`, `/docs-<lang>.html` - The documentation HTML (falls back to English if a translation is missing)
+- `/llms.txt`, `/llms-<lang>.txt` - LLM-friendly plain text
+- `/robots.txt` - Allows all crawlers and points at the sitemap
+- `/sitemap.xml` - Lists the languages whose docs loaded at startup
+- `/favicon.ico` - The Hemlock favicon (`favicon.svg`, served as `image/svg+xml`)
+- `/health` - Health check (JSON): `status` (`ok`, or `degraded` if any docs/llms file is missing), `version`, `started_at`, and per-language loaded flags and byte sizes
+
+Missing translations, llms files and the favicon are optional; only `docs.html` is required.
+
+Run the route tests with `make test` (requires `make deps`).
 
 ## Updating Submodules
 
@@ -142,7 +150,10 @@ hem-doc/
 ├── Makefile               # Build automation
 ├── build_docs.py          # Documentation generator script (Python)
 ├── build_docs.hml         # Documentation generator script (Hemlock)
-├── serve.hml              # Documentation server (Hemlock/Sprout)
+├── serve.hml              # Documentation server entry point (Hemlock/Sprout)
+├── server.hml             # Server routes and handlers
+├── test_server.hml        # Server route tests (make test)
+├── favicon.svg            # Site favicon
 ├── hemlock/               # Git submodule (hemlock source)
 │   ├── CLAUDE.md          # Main language reference
 │   ├── docs/              # Additional documentation
@@ -168,6 +179,7 @@ hem-doc/
 | `make server` | Package the documentation server executable |
 | `make dist` | Create distribution zip (server + docs.html) |
 | `make run` | Run the documentation server locally |
+| `make test` | Run the server route tests |
 | `make clean` | Remove build artifacts |
 | `make help` | Show help message |
 
