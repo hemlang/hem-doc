@@ -24,6 +24,7 @@ import json
 import base64
 import re
 import argparse
+import posixpath
 from pathlib import Path
 
 # Paths to submodules and translations
@@ -31,6 +32,7 @@ HEMLOCK_DIR = Path(__file__).parent / 'hemlock'
 HPM_DIR = Path(__file__).parent / 'hpm'
 TRANSLATIONS_DIR = Path(__file__).parent / 'translations'
 WELCOME_DIR = Path(__file__).parent / 'welcome'
+BASE_DIR = Path(__file__).parent
 OUTPUT_FILE = Path(__file__).parent / 'docs.html'
 LLM_OUTPUT_FILE = Path(__file__).parent / 'llms.txt'
 
@@ -57,6 +59,8 @@ SECTION_TRANSLATIONS = {
         'API Reference': 'API 参考',
         'Design & Philosophy': '设计与理念',
         'Contributing': '贡献指南',
+        'Standard Library': '标准库',
+        'Additional Resources': '其他资源',
         'hpm: Getting Started': 'hpm: 快速入门',
         'hpm: User Guide': 'hpm: 用户指南',
         'hpm: Package Development': 'hpm: 包开发',
@@ -71,6 +75,8 @@ SECTION_TRANSLATIONS = {
         'API Reference': 'API-Referenz',
         'Design & Philosophy': 'Design & Philosophie',
         'Contributing': 'Mitwirken',
+        'Standard Library': 'Standardbibliothek',
+        'Additional Resources': 'Weitere Ressourcen',
         'hpm: Getting Started': 'hpm: Erste Schritte',
         'hpm: User Guide': 'hpm: Benutzerhandbuch',
         'hpm: Package Development': 'hpm: Paketentwicklung',
@@ -85,6 +91,8 @@ SECTION_TRANSLATIONS = {
         'API Reference': 'Referencia de API',
         'Design & Philosophy': 'Diseño y Filosofía',
         'Contributing': 'Contribuir',
+        'Standard Library': 'Biblioteca estándar',
+        'Additional Resources': 'Recursos adicionales',
         'hpm: Getting Started': 'hpm: Primeros Pasos',
         'hpm: User Guide': 'hpm: Guía del Usuario',
         'hpm: Package Development': 'hpm: Desarrollo de Paquetes',
@@ -99,6 +107,8 @@ SECTION_TRANSLATIONS = {
         'API Reference': 'APIリファレンス',
         'Design & Philosophy': '設計と思想',
         'Contributing': 'コントリビューション',
+        'Standard Library': '標準ライブラリ',
+        'Additional Resources': 'その他のリソース',
         'hpm: Getting Started': 'hpm: はじめに',
         'hpm: User Guide': 'hpm: ユーザーガイド',
         'hpm: Package Development': 'hpm: パッケージ開発',
@@ -113,6 +123,8 @@ SECTION_TRANSLATIONS = {
         'API Reference': 'Referência da API',
         'Design & Philosophy': 'Design e Filosofia',
         'Contributing': 'Contribuição',
+        'Standard Library': 'Biblioteca padrão',
+        'Additional Resources': 'Recursos adicionais',
         'hpm: Getting Started': 'hpm: Primeiros Passos',
         'hpm: User Guide': 'hpm: Guia do Usuário',
         'hpm: Package Development': 'hpm: Desenvolvimento de Pacotes',
@@ -127,6 +139,8 @@ SECTION_TRANSLATIONS = {
         'API Reference': 'Référence API',
         'Design & Philosophy': 'Conception et Philosophie',
         'Contributing': 'Contribuer',
+        'Standard Library': 'Bibliothèque standard',
+        'Additional Resources': 'Ressources supplémentaires',
         'hpm: Getting Started': 'hpm : Prise en Main',
         'hpm: User Guide': 'hpm : Guide Utilisateur',
         'hpm: Package Development': 'hpm : Développement de Paquets',
@@ -141,6 +155,8 @@ SECTION_TRANSLATIONS = {
         'API Reference': 'Riferimento API',
         'Design & Philosophy': 'Design e Filosofia',
         'Contributing': 'Contribuire',
+        'Standard Library': 'Libreria standard',
+        'Additional Resources': 'Risorse aggiuntive',
         'hpm: Getting Started': 'hpm: Primi Passi',
         'hpm: User Guide': 'hpm: Guida Utente',
         'hpm: Package Development': 'hpm: Sviluppo Pacchetti',
@@ -155,6 +171,8 @@ SECTION_TRANSLATIONS = {
         'API Reference': 'Справочник API',
         'Design & Philosophy': 'Дизайн и философия',
         'Contributing': 'Участие в разработке',
+        'Standard Library': 'Стандартная библиотека',
+        'Additional Resources': 'Дополнительные ресурсы',
         'hpm: Getting Started': 'hpm: Начало работы',
         'hpm: User Guide': 'hpm: Руководство пользователя',
         'hpm: Package Development': 'hpm: Разработка пакетов',
@@ -218,6 +236,10 @@ TITLE_TRANSLATIONS = {
         'Creating Packages': '创建包',
         'Package Spec': '包规范',
         'Versioning': '版本控制',
+        # Top-level docs
+        'Glossary': "术语表",
+        'Migration 2.0': "迁移到 2.0",
+        'Annotations Implementation Summary': "注解实现总结",
         'Architecture': '架构',
         'Exit Codes': '退出码',
     },
@@ -274,6 +296,10 @@ TITLE_TRANSLATIONS = {
         'Creating Packages': 'Pakete erstellen',
         'Package Spec': 'Paketspezifikation',
         'Versioning': 'Versionierung',
+        # Top-level docs
+        'Glossary': "Glossar",
+        'Migration 2.0': "Migration auf 2.0",
+        'Annotations Implementation Summary': "Annotationen: Implementierungsübersicht",
         'Architecture': 'Architektur',
         'Exit Codes': 'Exit-Codes',
     },
@@ -330,6 +356,10 @@ TITLE_TRANSLATIONS = {
         'Creating Packages': 'Creación de Paquetes',
         'Package Spec': 'Especificación de Paquetes',
         'Versioning': 'Versionado',
+        # Top-level docs
+        'Glossary': "Glosario",
+        'Migration 2.0': "Migración a 2.0",
+        'Annotations Implementation Summary': "Resumen de implementación de anotaciones",
         'Architecture': 'Arquitectura',
         'Exit Codes': 'Códigos de Salida',
     },
@@ -386,6 +416,10 @@ TITLE_TRANSLATIONS = {
         'Creating Packages': 'パッケージの作成',
         'Package Spec': 'パッケージ仕様',
         'Versioning': 'バージョニング',
+        # Top-level docs
+        'Glossary': "用語集",
+        'Migration 2.0': "2.0 への移行",
+        'Annotations Implementation Summary': "アノテーション実装サマリー",
         'Architecture': 'アーキテクチャ',
         'Exit Codes': '終了コード',
     },
@@ -442,6 +476,10 @@ TITLE_TRANSLATIONS = {
         'Creating Packages': 'Criação de Pacotes',
         'Package Spec': 'Especificação de Pacotes',
         'Versioning': 'Versionamento',
+        # Top-level docs
+        'Glossary': "Glossário",
+        'Migration 2.0': "Migração para 2.0",
+        'Annotations Implementation Summary': "Resumo da implementação de anotações",
         'Architecture': 'Arquitetura',
         'Exit Codes': 'Códigos de Saída',
     },
@@ -498,6 +536,10 @@ TITLE_TRANSLATIONS = {
         'Creating Packages': 'Création de Paquets',
         'Package Spec': 'Spécification des Paquets',
         'Versioning': 'Gestion des Versions',
+        # Top-level docs
+        'Glossary': "Glossaire",
+        'Migration 2.0': "Migration vers 2.0",
+        'Annotations Implementation Summary': "Résumé de l'implémentation des annotations",
         'Architecture': 'Architecture',
         'Exit Codes': 'Codes de Sortie',
     },
@@ -554,6 +596,10 @@ TITLE_TRANSLATIONS = {
         'Creating Packages': 'Creazione di Pacchetti',
         'Package Spec': 'Specifiche dei Pacchetti',
         'Versioning': 'Versionamento',
+        # Top-level docs
+        'Glossary': "Glossario",
+        'Migration 2.0': "Migrazione a 2.0",
+        'Annotations Implementation Summary': "Riepilogo implementazione annotazioni",
         'Architecture': 'Architettura',
         'Exit Codes': 'Codici di Uscita',
     },
@@ -610,6 +656,10 @@ TITLE_TRANSLATIONS = {
         'Creating Packages': 'Создание пакетов',
         'Package Spec': 'Спецификация пакетов',
         'Versioning': 'Версионирование',
+        # Top-level docs
+        'Glossary': "Глоссарий",
+        'Migration 2.0': "Миграция на 2.0",
+        'Annotations Implementation Summary': "Сводка по реализации аннотаций",
         'Architecture': 'Архитектура',
         'Exit Codes': 'Коды выхода',
     }
@@ -840,59 +890,188 @@ def encode_image(path):
         return ""
 
 
-def convert_md_links(content, current_section):
-    """Convert markdown file links to hash-based page IDs.
+# GitHub repositories for each submodule. Links to files that are not
+# published as pages (examples/, tests/, docs/README.md, plans/, ...) are
+# rewritten to point at the file on GitHub instead of being left as relative
+# links, which never resolve inside the single-file viewer.
+GITHUB_REPOS = {
+    'hemlock': 'https://github.com/hemlang/hemlock',
+    'hpm': 'https://github.com/hemlang/hpm',
+}
+GITHUB_REF = 'main'
 
-    Examples:
-        [Tutorial](tutorial.md) -> [Tutorial](#getting-started-tutorial)
-        [Syntax](../language-guide/syntax.md) -> [Syntax](#language-guide-syntax)
+# hemlock/docs/<subdir>/*.md sections: (subdir, section name, order)
+HEMLOCK_DOC_SECTIONS = [
+    ('getting-started', 'Getting Started', 1),
+    ('language-guide', 'Language Guide', 2),
+    ('advanced', 'Advanced Topics', 3),
+    ('reference', 'API Reference', 4),
+    ('design', 'Design & Philosophy', 6),
+    ('contributing', 'Contributing', 7),
+]
+# hemlock/stdlib/docs/*.md -> one page per module, id "stdlib-<module>"
+STDLIB_SECTION = ('Standard Library', 5)
+# hemlock/docs/*.md (top-level files) -> id "<file>"
+TOP_LEVEL_SECTION = ('Additional Resources', 8)
+# Top-level files that are not published (README is a link index that
+# duplicates the sidebar). Must match TOP_LEVEL_EXCLUDE in tests/check_docs.py.
+TOP_LEVEL_DOCS_EXCLUDE = ['README']
+
+# hpm docs: file -> (section, order). Order starts at 10 to appear after hemlock docs.
+HPM_SECTIONS = {
+    # Getting Started docs
+    'installation': ('hpm: Getting Started', 10),
+    'quick-start': ('hpm: Getting Started', 10),
+    'project-setup': ('hpm: Getting Started', 10),
+    # User Guide docs
+    'commands': ('hpm: User Guide', 11),
+    'configuration': ('hpm: User Guide', 11),
+    'troubleshooting': ('hpm: User Guide', 11),
+    # Package Development docs
+    'creating-packages': ('hpm: Package Development', 12),
+    'package-spec': ('hpm: Package Development', 12),
+    'versioning': ('hpm: Package Development', 12),
+    # Reference docs
+    'architecture': ('hpm: Reference', 13),
+    'exit-codes': ('hpm: Reference', 13),
+}
+
+MD_LINK_RE = re.compile(r'(!?)\[([^\]]+)\]\(([^)]+)\)')
+URL_SCHEME_RE = re.compile(r'^[A-Za-z][A-Za-z0-9+.-]*:')
+
+
+def repo_rel_path(path):
+    """Repo-relative POSIX path (e.g. 'hemlock/docs/advanced/ffi.md')."""
+    return Path(path).resolve().relative_to(BASE_DIR.resolve()).as_posix()
+
+
+def resolve_md_href(href, source_path, path_to_id):
+    """Map one link target to its URL in the single-file viewer.
+
+    Args:
+        href: the raw link target from the markdown source
+        source_path: repo-relative path of the English source file the link
+            appears in (translations mirror the English layout, so relative
+            links resolve the same way)
+        path_to_id: repo-relative .md path -> page id, for every published page
+
+    Returns the new href, or None to leave the link unchanged.
+    """
+    if URL_SCHEME_RE.match(href) or href.startswith('/'):
+        return None  # external (http:, mailto:, ...) or site-absolute
+
+    current_id = path_to_id.get(source_path)
+    if href.startswith('#'):
+        # In-page anchor: qualify with the current page so it survives reloads
+        # and does not get mistaken for a page id by the hash router.
+        if current_id and len(href) > 1:
+            return f'#{current_id}/{href[1:]}'
+        return None
+
+    path, _, fragment = href.partition('#')
+    target = posixpath.normpath(posixpath.join(posixpath.dirname(source_path), path.replace('\\', '/')))
+
+    if target in path_to_id:
+        page_href = '#' + path_to_id[target]
+        return f'{page_href}/{fragment}' if fragment else page_href
+
+    # Not a published page: link to the file on GitHub if it lives in a submodule
+    repo, _, repo_path = target.partition('/')
+    if repo in GITHUB_REPOS and repo_path and not target.startswith('..'):
+        kind = 'tree' if (BASE_DIR / target).is_dir() else 'blob'
+        url = f'{GITHUB_REPOS[repo]}/{kind}/{GITHUB_REF}/{repo_path}'
+        return f'{url}#{fragment}' if fragment else url
+    return None
+
+
+def convert_md_links(content, source_path, path_to_id):
+    """Rewrite markdown links so they work inside the single-file viewer.
+
+    Pages are addressed as '#<page-id>' and headings within a page as
+    '#<page-id>/<heading-slug>'. Examples (source hemlock/docs/advanced/ffi.md):
+        [Memory](../language-guide/memory.md)     -> [Memory](#language-guide-memory)
+        [Ptr](memory-model.md#raw-pointers)       -> [Ptr](#advanced-memory-model/raw-pointers)
+        [Overview](#overview)                     -> [Overview](#advanced-ffi/overview)
+        [fs](../../stdlib/docs/fs.md)             -> [fs](#stdlib-fs)
+        [Examples](../../examples/)               -> [Examples](https://github.com/.../tree/main/examples)
+    Links inside fenced code blocks and image links are left untouched.
     """
     def replace_link(match):
-        text = match.group(1)
-        path = match.group(2)
-
-        # Skip external URLs and anchor-only links
-        if path.startswith(('http://', 'https://', '#', 'mailto:')):
+        if match.group(1):  # image
             return match.group(0)
-
-        # Skip non-markdown links
-        if not path.endswith('.md'):
+        new_href = resolve_md_href(match.group(3).strip(), source_path, path_to_id)
+        if new_href is None:
             return match.group(0)
+        return f'[{match.group(2)}]({new_href})'
 
-        # Parse the path to get section and filename
-        path = path.replace('\\', '/')
-
-        # Handle relative paths
-        if path.startswith('../'):
-            # Going up to parent, then into another section
-            # e.g., ../language-guide/syntax.md
-            parts = path.split('/')
-            # Find the section (first non-.. part)
-            section_idx = 0
-            for i, part in enumerate(parts):
-                if part != '..':
-                    section_idx = i
-                    break
-            if section_idx < len(parts) - 1:
-                section = parts[section_idx]
-                filename = parts[-1].replace('.md', '')
-                return f'[{text}](#{section}-{filename})'
-        elif '/' in path:
-            # Direct path like language-guide/syntax.md
-            parts = path.split('/')
-            section = parts[-2] if len(parts) >= 2 else current_section
-            filename = parts[-1].replace('.md', '')
-            return f'[{text}](#{section}-{filename})'
+    out = []
+    in_code = False
+    for line in content.split('\n'):
+        if line.strip().startswith('```'):
+            in_code = not in_code
+            out.append(line)
+        elif in_code:
+            out.append(line)
         else:
-            # Same directory link like tutorial.md
-            filename = path.replace('.md', '')
-            return f'[{text}](#{current_section}-{filename})'
+            out.append(MD_LINK_RE.sub(replace_link, line))
+    return '\n'.join(out)
 
-        return match.group(0)
 
-    # Match markdown links: [text](path)
-    pattern = r'\[([^\]]+)\]\(([^)]+)\)'
-    return re.sub(pattern, replace_link, content)
+def list_md_files(directory):
+    """Sorted list of .md files directly inside a directory."""
+    if not directory.is_dir():
+        return []
+    return sorted(p for p in directory.glob('*.md') if p.is_file())
+
+
+def discover_pages():
+    """List every published markdown page (without reading content).
+
+    Returns a list of dicts with: path (absolute), id, title (English),
+    section (English, '' for top-level pages) and order.
+    """
+    pages = []
+
+    claude_path = HEMLOCK_DIR / 'CLAUDE.md'
+    if claude_path.exists():
+        pages.append({'path': claude_path, 'id': 'language-reference',
+                      'title': None, 'section': '', 'order': 0})
+
+    docs_dir = HEMLOCK_DIR / 'docs'
+    for subdir, section_name, order in HEMLOCK_DOC_SECTIONS:
+        for md_file in list_md_files(docs_dir / subdir):
+            # Skip development docs
+            if 'development' in md_file.name:
+                continue
+            pages.append({'path': md_file, 'id': f'{subdir}-{md_file.stem}',
+                          'title': smart_title(md_file.stem),
+                          'section': section_name, 'order': order})
+
+    section_name, order = STDLIB_SECTION
+    for md_file in list_md_files(HEMLOCK_DIR / 'stdlib' / 'docs'):
+        # Module names are shown verbatim, as imported: @stdlib/<name>
+        pages.append({'path': md_file, 'id': f'stdlib-{md_file.stem}',
+                      'title': md_file.stem, 'section': section_name, 'order': order})
+
+    section_name, order = TOP_LEVEL_SECTION
+    for md_file in list_md_files(docs_dir):
+        if md_file.stem in TOP_LEVEL_DOCS_EXCLUDE:
+            continue
+        pages.append({'path': md_file, 'id': md_file.stem,
+                      'title': smart_title(md_file.stem),
+                      'section': section_name, 'order': order})
+
+    for md_file in list_md_files(HPM_DIR / 'docs'):
+        # Skip the README as it's an index
+        if md_file.stem.lower() == 'readme':
+            continue
+        # Unknown files go to a default section
+        section_name, order = HPM_SECTIONS.get(md_file.stem, ('hpm: Other', 14))
+        pages.append({'path': md_file, 'id': f'hpm-{md_file.stem}',
+                      'title': smart_title(md_file.stem),
+                      'section': section_name, 'order': order})
+
+    return pages
 
 
 def collect_docs(lang='en'):
@@ -918,124 +1097,33 @@ def collect_docs(lang='en'):
     }
     translation_stats['translated'] += 1
 
-    # Add CLAUDE.md as the main documentation
-    claude_path = HEMLOCK_DIR / 'CLAUDE.md'
-    if claude_path.exists():
-        content, is_translated = read_file_with_translation(claude_path, lang)
-        # Transform AI-directed content to human-readable documentation
-        content = transform_claude_md_for_humans(content, lang)
-        content = convert_md_links(content, 'language-reference')
-        title = translate_section('Language Reference', lang)
-        docs[title] = {
-            'id': 'language-reference',
-            'content': content,
-            'order': 0,
-            'section': ''
+    pages = discover_pages()
+    path_to_id = {repo_rel_path(p['path']): p['id'] for p in pages}
+
+    for page in pages:
+        source_path = repo_rel_path(page['path'])
+        content, is_translated = read_file_with_translation(page['path'], lang)
+
+        if page['id'] == 'language-reference':
+            # Transform AI-directed content to human-readable documentation
+            content = transform_claude_md_for_humans(content, lang)
+            key = translate_section('Language Reference', lang)
+            section = ''
+        else:
+            section = translate_section(page['section'], lang)
+            key = f"{section} -> {translate_title(page['title'], lang)}"
+
+        docs[key] = {
+            'id': page['id'],
+            'content': convert_md_links(content, source_path, path_to_id),
+            'order': page['order'],
+            'section': section,
         }
+
         if is_translated:
             translation_stats['translated'] += 1
         else:
             translation_stats['fallback'] += 1
-
-    # Collect docs from hemlock/docs/ directory
-    docs_dir = HEMLOCK_DIR / 'docs'
-    if docs_dir.exists():
-        sections = {
-            'getting-started': ('Getting Started', 1),
-            'language-guide': ('Language Guide', 2),
-            'advanced': ('Advanced Topics', 3),
-            'reference': ('API Reference', 4),
-            'design': ('Design & Philosophy', 5),
-            'contributing': ('Contributing', 6),
-        }
-
-        for subdir, (section_name, order) in sections.items():
-            subdir_path = docs_dir / subdir
-            if not subdir_path.exists():
-                continue
-
-            translated_section = translate_section(section_name, lang)
-
-            for md_file in sorted(subdir_path.glob('*.md')):
-                # Skip development docs
-                if 'development' in str(md_file):
-                    continue
-
-                file_name = md_file.stem
-                # Convert filename to title and translate
-                title = smart_title(file_name)
-                translated_title = translate_title(title, lang)
-                doc_id = f"{subdir}-{file_name}"
-
-                content, is_translated = read_file_with_translation(md_file, lang)
-                content = convert_md_links(content, subdir)
-
-                docs[f"{translated_section} -> {translated_title}"] = {
-                    'id': doc_id,
-                    'content': content,
-                    'order': order,
-                    'section': translated_section
-                }
-
-                if is_translated:
-                    translation_stats['translated'] += 1
-                else:
-                    translation_stats['fallback'] += 1
-
-    # Collect hpm documentation
-    hpm_docs_dir = HPM_DIR / 'docs'
-    if hpm_docs_dir.exists():
-        # hpm documentation structure - order starts at 10 to appear after hemlock docs
-        hpm_sections = {
-            # Getting Started docs
-            'installation': ('hpm: Getting Started', 10),
-            'quick-start': ('hpm: Getting Started', 10),
-            'project-setup': ('hpm: Getting Started', 10),
-            # User Guide docs
-            'commands': ('hpm: User Guide', 11),
-            'configuration': ('hpm: User Guide', 11),
-            'troubleshooting': ('hpm: User Guide', 11),
-            # Package Development docs
-            'creating-packages': ('hpm: Package Development', 12),
-            'package-spec': ('hpm: Package Development', 12),
-            'versioning': ('hpm: Package Development', 12),
-            # Reference docs
-            'architecture': ('hpm: Reference', 13),
-            'exit-codes': ('hpm: Reference', 13),
-        }
-
-        for md_file in sorted(hpm_docs_dir.glob('*.md')):
-            file_name = md_file.stem
-            # Skip the README as it's an index
-            if file_name.lower() == 'readme':
-                continue
-
-            if file_name in hpm_sections:
-                section_name, order = hpm_sections[file_name]
-            else:
-                # Default section for unknown files
-                section_name = 'hpm: Other'
-                order = 14
-
-            translated_section = translate_section(section_name, lang)
-            title = smart_title(file_name)
-            translated_title = translate_title(title, lang)
-            doc_id = f"hpm-{file_name}"
-
-            content, is_translated = read_file_with_translation(md_file, lang)
-            content = convert_md_links(content, f"hpm-{file_name}")
-
-            docs[f"{translated_section} -> {translated_title}"] = {
-                'id': doc_id,
-                'content': content,
-                'order': order,
-                'section': translated_section
-            }
-
-            if is_translated:
-                translation_stats['translated'] += 1
-            else:
-                translation_stats['fallback'] += 1
 
     # Sort by order, then by name
     sorted_docs = dict(sorted(docs.items(), key=lambda x: (x[1]['order'], x[0])))
@@ -1994,7 +2082,7 @@ def generate_html(docs, logo_data, lang='en'):
         }});
 
         // Markdown parser
-        function parseMarkdown(md) {{
+        function parseMarkdown(md, pageId) {{
             let lines = md.split('\\n');
             let html = '';
             let inCodeBlock = false;
@@ -2016,11 +2104,26 @@ def generate_html(docs, logo_data, lang='en'):
                 return text;
             }}
 
+            // Heading ids are "<pageId>/<slug>", where slug follows GitHub's
+            // algorithm (so "#heading" links written for GitHub keep working)
+            // and repeats get -1, -2, ... Mirrored in tests/check_docs.py.
+            const usedSlugs = new Map();
             function makeId(text) {{
-                return text.toLowerCase()
-                    .replace(/[^\\w\\s-]/g, '')
-                    .replace(/\\s+/g, '-')
-                    .replace(/^-+|-+$/g, '');
+                const base = text
+                    .replace(/!?\\[([^\\]]*)\\]\\([^)]*\\)/g, '$1')
+                    .replace(/<[^>]+>/g, '')
+                    .toLowerCase()
+                    .replace(/[^\\p{{L}}\\p{{M}}\\p{{N}}\\s_-]/gu, '')
+                    .replace(/ /g, '-');
+                let slug = base;
+                if (usedSlugs.has(base)) {{
+                    const n = usedSlugs.get(base) + 1;
+                    usedSlugs.set(base, n);
+                    slug = base + '-' + n;
+                }} else {{
+                    usedSlugs.set(base, 0);
+                }}
+                return pageId + '/' + slug;
             }}
 
             function flushList() {{
@@ -2259,37 +2362,95 @@ def generate_html(docs, logo_data, lang='en'):
             }});
         }}
 
-        // Load a page
-        function loadPage(pageId) {{
-            const pageData = Object.values(PAGES).find(p => p.id === pageId);
+        // Routing: "#<pageId>" shows a page, "#<pageId>/<heading>" also
+        // scrolls to a heading on it. Heading element ids are
+        // "<pageId>/<heading>" (see makeId in parseMarkdown).
+        let currentPageId = null;
+
+        function findPage(pageId) {{
+            return Object.values(PAGES).find(p => p.id === pageId);
+        }}
+
+        function splitHash(hash) {{
+            let target = hash.charAt(0) === '#' ? hash.substring(1) : hash;
+            try {{
+                target = decodeURIComponent(target);
+            }} catch (e) {{
+                // Leave malformed escapes as-is
+            }}
+            const slash = target.indexOf('/');
+            if (slash === -1) {{
+                return {{ pageId: target, anchor: '' }};
+            }}
+            return {{ pageId: target.substring(0, slash), anchor: target.substring(slash + 1) }};
+        }}
+
+        function scrollToAnchor(pageId, anchor) {{
+            const target = anchor ? document.getElementById(pageId + '/' + anchor) : null;
+            if (target) {{
+                target.scrollIntoView();
+            }} else {{
+                window.scrollTo(0, 0);
+            }}
+        }}
+
+        // Navigate to a location hash
+        function navigateTo(hash) {{
+            let {{ pageId, anchor }} = splitHash(hash);
+            if (!findPage(pageId)) {{
+                if (currentPageId && document.getElementById(currentPageId + '/' + pageId)) {{
+                    // Bare "#heading" link on the current page
+                    anchor = pageId;
+                    pageId = currentPageId;
+                }} else if (currentPageId) {{
+                    console.error('Page not found:', pageId);
+                    return;
+                }} else {{
+                    // Unknown page on first load: show the first page
+                    pageId = Object.values(PAGES)[0].id;
+                    anchor = '';
+                }}
+            }}
+            loadPage(pageId, anchor);
+        }}
+
+        // Load a page, optionally scrolling to a heading on it
+        function loadPage(pageId, anchor) {{
+            anchor = anchor || '';
+            const pageData = findPage(pageId);
             if (!pageData) {{
                 console.error('Page not found:', pageId);
                 return;
             }}
 
-            const content = parseMarkdown(pageData.content);
             const contentEl = document.getElementById('content');
-            contentEl.innerHTML = content;
+            if (pageId !== currentPageId) {{
+                contentEl.innerHTML = parseMarkdown(pageData.content, pageId);
+                currentPageId = pageId;
 
-            // Update active nav link and aria-current
-            document.querySelectorAll('.nav-link').forEach(link => {{
-                link.classList.remove('active');
-                link.removeAttribute('aria-current');
-                if (link.dataset.page === pageId) {{
-                    link.classList.add('active');
-                    link.setAttribute('aria-current', 'page');
-                }}
-            }});
+                // Update active nav link and aria-current
+                document.querySelectorAll('.nav-link').forEach(link => {{
+                    link.classList.remove('active');
+                    link.removeAttribute('aria-current');
+                    if (link.dataset.page === pageId) {{
+                        link.classList.add('active');
+                        link.setAttribute('aria-current', 'page');
+                    }}
+                }});
 
-            // Scroll to top
-            window.scrollTo(0, 0);
+                // Move focus to content for screen readers
+                contentEl.setAttribute('tabindex', '-1');
+                contentEl.focus({{ preventScroll: true }});
+            }}
 
-            // Move focus to content for screen readers
-            contentEl.setAttribute('tabindex', '-1');
-            contentEl.focus({{ preventScroll: true }});
+            // Scroll to the heading, or to the top
+            scrollToAnchor(pageId, anchor);
 
             // Update URL hash
-            window.location.hash = pageId;
+            const current = splitHash(window.location.hash);
+            if (current.pageId !== pageId || current.anchor !== anchor) {{
+                window.location.hash = pageId + (anchor ? '/' + anchor : '');
+            }}
         }}
 
         // Setup navigation
@@ -2309,9 +2470,8 @@ def generate_html(docs, logo_data, lang='en'):
 
         // Handle browser back/forward
         window.addEventListener('hashchange', () => {{
-            const hash = window.location.hash.substring(1);
-            if (hash) {{
-                loadPage(hash);
+            if (window.location.hash.length > 1) {{
+                navigateTo(window.location.hash);
             }}
         }});
 
@@ -2615,9 +2775,8 @@ def generate_html(docs, logo_data, lang='en'):
         }}
 
         // Load initial page
-        const initialHash = window.location.hash.substring(1);
         const firstPageId = Object.values(PAGES)[0].id;
-        loadPage(initialHash || firstPageId);
+        navigateTo(window.location.hash.length > 1 ? window.location.hash : firstPageId);
     </script>
 </body>
 </html>'''
