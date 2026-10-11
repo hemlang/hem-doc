@@ -1,0 +1,133 @@
+name: Check Translation Staleness
+
+on:
+  # Runs after submodule bumps land on main (and any other push touching sources)
+  push:
+    branches: [main, master]
+    paths:
+      - 'hemlock/**'
+      - 'hpm/**'
+      - 'translations/**'
+
+  # Weekly backstop in case a push-triggered run is missed
+  schedule:
+    - cron: '0 6 * * 1' # Monday 06:00 UTC
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check translation staleness
+        id: check
+        run: |
+          python3 check_translations.py --json > /tmp/report.json
+          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json
+          report = json.load(open('/tmp/report.json'))
+          stale_langs = sorted(lang for lang, info in report.items() if info.get('stale'))
+          print(f"has_stale={'true' if stale_langs else 'false'}")
+          EOF
+
+      - name: Build issue body
+        if: steps.check.outputs.has_stale == 'true'
+        run: |
+          python3 - <<'EOF' > /tmp/issue-body.md
+          import json
+          report = json.load(open('/tmp/report.json'))
+          lines = [
+              "Automated check found translations whose English source changed since the",
+              "translation was last updated (tracked via `translations/manifest.json`).",
+              "",
+              "After updating a translation, run `python3 check_translations.py --update-manifest`",
+              "and commit the refreshed `translations/manifest.json` to clear it from this list.",
+              "",
+          ]
+          for lang, info in sorted(report.items()):
+              stale = info.get('stale') or []
+              if not stale:
+                  continue
+              lines.append(f"### {lang} ({len(stale)} file{'s' if len(stale) != 1 else ''})")
+              for p in stale:
+                  lines.append(f"- [ ] `{p}`")
+              lines.append("")
+          print("\n".join(lines))
+          EOF
+
+      - name: Create or update tracking issue
+        if: steps.check.outputs.has_stale == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('/tmp/issue-body.md', 'utf8');
+            const title = 'Stale translations detected';
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'stale-translations',
+            });
+
+            const existing = issues.find(i => i.title === title);
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['stale-translations'],
+              });
+            }
+
+      - name: Close tracking issue if nothing is stale
+        if: steps.check.outputs.has_stale == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'Stale translations detected';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'stale-translations',
+            });
+            const existing = issues.find(i => i.title === title);
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                state: 'closed',
+              });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body: 'All translations are back in sync with their English sources.',
+              });
+            }

@@ -40,7 +40,7 @@ jobs:
 
       - name: Build documentation
         run: |
-          python build_docs.py
+          python build_docs.py --lang all
           if [ ! -f docs.html ]; then
             echo "Error: docs.html was not generated"
             exit 1
@@ -53,6 +53,8 @@ jobs:
         run: |
           mkdir -p _site
           cp docs.html _site/index.html
+          cp docs-*.html _site/
+          cp llms*.txt _site/
           echo "Successfully prepared documentation for deployment"
 
       - name: Upload artifact
