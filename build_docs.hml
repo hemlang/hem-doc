@@ -54,6 +54,8 @@ fn build_section_translations() {
     zh["API Reference"] = "API 参考";
     zh["Design & Philosophy"] = "设计与理念";
     zh["Contributing"] = "贡献指南";
+    zh["Standard Library"] = "标准库";
+    zh["Additional Resources"] = "其他资源";
     zh["hpm: Getting Started"] = "hpm: 快速入门";
     zh["hpm: User Guide"] = "hpm: 用户指南";
     zh["hpm: Package Development"] = "hpm: 包开发";
@@ -69,6 +71,8 @@ fn build_section_translations() {
     de["API Reference"] = "API-Referenz";
     de["Design & Philosophy"] = "Design & Philosophie";
     de["Contributing"] = "Mitwirken";
+    de["Standard Library"] = "Standardbibliothek";
+    de["Additional Resources"] = "Weitere Ressourcen";
     de["hpm: Getting Started"] = "hpm: Erste Schritte";
     de["hpm: User Guide"] = "hpm: Benutzerhandbuch";
     de["hpm: Package Development"] = "hpm: Paketentwicklung";
@@ -84,6 +88,8 @@ fn build_section_translations() {
     es["API Reference"] = "Referencia de API";
     es["Design & Philosophy"] = "Diseño y Filosofía";
     es["Contributing"] = "Contribuir";
+    es["Standard Library"] = "Biblioteca estándar";
+    es["Additional Resources"] = "Recursos adicionales";
     es["hpm: Getting Started"] = "hpm: Primeros Pasos";
     es["hpm: User Guide"] = "hpm: Guía del Usuario";
     es["hpm: Package Development"] = "hpm: Desarrollo de Paquetes";
@@ -99,6 +105,8 @@ fn build_section_translations() {
     fr["API Reference"] = "Référence API";
     fr["Design & Philosophy"] = "Conception et Philosophie";
     fr["Contributing"] = "Contribuer";
+    fr["Standard Library"] = "Bibliothèque standard";
+    fr["Additional Resources"] = "Ressources supplémentaires";
     fr["hpm: Getting Started"] = "hpm : Prise en Main";
     fr["hpm: User Guide"] = "hpm : Guide Utilisateur";
     fr["hpm: Package Development"] = "hpm : Développement de Paquets";
@@ -114,6 +122,8 @@ fn build_section_translations() {
     it["API Reference"] = "Riferimento API";
     it["Design & Philosophy"] = "Design e Filosofia";
     it["Contributing"] = "Contribuire";
+    it["Standard Library"] = "Libreria standard";
+    it["Additional Resources"] = "Risorse aggiuntive";
     it["hpm: Getting Started"] = "hpm: Primi Passi";
     it["hpm: User Guide"] = "hpm: Guida Utente";
     it["hpm: Package Development"] = "hpm: Sviluppo Pacchetti";
@@ -129,6 +139,8 @@ fn build_section_translations() {
     ja["API Reference"] = "APIリファレンス";
     ja["Design & Philosophy"] = "設計と思想";
     ja["Contributing"] = "コントリビューション";
+    ja["Standard Library"] = "標準ライブラリ";
+    ja["Additional Resources"] = "その他のリソース";
     ja["hpm: Getting Started"] = "hpm: はじめに";
     ja["hpm: User Guide"] = "hpm: ユーザーガイド";
     ja["hpm: Package Development"] = "hpm: パッケージ開発";
@@ -144,6 +156,8 @@ fn build_section_translations() {
     pt["API Reference"] = "Referência da API";
     pt["Design & Philosophy"] = "Design e Filosofia";
     pt["Contributing"] = "Contribuição";
+    pt["Standard Library"] = "Biblioteca padrão";
+    pt["Additional Resources"] = "Recursos adicionais";
     pt["hpm: Getting Started"] = "hpm: Primeiros Passos";
     pt["hpm: User Guide"] = "hpm: Guia do Usuário";
     pt["hpm: Package Development"] = "hpm: Desenvolvimento de Pacotes";
@@ -159,6 +173,8 @@ fn build_section_translations() {
     ru["API Reference"] = "Справочник API";
     ru["Design & Philosophy"] = "Дизайн и философия";
     ru["Contributing"] = "Участие в разработке";
+    ru["Standard Library"] = "Стандартная библиотека";
+    ru["Additional Resources"] = "Дополнительные ресурсы";
     ru["hpm: Getting Started"] = "hpm: Начало работы";
     ru["hpm: User Guide"] = "hpm: Руководство пользователя";
     ru["hpm: Package Development"] = "hpm: Разработка пакетов";
@@ -192,6 +208,10 @@ fn build_title_translations() {
     zh["Configuration"] = "配置"; zh["Project Setup"] = "项目设置";
     zh["Troubleshooting"] = "故障排除"; zh["Creating Packages"] = "创建包";
     zh["Package Spec"] = "包规范"; zh["Versioning"] = "版本控制";
+    // Top-level docs
+    zh["Glossary"] = "术语表";
+    zh["Migration 2.0"] = "迁移到 2.0";
+    zh["Annotations Implementation Summary"] = "注解实现总结";
     zh["Architecture"] = "架构"; zh["Exit Codes"] = "退出码";
     t.zh = zh;
 
@@ -215,6 +235,10 @@ fn build_title_translations() {
     de["Configuration"] = "Konfiguration"; de["Project Setup"] = "Projekteinrichtung";
     de["Troubleshooting"] = "Fehlerbehebung"; de["Creating Packages"] = "Pakete erstellen";
     de["Package Spec"] = "Paketspezifikation"; de["Versioning"] = "Versionierung";
+    // Top-level docs
+    de["Glossary"] = "Glossar";
+    de["Migration 2.0"] = "Migration auf 2.0";
+    de["Annotations Implementation Summary"] = "Annotationen: Implementierungsübersicht";
     de["Architecture"] = "Architektur"; de["Exit Codes"] = "Exit-Codes";
     t.de = de;
 
@@ -241,6 +265,10 @@ fn build_title_translations() {
     es["Project Setup"] = "Configuración del Proyecto"; es["Troubleshooting"] = "Solución de Problemas";
     es["Creating Packages"] = "Creación de Paquetes"; es["Package Spec"] = "Especificación de Paquetes";
     es["Versioning"] = "Versionado"; es["Architecture"] = "Arquitectura";
+    // Top-level docs
+    es["Glossary"] = "Glosario";
+    es["Migration 2.0"] = "Migración a 2.0";
+    es["Annotations Implementation Summary"] = "Resumen de implementación de anotaciones";
     es["Exit Codes"] = "Códigos de Salida";
     t.es = es;
 
@@ -267,6 +295,10 @@ fn build_title_translations() {
     fr["Project Setup"] = "Configuration du Projet"; fr["Troubleshooting"] = "Dépannage";
     fr["Creating Packages"] = "Création de Paquets"; fr["Package Spec"] = "Spécification des Paquets";
     fr["Versioning"] = "Gestion des Versions"; fr["Architecture"] = "Architecture";
+    // Top-level docs
+    fr["Glossary"] = "Glossaire";
+    fr["Migration 2.0"] = "Migration vers 2.0";
+    fr["Annotations Implementation Summary"] = "Résumé de l'implémentation des annotations";
     fr["Exit Codes"] = "Codes de Sortie";
     t.fr = fr;
 
@@ -293,6 +325,10 @@ fn build_title_translations() {
     it["Project Setup"] = "Configurazione del Progetto"; it["Troubleshooting"] = "Risoluzione dei Problemi";
     it["Creating Packages"] = "Creazione di Pacchetti"; it["Package Spec"] = "Specifiche dei Pacchetti";
     it["Versioning"] = "Versionamento"; it["Architecture"] = "Architettura";
+    // Top-level docs
+    it["Glossary"] = "Glossario";
+    it["Migration 2.0"] = "Migrazione a 2.0";
+    it["Annotations Implementation Summary"] = "Riepilogo implementazione annotazioni";
     it["Exit Codes"] = "Codici di Uscita";
     t.it = it;
 
@@ -317,6 +353,10 @@ fn build_title_translations() {
     ja["Project Setup"] = "プロジェクトセットアップ"; ja["Troubleshooting"] = "トラブルシューティング";
     ja["Creating Packages"] = "パッケージの作成"; ja["Package Spec"] = "パッケージ仕様";
     ja["Versioning"] = "バージョニング"; ja["Architecture"] = "アーキテクチャ";
+    // Top-level docs
+    ja["Glossary"] = "用語集";
+    ja["Migration 2.0"] = "2.0 への移行";
+    ja["Annotations Implementation Summary"] = "アノテーション実装サマリー";
     ja["Exit Codes"] = "終了コード";
     t.ja = ja;
 
@@ -343,6 +383,10 @@ fn build_title_translations() {
     pt["Project Setup"] = "Configuração do Projeto"; pt["Troubleshooting"] = "Solução de Problemas";
     pt["Creating Packages"] = "Criação de Pacotes"; pt["Package Spec"] = "Especificação de Pacotes";
     pt["Versioning"] = "Versionamento"; pt["Architecture"] = "Arquitetura";
+    // Top-level docs
+    pt["Glossary"] = "Glossário";
+    pt["Migration 2.0"] = "Migração para 2.0";
+    pt["Annotations Implementation Summary"] = "Resumo da implementação de anotações";
     pt["Exit Codes"] = "Códigos de Saída";
     t.pt = pt;
 
@@ -369,6 +413,10 @@ fn build_title_translations() {
     ru["Project Setup"] = "Настройка проекта"; ru["Troubleshooting"] = "Устранение неполадок";
     ru["Creating Packages"] = "Создание пакетов"; ru["Package Spec"] = "Спецификация пакетов";
     ru["Versioning"] = "Версионирование"; ru["Architecture"] = "Архитектура";
+    // Top-level docs
+    ru["Glossary"] = "Глоссарий";
+    ru["Migration 2.0"] = "Миграция на 2.0";
+    ru["Annotations Implementation Summary"] = "Сводка по реализации аннотаций";
     ru["Exit Codes"] = "Коды выхода";
     t.ru = ru;
 
