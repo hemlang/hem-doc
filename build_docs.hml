@@ -21,7 +21,7 @@
 import { read_file, write_file, exists, list_dir, is_file, is_dir } from "@stdlib/fs";
 import { base64_encode } from "@stdlib/encoding";
 import { stringify } from "@stdlib/json";
-import { args } from "@stdlib/env";
+import { args, exit } from "@stdlib/env";
 
 // Paths to submodules and translations
 let HEMLOCK_DIR = "hemlock";
@@ -1074,7 +1074,10 @@ fn generate_pages_json(docs: object, sorted_keys: array): string {
         i = i + 1;
     }
 
-    return stringify(pages);
+    // The JSON is embedded in a <script> block: a literal "</script>" in any
+    // page (e.g. the jinja escape() example) would close the tag early and
+    // truncate the script. Escape every "<"; \u003c is valid in JSON and JS.
+    return stringify(pages).replace_all("<", "\\u003c");
 }
 
 // Generate language switcher options HTML

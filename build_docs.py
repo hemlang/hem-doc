@@ -1182,6 +1182,10 @@ def generate_html(docs, logo_data, lang='en'):
         title: {'id': info['id'], 'content': info['content']}
         for title, info in docs.items()
     }, ensure_ascii=False)
+    # The JSON is embedded in a <script> block: a literal "</script>" in any
+    # page (e.g. the jinja escape() example) would close the tag early and
+    # truncate the script. Escape every "<"; \u003c is valid in JSON and JS.
+    pages_json = pages_json.replace('<', '\\u003c')
 
     # Language-specific titles
     titles = {
