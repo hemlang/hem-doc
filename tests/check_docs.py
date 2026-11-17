@@ -48,6 +48,18 @@ def extract_pages(html):
     return pages
 
 
+def script_breakouts(html):
+    """Sequences inside the embedded PAGES JSON that the HTML parser would
+    act on even inside a <script> element: "</script" ends the element
+    early (the viewer then dies with a SyntaxError), "<!--" can switch the
+    tokenizer into script-data-escaped mode."""
+    marker = 'const PAGES = '
+    start = html.index(marker) + len(marker)
+    _, end = json.JSONDecoder().raw_decode(html, start)
+    raw = html[start:end].lower()
+    return [s for s in ('</script', '<!--') if s in raw]
+
+
 def make_id(text):
     """Python mirror of the JS makeId()."""
     text = re.sub(r'!?\[([^\]]*)\]\([^)]*\)', r'\1', text)
@@ -115,6 +127,7 @@ def check_file(path):
 
     report = {
         'file': str(path),
+        'script_breakouts': script_breakouts(html),
         'pages': len(by_id),
         'stdlib_pages': sum(1 for i in by_id if i.startswith('stdlib-')),
         'missing_pages': sorted(expected_page_ids() - set(by_id)),
@@ -159,7 +172,7 @@ def main(argv):
         if not as_json:
             print(f"== {r['file']}")
             print(f"   pages={r['pages']} stdlib={r['stdlib_pages']} links={r['links']} broken={len(r['broken'])}")
-            for key in ('missing_pages', 'nav_without_page', 'page_without_nav', 'duplicate_nav'):
+            for key in ('script_breakouts', 'missing_pages', 'nav_without_page', 'page_without_nav', 'duplicate_nav'):
                 if r[key]:
                     print(f"   {key}: {r[key]}")
             kinds = {}
@@ -171,6 +184,11 @@ def main(argv):
                 print(f"     [{why}] {pid}: {href}")
         if structural or (is_en and r['broken']):
             failed = True
+        if r['script_breakouts']:
+            # Breaks the whole page, so this fails even without --strict
+            failed = True
+    if any(r['script_breakouts'] for r in reports):
+        return 1
     return 1 if (strict and failed) else 0
 
 
