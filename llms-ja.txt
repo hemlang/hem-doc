@@ -39,124 +39,131 @@ TABLE OF CONTENTS
   19. Borrow Checker
   20. Code Formatting
   21. Compiler Optimizations
-  22. FFI
-  23. File IO
-  24. Lint
-  25. Lsp
-  26. Memory Model
-  27. Memory Ownership
-  28. Static Checking
-  29. Windows
-  30. アトミック操作
-  31. コマンドライン引数
-  32. コマンド実行
-  33. シグナル処理
-  34. バンドルとパッケージング
-  35. プロファイリング
-  36. 非同期と並行処理
+  22. Embedding
+  23. FFI
+  24. File IO
+  25. Lint
+  26. Lsp
+  27. Memory Model
+  28. Memory Ownership
+  29. Sandbox
+  30. Static Checking
+  31. Windows
+  32. アトミック操作
+  33. コマンドライン引数
+  34. コマンド実行
+  35. シグナル処理
+  36. バンドルとパッケージング
+  37. プロファイリング
+  38. 非同期と並行処理
 
 [APIリファレンス]
-  37. Stdlib API Index
-  38. Stdlib Overview
-  39. ファイルAPI
-  40. メモリAPI
-  41. 並行処理API
-  42. 型システム
-  43. 文字列API
-  44. 演算子
-  45. 組み込み関数
-  46. 配列API
+  39. Name Resolution
+  40. Stdlib API Index
+  41. Stdlib Overview
+  42. ファイルAPI
+  43. メモリAPI
+  44. 並行処理API
+  45. 型システム
+  46. 文字列API
+  47. 演算子
+  48. 組み込み関数
+  49. 配列API
 
 [標準ライブラリ]
-  47. arena
-  48. args
-  49. assert
-  50. async
-  51. async_fs
-  52. atomic
-  53. bytes
-  54. collections
-  55. compression
-  56. crypto
-  57. csv
-  58. datetime
-  59. debug
-  60. decimal
-  61. encoding
-  62. env
-  63. ffi
-  64. fmt
-  65. fs
-  66. glob
-  67. hash
-  68. http
-  69. ipc
-  70. iter
-  71. jinja
-  72. json
-  73. logging
-  74. math
-  75. matrix
-  76. mmap
-  77. net
-  78. os
-  79. path
-  80. process
-  81. random
-  82. regex
-  83. retry
-  84. semver
-  85. shell
-  86. signal
-  87. sqlite
-  88. strings
-  89. terminal
-  90. termios
-  91. testing
-  92. time
-  93. toml
-  94. unix_socket
-  95. url
-  96. uuid
-  97. vector
-  98. websocket
-  99. yaml
+  50. arena
+  51. args
+  52. assert
+  53. async
+  54. async_fs
+  55. atomic
+  56. bytes
+  57. collections
+  58. compression
+  59. crypto
+  60. csv
+  61. datetime
+  62. debug
+  63. decimal
+  64. encoding
+  65. env
+  66. ffi
+  67. fmt
+  68. fs
+  69. glob
+  70. gpu
+  71. gpu_emu
+  72. hash
+  73. http
+  74. ipc
+  75. iter
+  76. jinja
+  77. json
+  78. json_schema
+  79. logging
+  80. math
+  81. matrix
+  82. mmap
+  83. net
+  84. os
+  85. path
+  86. process
+  87. random
+  88. regex
+  89. retry
+  90. semver
+  91. shell
+  92. signal
+  93. sqlite
+  94. strings
+  95. terminal
+  96. termios
+  97. testing
+  98. time
+  99. toml
+  100. unix_socket
+  101. url
+  102. uuid
+  103. vector
+  104. websocket
+  105. yaml
 
 [設計と思想]
-  100. Memory Safety Model
-  101. シグネチャ構文
-  102. 実装の詳細
-  103. 設計思想
+  106. Gradual Typing Analysis
+  107. Memory Safety Model
+  108. シグネチャ構文
+  109. 実装の詳細
+  110. 設計思想
 
 [コントリビューション]
-  104. Contract Testing
-  105. ガイドライン
-  106. テスト
+  111. Contract Testing
+  112. ガイドライン
+  113. テスト
 
 [その他のリソース]
-  107. 2.0 への移行
-  108. アノテーション実装サマリー
-  109. バージョニング
-  110. 用語集
+  114. 2.0 への移行
+  115. アノテーション実装サマリー
+  116. バージョニング
+  117. 用語集
 
 [hpm: はじめに]
-  111. インストール
-  112. クイックスタート
-  113. プロジェクトセットアップ
+  118. インストール
+  119. クイックスタート
+  120. プロジェクトセットアップ
 
 [hpm: ユーザーガイド]
-  114. コマンド
-  115. トラブルシューティング
-  116. 設定
+  121. コマンド
+  122. トラブルシューティング
+  123. 設定
 
 [hpm: パッケージ開発]
-  117. バージョニング
-  118. パッケージの作成
-  119. パッケージ仕様
+  124. バージョニング
+  125. パッケージの作成
+  126. パッケージ仕様
 
 [hpm: リファレンス]
-  120. アーキテクチャ
-  121. 終了コード
+  127. アーキテクチャ
+  128. 終了コード
 
 
 ================================================================================
@@ -11254,7 +11261,7 @@ uniformly:
 | `open(path, mode)` | file handle | `x.close()` |
 | `channel(n)` | channel | `x.close()` |
 | `spawn(fn, …)` / `spawn_with(…)` | async task | `join(x)`, `detach(x)`, or `await x` |
-| `ffi_open(path)` | dynamic FFI library | `ffi_close(x)` |
+| `callback(fn, types, ret)` | callback wrapper | `callback_free(x)` |
 | `mmap_open(…)` / `mmap_open_anon(…)` | memory mapping | `mmap_close(x)` |
 
 Releasing a resource with the wrong operation — `free()` on a file, `.close()`
@@ -11262,6 +11269,8 @@ on raw memory, `free()` on a task — is reported as a **release mismatch** and 
 resource is treated as still live (so any real leak is still caught):
 
 ```hemlock
+import { open } from "@stdlib/fs";
+
 fn main() {
     let f = open("x.txt", "r");
     free(f);   // warning: 'f' (file) cannot be released with free(); use .close()
@@ -11276,7 +11285,7 @@ fn main() {
 fn main() {
     let p = alloc(64);
     free(p);
-    memset(p, 0, 64);   // warning: use of 'p' after it was freed (line 2)
+    memset(p, 0, 64);   // warning: use of 'p' after it was freed (line 3)
 }
 ```
 
@@ -11284,9 +11293,14 @@ fn main() {
 fn main() {
     let p = alloc(64);
     free(p);
-    free(p);            // warning: double free: 'p' was already freed (line 2)
+    free(p);            // warning: double free: 'p' was already freed (line 3)
 }
 ```
+
+The line in parentheses is where the resource was released. Messages use the
+release that happened: a file or channel is *closed*, a task *joined*,
+*detached* or *awaited*, and releasing one twice is a "double release"
+(`double release: 't' was already joined (line 4)`).
 
 ```hemlock
 fn main() {
@@ -11539,7 +11553,7 @@ without changing the surface:
 - **Cross-module summaries** — summaries cover the file under analysis;
   functions imported from other modules are treated as borrowing.
 - **Custom allocators** — only the built-in acquisitions (`alloc`, `buffer`,
-  `open`, `channel`, `spawn`, `ffi_open`, `mmap_open`) are recognized; arena and
+  `open`, `channel`, `spawn`, `callback`, `mmap_open`) are recognized; arena and
   other stdlib allocators are not yet tracked.
 
 The implementation lives in `src/backends/compiler/borrow_check.c` with the
@@ -11875,6 +11889,195 @@ hemlockc --strict-types program.hml   # 暗黙の'any'型に警告
 - [ヘルパーアノテーション提案](https://github.com/hemlang/hemlock/blob/main/docs/proposals/compiler-helper-annotations.md) - アノテーションの詳細リファレンス
 - [メモリAPI](#reference-memory-api) - バッファとポインタ操作
 - [関数](#language-guide-functions) - 型注釈と式本体関数
+
+
+--------------------------------------------------------------------------------
+## Embedding
+--------------------------------------------------------------------------------
+
+# Embedding Hemlock
+
+`libhemlock_embed.a` is the interpreter as a library: a host program (a game
+engine, an editor, a server) compiles Hemlock scripts, runs them, calls their
+functions, and lets them call back into the host. The API is one C header,
+`include/hemlock_embed.h`, that also compiles as C++.
+
+The Godot engine module in [nbeerbower/godot](https://github.com/nbeerbower/godot)
+(`modules/hemlock`) is built on it, and is a worked example of everything
+below.
+
+## Building
+
+```bash
+make embed
+```
+
+That builds `build/libhemlock_embed.a`. Link it with the system libraries the
+interpreter was configured with, which `make embed-ldflags` prints:
+
+```bash
+cc host.c -Ipath/to/hemlock/include path/to/hemlock/build/libhemlock_embed.a $(make -s -C path/to/hemlock embed-ldflags)
+```
+
+The archive is built from the same objects as the `hemlock` binary. On a
+toolchain that does not build position-independent code by default, add
+`EXTRA_CFLAGS=-fPIC` to link it into a shared object.
+
+## The model
+
+| Object | What it is |
+|--------|------------|
+| `HmlVM` | One interpreter: a global environment (the builtins plus whatever the host defines) and a module cache, so a stdlib module imported by many scripts is executed once. |
+| `HmlScript` | A parsed, name-checked source file whose imports are loaded. Compiling never runs it. Refcounted; each instance holds a reference. |
+| `HmlInstance` | One run of a script's top level in a fresh environment, a child of the VM's globals. Top-level `let`s are the instance's state, top-level `fn`s its methods. Two instances of a script share nothing but imported modules. |
+
+```c
+#include "hemlock_embed.h"
+
+HmlVMConfig cfg;
+hml_vm_config_init(&cfg);              /* name checking on */
+cfg.stdlib_path = "/opt/hemlock/stdlib";
+HmlVM *vm = hml_vm_new(&cfg);
+
+HmlEmbedStatus st;
+HmlScript *script = hml_script_compile(vm, source, "/abs/path/player.hml", &st);
+if (!script) {
+    fprintf(stderr, "%s:%d: %s\n", hml_vm_last_error_file(vm),
+            hml_vm_last_error_line(vm), hml_vm_last_error(vm));
+}
+
+HmlInstance *player = hml_instance_new(script, NULL, NULL, 0, &st);
+
+HmlEmbedValue dt = hml_embed_float(0.016), result;
+if (hml_instance_call(player, "update", &dt, 1, &result) != HML_EMBED_OK) {
+    fprintf(stderr, "%s\n", hml_vm_last_error(vm));
+}
+hml_embed_value_free(&result);
+
+hml_instance_free(player);
+hml_script_release(script);
+hml_vm_free(vm);
+```
+
+`path` is the script's absolute path: relative imports resolve against its
+directory and messages name it. The file need not exist there; the host
+passes the source.
+
+## Values
+
+Values cross the boundary as `HmlEmbedValue`, a tagged tree that the host
+owns. Nothing the host holds points into interpreter memory, so the host has
+no refcounts to get wrong. The cost is a copy at every crossing.
+
+| Kind | Hemlock side |
+|------|--------------|
+| `HML_EMBED_NULL`, `BOOL`, `STRING` | `null`, `bool`, `string` (UTF-8, length in bytes) |
+| `HML_EMBED_INT` | every integer type and `rune`, as `i64`. Host to Hemlock gives `i32` when the value fits and `i64` otherwise, as an integer literal would |
+| `HML_EMBED_FLOAT` | `f32` / `f64`. Host to Hemlock gives `f64` |
+| `HML_EMBED_ARRAY` | array |
+| `HML_EMBED_OBJECT` | object. `type_name` is the `define` name, or NULL for an anonymous object |
+| `HML_EMBED_HANDLE` | an opaque `u64` naming a host object (see below) |
+| `HML_EMBED_OPAQUE` | a Hemlock-only value (function, `ptr`, task, ...). It reads as null on the host side, and `.as.s` names its type for messages |
+
+Build values with `hml_embed_int()`, `hml_embed_cstring()`,
+`hml_embed_array()` + `hml_embed_array_push()`, `hml_embed_object()` +
+`hml_embed_object_set()` (the setters take ownership of the item), copy them
+with `hml_embed_value_copy()`, and free them with `hml_embed_value_free()`.
+Nesting deeper than `HML_EMBED_MAX_VALUE_DEPTH` (or a cycle) stops at that
+depth.
+
+### Host objects: handles
+
+A handle is a `u64` that the host defines, such as an object id. How a script
+sees one is up to the host: `hml_vm_set_handle_wrapper(vm, "wrap")` names a
+global Hemlock function that turns the `u64` into the value scripts get,
+usually an object whose methods call back into the host. Going the other
+way, any object with a `u64` field named `__handle` converts back to
+`HML_EMBED_HANDLE`, so passing the wrapper object to a native hands the
+native its handle. With no wrapper set, a handle arrives as
+`{ __handle: <u64> }`.
+
+## Calling into the host
+
+```c
+static int host_log(void *userdata, const HmlEmbedValue *args, int n,
+                    HmlEmbedValue *result, char *error, size_t error_size) {
+    if (n != 1 || args[0].kind != HML_EMBED_STRING) {
+        snprintf(error, error_size, "log(message) takes one string");
+        return 1;                     /* raises a Hemlock exception */
+    }
+    my_logger(userdata, args[0].as.s.data);
+    *result = hml_embed_null();
+    return 0;
+}
+
+hml_vm_define_native(vm, "log", host_log, logger);
+```
+
+A native is a global Hemlock function (`fn log(...args)`) that packs its
+arguments and calls the host. A nonzero return raises the message as a
+catchable exception at the script's call site. Define natives before you
+compile the scripts that use them, so that name checking knows them.
+
+`hml_vm_eval(vm, source, name)` runs host Hemlock code (a prelude) in the
+global environment. Its top-level definitions become globals for every
+script compiled afterwards, and name checking accepts them. Globals the host
+binds some other way can be announced with `hml_vm_declare_global()`. The
+Godot module, for example, declares `owner`, which it binds per instance
+through `hml_instance_new()`'s predefined names.
+
+## Inspecting a script without running it
+
+An editor needs the outline and the inspector before any code runs, so these
+calls read the AST:
+
+- functions: `hml_script_function_count/name/line/arity/param_count/param_name/has_rest`
+- variables: `hml_script_variable_count/name/line/exported/is_const`
+- `hml_script_variable_type()`: the annotation as written (`"f64"`, `"string?"`,
+  `"array<i32>"`, `"Vector2"`), or NULL
+- `hml_script_variable_default()`: the initializer when it is made only of
+  literals (numbers, strings, bools, null, runes, negation, array and object
+  literals). A float annotation makes an integer literal a float, as it would
+  at runtime. A computed initializer returns `HML_EMBED_NOT_FOUND`.
+
+`export let` marks a variable as exported, which is how the Godot module
+picks inspector properties.
+
+## Errors
+
+Every call that runs Hemlock code returns an `HmlEmbedStatus`:
+`PARSE_ERROR`, `NAME_ERROR` (see [Name Resolution](#reference-name-resolution)),
+`LOAD_ERROR` (an import failed), `RUNTIME_ERROR` (uncaught exception),
+`NOT_FOUND`, or `BAD_ARGUMENT`. The message, file, line and column stay in
+`hml_vm_last_error*()` until the next call. A runtime error points at the
+innermost frame in user code. Frames in the embedding's own synthesized
+sources, and calls of `__`-prefixed (internal) functions such as a prelude's
+helpers, are skipped. After an error the VM is usable as before: the
+exception is cleared and the call stack unwound.
+
+An uncaught exception in a module's top level is reported the same way. It
+does not `exit(1)` the host as it would in the `hemlock` CLI. `panic()` and
+`exit()` still end the process, because that is their contract and embedding
+does not change it.
+
+## What it does not do
+
+- **Threads.** A VM is single-threaded, so call it from one host thread at a
+  time. Scripts can still `spawn` their own tasks. Some interpreter state
+  (the current source file named in messages) is process-wide, so two VMs
+  must not run at the same time either. A host that calls in from several
+  threads needs one lock around the VM. The Godot module uses a recursive
+  mutex, because Hemlock calls the engine and the engine can call back into
+  Hemlock on the same thread.
+- **Sandboxing.** A script can do anything the `hemlock` binary can: files,
+  FFI, processes, raw memory.
+- **Module reloading.** A VM executes each imported module once and caches
+  it, which is how importers share a module's state. A changed module is not
+  re-read, and a module whose top level threw stays failed for that VM.
+  Recompiling a *script* is always fresh.
+- **A module filesystem.** Imports are read from disk through the normal
+  module resolution, so a host that packs scripts into an archive has to put
+  imported modules where the resolver can read them.
 
 
 --------------------------------------------------------------------------------
@@ -14620,14 +14823,83 @@ make valgrind-check FILE=script.hml
 
 
 --------------------------------------------------------------------------------
+## Sandbox
+--------------------------------------------------------------------------------
+
+# Sandbox Mode
+
+`--sandbox` runs a program with dangerous capabilities switched off. It is
+available on both backends:
+
+```bash
+hemlock --sandbox script.hml          # interpreter
+hemlock --sandbox ./data script.hml   # also confine file reads to ./data
+hemlockc --sandbox script.hml -o app  # compiled; restrictions are baked in
+```
+
+## What is restricted
+
+| Flag (`hemlock_limits.h`) | Blocks |
+|---|---|
+| `HML_SANDBOX_RESTRICT_FFI` | `import "lib.so"`, `extern fn` |
+| `HML_SANDBOX_RESTRICT_NETWORK` | sockets, HTTP, WebSocket |
+| `HML_SANDBOX_RESTRICT_PROCESS` | `exec`, `fork`, `posix_spawn`, pipes |
+| `HML_SANDBOX_RESTRICT_FILE_WRITE` | every file write |
+| `HML_SANDBOX_RESTRICT_FILE_READ` | reads outside `DIR` (only when `DIR` is given) |
+| `HML_SANDBOX_RESTRICT_SIGNALS` | `signal`, `raise`, `kill`, `abort` (interpreter only) |
+| `HML_SANDBOX_RESTRICT_UNSAFE_MEM` | raw pointers (see below) |
+
+### Raw memory
+
+Raw pointers are unchecked by design, so a script that can read or write
+through one can reach anything in the process, including the interpreter's own
+sandbox flags. Under `--sandbox` every operation that creates, derives, or
+dereferences a raw pointer raises a catchable error:
+
+- `alloc`, `talloc`, `realloc`, `buffer_ptr`, `"...".byte_ptr()`
+- `ptr_offset`, `ptr + n` / `ptr - n`, `ptr[i]`
+- `ptr_read_*`, `ptr_deref_*`, `ptr_write_*` and `ptr_to_buffer` on a `ptr`;
+  `ptr_read_ptr`, `ptr_deref_ptr`, `ptr_write_ptr` on anything (they turn
+  bytes into addresses or addresses into bytes)
+- `memset`/`memcpy`/`free` given a `ptr`
+- `@stdlib/atomic`, `@stdlib/mmap`, and `@stdlib/bytes` reads/writes on a `ptr`
+
+`buffer` stays available, along with `ptr_read_*`/`ptr_write_*`,
+`memset`/`memcpy`, and `free` on buffers, because those are bounds-checked.
+
+```hemlock
+try {
+    alloc(8);
+} catch (e) {
+    print(e);  // ... Sandbox violation: raw memory access (alloc()) is not allowed in sandbox mode
+}
+let b = buffer(8);
+ptr_write_i32(b, 42);  // fine: bounds-checked
+```
+
+## What it is not
+
+The sandbox is a policy layer inside the process, not an isolation boundary.
+It turns accidental or casual misuse into clear, catchable errors. It does not
+defend against bugs in the runtime itself, and stdlib handles such as compiled
+regexes are untyped `ptr` values, so passing one handle where another kind is
+expected is not caught. To contain hostile code, run it under OS isolation too
+(a container, `bwrap`, Landlock/seccomp, a separate user).
+
+Known differences between backends: a violation of the other restrictions exits
+a compiled program instead of throwing, and `HML_SANDBOX_RESTRICT_SIGNALS` is
+interpreter-only. Raw-memory violations throw on both backends.
+
+
+--------------------------------------------------------------------------------
 ## Static Checking
 --------------------------------------------------------------------------------
 
 # Static Checking (`hemlock check`)
 
 `hemlock check` runs the compiler's static analysis passes over source files
-**without executing them or generating code**: syntax, lint, type checking,
-and borrow checking. Unlike `hemlockc --check`, which stops at the first
+**without executing them or generating code**: syntax, name resolution, lint,
+type checking, and borrow checking. Unlike `hemlockc --check`, which stops at the first
 failing pass, `hemlock check` collects every diagnostic from every pass and
 reports them together, in source order — and can emit them as JSON with a
 stable schema for editors, CI, and AI coding agents.
@@ -14665,20 +14937,53 @@ reports what a compile would report:
 
 1. **Parse** — syntax errors, with panic-mode recovery so *multiple* errors
    are reported per run instead of only the first.
-2. **Lint** — unreachable code, dead branches, self-assignment,
+2. **Name resolution** — identifiers that no binding in scope explains
+   (see [Name resolution](#advanced-static-checking/name-resolution) below).
+3. **Lint** — unreachable code, dead branches, self-assignment,
    modulo-by-zero, duplicate fields/cases (see [Static Lint](#advanced-lint)).
    Runs on the source as written, before optimization.
-3. **Type check** — static checking of annotations, function signatures,
+4. **Type check** — static checking of annotations, function signatures,
    object literals against `define` types (see [Type System](#reference-type-system)).
-4. **Borrow check** — use-after-free, double-free, free-in-loop
+5. **Borrow check** — use-after-free, double-free, free-in-loop
    (see [Borrow Checker](#advanced-borrow-checker)).
 
 If the file has syntax errors, the later passes are skipped (their input
 would be an incomplete AST) — but all syntax errors found are still reported.
 
-Only the named files are analyzed. Imports are bound dynamically (as in the
-compiler); imported modules are checked when they are checked or compiled in
-their own right.
+Name resolution follows imports, so it reports diagnostics in modules the
+named files pull in — including a syntax error in one, under pass `"parse"`.
+The other passes analyze only the named files; an imported module is linted,
+type checked and borrow checked when it is checked or compiled in its own
+right.
+
+## Name resolution
+
+The name pass walks the entry file **and every module it imports,
+transitively**, and reports each identifier that nothing in scope explains:
+not a builtin, not a module-level declaration, not an import, not a
+parameter, not a loop or pattern binding, not a catch parameter.
+
+```
+$ hemlock check repro.hml
+repro.hml:2:20: error: undefined name 'sleep' (did you mean to import it from @stdlib/time?) [names]
+1 error, 0 warnings (1 file checked)
+```
+
+It is an **error**, not a warning: Hemlock has no implicit declaration, so a
+name nothing defines throws `Undefined variable` the moment control reaches
+it — which may be weeks after deploy, or never. Assigning to an undeclared
+name is reported the same way, for the same reason.
+
+The same pass gates `hemlockc` and runs at interpreter startup, so all three
+tools agree about what exists. See
+[Name Resolution](#reference-name-resolution) for what it checks, what
+it deliberately does not, and the `--no-name-check` escape hatch.
+
+The hint is best-effort, in this order: a module the file already imports
+exports that name; a stdlib module exports it; something spelled almost the
+same is in scope. Where several modules export the name they are all collected
+and sorted, so the message does not depend on the order they were discovered
+in — see [Name Resolution](#reference-name-resolution/hints).
 
 ## Text output
 
@@ -14723,7 +15028,7 @@ breaking changes):
 
 - `line` and `column` are 1-based; `column: 0` means the column is unknown.
 - `severity` is `"error"` or `"warning"`.
-- `pass` is one of `"parse"`, `"lint"`, `"types"`, `"borrow"`.
+- `pass` is one of `"parse"`, `"names"`, `"lint"`, `"types"`, `"borrow"`.
 - `diagnostics` is ordered by file (in argument order), then line, then column.
 
 ## Why not just run the file?
@@ -14744,6 +15049,7 @@ hemlock check --json src/main.hml
 
 ## See Also
 
+- [Name Resolution](#reference-name-resolution) — the name pass in detail
 - [Static Lint](#advanced-lint) — the lint pass in detail
 - [Borrow Checker](#advanced-borrow-checker) — the ownership analysis in detail
 - [Type System](#reference-type-system) — what the type checker enforces
@@ -19870,6 +20176,212 @@ Hemlockの非同期/並行処理モデルは以下を提供します：
 ################################################################################
 
 --------------------------------------------------------------------------------
+## Name Resolution
+--------------------------------------------------------------------------------
+
+# Name Resolution
+
+Hemlock resolves every identifier in a program **before** any of it runs.
+The pass is in the shared frontend (`src/frontend/resolver/name_resolve.c`),
+so the interpreter, `hemlockc` and `hemlock check` all answer "does this name
+exist?" the same way.
+
+```
+$ cat repro.hml
+import { time_ms } from "@stdlib/time";
+spawn(async fn() { sleep(0.2); print("fired"); });
+print("done");
+
+$ hemlock repro.hml
+repro.hml:2:20: error: undefined name 'sleep' (did you mean to import it from @stdlib/time?)
+1 error generated
+
+$ hemlockc repro.hml
+repro.hml:2:20: error: undefined name 'sleep' (did you mean to import it from @stdlib/time?)
+1 error generated
+
+$ hemlock check repro.hml
+repro.hml:2:20: error: undefined name 'sleep' (did you mean to import it from @stdlib/time?) [names]
+1 error, 0 warnings (1 file checked)
+```
+
+## Why it is an error
+
+Hemlock has no implicit declaration. A name nothing defines throws
+`Undefined variable` the moment control reaches it, and assigning to an
+undeclared name throws the same way. "The moment control reaches it" is the
+problem: inside a branch that rarely runs, or a spawned task nobody joins,
+that moment may be weeks after deploy, or never.
+
+For `hemlockc` it is also a hard requirement rather than a nicety. An
+identifier that reaches code generation unresolved becomes a C symbol nobody
+defined, and the build fails inside generated code:
+
+```
+/tmp/hemlock_eXxbTX.c:62:22: warning: implicit declaration of function '_mod0_fn_sleep'
+/tmp/hemlock_eXxbTX.c:62:22: error: invalid initializer
+```
+
+Nothing in that points back at the Hemlock source. The compiler now refuses
+to emit C for a name it cannot resolve.
+
+## What it covers
+
+The pass walks the entry file **and every module it imports, transitively**,
+so a diagnostic names the file the identifier is actually in:
+
+```
+$ hemlock check server.hml
+lib/handlers.hml:7:5: error: undefined name 'sleep' (did you mean to import it from @stdlib/time?) [names]
+```
+
+It understands every way Hemlock introduces a name:
+
+| Form | Example |
+|------|---------|
+| Builtins and global constants | `print`, `spawn`, `i32`, `TYPEID_I32`, `args` |
+| Module-level declarations | `let`, `const`, `fn`, `define`, `enum`, `type`, `extern fn` |
+| Named imports | `import { a } from "m"` |
+| Renamed imports | `import { a as b } from "m"` |
+| Namespace imports | `import * as ns from "m"` → `ns` |
+| Star imports | `import * from "m"` → every export of `m` |
+| Function parameters | positional, optional, `ref`, `const`, `...rest` |
+| Closure captures | free variables of an anonymous function |
+| `async fn` bodies | including one passed straight to `spawn` |
+| Loop bindings | `for (let i = ...)`, `for (k, v in ...)` |
+| Pattern bindings | `match` bindings, typed, OR, object and array destructuring |
+| `catch` parameters | `catch (e)` |
+| `self` | bound on every method call |
+
+Declarations are **hoisted within their scope**, because forward references
+are legal Hemlock: mutual recursion between top-level functions works, and a
+function body may read a `let` declared below it. Seeding each scope with
+every name its statements declare keeps both working.
+
+## What it does not cover
+
+- **Use before assignment.** `print(x); let x = 1;` resolves: `x` exists in
+  the scope, it is just still null when read. That is a separate question
+  this pass deliberately does not answer.
+- **Whether an imported name is actually exported.** `import { nope } from
+  "./m.hml"` binds `nope`; the module system reports the missing export.
+- **Types.** Unknown type names are the type checker's business.
+- **`gpu fn` bodies.** A kernel is a different language with its own builtins
+  (`global_id`, `barrier`, `local_array`) and its own validation pass in the
+  GPU frontend. Both the kernel AST and its lowered CPU-emulation body are
+  machine-generated, so neither is checked here.
+
+## When it stays quiet
+
+The pass over-approximates the set of defined names on purpose: every name it
+reports is one that *would* fail at runtime. Where it cannot see all the
+bindings a scope might hold, it reports nothing for that scope rather than
+guessing. That happens when a module cannot be read or parsed, or when
+`import *` names a module that failed to load. The failure itself is still
+reported — a module that will not parse produces its own diagnostics, named
+by that module's file and line.
+
+## Hints
+
+The suggestion after the name is best-effort, in this order:
+
+1. a module the file already imports exports that name — a missing import name;
+2. a stdlib module exports it — a missing import;
+3. something spelled almost the same is in scope — a typo.
+
+Where several modules export the name, all of them are collected and **sorted**,
+so the message does not depend on the order they happened to be discovered in:
+
+| Matches | Message |
+|---------|---------|
+| 1 | `did you mean to import it from @stdlib/time?` |
+| 2–3 | `did you mean to import it from @stdlib/datetime or @stdlib/time?` |
+| more | `exported by 9 modules, among them @stdlib/args, @stdlib/csv and @stdlib/json` |
+
+Past three the count leads, because the useful fact is that the name is
+ambiguous and the choice is the reader's. `parse` is exported by nine stdlib
+modules, and naming whichever one `readdir()` returned first gave a different
+suggestion on a different machine — usually the wrong one.
+
+## Escape hatch
+
+`hemlockc` has none: emitting C that references undefined symbols is never
+useful.
+
+The interpreter's startup pass costs one extra parse of the program, and
+`--no-name-check` skips it:
+
+```bash
+hemlock --no-name-check script.hml
+```
+
+Use it to shave the parse off process startup, or to run a program whose
+unreachable code names something that does not exist. `hemlock check` always
+runs the pass — it is the pre-deploy gate.
+
+### Code that never runs
+
+The pass does not care whether a line is reachable, so a program that has
+been running for months with a latent undefined name in a dead function now
+fails at startup instead. That is the point — the name was always wrong, and
+waiting for control to reach it is how one stayed in a shipped game server
+for weeks — but it does mean an existing tree can stop starting after an
+upgrade.
+
+The usual cause was an `import` inside a function body, which parsed and bound
+nothing, so every name it was meant to provide was undefined. That is now a
+parse error at the import itself:
+
+```hemlock
+fn read_command() {
+    import { parse } from "@stdlib/json";   // error: import must be at
+    return parse(read_line());              // module top level
+}
+```
+
+Move the import to module top level. An FFI library import
+(`import "libc.so.6"`) does work below top level and is unaffected.
+
+For anything else, `--no-name-check` gets the program starting again in the
+meantime, but the name is still undefined: the program will fail the moment it
+reaches that code.
+
+## Builtin names
+
+`include/builtin_globals.h` is the single source of truth for the names the
+runtime installs in the global environment. The interpreter expands its lists
+to register them; this pass expands the same lists to recognize them. One
+list means a new builtin cannot be visible to one and undefined to the other,
+and `tests/unit/test_builtin_globals_sync.sh` fails the build if the
+hand-written code around those lists drifts.
+
+`HML_COMPILER_ONLY_BUILTINS` in that header lists names `hemlockc` recognizes
+that the interpreter does not register — `to_string`, `string_byte_length`,
+`strerror` and friends. That is a parity gap, not a design decision: those
+names work compiled and throw `Undefined variable` interpreted. The resolver
+accepts them for both backends so it never rejects code one of them runs
+today; when the gap closes, the list shrinks.
+
+## Tests
+
+| Suite | What it pins |
+|-------|--------------|
+| `make test-names` | `hemlockc` and the interpreter report an undefined name with identical text |
+| `make test-check` | `hemlock check`'s own diagnostic format, including the imported-module case (`tests/check/names_*.hml`) |
+| `tests/check/neg_names_scopes.hml` | Every binding form above, asserting a clean report — the false-positive guard |
+| `make test-builtin-sync` | `builtin_globals.h` and the interpreter's registration agree |
+| `tests/check/names_nested_import.hml` | a source-module import below top level is a parse error |
+| `tests/check/neg_nested_ffi_import.hml` | an FFI import below top level is still legal |
+| `tests/check/names_hint_two_modules.hml` | a name exported by two imported modules names both, sorted |
+
+## See Also
+
+- [Static Checking](#advanced-static-checking) — `hemlock check` as a whole
+- [Modules](#language-guide-modules) — imports, exports, re-exports
+- [Static Lint](#advanced-lint) — the lint pass
+
+
+--------------------------------------------------------------------------------
 ## Stdlib API Index
 --------------------------------------------------------------------------------
 
@@ -19883,7 +20395,7 @@ complete importable API surface, generated from `stdlib/*.hml` by
 are verbatim from source; `[native]` marks re-exported native builtins
 whose parameter list comes from the module's documentation.
 
-53 modules, 1052 exported symbols. Import with
+56 modules, 1092 exported symbols. Import with
 `import { name } from "@stdlib/<module>";` — see
 [Standard Library Overview](#reference-stdlib-overview) and `stdlib/docs/` for
 full documentation.
@@ -20216,7 +20728,7 @@ fn get_pid()  [native]
 fn callback(fn, param_types, return_type)  [native]  // Create a C-callable function pointer from a Hemlock function
 fn callback_free(cb)  [native]
 fn ffi_sizeof(...)  [native]
-let FFI_VOID = 0  // Common libffi type constants for use with ffi_bind()
+let FFI_VOID = 0  // Numeric libffi type codes (informational; extern fn declarations use Hemlock type names)
 let FFI_INT = 1
 let FFI_FLOAT = 2
 let FFI_DOUBLE = 3
@@ -20284,6 +20796,38 @@ fn escape(text): string  // Escape special glob characters in a string
 fn has_magic(pattern): bool  // Check if a pattern contains any glob special characters
 fn filter(paths, pattern): array  // Filter a list of paths by a glob pattern
 fn translate(pattern): string  // Translate a glob pattern to a regular expression string
+```
+
+## @stdlib/gpu
+
+```
+let CL_SUCCESS = 0
+let CL_DEVICE_NOT_FOUND = -1
+let CL_BUILD_PROGRAM_FAILURE = -11
+let CL_INVALID_ARG_SIZE = -51
+let CL_PLATFORM_NOT_FOUND_KHR = -1001
+let DEVICE_DEFAULT = 1  // Device types (cl_device_type bitfield)
+let DEVICE_CPU = 2
+let DEVICE_GPU = 4
+let DEVICE_ACCELERATOR = 8
+let DEVICE_ALL
+let MEM_READ_WRITE = 1  // Memory flags (cl_mem_flags)
+let MEM_WRITE_ONLY = 2
+let MEM_READ_ONLY = 4
+fn cl_error_name(code: i32): string  // Name for an OpenCL error code (common ones; others print as the number)
+fn gpu_available(): bool  // True if at least one OpenCL platform with at least one device is present
+fn gpu_devices()  // Every OpenCL device on every platform, as descriptor objects
+fn local_mem(bytes: i32)  // Size-only marker for a __local kernel argument
+fn local_array(count: i32)  // Work-group local memory of `count` elements for a gpu fn gpu_local<T>
+fn gpu_context(opts?: null)  // Create a context with one device and one in-order command queue.
+```
+
+## @stdlib/gpu_emu
+
+```
+fn is_kernel(k): bool  // True if `k` is a gpu fn kernel descriptor
+fn local_array(count: i32)  // Work-group local memory of `count` elements for a gpu_local<T> parameter
+fn emulate(kernel, global: array, local, args: array)  // Run `kernel` over an N-D range on the CPU.
 ```
 
 ## @stdlib/hash
@@ -20442,6 +20986,29 @@ fn is_null(value): bool
 fn type_of(value): string  // Get JSON type as string
 fn clone(value)  // Deep clone value (creates independent copy)
 fn merge(base, update)  // Deep merge objects (combines nested objects)
+```
+
+## @stdlib/json_schema
+
+```
+fn validate(value, schema)  // Validate a value against a JSON Schema.
+fn is_valid(value, schema): bool  // Check if a value matches a schema (returns bool only).
+fn validate_json(json_str: string, schema)  // Validate a JSON string against a schema.
+fn string_type(opts?: null)  // Build a schema for a string type
+fn number_type(opts?: null)  // Build a schema for a number type
+fn integer_type(opts?: null)  // Build a schema for an integer type
+fn boolean_type()  // Build a schema for a boolean type
+fn null_type()  // Build a schema for null type
+fn array_type(item_schema?: null, opts?: null)  // Build a schema for an array type
+fn object_type(properties?: null, required?: null, opts?: null)  // Build a schema for an object type
+fn nullable(schema)  // Create a nullable type (allows type or null)
+fn enum_type(values: array)  // Create an enum schema
+fn const_type(value)  // Create a const schema
+fn any_of(schemas: array)  // Create an anyOf schema (value must match at least one)
+fn one_of(schemas: array)  // Create a oneOf schema (value must match exactly one)
+fn all_of(schemas: array)  // Create an allOf schema (value must match all)
+fn not_schema(schema)  // Create a not schema (value must NOT match)
+fn format_errors(errors: array): string  // Format validation errors as a human-readable string.
 ```
 
 ## @stdlib/logging
@@ -28437,7 +29004,15 @@ set_default_stack_size(16 * 1024 * 1024);
 
 ## ThreadPool
 
-A fixed-size thread pool for executing tasks in parallel. Uses a work queue with worker threads for efficient task distribution.
+A fixed-size thread pool for executing tasks in parallel.
+
+**Queueing model:** `submit*()` pushes a job onto a bounded work channel
+(1000 entries); when the queue is full, `submit*()` blocks until a worker
+frees a slot (back-pressure). Each worker is one spawned task that blocks on
+`recv()`, so idle workers cost no CPU. Every job carries its own one-slot
+result channel, and the returned Future receives from it exactly once and
+memoizes the outcome: `get()` may be called any number of times and always
+returns the same value (or rethrows the same error).
 
 ### Creating a Thread Pool
 
@@ -28548,7 +29123,11 @@ let result = future.get();  // 30
 
 #### shutdown()
 
-Gracefully shutdown the thread pool. Waits for all workers to finish current tasks.
+Gracefully shut down the thread pool. Closes the work queue so no new jobs are
+accepted, lets the workers drain every job that was already queued, then joins
+all worker threads. When it returns, every accepted job has run and their
+Futures still resolve. Calling it twice is a no-op; `submit*()` after shutdown
+panics.
 
 **Signature:**
 ```hemlock
@@ -30733,6 +31312,7 @@ Get the number of entries added.
 **Example:**
 ```hemlock
 import { TarWriter, TarReader } from "@stdlib/compression";
+import { open } from "@stdlib/fs";
 
 // Create tar archive
 let writer = TarWriter();
@@ -30788,6 +31368,7 @@ Check if archive contains entry with given name.
 **Example:**
 ```hemlock
 import { TarReader, TAR_TYPE_FILE, TAR_TYPE_DIRECTORY } from "@stdlib/compression";
+import { open } from "@stdlib/fs";
 
 // Read tar file
 let f = open("archive.tar", "r");
@@ -30840,6 +31421,7 @@ while (i < entries.length) {
 
 ```hemlock
 import { gzip, gunzip, TarWriter, TarReader } from "@stdlib/compression";
+import { open } from "@stdlib/fs";
 
 // Create compressed archive
 fn create_tarball(output_path: string, files: array) {
@@ -34103,6 +34685,7 @@ create_pid_file("myapp");
 
 ```hemlock
 import { get_pid } from "@stdlib/env";
+import { now } from "@stdlib/time";
 
 fn create_temp_filename(prefix: string, extension: string): string {
     let pid = get_pid();
@@ -36175,6 +36758,382 @@ fn find_file(user_input) {
 
 
 --------------------------------------------------------------------------------
+## gpu
+--------------------------------------------------------------------------------
+
+# Hemlock GPU Module
+
+GPU compute through OpenCL, bound with FFI. Every step is explicit: you
+allocate device memory, copy to and from it, launch kernels, and free what
+you allocated. Nothing is transferred, synchronized, or released for you.
+
+## Overview
+
+- **Device discovery**: `gpu_available()`, `gpu_devices()`
+- **Contexts**: one device plus one in-order command queue
+- **Programs**: built from OpenCL C source. A build failure throws with the compiler log
+- **Device buffers**: `ctx.alloc` / `ctx.write` / `ctx.read` / `ctx.free`, plus array helpers
+- **Kernel launch**: arguments are marshalled by their Hemlock runtime type
+
+## Requirements
+
+- An OpenCL ICD loader: `libOpenCL.so.1` (Debian/Ubuntu: `ocl-icd-libopencl1`)
+- At least one OpenCL driver (ICD):
+  - NVIDIA, AMD (ROCm), and Intel GPU drivers each ship one
+  - `pocl-opencl-icd` gives a portable **CPU** device. It is useful for development and CI without a GPU
+
+If the loader is present but no driver is installed, `gpu_available()` returns
+`false` and `gpu_context()` throws.
+
+## Usage
+
+```hemlock
+import { gpu_context } from "@stdlib/gpu";
+
+let ctx = gpu_context();
+print("running on " + ctx.device.name);
+
+let prog = ctx.program(`
+__kernel void saxpy(uint n, float a, __global const float *x, __global float *y) {
+    size_t i = get_global_id(0);
+    if (i < n) { y[i] = a * x[i] + y[i]; }
+}
+`);
+let k = prog.kernel("saxpy");
+
+let dx = ctx.from_array([1, 2, 3, 4], "f32");
+let dy = ctx.from_array([10, 10, 10, 10], "f32");
+
+// float literals are f64 in Hemlock: the kernel takes `float`, so pass f32()
+ctx.launch(k, [4], null, [u32(4), f32(2.0), dx, dy]);
+print(ctx.to_array(dy, "f32", 4));   // [12, 14, 16, 18]
+
+ctx.free(dx);
+ctx.free(dy);
+k.release();
+prog.release();
+ctx.release();
+```
+
+## Kernel Arguments
+
+`ctx.launch` sets each argument from the value's runtime type, so the Hemlock
+type you pass must match the kernel's parameter type **exactly**:
+
+| Kernel parameter | Pass |
+|---|---|
+| `char` / `uchar` | `i8(x)` / `u8(x)` |
+| `short` / `ushort` | `i16(x)` / `u16(x)` |
+| `int` / `uint` | `i32` (integer literals default to it) / `u32(x)` |
+| `long` / `ulong` | `i64(x)` / `u64(x)` |
+| `float` | `f32(x)` |
+| `double` | `f64` (float literals default to it). The device must support fp64 |
+| `__global T *` | a device buffer from `ctx.alloc` / `ctx.from_array` |
+| `__local T *` | `local_mem(bytes)` |
+
+A size mismatch throws a message that names the argument. For example,
+passing `2.0` (f64) to a `float` parameter says so and suggests `f32(2.0)`.
+Hemlock never narrows values implicitly.
+
+## API
+
+### `gpu_available(): bool`
+`true` if at least one OpenCL platform exposes at least one device.
+
+### `gpu_devices(): array`
+One descriptor per device on every platform:
+`{ name, vendor, version, platform, type, compute_units, max_work_group_size, global_mem, local_mem, has_f64 }`.
+`type` is one of `"gpu"`, `"cpu"`, `"accelerator"`, `"other"`.
+
+### `gpu_context(opts?)`
+Creates a context and an in-order command queue on one device.
+- `opts.device`: a descriptor from `gpu_devices()`
+- `opts.device_type`: `DEVICE_GPU` (default), `DEVICE_CPU`, `DEVICE_ACCELERATOR`, or `DEVICE_ALL`
+
+With no device given, the first GPU is used, falling back to the first device of any type.
+
+The context object has the methods below.
+
+| Method | Description |
+|---|---|
+| `program(source, options?)` | Build OpenCL C source and return a program. Throws with the build log on failure |
+| `alloc(bytes, flags?)` | Uninitialized device buffer (`MEM_READ_WRITE` by default) |
+| `free(dbuf)` | Release a device buffer. A double free throws |
+| `write(dbuf, src, bytes?)` | Blocking host→device copy. `src` is a `buffer` (size defaults to its length) or a `ptr` (needs `bytes`) |
+| `read(dbuf, dst, bytes?)` | Blocking device→host copy, same rules as `write` |
+| `from_array(arr, elem)` | Allocate and upload an array as `elem` (`"i8"`…`"u64"`, `"f32"`, `"f64"`) |
+| `to_array(dbuf, elem, count)` | Download `count` elements into a new array |
+| `launch(kernel, global, local, args)` | Set the arguments, enqueue over a 1-3 D range, and wait. `local` may be `null` |
+| `finish()` | Wait for all queued work |
+| `release()` | Release the queue and context. Free buffers, kernels, and programs first |
+
+A program has `kernel(name)` and `release()`. A kernel has `name` and `release()`.
+
+### `local_mem(bytes)`
+Size-only marker for a `__local` kernel argument.
+
+### `cl_error_name(code): string`
+Symbolic name for an OpenCL status code.
+
+## Limitations (current)
+
+- `launch` is synchronous. It blocks until the kernel finishes. Async launches mapped onto Hemlock tasks are planned
+- Linux only (`libOpenCL.so.1`)
+
+## `gpu fn` kernels
+
+Kernels can be written in Hemlock with `gpu fn`. Their bodies are a statically
+typed subset of Hemlock with no device runtime. The same kernel runs on a
+device through `ctx.launch` and on the CPU through
+[`@stdlib/gpu_emu`](#stdlib-gpu_emu), with the same results:
+
+```hemlock
+import { gpu_context } from "@stdlib/gpu";
+
+gpu fn saxpy(n: u32, a: f32, x: gpu_buffer<f32>, y: gpu_buffer<f32>) {
+    let i: u32 = global_id(0);
+    if (i < n) {
+        y[i] = a * x[i] + y[i];
+    }
+}
+
+let ctx = gpu_context();
+let dx = ctx.from_array([1, 2, 3, 4], "f32");
+let dy = ctx.from_array([10, 10, 10, 10], "f32");
+ctx.launch(saxpy, [4], null, [u32(4), f32(2.0), dx, dy]);
+print(ctx.to_array(dy, "f32", 4));   // [12, 14, 16, 18]
+```
+
+### The kernel subset
+
+The frontend checks the subset, so the interpreter, `hemlockc`, and
+`hemlock check` all reject the same programs:
+
+- Parameters are numeric or `bool` scalars, `gpu_buffer<T>` (global memory) or `gpu_local<T>` (work-group local memory) of a numeric `T`. Each one must be annotated, with no `ref`, defaults, or rest parameters
+- The return type is omitted or `void`. Results are written into buffers
+- Every local is annotated with a scalar type and initialized
+- Allowed: control flow (`if`, `while`, `for`, `loop`, `switch`, labeled `break`/`continue`), arithmetic, and indexing of `gpu_buffer` parameters (`x[i]`, `x[i] = v`, `x[i] += v`). A buffer can only be indexed, never used bare or reassigned
+- Assignments, buffer stores and `++`/`--` are statements. They cannot appear inside a larger expression
+- Expressions are statically typed with Hemlock's promotion rules. Arithmetic needs numeric operands (no `bool`), bitwise ops need integers, ternary branches and `min`/`max` operands must have the same type, and `switch` takes an integer value with integer-literal cases
+- Calls are limited to device intrinsics: `global_id`, `local_id`, `group_id`, `global_size`, `local_size`, `num_groups`, `work_dim`, `barrier` (a statement), `min`, `max`, `abs`, `sqrt`, `floor`, `ceil`, `exp`, `log`, `sin`, `cos`, `pow`, and the conversions `i8()` … `u64()`, `f32()`, `f64()`. See [gpu_emu.md](#stdlib-gpu_emu/kernel-intrinsics) for return types
+- Rejected: strings, runes, `null`, property access, method calls, closures, nested functions, array/object literals, `match`, `for-in`, `try`/`throw`, `defer`, `await`, recursion, named arguments, and names starting with `__hml_`
+
+`gpu` is a contextual keyword. It only means something directly before `fn`,
+so `gpu` still works as a variable name.
+
+### Kernel descriptors
+
+The name a `gpu fn` declares is bound to a **kernel descriptor**, not a function:
+
+```hemlock
+print(saxpy.kind);            // "gpu_kernel"
+print(saxpy.params);          // [{ name: "n", type: "u32", buffer: false }, ...]
+print(saxpy.device.source);   // the generated OpenCL C program
+// saxpy.emulate: the kernel lowered to plain Hemlock, used by @stdlib/gpu_emu
+```
+
+### Launching on a device
+
+`ctx.launch(kernel, global, local, args)` accepts a descriptor. The arguments
+follow the emulator's rules: each scalar must have **exactly** the parameter's
+type, and each `gpu_buffer<T>` takes a device buffer. Buffers made by
+`from_array` remember their element type, and a mismatch is an error. A
+buffer's element count (its size divided by `T`'s size) is passed to the kernel
+alongside it, so every access is bounds-checked.
+
+The program is built on first launch and cached on the context. When the
+device supports it, it is built with `-cl-fp32-correctly-rounded-divide-sqrt`.
+
+Requirements beyond plain OpenCL C kernels:
+
+- **`cl_khr_int64_base_atomics`**: kernels report errors with 64-bit atomics
+- **fp64**, when the kernel computes with `f64`. `descriptor.device.uses_f64`
+  says whether it does, and `f64_reason` names the first use. Remember that
+  float literals are `f64` and integer `/` returns `f64`, so `x * 2.0` and
+  `n / 2` both need fp64. Write `x * f32(2.0)`, and convert operands with
+  `f32()` for f32 division. A device without fp64 fails with an error naming
+  that line
+- An explicit `local` size when the kernel uses `barrier`, `local_id`,
+  `group_id`, `local_size` or `num_groups` (`descriptor.device.uses_groups`).
+  The emulator enforces the same rule
+
+### Work-group memory and barriers
+
+A `gpu_local<T>` parameter is memory shared by the work-items of one
+work-group. Pass `local_array(count)` for it, which gives each work-group its own
+`count` elements. It is bounds-checked like a `gpu_buffer`. `barrier()` waits
+until every work-item of the work-group has reached it, and makes their
+local and global memory writes visible to each other:
+
+```hemlock
+import { gpu_context, local_array } from "@stdlib/gpu";
+
+gpu fn block_sum(xs: gpu_buffer<i32>, tmp: gpu_local<i32>, sums: gpu_buffer<i32>) {
+    let l: u32 = local_id(0);
+    tmp[l] = xs[global_id(0)];
+    barrier();
+    for (let s: u32 = local_size(0) / u32(2); s > 0; s = s >> 1) {
+        if (l < s) {
+            tmp[l] += tmp[l + s];
+        }
+        barrier();
+    }
+    if (l == 0) {
+        sums[group_id(0)] = tmp[0];
+    }
+}
+
+ctx.launch(block_sum, [n], [64], [dx, local_array(64), dsums]);
+```
+
+Rules (the same as OpenCL's):
+
+- Every work-item of a work-group must reach the same barriers in the same
+  order. Only put a barrier under a condition or loop whose outcome is the
+  same for the whole work-group (for example, a loop bound computed from
+  `local_size`). On a device, breaking this rule is undefined behavior,
+  usually a hang. `@stdlib/gpu_emu` detects it and reports a barrier
+  divergence, so run new kernels under the emulator first
+- Local memory starts undefined on a device; the emulator zero-fills it.
+  Write before you read
+- Work-groups of a kernel that uses `barrier()` hold at most 4096 work-items
+
+Errors in a kernel that uses barriers stop the whole work-group at its next
+barrier (a failing work-item cannot simply return, or its group would wait
+for it forever). The reported error is still the one the emulator stops at:
+the lowest-numbered failing work-item of the first failing work-group.
+
+### Semantics and errors
+
+Device code follows Hemlock's rules rather than C's, so results match the
+emulator. This covers type promotion, i32/i64 overflow checks, wrapping
+narrow and unsigned arithmetic, `/` always producing a float, `%` and
+shift-count rules, range-checked conversions, and `switch` value equality.
+A generated differential test (`tests/stdlib_gpu/test_codegen_diff.hml`)
+holds the device and the emulator to this across every operator, type pair
+and conversion.
+
+An error in a kernel (overflow, division by zero, a bad index, a failed
+conversion) stops that work-item. `launch` then throws the error of the
+**lowest-numbered** failing work-item, which is the one the emulator stops
+at, in the same words:
+
+```
+gpu fn 'fill' work-item (0, 0, 0): out[4] is out of bounds (length 2) (line 12)
+```
+
+Differences from the emulator:
+
+- Other work-items still run on the device, so buffer contents after a
+  failed launch differ from the emulator's, which stops at the first error
+- An error's detail value (the bad index, the out-of-range value) is shown
+  when it was captured, and as `?` otherwise. It is captured for the first
+  64 new-lowest errors, which in practice includes the reported one
+- `exp`, `log`, `sin`, `cos` and `pow` may differ in the last bit. They are
+  computed through f64 when the device has fp64, which matches the emulator
+  far more often than single precision
+- Racy kernels (work-items writing the same element) are deterministic only
+  in the emulator
+- Devices that flush denormals to zero can differ on denormal values
+- Barrier divergence is detected by the emulator only; on a device it is
+  undefined behavior
+
+
+--------------------------------------------------------------------------------
+## gpu_emu
+--------------------------------------------------------------------------------
+
+# Hemlock GPU Emulator Module
+
+Runs `gpu fn` kernels on the CPU. You can write, test, and debug kernels
+without a GPU or an OpenCL install, on the interpreter and on `hemlockc`.
+Both backends produce identical results.
+
+## Overview
+
+A `gpu fn` declaration binds a **kernel descriptor**. Its `emulate` field
+holds the kernel lowered to ordinary Hemlock by the frontend. `emulate()`
+runs that function once per work-item over a 1-, 2-, or 3-D range.
+
+This module is pure Hemlock and needs no native libraries.
+
+## Usage
+
+```hemlock
+import { emulate } from "@stdlib/gpu_emu";
+
+gpu fn saxpy(n: u32, a: f32, x: gpu_buffer<f32>, y: gpu_buffer<f32>) {
+    let i: u32 = global_id(0);
+    if (i < n) {
+        y[i] = a * x[i] + y[i];
+    }
+}
+
+let xs = [1, 2, 3, 4];
+let ys = [10, 10, 10, 10];
+emulate(saxpy, [4], null, [u32(4), f32(2.0), xs, ys]);
+print(ys);   // [12, 14, 16, 18]
+```
+
+## API
+
+### `emulate(kernel, global, local, args)`
+Runs `kernel` over an N-D range and returns `null`. Buffers are modified in place.
+
+- `global`: `[x]`, `[x, y]` or `[x, y, z]`, with positive integer work-item counts
+- `local`: a work-group size of the same rank, where each entry must divide the matching `global` entry. Pass `null` for one work-group spanning the whole range. Kernels that use `local_id`, `group_id`, `local_size` or `num_groups` must pass an explicit size, as they must on a device
+- `args`: the kernel arguments in order. Pass a Hemlock array for each `gpu_buffer<T>` parameter, `local_array(count)` for each `gpu_local<T>` parameter, and a scalar of **exactly** the declared type for each scalar parameter
+
+### `local_array(count)`
+Work-group local memory of `count` elements for a `gpu_local<T>` parameter.
+Each work-group gets its own zero-filled array. On a device, local memory
+starts undefined.
+
+### `is_kernel(value): bool`
+`true` if `value` is a `gpu fn` kernel descriptor.
+
+## Semantics
+
+The emulator defines the reference semantics for `gpu fn` kernels. Kernels
+compiled for a device through `@stdlib/gpu` match it, including which work-item
+an error is reported for (see [gpu.md](#stdlib-gpu/semantics-and-errors) for the
+small remaining differences):
+
+| Aspect | Behavior |
+|---|---|
+| Order | Work-items run one at a time: x fastest, then y, then z. Racy kernels are deterministic here, but they will not be on a GPU |
+| Arithmetic | Hemlock rules: i32/i64 overflow throws, unsigned and small types wrap |
+| Buffer access | Bounds-checked. An out-of-bounds index throws, and buffers never grow |
+| Element types | Loads and stores convert to the buffer's declared `T`, like a C store. Stored values become `T` in the array |
+| Scalar args | Must match the parameter type exactly (`f32(2.0)`, not `2.0`). This is the same rule `@stdlib/gpu` enforces for real devices |
+| Errors | The first error stops the launch and is rethrown with its work-item, e.g. `gpu fn 'fill' work-item (0, 0, 0): out[4] is out of bounds (length 2)` |
+| Barriers | Kernels that call `barrier()` run work-group by work-group. Within a group, each work-item runs (one at a time, in local order) up to its next barrier, then the next round starts. Every work-item must reach the same barrier: otherwise the run stops with a barrier divergence error naming the two work-items and where each stopped |
+
+## Kernel Intrinsics
+
+| Intrinsic | Returns |
+|---|---|
+| `global_id(d)`, `local_id(d)`, `group_id(d)` | `u32`. Dimensions past `work_dim()` return 0 |
+| `global_size(d)`, `local_size(d)`, `num_groups(d)` | `u32`. Dimensions past `work_dim()` return 1 |
+| `work_dim()` | `u32` |
+| `min(a, b)`, `max(a, b)`, `abs(x)` | the operand's type |
+| `sqrt`, `floor`, `ceil`, `exp`, `log`, `sin`, `cos` (1 arg), `pow(a, b)` | `f32` for an `f32` argument, otherwise `f64` |
+| `i8()` … `u64()`, `f32()`, `f64()` | explicit conversions |
+| `barrier()` | a statement: waits for the whole work-group |
+
+Barrier kernels run each work-item of a work-group as a task that is resumed
+one at a time, so they are deterministic but slower than kernels without
+barriers, which run as plain loops.
+
+## Testing Kernels Against a Device
+
+The same descriptor runs under `emulate()` and under `@stdlib/gpu`'s
+`ctx.launch`, so a kernel can be checked on real hardware by running both and
+comparing. `tests/stdlib_gpu/diff_harness.hml` does that, including matching
+the errors, and the differential tests next to it use it.
+
+
+--------------------------------------------------------------------------------
 ## hash
 --------------------------------------------------------------------------------
 
@@ -36954,6 +37913,8 @@ print(response.body);
 Perform an HTTP PUT request.
 
 ```hemlock
+import { put } from "@stdlib/http";
+
 let body = '{"name":"Bob"}';
 let response = put("https://api.example.com/users/1", body, null);
 ```
@@ -36963,6 +37924,8 @@ let response = put("https://api.example.com/users/1", body, null);
 Perform an HTTP DELETE request.
 
 ```hemlock
+import { delete } from "@stdlib/http";
+
 let response = delete("https://api.example.com/users/1", null);
 ```
 
@@ -36971,6 +37934,8 @@ let response = delete("https://api.example.com/users/1", null);
 Perform a generic HTTP request with any method.
 
 ```hemlock
+import { request } from "@stdlib/http";
+
 let response = request("PATCH", "https://api.example.com/users/1", '{"name":"Charlie"}', null);
 ```
 
@@ -37295,6 +38260,8 @@ let result3 = await task3;
 This module wraps the curl CLI tool via Hemlock's `exec()` builtin:
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 // Simplified internal implementation
 let cmd = "curl -s -w '\\n%{http_code}' -L -X POST";
 cmd = cmd + " -H 'Content-Type: application/json'";
@@ -37483,6 +38450,7 @@ Fields are separated by newlines, events by double newlines. Lines starting with
 ```hemlock
 import { post_json_stream } from "@stdlib/http";
 import { parse } from "@stdlib/json";
+import { getenv } from "@stdlib/env";
 
 let api_key = getenv("OPENAI_API_KEY");
 
@@ -37827,6 +38795,7 @@ Create a PID file for process identification and single-instance enforcement.
 
 ```hemlock
 import { PidFile } from "@stdlib/ipc";
+import { exit } from "@stdlib/process";
 
 let pf = PidFile("/tmp/myapp.pid");
 
@@ -38006,6 +38975,7 @@ fn consumer() {
 
 ```hemlock
 import { Semaphore } from "@stdlib/ipc";
+import { sleep } from "@stdlib/time";
 
 let pool_size = 3;
 let pool = Semaphore("/tmp/resource_pool", pool_size);
@@ -38029,7 +38999,7 @@ fn use_resource() {
 
 ```hemlock
 import { PidFile } from "@stdlib/ipc";
-import { get_pid } from "@stdlib/process";
+import { get_pid, exit } from "@stdlib/process";
 
 let pid_file = PidFile("/var/run/myapp.pid");
 
@@ -39511,13 +40481,12 @@ try {
 ## Current Limitations
 
 1. **No line numbers in parse errors** - Validation doesn't report exact error location
-3. **No JSON Schema** - Schema validation not yet supported
+3. **JSON Schema** - See `@stdlib/json_schema` for schema validation
 4. **No streaming** - Large files must fit in memory
 
 ## Future Enhancements
 
 Planned additions:
-- JSON Schema validation
 - JSON Patch (RFC 6902)
 - JSON Pointer (RFC 6901)
 - Streaming parser for large files
@@ -39529,6 +40498,633 @@ Planned additions:
 - Built-in `deserialize()` method (CLAUDE.md - Strings section)
 - `@stdlib/fs` - File operations
 - `@stdlib/http` - HTTP requests with JSON
+
+
+--------------------------------------------------------------------------------
+## json_schema
+--------------------------------------------------------------------------------
+
+# JSON Schema Module Documentation
+
+Validates that values match expected shapes defined as JSON Schema objects. Built as a pure Hemlock module on top of `@stdlib/json`. Useful for validating LLM structured output, API responses, configuration files, and user input.
+
+Supports a practical subset of JSON Schema Draft 7: type checking, number/string/array/object constraints, composition (`allOf`/`anyOf`/`oneOf`/`not`), conditional schemas (`if`/`then`/`else`), `enum`, and `const`.
+
+## Import
+
+```hemlock
+import { validate, is_valid } from "@stdlib/json_schema";
+
+// Builder helpers
+import {
+    string_type, number_type, integer_type, boolean_type, null_type,
+    array_type, object_type, nullable, enum_type, const_type,
+    any_of, one_of, all_of, not_schema
+} from "@stdlib/json_schema";
+
+// Utilities
+import { validate_json, format_errors } from "@stdlib/json_schema";
+```
+
+## Quick Start
+
+```hemlock
+import { validate, is_valid, object_type, string_type, integer_type } from "@stdlib/json_schema";
+
+// Define a schema
+let user_schema = object_type(
+    {
+        name: string_type({ minLength: 1 }),
+        age: integer_type({ minimum: 0, maximum: 150 })
+    },
+    ["name", "age"]  // required fields
+);
+
+// Validate data
+let user = { name: "Alice", age: 30 };
+assert(is_valid(user, user_schema));  // true
+
+// Get detailed errors
+let bad = { name: "", age: -1 };
+let result = validate(bad, user_schema);
+// result.valid == false
+// result.errors contains details about each violation
+```
+
+## API Reference
+
+### Core Functions
+
+#### `validate(value, schema)`
+
+Validate a value against a JSON Schema. Returns a result object with all errors.
+
+```hemlock
+let schema = { type: "string", minLength: 3 };
+let result = validate("hi", schema);
+print(result.valid);         // false
+print(result.errors.length); // 1
+print(result.errors[0].path);    // ""
+print(result.errors[0].message); // "string length 2 < minLength 3"
+```
+
+**Parameters:**
+- `value` - Any Hemlock value to validate
+- `schema` - JSON Schema object (or boolean)
+
+**Returns:** `{ valid: bool, errors: array }`
+
+Each error object has:
+- `path` (string) - Dot-notation path to the failing value (e.g., `"users[1].name"`)
+- `message` (string) - Human-readable description of the error
+- `schema_path` (string) - Path within the schema that triggered the error
+
+---
+
+#### `is_valid(value, schema): bool`
+
+Check if a value matches a schema. Returns only a boolean, no error details.
+
+```hemlock
+if (is_valid(data, schema)) {
+    process(data);
+} else {
+    print("Invalid data");
+}
+```
+
+---
+
+#### `validate_json(json_str: string, schema)`
+
+Parse a JSON string and validate the result against a schema. Returns a parse error if the string is not valid JSON.
+
+```hemlock
+let result = validate_json("{\"name\":\"Alice\"}", schema);
+if (!result.valid) {
+    for (err in result.errors) {
+        print(err.message);
+    }
+}
+
+// Invalid JSON
+let bad = validate_json("{bad json", schema);
+// bad.errors[0].message contains "invalid JSON: ..."
+```
+
+---
+
+#### `format_errors(errors: array): string`
+
+Format an array of error objects into a human-readable multi-line string.
+
+```hemlock
+let result = validate(data, schema);
+if (!result.valid) {
+    print(format_errors(result.errors));
+}
+// Output:
+// name: expected type "string", got integer
+// age: value -1 < minimum 0
+```
+
+---
+
+### Schema Builder Helpers
+
+Builder functions create schema objects with less boilerplate. They return plain objects that can be further modified.
+
+#### `string_type(opts?)`
+
+```hemlock
+string_type()                           // { type: "string" }
+string_type({ minLength: 1 })           // { type: "string", minLength: 1 }
+string_type({ maxLength: 100 })         // { type: "string", maxLength: 100 }
+string_type({ minLength: 3, maxLength: 50 })
+```
+
+**Options:** `minLength`, `maxLength`, `enum`
+
+---
+
+#### `number_type(opts?)`
+
+```hemlock
+number_type()                           // { type: "number" }
+number_type({ minimum: 0 })             // { type: "number", minimum: 0 }
+number_type({ minimum: 0, maximum: 1 }) // range [0, 1]
+```
+
+**Options:** `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf`
+
+---
+
+#### `integer_type(opts?)`
+
+Same as `number_type` but requires integer values (no fractional part).
+
+```hemlock
+integer_type()                    // { type: "integer" }
+integer_type({ minimum: 1 })     // positive integers
+```
+
+---
+
+#### `boolean_type()`
+
+```hemlock
+boolean_type()  // { type: "boolean" }
+```
+
+---
+
+#### `null_type()`
+
+```hemlock
+null_type()  // { type: "null" }
+```
+
+---
+
+#### `array_type(item_schema?, opts?)`
+
+```hemlock
+array_type()                                     // { type: "array" }
+array_type(string_type())                        // array of strings
+array_type(integer_type(), { minItems: 1 })      // non-empty array of integers
+array_type(null, { maxItems: 10 })               // any array, max 10 items
+array_type(string_type(), { uniqueItems: true }) // unique strings
+```
+
+**Options:** `minItems`, `maxItems`, `uniqueItems`
+
+---
+
+#### `object_type(properties?, required?, opts?)`
+
+```hemlock
+// Simple object
+object_type()
+
+// Object with typed properties
+object_type({
+    name: string_type(),
+    age: integer_type()
+})
+
+// With required fields
+object_type(
+    { name: string_type(), age: integer_type() },
+    ["name"]
+)
+
+// Strict (no extra properties allowed)
+object_type(
+    { x: number_type(), y: number_type() },
+    ["x", "y"],
+    { additional: false }
+)
+```
+
+**Options:** `additional` (or `additionalProperties`), `minProperties`, `maxProperties`
+
+---
+
+#### `nullable(schema)`
+
+Wraps a schema to also accept `null`.
+
+```hemlock
+nullable(string_type())   // accepts string or null
+nullable(integer_type())  // accepts integer or null
+```
+
+---
+
+#### `enum_type(values: array)`
+
+Value must be one of the listed values.
+
+```hemlock
+enum_type(["red", "green", "blue"])
+enum_type([1, 2, 3])
+enum_type(["active", "inactive", null])
+```
+
+---
+
+#### `const_type(value)`
+
+Value must exactly equal the given value.
+
+```hemlock
+const_type("fixed")
+const_type(42)
+const_type(true)
+```
+
+---
+
+#### `any_of(schemas: array)`
+
+Value must match at least one of the given schemas.
+
+```hemlock
+any_of([string_type(), integer_type()])
+any_of([
+    object_type({ kind: const_type("a") }, ["kind"]),
+    object_type({ kind: const_type("b") }, ["kind"])
+])
+```
+
+---
+
+#### `one_of(schemas: array)`
+
+Value must match exactly one of the given schemas.
+
+```hemlock
+one_of([
+    { type: "integer", minimum: 0 },
+    { type: "string", minLength: 1 }
+])
+```
+
+---
+
+#### `all_of(schemas: array)`
+
+Value must match all of the given schemas.
+
+```hemlock
+all_of([
+    { type: "object", required: ["name"] },
+    { type: "object", required: ["email"] }
+])
+```
+
+---
+
+#### `not_schema(schema)`
+
+Value must NOT match the given schema.
+
+```hemlock
+not_schema(null_type())     // anything except null
+not_schema(string_type())   // anything except string
+```
+
+---
+
+## Schema Language Reference
+
+Schemas are plain Hemlock objects. You can use builder helpers or write them directly.
+
+### Type Checking
+
+```hemlock
+{ type: "string" }
+{ type: "number" }     // any numeric type
+{ type: "integer" }    // integers only (no fractional part)
+{ type: "boolean" }
+{ type: "null" }
+{ type: "array" }
+{ type: "object" }
+
+// Union types
+{ type: ["string", "null"] }          // nullable string
+{ type: ["string", "number"] }        // string or number
+```
+
+### Number Constraints
+
+```hemlock
+{ type: "number", minimum: 0 }                 // >= 0
+{ type: "number", maximum: 100 }                // <= 100
+{ type: "number", exclusiveMinimum: 0 }         // > 0
+{ type: "number", exclusiveMaximum: 100 }       // < 100
+{ type: "integer", multipleOf: 5 }              // 0, 5, 10, ...
+{ type: "number", minimum: 0, maximum: 1 }      // range [0, 1]
+```
+
+### String Constraints
+
+```hemlock
+{ type: "string", minLength: 1 }               // non-empty
+{ type: "string", maxLength: 255 }              // bounded
+{ type: "string", minLength: 3, maxLength: 50 } // range
+```
+
+### Array Constraints
+
+```hemlock
+{ type: "array", items: { type: "string" } }              // array of strings
+{ type: "array", minItems: 1 }                             // non-empty
+{ type: "array", maxItems: 10 }                            // bounded
+{ type: "array", uniqueItems: true }                       // no duplicates
+{ type: "array", items: { type: "integer" }, minItems: 1 } // combined
+```
+
+### Object Constraints
+
+```hemlock
+// Required fields
+{ type: "object", required: ["name", "email"] }
+
+// Property schemas
+{
+    type: "object",
+    properties: {
+        name: { type: "string" },
+        age: { type: "integer", minimum: 0 }
+    }
+}
+
+// No extra properties allowed
+{
+    type: "object",
+    properties: { x: { type: "number" } },
+    additionalProperties: false
+}
+
+// Extra properties must match a schema
+{
+    type: "object",
+    properties: { name: { type: "string" } },
+    additionalProperties: { type: "integer" }
+}
+
+// Object size constraints
+{ type: "object", minProperties: 1, maxProperties: 10 }
+```
+
+### Enum and Const
+
+```hemlock
+// Must be one of listed values
+{ enum: ["draft", "published", "archived"] }
+
+// Must be exactly this value
+{ const: "v1" }
+```
+
+### Composition
+
+```hemlock
+// Must match at least one schema
+{ anyOf: [{ type: "string" }, { type: "null" }] }
+
+// Must match exactly one schema
+{ oneOf: [{ type: "string" }, { type: "integer" }] }
+
+// Must match all schemas
+{ allOf: [
+    { required: ["name"] },
+    { required: ["email"] }
+]}
+
+// Must NOT match the schema
+{ not: { type: "null" } }
+```
+
+### Conditional (if/then/else)
+
+Note: `if`, `then`, `else` are reserved keywords in Hemlock, so schemas using these must be built via `parse()` from `@stdlib/json`.
+
+```hemlock
+import { parse } from "@stdlib/json";
+
+let schema = parse("{\"if\":{\"properties\":{\"kind\":{\"const\":\"email\"}},\"required\":[\"kind\"]},\"then\":{\"required\":[\"address\"]},\"else\":{\"required\":[\"phone\"]}}");
+```
+
+### Boolean Schemas
+
+```hemlock
+true   // allows any value
+false  // rejects all values
+```
+
+---
+
+## Use Cases
+
+### Validating LLM Structured Output
+
+```hemlock
+import { validate, format_errors, object_type, string_type, integer_type, array_type, enum_type } from "@stdlib/json_schema";
+import { parse } from "@stdlib/json";
+
+// Define expected response shape
+let response_schema = object_type(
+    {
+        model: string_type(),
+        choices: array_type(
+            object_type(
+                {
+                    index: integer_type({ minimum: 0 }),
+                    message: object_type(
+                        {
+                            role: enum_type(["assistant", "system", "user"]),
+                            content: string_type({ minLength: 1 })
+                        },
+                        ["role", "content"]
+                    ),
+                    finish_reason: enum_type(["stop", "length", "content_filter"])
+                },
+                ["index", "message", "finish_reason"]
+            ),
+            { minItems: 1 }
+        )
+    },
+    ["model", "choices"]
+);
+
+// Validate LLM response
+let response_json = get_llm_response();
+let result = validate(parse(response_json), response_schema);
+
+if (!result.valid) {
+    print("LLM response doesn't match expected shape:");
+    print(format_errors(result.errors));
+}
+```
+
+### Validating Tool Call Arguments
+
+```hemlock
+import { validate_json, object_type, string_type, number_type, nullable } from "@stdlib/json_schema";
+
+let search_args_schema = object_type(
+    {
+        query: string_type({ minLength: 1, maxLength: 500 }),
+        max_results: integer_type({ minimum: 1, maximum: 100 }),
+        language: nullable(string_type())
+    },
+    ["query"]
+);
+
+fn handle_tool_call(name: string, args_json: string) {
+    if (name == "search") {
+        let result = validate_json(args_json, search_args_schema);
+        if (!result.valid) {
+            throw "Invalid search arguments: " + format_errors(result.errors);
+        }
+        let args = parse(args_json);
+        // ... perform search
+    }
+}
+```
+
+### Validating Configuration
+
+```hemlock
+import { validate, format_errors, object_type, string_type, integer_type, boolean_type, enum_type } from "@stdlib/json_schema";
+import { parse_file } from "@stdlib/json";
+
+let config_schema = object_type(
+    {
+        server: object_type(
+            {
+                host: string_type(),
+                port: integer_type({ minimum: 1, maximum: 65535 })
+            },
+            ["host", "port"]
+        ),
+        database: object_type(
+            {
+                url: string_type({ minLength: 1 }),
+                pool_size: integer_type({ minimum: 1, maximum: 100 })
+            },
+            ["url"]
+        ),
+        log_level: enum_type(["debug", "info", "warn", "error"])
+    },
+    ["server"]
+);
+
+let config = parse_file("config.json");
+let result = validate(config, config_schema);
+if (!result.valid) {
+    eprint("Configuration errors:");
+    eprint(format_errors(result.errors));
+}
+```
+
+---
+
+## Error Path Reporting
+
+Errors include dot-notation paths showing exactly where validation failed:
+
+```hemlock
+let schema = object_type({
+    users: array_type(object_type(
+        { name: string_type(), age: integer_type() },
+        ["name"]
+    ))
+});
+
+let data = { users: [{ name: "Alice" }, { age: 30 }, { name: 42 }] };
+let result = validate(data, schema);
+// Errors:
+// users[1]: missing required property "name"
+// users[2].name: expected type "string", got integer
+```
+
+---
+
+## Supported Schema Keywords
+
+| Keyword | Applies to | Description |
+|---------|-----------|-------------|
+| `type` | any | Type or array of types |
+| `enum` | any | Value must be one of listed values |
+| `const` | any | Value must exactly equal |
+| `minimum` | number | `>=` bound |
+| `maximum` | number | `<=` bound |
+| `exclusiveMinimum` | number | `>` bound |
+| `exclusiveMaximum` | number | `<` bound |
+| `multipleOf` | number | Must be divisible by |
+| `minLength` | string | Minimum character count |
+| `maxLength` | string | Maximum character count |
+| `items` | array | Schema for each element |
+| `minItems` | array | Minimum element count |
+| `maxItems` | array | Maximum element count |
+| `uniqueItems` | array | No duplicate elements |
+| `properties` | object | Schema per property |
+| `required` | object | Required property names |
+| `additionalProperties` | object | `false` or schema for extra properties |
+| `minProperties` | object | Minimum property count |
+| `maxProperties` | object | Maximum property count |
+| `allOf` | any | Must match all schemas |
+| `anyOf` | any | Must match at least one |
+| `oneOf` | any | Must match exactly one |
+| `not` | any | Must NOT match |
+| `if`/`then`/`else` | any | Conditional validation |
+
+`pattern` is checked with `@stdlib/regex`, which is POSIX extended regex rather than the
+ECMA-262 regex JSON Schema specifies. `\d`, `\w`, `\s` and their negations are translated;
+lookaheads, lazy quantifiers and other ECMA-only syntax are not. A pattern that does not
+compile is a validation error. `multipleOf` allows a relative error of 1e-9, so `0.3` is a
+multiple of `0.1`.
+
+## Not Supported
+
+A schema that uses one of these keywords **fails validation** with a
+"not supported" error, rather than passing without being checked:
+
+- `$ref` (so `$defs` / `definitions` are unused)
+- `contains` / `prefixItems` / `additionalItems` (array keywords)
+- `patternProperties` / `propertyNames` (object keywords)
+- `dependencies` / `dependentRequired` / `dependentSchemas`
+
+`format` ("email", "uri", ...) is accepted and ignored: Draft 7 treats it as an annotation
+unless a validator opts in.
+
+## See Also
+
+- `@stdlib/json` - JSON parsing, serialization, path access
+- JSON Schema specification: https://json-schema.org/
 
 
 --------------------------------------------------------------------------------
@@ -42821,7 +44417,7 @@ Check if running on a Unix-like system (Linux or macOS).
 **Returns:** `bool` - `true` if on Linux or macOS, `false` otherwise
 
 ```hemlock
-import { is_unix } from "@stdlib/os";
+import { is_unix, homedir } from "@stdlib/os";
 
 if (is_unix()) {
     // Use Unix-style paths and commands
@@ -43855,6 +45451,8 @@ import * as process from "@stdlib/process";
 Get the current process ID.
 
 ```hemlock
+import { get_pid } from "@stdlib/process";
+
 let pid = get_pid();
 print("Current PID: " + typeof(pid));
 ```
@@ -43864,6 +45462,8 @@ print("Current PID: " + typeof(pid));
 Get the parent process ID.
 
 ```hemlock
+import { getppid } from "@stdlib/process";
+
 let ppid = getppid();
 print("Parent PID: " + typeof(ppid));
 ```
@@ -43873,6 +45473,8 @@ print("Parent PID: " + typeof(ppid));
 Get the real user ID of the current process.
 
 ```hemlock
+import { getuid } from "@stdlib/process";
+
 let uid = getuid();
 print("User ID: " + typeof(uid));
 ```
@@ -43882,6 +45484,8 @@ print("User ID: " + typeof(uid));
 Get the effective user ID of the current process.
 
 ```hemlock
+import { geteuid } from "@stdlib/process";
+
 let euid = geteuid();
 ```
 
@@ -43890,6 +45494,8 @@ let euid = geteuid();
 Get the real group ID of the current process.
 
 ```hemlock
+import { getgid } from "@stdlib/process";
+
 let gid = getgid();
 print("Group ID: " + typeof(gid));
 ```
@@ -43899,6 +45505,8 @@ print("Group ID: " + typeof(gid));
 Get the effective group ID of the current process.
 
 ```hemlock
+import { getegid } from "@stdlib/process";
+
 let egid = getegid();
 ```
 
@@ -43909,6 +45517,8 @@ let egid = getegid();
 Terminate the current process with an optional exit code (default: 0).
 
 ```hemlock
+import { exit } from "@stdlib/process";
+
 // Exit with success
 exit();
 
@@ -43925,6 +45535,8 @@ if (error_occurred) {
 Send a signal to a process.
 
 ```hemlock
+import { kill } from "@stdlib/process";
+
 // Send SIGTERM (15) to process
 kill(target_pid, 15);
 
@@ -43950,6 +45562,8 @@ try {
 Abort the current process, generating a core dump.
 
 ```hemlock
+import { abort } from "@stdlib/process";
+
 if (critical_error) {
     abort();  // Terminates immediately with core dump
 }
@@ -43968,6 +45582,8 @@ Fork the current process, creating a child process.
 - Child's PID in the parent process
 
 ```hemlock
+import { fork, exit, waitpid } from "@stdlib/process";
+
 let pid = fork();
 
 if (pid == 0) {
@@ -43992,6 +45608,8 @@ Wait for any child process to change state.
 - `status` (i32) - Exit status of the child
 
 ```hemlock
+import { wait } from "@stdlib/process";
+
 let result = wait();
 print("Child " + typeof(result.pid) + " exited with status: " + typeof(result.status));
 ```
@@ -44009,6 +45627,8 @@ Wait for a specific child process to change state.
 **Returns:** Same as `wait()`
 
 ```hemlock
+import { fork, exit, waitpid } from "@stdlib/process";
+
 let child_pid = fork();
 
 if (child_pid == 0) {
@@ -44037,6 +45657,8 @@ Execute a shell command and capture its output.
 - `exit_code` (i32) - Command's exit status
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 let result = exec("echo 'Hello World'");
 print(result.output);        // "Hello World\n"
 print(result.exit_code);     // 0
@@ -44070,6 +45692,8 @@ Execute a command without shell interpretation. This is the safe alternative to 
 - `exit_code` (i32) - Command's exit status
 
 ```hemlock
+import { exec_argv } from "@stdlib/process";
+
 // Basic usage
 let result = exec_argv(["ls", "-la", "/tmp"]);
 print(result.output);      // stdout
@@ -44166,6 +45790,8 @@ let status = waitpid(pid, 0);
 ### Check if process exists
 
 ```hemlock
+import { kill } from "@stdlib/process";
+
 fn process_exists(pid: i32) {
     try {
         kill(pid, 0);  // Signal 0 doesn't actually send a signal
@@ -44183,6 +45809,8 @@ if (process_exists(1234)) {
 ### Execute and check success
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 fn exec_success(command: string) {
     let result = exec(command);
     return result.exit_code == 0;
@@ -44196,6 +45824,8 @@ if (exec_success("test -f myfile.txt")) {
 ### Get all process info
 
 ```hemlock
+import { get_pid, getppid, getuid, geteuid, getgid, getegid } from "@stdlib/process";
+
 fn get_process_info() {
     let info = {};
     info.pid = get_pid();
@@ -44215,6 +45845,8 @@ print("UID: " + typeof(info.uid));
 ### Graceful process termination
 
 ```hemlock
+import { kill } from "@stdlib/process";
+
 fn terminate_gracefully(pid: i32) {
     // Try SIGTERM first
     try {
@@ -44250,6 +45882,8 @@ fn terminate_gracefully(pid: i32) {
 The `exec()` function executes commands via the shell, which can be dangerous with untrusted input:
 
 ```hemlock
+import { exec } from "@stdlib/process";
+
 // ❌ UNSAFE - vulnerable to command injection
 let user_input = "file.txt; rm -rf /";
 let result = exec("cat " + user_input);
@@ -44277,6 +45911,8 @@ fn safe_exec(filename: string) {
 Always check if operations succeed:
 
 ```hemlock
+import { kill } from "@stdlib/process";
+
 try {
     kill(target_pid, 15);
     print("Signal sent successfully");
@@ -44290,6 +45926,8 @@ try {
 All functions that can fail throw exceptions:
 
 ```hemlock
+import { exec, kill } from "@stdlib/process";
+
 try {
     let result = exec("nonexistent_command");
 } catch (e) {
@@ -48517,7 +50155,7 @@ The terminal module provides comprehensive terminal control:
 ## Usage
 
 ```hemlock
-import { RED, GREEN, BOLD, clear, color } from "@stdlib/terminal";
+import { RED, GREEN, BOLD, clear, color, RESET } from "@stdlib/terminal";
 
 // Colored text
 print(RED + "Error: Something went wrong" + RESET);
@@ -48544,7 +50182,7 @@ print(term.color("Hello", term.BLUE));
 ### Basic Colors (Foreground)
 
 ```hemlock
-import { BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE } from "@stdlib/terminal";
+import { BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, RESET } from "@stdlib/terminal";
 
 print(RED + "Red text" + RESET);
 print(GREEN + "Green text" + RESET);
@@ -48557,7 +50195,7 @@ Available colors:
 ### Bright Colors (Foreground)
 
 ```hemlock
-import { BRIGHT_RED, BRIGHT_GREEN, BRIGHT_BLUE, GRAY } from "@stdlib/terminal";
+import { BRIGHT_RED, BRIGHT_GREEN, BRIGHT_BLUE, GRAY, RESET } from "@stdlib/terminal";
 
 print(BRIGHT_RED + "Bright red" + RESET);
 print(GRAY + "Gray text" + RESET);
@@ -48569,7 +50207,7 @@ Available bright colors:
 ### Background Colors
 
 ```hemlock
-import { BG_RED, BG_GREEN, BG_BLUE, WHITE } from "@stdlib/terminal";
+import { BG_RED, BG_GREEN, BG_BLUE, WHITE, RESET } from "@stdlib/terminal";
 
 print(WHITE + BG_RED + " Error " + RESET);
 print(WHITE + BG_GREEN + " Success " + RESET);
@@ -48586,7 +50224,7 @@ Available background colors:
 ### Style Constants
 
 ```hemlock
-import { BOLD, ITALIC, UNDERLINE, DIM } from "@stdlib/terminal";
+import { BOLD, ITALIC, UNDERLINE, DIM, RESET } from "@stdlib/terminal";
 
 print(BOLD + "Bold text" + RESET);
 print(ITALIC + "Italic text" + RESET);
@@ -48758,6 +50396,7 @@ Move cursor to absolute position.
 
 ```hemlock
 import { move_to } from "@stdlib/terminal";
+import { exec } from "@stdlib/process";
 
 exec("printf '" + move_to(10, 20) + "Hello'");  // Print at row 10, col 20
 ```
@@ -48772,6 +50411,7 @@ Move cursor relative to current position.
 
 ```hemlock
 import { move_up, move_down, move_left, move_right } from "@stdlib/terminal";
+import { exec } from "@stdlib/process";
 
 // Move cursor up 3 lines
 exec("printf '" + move_up(3) + "'");
@@ -48784,6 +50424,7 @@ exec("printf '" + move_right(5) + "'");
 
 ```hemlock
 import { SAVE_CURSOR, RESTORE_CURSOR } from "@stdlib/terminal";
+import { exec } from "@stdlib/process";
 
 // Save current position
 exec("printf '" + SAVE_CURSOR + "'");
@@ -48804,6 +50445,7 @@ exec("printf '" + RESTORE_CURSOR + "'");
 
 ```hemlock
 import { HIDE_CURSOR, SHOW_CURSOR } from "@stdlib/terminal";
+import { exec } from "@stdlib/process";
 
 // Hide cursor (useful for animations)
 exec("printf '" + HIDE_CURSOR + "'");
@@ -48824,6 +50466,7 @@ exec("printf '" + SHOW_CURSOR + "'");
 
 ```hemlock
 import { CLEAR_SCREEN, CLEAR_TO_END, CLEAR_TO_START } from "@stdlib/terminal";
+import { exec } from "@stdlib/process";
 
 // Clear entire screen
 exec("printf '" + CLEAR_SCREEN + "'");
@@ -48841,6 +50484,7 @@ exec("printf '" + CLEAR_TO_END + "'");
 
 ```hemlock
 import { CLEAR_LINE, CLEAR_LINE_TO_END } from "@stdlib/terminal";
+import { exec } from "@stdlib/process";
 
 // Clear entire line
 exec("printf '\r" + CLEAR_LINE + "'");
@@ -48858,6 +50502,7 @@ exec("printf '" + CLEAR_LINE_TO_END + "'");
 
 ```hemlock
 import { scroll_up, scroll_down } from "@stdlib/terminal";
+import { exec } from "@stdlib/process";
 
 // Scroll entire display up 3 lines
 exec("printf '" + scroll_up(3) + "'");
@@ -48878,7 +50523,7 @@ Get terminal dimensions.
 **Returns:** `object` - `{ rows: i32, cols: i32 }`
 
 ```hemlock
-import { size } from "@stdlib/terminal";
+import { size, print_at } from "@stdlib/terminal";
 
 let dimensions = size();
 print("Terminal size: " + typeof(dimensions.rows) + "x" + typeof(dimensions.cols));
@@ -48994,7 +50639,7 @@ spinner.finish("Done!");
 ### Predefined Spinner Styles
 
 ```hemlock
-import { SPINNER_DOTS, SPINNER_LINE, SPINNER_ARROW } from "@stdlib/terminal";
+import { SPINNER_DOTS, SPINNER_LINE, SPINNER_ARROW, Spinner, SPINNER_CLOCK, SPINNER_BOUNCE } from "@stdlib/terminal";
 
 // Dots spinner (Unicode braille)
 let s1 = Spinner(SPINNER_DOTS());
@@ -49185,6 +50830,7 @@ load_data();
 ```hemlock
 import { clear, move_to, color, GREEN, YELLOW, RED, size } from "@stdlib/terminal";
 import { sleep } from "@stdlib/time";
+import { exec } from "@stdlib/process";
 
 fn dashboard(): null {
     let running = true;
@@ -49314,6 +50960,7 @@ if (supports_color()) {
 
 ```hemlock
 import { HIDE_CURSOR, SHOW_CURSOR, Spinner } from "@stdlib/terminal";
+import { exec } from "@stdlib/process";
 
 exec("printf '" + HIDE_CURSOR + "'");
 let spinner = Spinner();
@@ -49328,6 +50975,7 @@ exec("printf '" + SHOW_CURSOR + "'");
 
 ```hemlock
 import { SAVE_CURSOR, RESTORE_CURSOR } from "@stdlib/terminal";
+import { exec } from "@stdlib/process";
 
 exec("printf '" + SAVE_CURSOR + "'");
 
@@ -52003,6 +53651,7 @@ Generate a UUID v7 (time-ordered, sortable). The first 48 bits encode the Unix t
 
 ```hemlock
 import { v7 } from "@stdlib/uuid";
+import { sleep } from "@stdlib/time";
 
 let id1 = v7();
 sleep(0.001);  // Wait 1ms
@@ -53844,6 +55493,486 @@ for (stage in pipeline["stages"]) {
 ################################################################################
 # 設計と思想
 ################################################################################
+
+--------------------------------------------------------------------------------
+## Gradual Typing Analysis
+--------------------------------------------------------------------------------
+
+# Hemlock and the Gradual Guarantee: A Formal Analysis
+
+**Status:** Research analysis (negative result with witnesses)
+**Re-checked October 2026** against main after #656. Two things changed since this was written:
+
+- B4 no longer holds: a function-signature mismatch is now a catchable exception, so
+  `blame4_exit.hml` prints `caught: Function parameter 1 type mismatch ...`. The
+  uncatchable `exit(1)` row in §5.4 describes the July 2026 interpreter.
+- "Both backends agree" no longer holds for three witnesses. A `hemlockc` build skips
+  checks the interpreter makes: `blame1.hml` prints `oops1 / string`, `blame4_exit.hml`
+  prints `no error` and `blame5_brand.hml` prints `3`.
+
+The other witnesses behave as documented.
+**Question:** Hemlock has optional type annotations enforced statically by `hemlockc` and
+at runtime by the interpreter — a gradual type system. Does it satisfy the
+*gradual guarantee* (Siek, Vitousek, Cimini & Boyland, SNAPL 2015)? Does its runtime
+checking assign *blame* correctly (Wadler & Findler, ESOP 2009: "well-typed programs
+can't be blamed")?
+
+**Answer:** No, and no — both properties fail, each for several independent reasons.
+This document formalizes what Hemlock's annotations actually do, states the two
+criteria precisely, and gives minimal witness programs (all verified against the
+current interpreter and compiler; both backends agree except where noted). It closes
+with a taxonomy of the root causes, separating (a) deliberate design decisions that
+make the *strict* guarantee unattainable for Hemlock, (b) semantic choices that
+violate even a weakened guarantee, and (c) outright inconsistencies that look like
+bugs under any reading.
+
+All witness programs live in `docs/design/gradual-typing/` and are runnable directly:
+
+```bash
+./hemlock docs/design/gradual-typing/gg1_typed.hml
+```
+
+They are deliberately **not** wired into the test suites: several crash by design,
+and one (`blame3_ref.hml`) is accepted by the interpreter but rejected by the static
+checker, so it cannot be a parity test until the divergence is resolved.
+
+---
+
+## 1. The two criteria
+
+### 1.1 The gradual guarantee
+
+Write `e' ⊑ e` when program `e'` is `e` with some type annotations removed
+(`e'` is *less precise*). The gradual guarantee has two halves:
+
+- **Static gradual guarantee (SGG).** If `e` is accepted by the type checker and
+  `e' ⊑ e`, then `e'` is accepted too. Removing annotations never introduces a
+  static error.
+- **Dynamic gradual guarantee (DGG).** If `e ⇓ v` (runs to a value), then `e' ⇓ v'`
+  with `v'` the same value up to precision of type information. Removing annotations
+  never changes a successful result and never introduces a runtime error; the *only*
+  permitted behavioral difference is that the less-precise program may succeed where
+  the more-precise one raised a cast error.
+
+Intuition: annotations may *narrow* what a program accepts, but they must otherwise
+be behaviorally inert. An annotation is a checked assertion, not an operation.
+
+### 1.2 The blame theorem
+
+In a gradual language, a runtime cast failure occurs at a *boundary* between typed
+and untyped code. A blame-tracking semantics labels each boundary and reports, on
+failure, which side supplied the value that broke the contract. The blame theorem
+states that a fully, statically typed region can never be the blamed party: when a
+cast fails, the fault always lies with the less-precisely-typed side. Practically,
+this is what makes gradual types *debuggable*: the error message points at the
+boundary and at the untyped culprit, not at innocent typed code downstream.
+
+---
+
+## 2. What a Hemlock annotation actually does
+
+This section is the formalization. Hemlock annotations appear in five positions,
+and the runtime gives each a semantics via a single function,
+`convert_to_type` (`src/backends/interpreter/types.c:1416`). The compiled backend
+implements the same semantics (verified on all witnesses below); the static checker
+adds a separate layer described in §3.
+
+Let `κ_T(v)` denote `convert_to_type(v, T)`. The crucial fact is:
+
+> **`κ_T` is a *coercion*, not a cast.** It does not merely check `v : T` and pass
+> `v` through or fail — it *constructs a new value of type T from v*, and for
+> aggregates it *mutates v in place*.
+
+Concretely, from the implementation:
+
+| Source → Target | Behavior of `κ_T` | Where |
+|---|---|---|
+| numeric → numeric | converts, with range check; **f64 → int truncates** | `types.c:1726-1825` |
+| numeric/rune → `bool` | truthiness conversion (`3` ⇒ `true`) | `types.c:1827-1836` |
+| numeric/bool/rune → `string` | stringifies (`42` ⇒ `"42"`) | `types.c:1838-1867` |
+| int ↔ `rune` | codepoint conversion | `types.c:1869-1883` |
+| string → numeric/bool | catchable runtime error | `types.c:1674-1689` |
+| array → `array<T>` | **in-place**: brands the array with element type `T` and rewrites every element to `κ_T(elem)` | `types.c:1599-1653` |
+| object → `define`d type | **in-place**: rewrites each declared field to `κ_F(field)`, **inserts missing optional fields** (defaults or `null`), and **stamps the nominal brand** `obj->type_name` | `types.c:1028-1033`, `963-1027`, `1126-1128` |
+| function → `fn(...)  : R` | compares *declared* signatures only (missing annotation = compatible with anything), then returns the function **unwrapped** — no runtime monitoring is installed | `types.c:1429-1499` |
+
+The five annotation positions all invoke `κ`:
+
+1. **`let`/`const` binding** — `κ` at initialization, and the declared type is
+   remembered and re-applied on every reassignment
+   (`src/backends/interpreter/runtime/statements.c:16-27`,
+   `src/backends/interpreter/runtime/expressions.c:239-254`).
+2. **Function parameter** — `κ` on the argument at call time
+   (`src/backends/interpreter/runtime/eval_calls.c:1081-1082`) — **except `ref`
+   parameters, which skip the check entirely** (the `!is_ref_param` guard on that
+   line), and writes through a `ref` also bypass the declared-type re-check
+   (`expressions.c:232-237`).
+3. **Function return type** — `κ` on the returned value in the callee's frame
+   (`eval_calls.c:1157-1162`).
+4. **`define` field types** — `κ` applied when an object is checked against the
+   type, i.e. only at annotation boundaries; field *writes* after the check are
+   unmonitored.
+5. **Typed-array element types** — `κ` at branding; thereafter `push`/`unshift`/
+   `insert` enforce the brand by **exact tag equality, with no coercion**
+   (`src/backends/interpreter/io/array_methods.c:94-127`).
+
+Two consequences of the aggregate cases deserve emphasis, because every deep
+counterexample below flows from them:
+
+- **Annotations are effectful.** `κ` mutates shared state (array elements, object
+  fields, the brand) visible through *other aliases* that never mentioned a type.
+- **Annotations are lossy.** `κ` can change a value (`3.99` ⇒ `3`) without error.
+
+The runtime's *consistency relation* is otherwise the standard gradual one: a
+missing annotation is compatible with everything (`types_compatible`,
+`types.c:806-808`, treats `NULL`/`INFER` as "any"). So Hemlock genuinely has the
+skeleton of a gradual language; the trouble is what happens at the boundaries.
+
+---
+
+## 3. The static gradual guarantee: VIOLATED
+
+**Witness S1** (`sgg1_typed.hml` / `sgg1_untyped.hml`):
+
+```hemlock
+// Accepted: 0 errors            // REJECTED after erasing the annotation:
+let a: array = [1, 2, 3];        let a = [1, 2, 3];
+a = ["x", "y"];                  a = ["x", "y"];
+print(a.length);                 // error: cannot assign 'array<string>' to
+                                 // variable 'a' of type 'array<i32>'
+```
+
+Verified: `hemlock check sgg1_typed.hml` reports 0 errors; erasing `: array`
+produces a type error from both `hemlock check` and `hemlockc`. Both versions run
+identically under the interpreter (which applies no static checks). Removing an
+annotation introduced a static error — a direct SGG violation.
+
+**Root cause.** For an unannotated `let`, the checker does not assign the dynamic
+type; it *infers a rigid type from the initializer*
+(`src/backends/compiler/type_check_stmt.c:343-344`) and then enforces it on every
+assignment (`type_check_expr.c:574-586`). Array literals infer their element type
+from the first element (`type_infer.c:274-281`). So `let a = [1,2,3]` is pinned to
+`array<i32>`, while the *annotated* `let a: array = [1,2,3]` is `array` with no
+element constraint — the annotation is strictly *more permissive* than its own
+erasure. In a language satisfying SGG, erasure must always move toward `any`; here
+inference moves it toward a rigid type instead. (The only escape hatch is
+`let x = null`, which the checker special-cases to dynamic —
+`type_check_expr.c:575-577`.)
+
+This is a general phenomenon, not an array quirk: any position where inference is
+stricter than some legal annotation yields an SGG counterexample. Inference-as-
+pinning and gradual typing are in direct tension unless inferred types are treated
+as *lower bounds subject to widening* (or unless there is an explicit `any`
+annotation, which Hemlock's surface syntax lacks).
+
+A related, smaller gap: the checker validates argument types at *direct* calls
+(`inc(s)` where `fn inc(ref x: i32)` is rejected statically) but not at calls
+through `fn`-typed variables — `let g: fn(i32): i32 = ...; g("hello")` passes
+`hemlock check` with 0 errors. This does not violate SGG by itself, but it means
+the static layer cannot compensate for the runtime gaps in §5.
+
+---
+
+## 4. The dynamic gradual guarantee: VIOLATED
+
+Three independent mechanisms, in increasing order of severity. All verified on both
+backends with identical output.
+
+### 4.1 Ascription changes values (lossy `κ`)
+
+**Witness GG1** (`gg1_typed.hml` / `gg1_untyped.hml`):
+
+```hemlock
+let b: i32 = 3.99;    // b = 3        // erased: b = 3.99
+let c: bool = 3;      // c = true     // erased: c = 3
+let s: string = 42;   // s = "42"     // erased: s = 42 (i32)
+```
+
+Annotated output: `3 / true / 42` with types `i32 / bool / string`. Erased output:
+`3.99 / 3 / 42` with types `f64 / i32 / i32`. No error is involved on either side;
+the results simply differ. DGG requires the results to agree.
+
+### 4.2 Annotation effects are visible through aliases
+
+**Witness GG2** (`gg2_typed.hml` / `gg2_untyped.hml`):
+
+```hemlock
+let a = [1.5, 2.5];
+let b: array<i32> = a;   // in-place: a's own elements become 1, 2 (i32)
+print(a[0]);             // annotated: 1   — erased: 1.5
+```
+
+The annotation on `b` rewrote the array that `a` — a binding in "untyped code" —
+refers to. Action at a distance: the observable behavior of code that mentions no
+types depends on an annotation elsewhere in the program.
+
+### 4.3 Removing an annotation can *introduce* a runtime error
+
+This is the strongest violation: DGG's one permitted asymmetry is that erasure may
+remove errors, never add them. **Witness GG3** (`gg3_typed.hml` / `gg3_untyped.hml`):
+
+```hemlock
+define Person { name: string, age: i32, active?: true }
+let alice = { name: "Alice", age: 30.7 };
+let p: Person = alice;        // ← the only annotation
+print(alice.age);             // annotated: 30 (coerced in place; erased: 30.7)
+print(alice.active);          // annotated: true — the check MATERIALIZED the
+                              //   optional field on the shared object.
+                              // erased: UNCAUGHT EXCEPTION
+                              //   "Object has no field 'active'"
+let category = match (alice) {
+    q: Person => "is Person", // annotated: matches — the check stamped the
+    _ => "not Person"         //   nominal brand obj->type_name = "Person"
+};                            // erased: would print "not Person"
+```
+
+Verified: the annotated program prints `30 / true / is Person / 3` and exits 0; the
+erased program crashes at `alice.active`. Three distinct sub-mechanisms, each
+sufficient for a DGG violation:
+
+1. **Field coercion in place** (`types.c:1031-1032`): `30.7` becomes `30` as seen
+   through `alice`.
+2. **Optional-field materialization** (`types.c:988-1020`): the check *adds*
+   `active: true` to the object; erasure removes the field and turns a working
+   program into a crash. The object's `keys().length` also changes (3 vs 2).
+3. **Nominal branding** (`types.c:1126-1128`): `match` type patterns test the brand,
+   not structure (`src/backends/interpreter/runtime/eval_pattern_match.c:28-37`), so
+   whether *any annotation anywhere* ever touched an object changes which `match`
+   arm runs — even in otherwise untyped code holding an alias.
+
+### 4.4 An inherent obstruction (design, not bug)
+
+Even if every mechanism above were fixed, Hemlock could not satisfy the strict DGG,
+for a principled reason: **numeric types carry semantics**. Width and signedness
+determine overflow behavior, and `typeof`/`typeid` reify tags into observable
+values. **Witness GG4**:
+
+```hemlock
+let a: i64 = 2147483647;
+print(a + 1);            // annotated: 2147483648
+                         // erased: Uncaught "Integer overflow: i32 addition"
+```
+
+The erased program infers `i32` for the literal and i32 addition overflows —
+by documented policy (`docs/language-guide/types.md`). Here the annotation is not
+an assertion about a value; it *selects which arithmetic* the program performs.
+Languages in which annotations select representations (like typed Racket's numeric
+tower or Cython) face the same obstruction; the literature's response is a
+*weakened* guarantee that quotients results by numeric precision. The honest
+statement for Hemlock is therefore:
+
+> Hemlock should target the DGG *modulo type-directed numeric semantics* — i.e.
+> annotations may select width/precision (GG4 is acceptable), but must otherwise be
+> value-preserving and effect-free (GG1–GG3 are not acceptable, weakened or not).
+
+Notably, GG1–GG3 also violate Hemlock's *own* stated philosophy ("explicit over
+implicit"; "no hidden behavior"): a `let x: bool = 3;` that silently manufactures
+`true` is an implicit conversion of exactly the kind the language rejects elsewhere
+(it already refuses implicit `string → i32` on this very ground, telling the user
+to write `i32("...")` — the same argument applies to `bool(3)` and truncation).
+
+---
+
+## 5. Blame: there is no blame — and typed code gets blamed
+
+Hemlock installs **no wrappers and no blame labels**. Function-type "casts" compare
+declared signatures once and then erase (`types.c:1429-1499`); values that cross a
+typed/untyped boundary carry no record of the boundary. The consequences are
+exactly what the blame theorem exists to prevent.
+
+### 5.1 A `fn`-typed binding monitors nothing
+
+**Witness B6** (`b6_fnalias.hml`):
+
+```hemlock
+let g: fn(i32): i32 = fn(x) { return x; };   // accepted: unannotated ≈ any
+let r = g("hello");
+print(r);          // "hello"
+print(typeof(r));  // string  — from a binding whose type says i32 → i32
+```
+
+No error, ever (and `hemlock check` is also silent, §3). The annotation on `g` is
+purely declarative. In cast-calculus terms, Hemlock implements the *erasure*
+semantics for higher-order casts — the semantics the blame literature uses as the
+counterpoint that satisfies nothing.
+
+### 5.2 When the failure does surface, the typed side is blamed
+
+**Witness B1** (`blame1.hml`):
+
+```hemlock
+fn applyf(f: fn(i32): i32, x: i32): i32 {
+    return f(x) + 1;      // typed code, provably type-correct
+}
+let untyped = fn(x) { return "oops"; };
+let r = applyf(untyped, 5);
+```
+
+Under Wadler–Findler, the cast `fn(i32):i32 ⇐ dyn` on `untyped` gets a negative
+blame label; when `untyped` returns a string, blame falls on `untyped`. What
+Hemlock actually reports:
+
+```
+Uncaught exception: Cannot convert string to i32 via type annotation. Use i32("...") instead.
+Stack trace (most recent call first):
+  #0  applyf (blame1.hml:5)
+```
+
+Sequence of events: the boundary check passed (unannotated params ≈ any);
+`f(x)` returned `"oops"` unchecked; typed code then computed `"oops" + 1 = "oops1"`
+(string concatenation) — **the ill-typed value was already used, and corrupted, by
+typed code before any check fired**; finally `applyf`'s *return* coercion failed.
+The report names only the well-typed function and even suggests editing it
+(`Use i32("...")`). The untyped culprit appears nowhere. Witness B2
+(`blame2.hml`) shows the same failure surfacing at a `let x: i32 = call_it(liar);`
+binding — again a site in typed code, arbitrarily far from the lie.
+
+This is a precise counterexample to "well-typed programs can't be blamed": the
+blamed frame is statically well-typed under Hemlock's own checker.
+
+### 5.3 `ref` parameters: unsoundness with no error at all
+
+**Witness B3** (`blame3_ref.hml`):
+
+```hemlock
+fn inc(ref x: i32) { x = x + 1; }
+let s = "hi";
+inc(s);
+print(s);          // "hi1"  (string!) — no error, annotation silently ignored
+```
+
+`ref` parameters skip the boundary coercion (`eval_calls.c:1081`) *and* writes
+through the reference skip the declared-type re-check (`expressions.c:232-237`).
+Typed code computed on a string under an `i32` annotation and wrote the corrupted
+value back into the caller — silently. There is no cast to fail, hence nothing to
+blame. (The static checker *does* reject this program at a direct call site, so the
+interpreter and `hemlockc` disagree about whether it is a program — itself a
+parity-adjacent divergence.)
+
+### 5.4 Inconsistent failure discipline
+
+Cast failures currently land in three different regimes:
+
+| Failure | Discipline | Location info | Witness |
+|---|---|---|---|
+| scalar coercion failure (e.g. string→i32) | catchable exception | file/line when context available | B8 (`b8_argblame.hml`) |
+| typed-array `push` violation | catchable exception | none | B5 |
+| function-signature, enum, object-shape mismatch | `fprintf` + `exit(1)` — **uncatchable**, bypasses `try`/`defer` | none | B4 (`blame4_exit.hml`) |
+
+B4 verified: the `catch` block never runs; the process exits from inside
+`convert_to_type` (`types.c:1435-1498` and the object/enum paths use
+`exit(1)` directly). A language whose selling point is that errors are explicit
+and catchable (`try`/`catch`, catchable overflow) hard-exits on a type boundary
+depending on *which kind* of type is involved.
+
+### 5.5 Brand-time coercion vs. use-time exact match
+
+**Witness B5** (`blame5_brand.hml`):
+
+```hemlock
+fn setup(arr: array<i64>) { }   // parameter annotation brands caller's array
+let a = [1, 2];                 // i32 elements — coerced to i64 by the brand
+setup(a);
+a.push(3);                      // FAILS: push requires exact i64 tag; 3 is i32
+```
+
+At branding time, `κ` happily coerces `i32 → i64`; at use time,
+`check_array_element_type_for_method` demands exact tag equality
+(`array_methods.c:102-124`). The same value is acceptable or fatal depending on
+which code path checks it, and the error (`"Type mismatch in typed array"`) carries
+no location and no mention of which annotation created the constraint — the
+constraint was installed by a callee the caller may not even source-control. This is
+the one case where blame lands on the untyped side, but for the wrong reason and
+with no way to trace it.
+
+### 5.6 Where blame is (approximately) right
+
+For completeness: first-order, non-`ref` parameter and return annotations behave
+like a *transient* (Vitousek-style) check done shallowly — the check fires at the
+boundary, is catchable, and when the bad value comes directly from the caller the
+error surfaces at the call, which is the correct party (Witness B8). Assignment to
+an annotated variable is likewise re-checked (`expressions.c:239-254`). The failures
+above are therefore not "no checking anywhere" — they are specifically: aggregates
+(effectful, §4), higher-order (erased, §5.1–5.2), `ref` (absent, §5.3), and the
+error-discipline split (§5.4).
+
+---
+
+## 6. Taxonomy and repair options
+
+**(a) Inherent to Hemlock's design — keep, and weaken the criterion.**
+Type-directed numeric semantics (GG4) and reified tags (`typeof`). Adopt the DGG
+*modulo numeric precision* as Hemlock's official target; document it.
+
+**(b) Semantic choices that violate even the weakened guarantee — change semantics.**
+
+1. **Make ascription a check, not a conversion, for non-numeric targets.** The
+   precedent already exists: string→numeric is refused with "use `i32("...")`".
+   Apply the same rule to numeric→bool, numeric→string, int↔rune, and float→int
+   truncation at annotation boundaries. (Numeric width conversions can stay, per (a),
+   though float→int truncation is hard to defend as "width selection".)
+2. **Stop mutating aggregates at checks.** Array branding should validate elements
+   without rewriting them (or brands should be per-*binding* views, not stamps on
+   the shared heap object); object checks should not insert optional fields into the
+   checked object and should not let a brand affect `match` in code that never
+   asserted the type. If branding must stay, `match` type patterns should fall back
+   to structural checking so behavior does not depend on annotation history.
+3. **Fix inference-as-pinning** (SGG): treat inferred types as widenable, or widen
+   the inferred type to `array` / dynamic on conflicting assignment, or introduce an
+   explicit `any` so users can at least write the dynamic type the checker already
+   has internally (`CHECKED_ANY`).
+
+**(c) Inconsistencies that are bugs under any reading — fix.**
+
+4. **`ref` parameters must check** at the boundary and on write-back
+   (`eval_calls.c:1081`, `expressions.c:232-237`) — or the manual should state that
+   `ref` erases annotations. Interpreter and static checker must agree.
+5. **Unify failure discipline**: every boundary failure should be a catchable
+   runtime error with file/line (replace the `exit(1)` paths in
+   `convert_to_type` / `check_object_type` with `runtime_error`).
+6. **Align brand-time and use-time element checks** (coerce in both places or
+   exact-match in both; today's mix makes annotated arrays reject values the
+   annotation itself accepted).
+
+**Toward blame.** Full Wadler–Findler wrappers contradict Hemlock's "no hidden
+behavior" stance (proxies are hidden allocation and indirection) and are not
+recommended. A Hemlock-flavored alternative is *transient blame*: keep shallow
+checks, but (i) check function results at the *call site* of any call through a
+`fn`-typed binding or parameter (one tag check, no wrapper), and (ii) attach to
+every boundary error the source location of the *annotation* that installed the
+constraint alongside the location where the value tripped it. That is enough to
+restore the practical content of the blame theorem — errors point at boundaries,
+never at the interior of well-typed code — at the cost of one tag check per
+boundary crossing, with zero heap machinery. Vitousek et al. (POPL 2017) prove the
+corresponding theorem ("open-world soundness") for exactly this class of designs,
+so the proof technique is off the shelf once §6(b) makes annotations effect-free.
+
+---
+
+## 7. Summary
+
+| Property | Verdict | Independent causes |
+|---|---|---|
+| Static gradual guarantee | **Violated** | inference pins unannotated bindings to rigid types (no `any`) |
+| Dynamic gradual guarantee | **Violated** | lossy ascription; effectful checks on shared aggregates (in-place coercion, field materialization, nominal brand + `match`); plus an inherent numeric-semantics obstruction that warrants a weakened criterion |
+| Blame theorem | **Fails** | higher-order casts erased (no monitoring); failures surface inside and are attributed to well-typed code; `ref` params unchecked; three inconsistent failure disciplines, one uncatchable |
+
+The failures are not exotic corner cases; each witness is a handful of lines of
+idiomatic Hemlock. The encouraging part of the result: the *first-order, non-`ref`,
+scalar* fragment of Hemlock already behaves like a correct transient gradual
+system, and the fixes in §6(b)/(c) are local to `convert_to_type` and its call
+sites — after which a formal proof of the weakened DGG and a transient blame
+theorem for Hemlock look tractable with existing techniques.
+
+## References
+
+- J. Siek, M. Vitousek, M. Cimini, J. T. Boyland. *Refined Criteria for Gradual
+  Typing.* SNAPL 2015. (The gradual guarantee.)
+- P. Wadler, R. B. Findler. *Well-Typed Programs Can't Be Blamed.* ESOP 2009.
+- M. Vitousek, C. Swords, J. Siek. *Big Types in Little Runtime: Open-World
+  Soundness and Collaborative Blame for Gradual Type Systems.* POPL 2017.
+  (Transient checks; the model closest to Hemlock's first-order fragment.)
+
 
 --------------------------------------------------------------------------------
 ## Memory Safety Model
