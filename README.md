@@ -4,7 +4,7 @@ Documentation site for the [Hemlock](https://github.com/hemlang/hemlock) program
 
 ## How It Works
 
-This repo builds a single-file HTML documentation viewer from the markdown files in the hemlock and hpm submodules. The generated `docs.html` is deployed to GitHub Pages automatically.
+This repo builds a single-file HTML documentation viewer from the markdown files in the hemlock and hpm submodules. The generated `docs*.html` and `llms*.txt` files are served at [hemlang.dev](https://hemlang.dev) by the documentation server.
 
 It also includes a standalone documentation server built with [Sprout](https://github.com/hemlang/sprout), allowing you to serve the docs locally or deploy them anywhere.
 
@@ -165,7 +165,7 @@ hem-doc/
 ├── llms.txt               # LLM-friendly plain text (English)
 ├── llms-*.txt             # LLM-friendly plain text (other languages)
 └── .github/workflows/
-    ├── build-docs.yml     # Builds and deploys to GitHub Pages
+    ├── build-docs.yml     # Builds all languages and checks links
     └── sync-submodule.yml # Daily sync of submodules
 ```
 
@@ -185,5 +185,5 @@ hem-doc/
 
 ## CI/CD
 
-- **build-docs.yml**: Builds and deploys documentation to GitHub Pages on push to main
+- **build-docs.yml**: Builds all languages and checks pages/links on pushes and PRs to main (the site itself is served from a VPS, not GitHub Pages)
 - **sync-submodule.yml**: Automatically updates the hemlock and hpm submodules daily and on-demand
