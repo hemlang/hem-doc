@@ -260,9 +260,9 @@ describe("llms routes", fn() {
         }
     });
 
-    test("keeps the existing content type (Sprout maps \"text\" to octet-stream)", fn() {
+    test("serves llms as text/plain (Sprout >= 1.0.3)", fn() {
         let app = create_app(full_content(), STARTED_AT);
-        expect(get(app, "/llms.txt").headers["content-type"]).to_equal("application/octet-stream");
+        expect(get(app, "/llms.txt").headers["content-type"]).to_equal("text/plain; charset=utf-8");
     });
 
     test("missing language llms falls back to English", fn() {

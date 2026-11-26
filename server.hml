@@ -215,8 +215,8 @@ export fn head_aware(handler) {
 // Handlers
 // ============================================================================
 
-// Note: res.type("text") resolves to application/octet-stream in Sprout. The
-// llms routes have always been served that way, so it is kept as-is here.
+// res.type("text") is text/plain; charset=utf-8 as of Sprout 1.0.3 (earlier
+// versions mapped it to application/octet-stream, so browsers downloaded llms.txt).
 
 fn make_docs_handler(content, lang) {
     return fn(req, res, next) {
